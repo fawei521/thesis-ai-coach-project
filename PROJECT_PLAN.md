@@ -324,9 +324,10 @@
 - **v1.14** ✅ 人口学差异分析：
   - 自动识别人口学分组列，2组独立样本 t＋Cohen's d，3组及以上单因素 ANOVA＋η²＋Bonferroni 事后，导出 `_差异分析.csv`
   - t/F/d/η² 经 scipy 黄金对照；演示数据补性别/年级列（独立随机，不改变既有基准）
-- **v1.15** ✅ 调节效应（PROCESS模型1，当前）：
+- **v1.15** ✅ 调节效应（PROCESS模型1）：
   - `--moderator W`：X/W 中心化＋交互项回归，W 均值±1SD 简单斜率（解析SE＋Bootstrap CI），导出 `_调节效应.csv`
   - 系数/简单斜率SE经 numpy 黄金对照；以 Bootstrap CI 为准、解析p与CI冲突标"边缘"不夸大
+- **v1.16** ✅ 共线性诊断（当前）：多元回归输出容差/VIF（<5/5–10/≥10判读），经 numpy 黄金对照，中介多预测变量前先查共线性
 - **v2.0**（远期）：本地知识库向量检索、实验/质性研究支持、多学科扩展
 - **v3.0**（远期）：网页应用、社区化
 
@@ -336,7 +337,7 @@
 |---|---|---|
 | wjx_preprocess.py | 问卷星原始答卷→标准数字表（编码/用时/文本选项/列映射报告） | 标准库 |
 | data_cleaner.py | 无效问卷检测（用时过短/规律作答/全同） | 标准库 |
-| auto_stats.py | 人口学频数、反向计分、α+逐题CITC/删题α题项分析表、结构效度(KMO/Bartlett/载荷)、`--efa`完整探索性因子分析(多因子+Varimax+Horn平行分析+自动碎石图)、Harman、量表总分、描述统计(偏度/峰度正态性)、M/SD/相关/α对角整合三线表、人口学差异(独立样本t/单因素ANOVA+d/η²+Bonferroni事后)、回归、Bootstrap中介模型4/6、调节效应模型1(中心化交互项+±1SD简单斜率+Bootstrap CI) | 标准库（碎石图可选matplotlib，缺失自动降级） |
+| auto_stats.py | 人口学频数、反向计分、α+逐题CITC/删题α题项分析表、结构效度(KMO/Bartlett/载荷)、`--efa`完整探索性因子分析(多因子+Varimax+Horn平行分析+自动碎石图)、Harman、量表总分、描述统计(偏度/峰度正态性)、M/SD/相关/α对角整合三线表、人口学差异(独立样本t/单因素ANOVA+d/η²+Bonferroni事后)、多元回归(含容差/VIF共线性诊断)、Bootstrap中介模型4/6、调节效应模型1(中心化交互项+±1SD简单斜率+Bootstrap CI) | 标准库（碎石图可选matplotlib，缺失自动降级） |
 | generate_demo_data.py | 生成内置链式中介的可复现模拟数据供练手（严禁写进论文） | 标准库 |
 | paper_search.py | 英文学术文献检索（OpenAlex/Semantic Scholar，免费无key） | 标准库+联网 |
 | literature_organizer.py | 文献去重、分类、导出 | 标准库 |

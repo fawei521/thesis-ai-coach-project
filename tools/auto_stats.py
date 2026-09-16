@@ -1219,8 +1219,32 @@ def correlation_matrix(matrix, num_cols, max_cols=15):
     return results
 
 
+def _vif(cases_x):
+    """方差膨胀因子：对每个预测变量，用其余预测变量回归它，VIF=1/(1-R²)。
+    返回与列等长的 VIF 列表；单预测变量返回 [1.0]，奇异返回 None。"""
+    k = len(cases_x[0])
+    if k <= 1:
+        return [1.0]
+    out = []
+    for j in range(k):
+        others = [c for c in range(k) if c != j]
+        D = [[1.0] + [r[c] for c in others] for r in cases_x]
+        yv = [r[j] for r in cases_x]
+        b = solve_least_squares(D, yv)
+        if b is None:
+            out.append(None)
+            continue
+        yh = [sum(b[a] * D[i][a] for a in range(len(b))) for i in range(len(yv))]
+        ym = mean(yv)
+        ss_res = sum((yv[i] - yh[i]) ** 2 for i in range(len(yv)))
+        ss_tot = sum((v - ym) ** 2 for v in yv)
+        r2 = 1 - ss_res / ss_tot if ss_tot > 0 else 0
+        out.append(float("inf") if r2 >= 1 else 1.0 / (1 - r2))
+    return out
+
+
 def linear_regression(matrix, x_cols, y_col):
-    """多元线性回归（最小二乘），输出β、SE、t、p、R²"""
+    """多元线性回归（最小二乘），输出β、SE、t、p、R²与共线性诊断(VIF)"""
     # 构建完整数据（列表删除缺失）
     all_cols = x_cols + [y_col]
     cases = []
@@ -1295,8 +1319,30 @@ def linear_regression(matrix, x_cols, y_col):
     # F的p值用beta函数
     f_p = f_p_value(f, k, n - k - 1)
     print(f"\n整体模型：F({k},{n - k - 1}) = {f:.3f}, p = {fmt_p(f_p)}{sig_mark(f_p)}")
+
+    vif_map = {}
+    if k >= 2:
+        vifs = _vif([r[:k] for r in cases])
+        print("\n共线性诊断（VIF/容差）：")
+        print(f"{'预测变量':<14}{'容差':>8}{'VIF':>8}  判读")
+        print("-" * 50)
+        for j in range(k):
+            v = vifs[j]
+            if v is None:
+                print(f"{x_cols[j]:<14}{'—':>8}{'—':>8}  无法计算（变量冗余）")
+                continue
+            tol = 1.0 / v if v and v != float("inf") else 0.0
+            if v >= 10:
+                tag = "✗ 严重多重共线性（VIF≥10），建议删除/合并或岭回归"
+            elif v >= 5:
+                tag = "⚠ 存在共线性（5≤VIF<10），需关注"
+            else:
+                tag = "正常（VIF<5）"
+            vstr = "∞" if v == float("inf") else f"{v:.2f}"
+            print(f"{x_cols[j]:<14}{tol:>8.3f}{vstr:>8}  {tag}")
+            vif_map[x_cols[j]] = None if v == float("inf") else round(v, 2)
     return {"R2": round(r2, 3), "调整R2": round(adj_r2, 3),
-            "F": round(f, 3), "p": fmt_p(f_p), "系数": result_rows}
+            "F": round(f, 3), "p": fmt_p(f_p), "系数": result_rows, "VIF": vif_map}
 
 
 def moderation_analysis(matrix, x_col, w_col, y_col, reps=5000,

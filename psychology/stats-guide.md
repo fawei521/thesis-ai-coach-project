@@ -168,6 +168,12 @@ python tools/auto_stats.py 数据.csv --scales scales.txt --efa 我的新量表,
 
 ## 六、中介效应检验（PROCESS宏）
 
+### 前置：多重共线性诊断（VIF）
+多元回归、中介（X 与多个 M 同时进入方程）前应先查共线性，避免系数不稳、符号反常。
+- **脚本自动**：`auto_stats.py ... --x "X,M1,M2" --y Y` 的回归结果含每个预测变量的**容差**与 **VIF**（经 numpy 黄金对照）
+- 判读：VIF<5 正常；5≤VIF<10 需关注；**VIF≥10（容差<0.1）为严重多重共线性**，应删除冗余变量、合并高度相关量表，或改用岭回归/分层回归
+- SPSS：分析 → 回归 → 线性 → 统计 → 勾选"共线性诊断"，看容差与 VIF
+
 ### 安装PROCESS
 1. 下载PROCESS宏（hayesprocess.com，免费）
 2. SPSS → 实用程序 → 安装自定义对话框
