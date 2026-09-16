@@ -387,7 +387,9 @@ python tools/auto_stats.py tests/test-data/efa3f_survey.csv --scales tests/test-
 
 ## 测试24：文档↔代码一致性自检（v1.25 起，v1.26 增文档导航，v1.28 增工作区路径）
 
-**命令**：`python tests/consistency_check.py`
+**命令**：`python tests/consistency_check.py
+# 9 多选/填空/哑变量列健壮性（合成数据，退出码必须为0）
+python tests/test_special_columns.py`
 
 **预期**：退出码 0，打印"全部一致，未发现漂移"。脚本用 AST 解析 tools 下每个工具真实的 argparse 长开关、正则抓取其写出的中文报告 csv，交叉核对全部 Markdown：
 - 文档显式引用的工具脚本路径、命令行里出现的脚本（含 tests/ 下与裸调用，用词边界避免把官网域名里的片段误切成脚本名）必须真实存在；
@@ -417,6 +419,18 @@ python tools/auto_stats.py tests/test-data/efa3f_survey.csv --scales tests/test-
 
 ---
 
+## 测试26：问卷星多选题/填空题/哑变量列健壮性（v1.30）
+
+学生问卷常含多选题（问卷星默认一列用 `┋` 分隔，或"按选项拆分"成多个 0/1 哑变量列）、开放填空题、固定选项但无法自动识别的单选题（如年级）。这些列若被误当作 Likert 作答题，会污染信度、量表总分与清洗的长直线/低变异判定。运行 `python tests/test_special_columns.py`（合成数据，自清临时文件）：
+
+- 已预处理数字表（10 道 Likert＋性别/年级文本＋两个 0/1 多选哑变量＋开放填空＋用时）：无 scales 兜底时 `guess_response_cols` 只返回 10 道 Likert 列，排除纯 0/1 哑变量与所有文本列；`detect_invalid` 只抓预设的长直线无效卷（约 55/60，±2），不被哑变量污染；强行纳入哑变量不会得到更优结果。
+- 问卷星原始表（含 `┋` 多选列、开放填空、性别、年级）：`wjx_preprocess.py` 跑通，列映射报告把多选/开放题单列为"不要编码进量表、scales.txt 勿列入"，把年级等固定选项单选列入"需人工编码"，控制台同步提示。
+- 回归：demo 数据无 scales 兜底仍正确识别全部 18 道量表题（人口学文本列排除、不漏题）；带 scales 走精确通道，清洗 200→192 基准不变。
+
+**通过标准**：脚本退出码 0、全部断言 PASS；多选/填空绝不进入量表，需人工编码的单选不被漏报。
+
+---
+
 # 脚本回归测试清单（每次改动后执行）
 
 在项目根目录（PowerShell）逐条运行，全部通过才算合格：
@@ -443,5 +457,5 @@ python tools\menu.py
 python tests\consistency_check.py
 ```
 
-测试结束后删除 `_t_*` 临时文件和 `tests/test-data/_demo_check` 目录。所有脚本只用Python标准库（模型图需matplotlib），
+测试结束后删除 `_t_*` 临时文件和 `tests/test-data/_demo_check` 目录。（test_special_columns.py 会自清其 `_special*` 临时文件）所有脚本只用Python标准库（模型图需matplotlib），
 统计数字以SPSS/JASP为准，脚本用于快速预览和教学。

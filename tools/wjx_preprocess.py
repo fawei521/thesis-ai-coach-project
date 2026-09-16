@@ -208,6 +208,48 @@ def build_option_map(distinct_texts):
     return {}, "无法自动识别（保留文本，需人工处理）", "请人工建立选项->数字映射，或在问卷星导出时选择'按选项序号'"
 
 
+# 多选题选项分隔符（问卷星默认 ┋；也兼容 | ， , ； ; 、 /）
+_MULTI_SEP = ["┋", "|", "；", ";", "，", ",", "、", "/"]
+
+
+def detect_special_column(header_text, col_values):
+    """
+    识别无法直接编码的特殊题型，返回 'multi'（多选题）/ 'open'（填空/开放题）/ None（普通单选需编码）。
+    - 多选题：表头含"哪些/多选/___"，或足够比例的答案含选项分隔符且能拆成多个短选项；
+      问卷星"按选项拆分"导出的 0/1 哑变量列在 data_cleaner 端按列名与取值排除。
+    - 开放填空题：文本、去重取值比例高或平均字数长（答案因人而异）。
+    """
+    h = header_text or ""
+    vals = [normalize_option(v) for v in col_values if str(v).strip() != ""]
+    if not vals:
+        return None
+
+    # 1) 表头显式多选标志
+    if any(k in h for k in ["哪些", "多选", "可多选", "___", "__"]):
+        return "multi"
+
+    # 2) 答案中普遍含多选分隔符
+    def split_multi(s):
+        for sep in _MULTI_SEP:
+            if sep in s:
+                parts = [p.strip() for p in s.split(sep) if p.strip()]
+                # 至少两段、每段较短（选项而非长句）才算多选
+                if len(parts) >= 2 and all(len(p) <= 10 for p in parts):
+                    return parts
+        return None
+
+    multi_hits = sum(1 for v in vals if split_multi(v))
+    if multi_hits / len(vals) >= 0.3:
+        return "multi"
+
+    # 3) 开放填空：去重比例高 或 平均字数明显偏长
+    uniq = set(vals)
+    avg_len = sum(len(v) for v in vals) / len(vals)
+    if (len(uniq) / len(vals) >= 0.5 and avg_len >= 4) or avg_len >= 8:
+        return "open"
+    return None
+
+
 # ---------- 5. 主流程 ----------
 
 def main():
@@ -319,14 +361,20 @@ def main():
         w.writerow(new_headers)
         w.writerows(converted_rows)
 
-    # 分类：真正无法识别的 vs 预期保留文本的人口学列
+    # 分类：人口学列 / 多选题·开放填空题（不编码进量表）/ 真正需要人工编码的单选题
     unrecognized = []
     demographic = []
+    special = []  # (qname, orig, kind, distinct)
     for (qname, j, opt_map, ladder_name, note, distinct) in q_items:
         if opt_map:
             continue
         if ladder_name.startswith("人口学"):
             demographic.append((qname, headers[j].strip(), distinct))
+            continue
+        col_vals = [row[j] if j < len(row) else "" for row in data]
+        kind = detect_special_column(headers[j].strip(), col_vals)
+        if kind in ("multi", "open"):
+            special.append((qname, headers[j].strip(), kind, distinct))
         else:
             unrecognized.append((qname, headers[j].strip(), distinct))
 
@@ -367,18 +415,35 @@ def main():
         else:
             f.write("  无\n")
 
-        f.write("\n四、需要你人工处理的列（未能自动转数字）\n")
+        f.write("\n四、多选题与开放填空题（保留原文，不要编码进量表）\n")
+        f.write("-" * 64 + "\n")
+        if special:
+            for (qname, orig, kind, distinct) in special:
+                kind_cn = "多选题" if kind == "multi" else "开放填空题"
+                f.write(f"  {qname}【{kind_cn}】：{orig[:40]}\n")
+                if kind == "multi":
+                    f.write(f"     示例：{ '、'.join(distinct[:6]) }\n")
+            f.write("\n处理方式：\n")
+            f.write("  · 这些题不是 Likert 量表题，写 scales.txt 时【不要】列入，否则信度/总分会错；\n")
+            f.write("  · 多选题：在问卷星可直接看各选项的选择人数与百分比，写进论文描述统计；\n")
+            f.write("    若要做交叉分析，在问卷星导出时选『按选项拆分』成多个 0/1 列，清洗器会自动识别并排除；\n")
+            f.write("  · 开放填空题：做归类/词频或引用典型回答，不参与数值统计。\n")
+        else:
+            f.write("  无\n")
+
+        f.write("\n五、需要你人工编码的单选题（未能自动转数字）\n")
         f.write("-" * 64 + "\n")
         if unrecognized:
             for (qname, orig, distinct) in unrecognized:
                 f.write(f"  {qname}：{orig[:40]}\n")
                 f.write(f"     选项：{ '、'.join(distinct[:20]) }\n")
-            f.write("\n请在问卷星重新导出时选择『按选项序号下载』，")
-            f.write("或在AI/统计软件里手动指定这些列的编码（如大一=1、大二=2…）。\n")
+            f.write("\n这些一般是有固定选项但措辞无法自动识别的单选题（如年级、专业类别）。\n")
+            f.write("请在问卷星重新导出时选择『按选项序号下载』，")
+            f.write("或在AI/统计软件里手动指定编码（如大一=1、大二=2…）。\n")
         else:
-            f.write("  无。所有量表题目列均已成功转为数字。\n")
+            f.write("  无。所有量表单选题均已成功转为数字。\n")
 
-        f.write("\n五、重要提醒\n")
+        f.write("\n六、重要提醒\n")
         f.write("  1. 本工具只转格式，没有删除任何答卷、没有改变任何答案高低含义。\n")
         f.write("  2. 反向题不会在这里自动反转，请在统计阶段统一做反向计分。\n")
         f.write("  3. 请抽查3-5份原始答卷与转换结果，确认编码无误后再清洗、统计。\n")
@@ -391,12 +456,16 @@ def main():
     if demographic:
         print(f"人口学分类列（保留文字，正常）：{len(demographic)} 个 -> "
               f"{', '.join(q for q, _, _ in demographic)}")
+    if special:
+        print(f"\n○ 识别到 {len(special)} 个多选/开放填空题（已保留原文，不进量表，写 scales.txt 时请勿列入）：")
+        for (qname, orig, kind, _) in special:
+            print(f"   {qname}【{'多选' if kind=='multi' else '开放填空'}】 {orig[:28]}")
     if unrecognized:
-        print(f"\n⚠ 有 {len(unrecognized)} 个题目列无法自动转数字，请打开列映射报告查看并人工处理：")
+        print(f"\n⚠ 有 {len(unrecognized)} 个单选题无法自动转数字，请打开列映射报告查看并人工编码：")
         for (qname, orig, _) in unrecognized:
             print(f"   {qname}  {orig[:30]}")
     else:
-        print("\n所有量表题目列均已转为数字。请打开《列映射报告》核对编码方向，抽查无误后继续。")
+        print("\n所有量表单选题均已转为数字。请打开《列映射报告》核对编码方向，抽查无误后继续。")
     print("\n下一步：")
     print("  1) 打开列映射报告核对（重点：非常不同意=1，非常同意=5）")
     print("  2) python tools/data_cleaner.py " + str(out_path.name))

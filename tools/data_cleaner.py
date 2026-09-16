@@ -19,6 +19,8 @@ _NON_RESPONSE_KEYWORDS = [
     "性别", "年级", "年龄", "生源", "独生", "专业", "学历", "收入", "地区",
     "民族", "政治", "宗教", "恋爱", "是否", "来源", "渠道", "提交", "作答",
     "注意力", "检查题", "请选", "本题请",
+    # 多选题（问卷星默认一列用 ┋/|/， 分隔，或拆成 0/1 哑变量列，表头常带 ___ 与"哪些"）
+    "哪些", "多选", "可多选", "___", "__",
 ]
 
 
@@ -68,7 +70,9 @@ def parse_scales(path):
 
 
 def guess_response_cols(headers, data):
-    """无 scales.txt 时启发式识别 Likert 作答列：数值、取值落在 0-7、排除时间/人口学等非作答列。"""
+    """无 scales.txt 时启发式识别 Likert 作答列：数值、取值落在 0-7、至少3个不同取值、
+    排除时间/人口学/多选等非作答列。纯 0/1 二值列（多选哑变量、是否题）不在此兜底纳入——
+    NSSI 等 0/1 计分量表应在 scales.txt 中显式列出（有 scales 时走精确通道，不经过本函数）。"""
     cols = []
     for j, h in enumerate(headers):
         hl = (h or "").lower()
@@ -83,7 +87,11 @@ def guess_response_cols(headers, data):
                     vals = None
                     break
         if vals and len(vals) >= max(5, int(0.5 * len(data))):
-            if all(0 <= v <= 7 for v in vals) and len(set(vals)) >= 2:
+            uniq = set(vals)
+            if uniq <= {0.0, 1.0}:
+                # 纯 0/1：多选哑变量或是否题，不按 Likert 连续作答题算质量指标
+                continue
+            if all(0 <= v <= 7 for v in vals) and len(uniq) >= 3:
                 cols.append(j)
     return cols
 
