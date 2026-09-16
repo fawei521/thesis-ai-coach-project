@@ -65,3 +65,4 @@ tests/test-data/*_差异分析_非参数.csv
 tests/test-data/*_调节效应.csv
 tests/test-data/*_偏相关.csv
 tests/test-data/*_卡方检验.csv
+tests/test-data/*_信度分析.csv

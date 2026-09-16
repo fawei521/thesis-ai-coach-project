@@ -834,7 +834,55 @@ def build_scale_scores(matrix, scales):
     return score_matrix, n
 
 
-def reliability_analysis(matrix, scales_config, item_output=None):
+def split_half(items_data):
+    """分半信度。items_data 为反向计分后的题目列（每列一个题，含 None 缺失）。
+    返回前后半（SPSS 口径，前 floor(k/2) 题 vs 其余）的两半 α、两半总分相关 r、
+    Spearman-Brown 等长系数 2r/(1+r)、Guttman λ4=2(1−(var1+var2)/varTotal)，
+    以及奇偶分半（题序奇偶）的 r 与 SB（奇数题时两半等长或仅差1题，更稳健）。"""
+    k = len(items_data)
+    if k < 4:
+        return None
+    n = len(items_data[0])
+
+    cut = k // 2
+    front = list(range(0, cut))
+    back = list(range(cut, k))
+    odd = list(range(0, k, 2))
+    even = list(range(1, k, 2))
+
+    def pack(ia, ib):
+        # 只用两半题目都完整的同一批样本算两半 α、相关与 λ4，保证口径一致
+        complete = []
+        for r in range(n):
+            vals = [items_data[j][r] for j in ia + ib]
+            if all(v is not None for v in vals):
+                complete.append(vals)
+        if len(complete) < 4:
+            return None
+        na = len(ia)
+        h1 = [sum(row[:na]) for row in complete]
+        h2 = [sum(row[na:]) for row in complete]
+        tot = [a + b for a, b in zip(h1, h2)]
+        r, _ = pearson_r(h1, h2)
+        if r is None:
+            return None
+        sb = 2 * r / (1 + r)
+        v1, v2, vt = variance(h1), variance(h2), variance(tot)
+        gutt = 2 * (1 - (v1 + v2) / vt) if vt > 0 else None
+        cols1 = [[row[i] for row in complete] for i in range(na)]
+        cols2 = [[row[na + i] for row in complete] for i in range(len(ib))]
+        a1 = cronbach_alpha(cols1)
+        a2 = cronbach_alpha(cols2)
+        return {"r": r, "sb": sb, "guttman_lambda4": gutt,
+                "alpha_half1": a1, "alpha_half2": a2,
+                "n_items1": len(ia), "n_items2": len(ib), "n": len(complete)}
+
+    front_back = pack(front, back)
+    odd_even = pack(odd, even) if len(odd) >= 2 and len(even) >= 2 else None
+    return {"front_back": front_back, "odd_even": odd_even}
+
+
+def reliability_analysis(matrix, scales_config, item_output=None, rel_output=None):
     print("\n" + "=" * 60)
     print("二、信度分析（Cronbach's α，反向题已先反向计分）")
     print("=" * 60)
@@ -895,9 +943,29 @@ def reliability_analysis(matrix, scales_config, item_output=None):
                     "CITC校正项总相关": round(citc, 3) if citc is not None else "",
                     "删题后alpha": round(a_del, 3) if a_del is not None else "",
                     "量表alpha": round(alpha, 3), "提示": mark})
+            sh = split_half(items_data)
+            sb_val = gutt_val = half_a = ""
+            if sh and sh.get("front_back"):
+                fb = sh["front_back"]
+                sb_val = round(fb["sb"], 3)
+                gutt_val = round(fb["guttman_lambda4"], 3) if fb["guttman_lambda4"] is not None else ""
+                a1 = f"{fb['alpha_half1']:.3f}" if fb["alpha_half1"] is not None else "NA"
+                a2 = f"{fb['alpha_half2']:.3f}" if fb["alpha_half2"] is not None else "NA"
+                half_a = f"{a1}/{a2}"
+                print(f"    分半信度（前后半，SPSS口径，{fb['n_items1']}+{fb['n_items2']}题）："
+                      f"两半α={a1}/{a2}，两半相关r={fb['r']:.3f}，"
+                      f"Spearman-Brown={fb['sb']:.3f}，Guttman λ4={fb['guttman_lambda4']:.3f}")
+                if kk % 2 == 1 and sh.get("odd_even"):
+                    oe = sh["odd_even"]
+                    print(f"      （题数为奇数，另报奇偶分半以保证两半等长："
+                          f"r={oe['r']:.3f}，Spearman-Brown={oe['sb']:.3f}，Guttman λ4={oe['guttman_lambda4']:.3f}）")
+                if fb["sb"] < .7:
+                    print("      ⚠ Spearman-Brown 分半信度<.70，建议结合α与题项分析检查题目同质性")
             results.append({"量表": scale_name, "题数": kk,
                             "Cronbach_alpha": round(alpha, 3),
                             "最低CITC": round(min_citc, 3) if min_citc is not None else "",
+                            "分半SpearmanBrown": sb_val, "分半Guttmanλ4": gutt_val,
+                            "两半alpha": half_a,
                             "评价": rating})
     if item_output and all_item_rows:
         with open(item_output, "w", newline="", encoding="utf-8-sig") as f:
@@ -906,6 +974,14 @@ def reliability_analysis(matrix, scales_config, item_output=None):
             w.writeheader()
             w.writerows(all_item_rows)
         print(f"\n题项分析表（CITC/删题α）已导出：{item_output}")
+    if rel_output and results:
+        with open(rel_output, "w", newline="", encoding="utf-8-sig") as f:
+            w = csv.DictWriter(f, fieldnames=["量表", "题数", "Cronbach_alpha",
+                                              "最低CITC", "两半alpha",
+                                              "分半SpearmanBrown", "分半Guttmanλ4", "评价"])
+            w.writeheader()
+            w.writerows(results)
+        print(f"量表信度汇总（α/分半Spearman-Brown/Guttman λ4）已导出：{rel_output}")
     return results
 
 
@@ -2432,10 +2508,12 @@ def main():
                         efa_names.add(sub.strip())
     efa_out = str(path.with_name(path.stem + "_因子分析.csv")) if efa_names else None
     item_out = str(path.with_name(path.stem + "_题项分析.csv"))
+    rel_out = str(path.with_name(path.stem + "_信度分析.csv"))
 
     # 有量表配置：反向计分→信度→量表总分→在总分层面做描述/相关/回归
     if scales:
-        rel = reliability_analysis(matrix, scales, item_output=item_out)
+        rel = reliability_analysis(matrix, scales, item_output=item_out,
+                                   rel_output=rel_out)
         validity_analysis(matrix, scales, efa_names=efa_names,
                           efa_output=efa_out, pa_rep=args.pa_rep)
         harman_test(matrix, scales)

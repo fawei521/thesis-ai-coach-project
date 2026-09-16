@@ -209,6 +209,7 @@
 - Harman第一公因子解释率约38.5%（<40%）
 - 导出 `_量表总分.csv`（含原始列+各量表总分/均分，文本人口学列保留）
 - **题项分析**：逐题打印 CITC 与删题后α（demo 各题 CITC 约 .79–.84、删题后α均低于总α，无异常标记）；导出 `demo_survey_题项分析.csv`（UTF-8-SIG，列含量表/题项/CITC/删题后α/总α/提示）；2题量表删题后α正确显示 NA 不崩溃
+- **分半信度**：每个量表在 α 后打印"分半信度（前后半，SPSS口径）"，报两半α、两半相关r、Spearman-Brown、Guttman λ4（demo 各量表 SB 约 .92–.95、与 α 一致）；5题量表（AI/NSSI，奇数题）另报奇偶分半；导出 `demo_survey_信度分析.csv`（量表/题数/Cronbach_alpha/最低CITC/两半alpha/分半SpearmanBrown/分半Guttmanλ4/评价 8列）；题数<4 的量表跳过且不崩溃
 - **正态性**：各量表总分打印偏度/峰度（demo 近似正态，|偏度|<3、|峰度|<10，判读"可接受"）
 - **整合三线表**：`demo_survey_统计结果.csv` 表1含偏度/峰度/正态性列；表2为 M、SD、下三角相关（带星号，如 AI情感依赖—孤独感 r=.269***）、对角为 α（.930/.925/.938/.933）；表3为含双尾 p 的相关明细
 - **人口学差异**（demo 含性别1/2、年级1–4两列，与题目独立随机）：第七节先报 Levene/Brown-Forsythe 方差齐性，再对每个量表做性别独立样本 t（报 t(df)/p/Cohen's d；方差齐用等方差、不齐自动切 Welch t）、年级单因素 ANOVA（报 F(3,196)/p/η²/Bonferroni；不齐切 Welch ANOVA 并提示 Games-Howell），导出 `demo_survey_差异分析.csv`（UTF-8-SIG，含方差齐性、稳健检验(Welch)两列，共10列）；demo 方差齐、多为不显著属正常
@@ -222,6 +223,7 @@
 **算法正确性对照**：含反向题却不标(R)时α会出现负值（专用对照数据α=-5.000），正确标注后α=1.000；
 KMO对3变量等相关.8矩阵应得.764（解析解.7641）；单位阵Bartlett p=1；单构念Harman第一因子=100%，多构念约38%。
 CITC 与删题α经 Wolfram 黄金对照（4题8人整数例）：总α=.967078，Q1 CITC=.982797/删题α=.938931、Q2 .835498/.981110、Q3 .915677/.959545，逐位一致。
+分半信度经 numpy 独立实现黄金对照（6题含共同因子与缺失例，前后半与奇偶分半）：两半总分相关 r、Spearman-Brown=2r/(1+r)、Guttman λ4=2(1−(两半方差和)/总分方差)、两半各自 α 均逐位一致（差<1e-9）；两半 α 与 r/λ4 基于"两半题目都完整"的同一批样本，口径一致。
 偏度/峰度（SPSS 调整 G1/G2）经 scipy.stats.skew/kurtosis(bias=False) 黄金对照（正态、指数偏态、均匀、n5/n8 小样本）逐位一致；n<3 偏度 None、n<4 峰度 None、常数列均 None。
 独立样本 t/Cohen's d 经 scipy.stats.ttest_ind(equal_var=True)、单因素 ANOVA F/η² 经 scipy.stats.f_oneway 黄金对照逐位一致；Levene/Brown-Forsythe 经 scipy.stats.levene(center='median')、Welch t 经 ttest_ind(equal_var=False) 逐位一致，Welch ANOVA 与 Liu(2015)/R oneway.test 公式独立复现一致（等方差时与经典 F 接近、方差异构时自动切换）；文本"男/女"分组可识别，单组/常数列/组内n<2 不崩溃。
 调节效应（模型1）系数 b0–b3 经 numpy.linalg.lstsq、简单斜率 θ=b1+b3·w 与其 SE（Cov11+w²Cov33+2w·Cov13）经 (X'X)⁻¹·MSE 协方差矩阵黄金对照逐位一致；增强型调节（b3>0、CI不含0）正确判成立，解析 p 与 Bootstrap CI 冲突时判"边缘"不夸大。`--moderator` 装有 matplotlib 时须另出 `数据名_调节效应_简单斜率图.png`（W 低/中/高三条回归线、中文标题/坐标轴/图例无乱码、图例标注各斜率及显著性，目视核对三线方向与 b3 正负一致）；未装 matplotlib 时打印降级提示且退出码为 0。
