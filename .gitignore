@@ -16,9 +16,12 @@ data/
 *.xls
 *.sav
 
-# ===== 测试目录：保留源数据和CSV基准，忽略二进制与易变联网产物 =====
+# ===== 测试目录：保留源数据和CSV基准，忽略二进制、易变联网与生成产物 =====
 tests/test-data/*.png
 tests/test-data/test_papers.csv
+tests/test-data/*_标准.csv
+tests/test-data/*_列映射报告.txt
+tests/test-data/_*
 
 # ===== 输出产物 =====
 output/
