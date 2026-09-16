@@ -312,6 +312,142 @@ def frequency_analysis(headers, data, matrix, scales, output=None):
     return table_rows
 
 
+def _detect_group_cols(headers, data, matrix, scales):
+    """识别人口学分组列（非量表题、2类及以上且数值≤4类/文本≤10类），
+    返回 [(列名, 每样本组标签序列(缺失None))]。"""
+    scale_items = set()
+    for conf in scales.values():
+        scale_items.update(conf["items"])
+    out = []
+    for ci, c in enumerate(headers):
+        if c in scale_items:
+            continue
+        col = matrix.get(c)
+        labels, numeric = [], True
+        if col and any(v is not None for v in col):
+            for v in col:
+                if v is None:
+                    labels.append(None)
+                else:
+                    labels.append(str(int(v)) if float(v).is_integer() else str(v))
+        else:
+            numeric = False
+            for r in data:
+                t = r[ci].strip() if ci < len(r) else ""
+                labels.append(t if t else None)
+        vals = [x for x in labels if x is not None]
+        if not vals:
+            continue
+        uniq = set(vals)
+        max_cat = 10 if not numeric else 4
+        if 2 <= len(uniq) <= max_cat:
+            out.append((c, labels))
+    return out
+
+
+def _cohens_d(a, b):
+    n1, n2 = len(a), len(b)
+    v1, v2 = variance(a), variance(b)
+    sp2 = ((n1 - 1) * v1 + (n2 - 1) * v2) / (n1 + n2 - 2)
+    if sp2 <= 0:
+        return None
+    return (mean(a) - mean(b)) / math.sqrt(sp2)
+
+
+def group_difference_analysis(headers, data, matrix, scales, score_matrix,
+                              total_cols, output=None):
+    """人口学差异：2组用独立样本t检验(等方差)+Cohen's d；
+    3组及以上用单因素方差分析(ANOVA)+η²+Bonferroni校正事后两两比较。
+    对每个人口学分组列 × 每个量表总分进行。"""
+    group_cols = _detect_group_cols(headers, data, matrix, scales)
+    if not group_cols or not total_cols:
+        return None
+    rows = []
+    print("\n" + "=" * 60)
+    print("七、人口学差异分析（独立样本t / 单因素ANOVA）")
+    print("=" * 60)
+    for gname, glabels in group_cols:
+        for ycol in total_cols:
+            y = score_matrix.get(ycol)
+            if not y:
+                continue
+            gd = {}
+            for i, lab in enumerate(glabels):
+                if lab is not None and i < len(y) and y[i] is not None:
+                    gd.setdefault(lab, []).append(float(y[i]))
+            try:
+                keys = sorted(gd, key=lambda k: float(k))
+            except ValueError:
+                keys = sorted(gd)
+            gd = {k: gd[k] for k in keys if len(gd[k]) >= 2}
+            if len(gd) < 2 or len(gd) > 8:
+                continue
+            yshort = ycol.replace("总分", "")
+            desc = "；".join(f"{k}组 M={mean(v):.2f},SD={stdev(v):.2f},n={len(v)}"
+                             for k, v in gd.items())
+            if len(gd) == 2:
+                (k1, a), (k2, b) = list(gd.items())[0], list(gd.items())[1]
+                n1, n2 = len(a), len(b)
+                sp2 = ((n1 - 1) * variance(a) + (n2 - 1) * variance(b)) / (n1 + n2 - 2)
+                if sp2 <= 0:
+                    continue
+                t = (mean(a) - mean(b)) / math.sqrt(sp2 * (1 / n1 + 1 / n2))
+                df = n1 + n2 - 2
+                p = t_p_two_sided(t, df)
+                d = _cohens_d(a, b)
+                dt = "可忽略" if abs(d) < .2 else "小" if abs(d) < .5 else "中" if abs(d) < .8 else "大"
+                sig = "差异显著" if p < .05 else "差异不显著"
+                print(f"\n{gname} × {yshort}（独立样本t）：{k1}组 vs {k2}组")
+                print(f"    {desc}")
+                print(f"    t({df})={t:.3f}, p={fmt_p(p)}, Cohen's d={d:.3f}（{dt}效应）→ {sig}")
+                rows.append({"分组变量": gname, "因变量": yshort, "检验": "独立样本t",
+                             "统计量": f"t={t:.3f}", "df": df, "p": fmt_p(p),
+                             "效应量": f"d={d:.3f}({dt})", "详情": desc + f"；{sig}"})
+            else:
+                keys2 = list(gd.keys())
+                groups = [gd[k] for k in keys2]
+                N = sum(len(g) for g in groups)
+                k = len(groups)
+                grand = sum(sum(g) for g in groups) / N
+                ssb = sum(len(g) * (mean(g) - grand) ** 2 for g in groups)
+                ssw = sum(sum((x - mean(g)) ** 2 for x in g) for g in groups)
+                dfb, dfw = k - 1, N - k
+                if dfw <= 0 or ssw <= 0:
+                    continue
+                msw = ssw / dfw
+                F = (ssb / dfb) / msw
+                p = f_p_value(F, dfb, dfw)
+                eta = ssb / (ssb + ssw)
+                et = "小" if eta < .06 else "中" if eta < .14 else "大"
+                post = []
+                npairs = k * (k - 1) // 2
+                for ii in range(k):
+                    for jj in range(ii + 1, k):
+                        ga, gb = groups[ii], groups[jj]
+                        tt = (mean(ga) - mean(gb)) / math.sqrt(msw * (1 / len(ga) + 1 / len(gb)))
+                        pp = t_p_two_sided(tt, dfw)
+                        if pp * npairs < .05:
+                            post.append(f"{keys2[ii]}组>{keys2[jj]}组" if mean(ga) > mean(gb)
+                                        else f"{keys2[jj]}组>{keys2[ii]}组")
+                post_txt = "；".join(post) if post else "事后两两均不显著"
+                sig = "差异显著" if p < .05 else "差异不显著"
+                print(f"\n{gname} × {yshort}（单因素ANOVA，{k}组）")
+                print(f"    {desc}")
+                print(f"    F({dfb},{dfw})={F:.3f}, p={fmt_p(p)}, η²={eta:.3f}（{et}效应）→ {sig}")
+                print(f"    Bonferroni事后：{post_txt}")
+                rows.append({"分组变量": gname, "因变量": yshort, "检验": "单因素ANOVA",
+                             "统计量": f"F={F:.3f}", "df": f"{dfb},{dfw}", "p": fmt_p(p),
+                             "效应量": f"η²={eta:.3f}({et})", "详情": desc + f"；{sig}；{post_txt}"})
+    if output and rows:
+        with open(output, "w", encoding="utf-8-sig", newline="") as f:
+            w = csv.DictWriter(f, fieldnames=["分组变量", "因变量", "检验", "统计量",
+                                              "df", "p", "效应量", "详情"])
+            w.writeheader()
+            w.writerows(rows)
+        print(f"\n人口学差异分析表已导出：{output}")
+    return rows
+
+
 def descriptive(matrix, num_cols):
     print("\n" + "=" * 60)
     print("描述统计（含偏度/峰度正态性；Kline判据 |偏度|<3、|峰度|<10）")
@@ -1560,6 +1696,9 @@ def main():
             linear_regression(score_matrix, x_cols, y_col)
         active_matrix = score_matrix
         active_cols = scale_total_cols
+        diff_out = str(path.with_name(path.stem + "_差异分析.csv"))
+        group_difference_analysis(headers, data, matrix, scales, score_matrix,
+                                  scale_total_cols, output=diff_out)
     else:
         # 无量表配置：题目级全量分析（降级模式，建议提供 --scales）
         print("\n提示：提供 --scales 量表配置后，将自动反向计分、算信度效度和量表总分。")

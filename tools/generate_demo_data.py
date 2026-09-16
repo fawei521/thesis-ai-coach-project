@@ -54,6 +54,7 @@ def generate(n=200, seed=20260917):
         return max(1, min(5, x))
 
     rows = []
+    demo_rng = random.Random(seed + 777)  # 独立生成器，人口学列不污染题目的随机序列
     for i in range(n):
         # X 5题，X2、X4反向
         X = [likert(zx[i] + random.gauss(0, 0.42)) for _ in range(5)]
@@ -66,12 +67,13 @@ def generate(n=200, seed=20260917):
         # Y NSSI 5题，Y3反向
         Y = [likert(zy[i] + random.gauss(0, 0.42)) for _ in range(5)]
         Y[2] = 6 - likert(zy[i] + random.gauss(0, 0.42))
-        rows.append([random.randint(95, 420)] + X + M1 + M2 + Y)
+        rows.append([random.randint(95, 420)] + X + M1 + M2 + Y
+                    + [demo_rng.randint(1, 2), demo_rng.randint(1, 4)])
 
     header = ["用时(秒)"] + [f"X{i}" for i in range(1, 6)] + \
              [f"M1{i}" for i in range(1, 5)] + \
              [f"M2{i}" for i in range(1, 5)] + \
-             [f"Y{i}" for i in range(1, 6)]
+             [f"Y{i}" for i in range(1, 6)] + ["性别", "年级"]
     return header, rows
 
 
