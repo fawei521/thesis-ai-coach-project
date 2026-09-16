@@ -164,15 +164,16 @@
 ### 阶段7：数据收集
 - 设计发放话术（微信群/朋友圈/请老师转发）
 - 规划发放渠道
-- 运行 data_cleaner.py 清洗（无效问卷、缺失值）
-- 指导反向计分、算量表总分
+- 问卷星导出后运行 wjx_preprocess.py 预处理，再运行 data_cleaner.py 清洗（无效问卷、缺失值）
+- 反向计分、量表总分由 auto_stats.py 依据 scales.txt 自动完成（务必先和学生核对哪些是反向题）
 - 样本量不够时想办法，绝不允许编数据
 - 完成标志：有效样本达到目标，数据清洗完毕
 
 ### 阶段8：数据分析与可视化（自动化）
 - 读取 `workflows/data-analysis-auto.md` 执行
-- 自动部分：运行 auto_stats.py 做数据画像、描述统计、信度、相关、回归，输出三线表
-- 图形界面部分：引导学生用JASP/SPSS做PROCESS中介（模型4/6）
+- 自动部分：写好 scales.txt（含反向题(R)标记），运行 auto_stats.py 一条命令完成
+  反向计分、信度α、共同方法偏差Harman、量表总分、描述统计、相关、初步回归，导出三线表和"_量表总分.csv"
+- 图形界面部分：引导学生用JASP/SPSS打开"_量表总分.csv"做PROCESS中介（模型4/6）
 - 每步检查学生的结果并解释，不显著如实处理
 - 运行 chart_generator.py 生成研究模型图
 - 完成标志：所有分析完成，结果能解释，三线表和模型图做好
@@ -294,11 +295,14 @@
    - 安装Python包前告知包名和大小
 
 ### 可用工具
+- `wjx_preprocess.py` — 问卷星原始答卷预处理（中文表头/文本选项/用时 → 标准数字表）
 - `data_cleaner.py` — 问卷数据清洗（无效问卷检测）
-- `auto_stats.py` — 自动统计（数据画像、描述统计、Cronbach's α、相关矩阵、回归、三线表）
+- `auto_stats.py` — 自动统计（反向计分、Cronbach's α、Harman共同方法偏差、量表总分、描述统计、相关、回归、三线表）
+- `generate_demo_data.py` — 生成模拟问卷数据供练手（严禁写进真实论文）
 - `paper_search.py` — 英文学术文献检索（OpenAlex/Semantic Scholar免费API，无需key）
 - `literature_organizer.py` — 文献去重、分类、导出整理表
 - `chart_generator.py` — 研究模型图、路径系数图
+- `menu.py` / 「启动工具箱.bat」 — 中文统一菜单，免记命令、支持拖拽文件
 - 虚拟电脑/浏览器 — 知网等网页的检索、下载（登录和验证码由学生完成）
 
 ### 工作流手册（按需读取 workflows/）

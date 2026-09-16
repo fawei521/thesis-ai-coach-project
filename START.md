@@ -40,13 +40,15 @@
 `tools/` 目录下的脚本（调用前遵守 coach-rules.md 的"告知-确认-保护"三步）：
 - `wjx_preprocess.py` — 问卷星原始答卷预处理（中文表头/文本选项/"2分3秒"用时 → 标准数字表，附列映射报告供核对）
 - `data_cleaner.py` — 问卷数据清洗（无效问卷检测）
-- `auto_stats.py` — 自动统计（数据画像、描述统计、Cronbach's α、相关矩阵、回归、三线表）
+- `auto_stats.py` — 自动统计（反向计分、Cronbach's α、共同方法偏差Harman、量表总分、描述统计、相关、回归、三线表，导出可直接进PROCESS的量表总分数据集）
+- `generate_demo_data.py` — 生成结构真实的模拟问卷数据（没收回真实问卷前练手用，严禁写进论文）
 - `paper_search.py` — 英文学术文献检索（OpenAlex/Semantic Scholar免费API）
 - `literature_organizer.py` — 文献去重、分类、导出
 - `chart_generator.py` — 研究模型图生成
 - `menu.py` — 统一菜单（不想记命令时用）
 
 **零门槛用法**：让学生双击项目根目录的「启动工具箱.bat」，按数字菜单操作；可把文件直接拖进窗口填路径。
+**练手用法**：学生还没数据时，菜单第7项（或 generate_demo_data.py）一键生成模拟数据，先跑通统计全流程。
 
 模板在 `templates/`：问卷模板、论文大纲、AI使用声明、开题报告模板、答辩PPT大纲、**进度卡模板**。
 

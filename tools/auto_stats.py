@@ -365,6 +365,81 @@ def export_scale_dataset(src_path, headers, data, score_matrix, scales):
     return out_path
 
 
+def first_pc_variance_ratio(item_cols_data):
+    """Harman单因子检验：对题目做未旋转主成分分析，返回第一主成分方差解释率。
+    基于相关矩阵（题目先z标准化），用幂迭代求最大特征值λ1，
+    第一因子解释率 = λ1 / 题目数（相关矩阵迹=题目数）。"""
+    p = len(item_cols_data)
+    if p < 2:
+        return None
+    # 列表删除缺失行
+    rows = [i for i in range(len(item_cols_data[0]))
+            if all(c[i] is not None for c in item_cols_data)]
+    n = len(rows)
+    if n < 3:
+        return None
+    # z标准化
+    Z = []
+    for col in item_cols_data:
+        vals = [col[i] for i in rows]
+        m = sum(vals) / n
+        sd = math.sqrt(sum((v - m) ** 2 for v in vals) / (n - 1)) if n > 1 else 0
+        Z.append([(v - m) / sd if sd > 0 else 0.0 for v in vals])
+    # 相关矩阵
+    R = [[0.0] * p for _ in range(p)]
+    for a in range(p):
+        for b in range(a, p):
+            r = sum(Z[a][i] * Z[b][i] for i in range(n)) / (n - 1) if n > 1 else 0
+            R[a][b] = r
+            R[b][a] = r
+    # 幂迭代求最大特征值
+    vec = [1.0 / math.sqrt(p)] * p
+    lam = 0.0
+    for _ in range(1000):
+        nv = [sum(R[a][b] * vec[b] for b in range(p)) for a in range(p)]
+        norm = math.sqrt(sum(x * x for x in nv))
+        if norm < 1e-12:
+            break
+        nv = [x / norm for x in nv]
+        new_lam = sum(nv[a] * sum(R[a][b] * nv[b] for b in range(p)) for a in range(p))
+        vec = nv
+        if abs(new_lam - lam) < 1e-10:
+            lam = new_lam
+            break
+        lam = new_lam
+    return lam / p
+
+
+def harman_test(matrix, scales):
+    """共同方法偏差Harman单因子检验：所有量表题目（反向计分后）一起做未旋转因子分析。"""
+    print("\n" + "=" * 60)
+    print("共同方法偏差检验（Harman单因子）")
+    print("=" * 60)
+    item_cols, item_names = [], []
+    for name, conf in scales.items():
+        rec = recoded_item_series(matrix, conf)
+        avail = [it for it in conf["items"] if it in matrix]
+        for idx, it in enumerate(avail):
+            item_cols.append(rec[idx])
+            item_names.append(it)
+    if len(item_cols) < 2:
+        print("题目不足，跳过。")
+        return None
+    ratio = first_pc_variance_ratio(item_cols)
+    if ratio is None:
+        print("有效样本不足，跳过。")
+        return None
+    pct = ratio * 100
+    verdict = "不严重（<40%），可接受" if pct < 40 else "超过40%，需在讨论中说明并强调程序控制"
+    print(f"纳入题目数：{len(item_cols)}（反向题已先反向计分）")
+    print(f"第一公因子方差解释率：{pct:.2f}%")
+    print(f"判断标准：<40% 即共同方法偏差不严重")
+    print(f"结论：{verdict}")
+    print("论文表述：Harman单因子检验显示，第一公因子解释率为XX%，低于40%临界值，")
+    print("          表明本研究不存在严重的共同方法偏差。")
+    return round(pct, 2)
+
+
 def correlation_matrix(matrix, num_cols, max_cols=15):
     print("\n" + "=" * 60)
     print("四、相关分析（Pearson）")
@@ -624,6 +699,7 @@ def main():
     # 有量表配置：反向计分→信度→量表总分→在总分层面做描述/相关/回归
     if scales:
         rel = reliability_analysis(matrix, scales)
+        harman_test(matrix, scales)
         score_matrix, _ = build_scale_scores(matrix, scales)
         scale_total_cols = [f"{name}总分" for name in scales]
         dataset = export_scale_dataset(path, headers, data, score_matrix, scales)

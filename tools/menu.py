@@ -56,7 +56,7 @@ def pause():
 
 
 def t_preprocess():
-    print("\n【1/6】问卷星数据预处理")
+    print("\n【1/7】问卷星数据预处理")
     print("  用途：把问卷星下载的原始表，转成后面能统计的标准数字表。")
     f = ask_path("  把问卷星导出的原始CSV拖进来，回车：")
     if not f:
@@ -65,7 +65,7 @@ def t_preprocess():
 
 
 def t_clean():
-    print("\n【2/6】问卷数据清洗（找无效问卷）")
+    print("\n【2/7】问卷数据清洗（找无效问卷）")
     f = ask_path("  把（预处理后的）数据CSV拖进来，回车：")
     if not f:
         return
@@ -77,23 +77,30 @@ def t_clean():
 
 
 def t_stats():
-    print("\n【3/6】自动统计分析（信度/描述/相关/回归 + 三线表）")
+    print("\n【3/7】自动统计分析")
+    print("  自动完成：反向计分、信度α、共同方法偏差Harman、量表总分、")
+    print("  描述统计、相关、初步回归，并导出三线表和“_量表总分.csv”。")
     f = ask_path("  把清洗后的数据CSV拖进来，回车：")
     if not f:
         return
-    print("  量表配置文件 scales.txt 用来告诉程序哪些题属于哪个量表。")
+    print("  量表配置文件 scales.txt 告诉程序哪些题属于哪个量表、哪些是反向题。")
+    print("  格式示例：孤独感:5=M1,M2(R),M3,M4  （:5是5点量表，(R)是反向题）")
     sc = ask_path("  有 scales.txt 就拖进来（没有就直接回车，先做全量分析）：",
                   must_exist=False)
     args = [f]
     if sc:
         args += ["--scales", sc]
+        y = input("  因变量量表名（如 NSSI，没有就直接回车）：").strip()
+        x = input("  自变量/中介量表名，逗号分隔（如 AI情感依赖,孤独感，没有就回车）：").strip()
+        if y and x:
+            args += ["--y", y, "--x", x]
     run("auto_stats.py", args)
     print("\n  提醒：中介/链式中介仍需用 JASP 或 SPSS 的 PROCESS，")
-    print("  让你的AI导师照着 workflows/data-analysis-auto.md 带你点。")
+    print("  打开刚导出的“_量表总分.csv”，让AI导师照 workflows/data-analysis-auto.md 带你点。")
 
 
 def t_search():
-    print("\n【4/6】检索英文学术文献（需要联网，免费，不用账号）")
+    print("\n【4/7】检索英文学术文献（需要联网，免费，不用账号）")
     kw = input("  输入英文关键词（例如 AI dependence adolescent NSSI）：").strip()
     if not kw:
         print("  关键词为空，已取消。")
@@ -109,7 +116,7 @@ def t_search():
 
 
 def t_lit():
-    print("\n【5/6】文献去重与分类")
+    print("\n【5/7】文献去重与分类")
     f = ask_path("  把文献列表（每行一篇的txt）拖进来，回车：")
     if not f:
         return
@@ -117,7 +124,7 @@ def t_lit():
 
 
 def t_chart():
-    print("\n【6/6】生成研究模型图")
+    print("\n【6/7】生成研究模型图")
     print("  链式模型示例变量：AI依赖,孤独感,反刍,NSSI（用英文逗号分隔，4个）")
     print("  简单模型示例变量：AI依赖,NSSI（2个）")
     vars_ = input("  输入变量名（逗号分隔）：").strip()
@@ -135,13 +142,23 @@ def t_chart():
     run("chart_generator.py", args)
 
 
+def t_demo():
+    print("\n【7/7】生成演示数据（还没收回问卷时，先拿它练手）")
+    print("  会生成一份内置链式中介结构、含反向题的模拟数据，")
+    print("  用来跑通第3步统计流程。模拟数据严禁写进真实论文。")
+    out = input("  保存到哪个文件夹？可直接拖入一个文件夹，回车默认当前目录：").strip().strip('"').strip("'")
+    args = ["--outdir", out] if out else ["--outdir", "."]
+    run("generate_demo_data.py", args)
+
+
 MENU = [
     ("1", "问卷星数据预处理（原始答卷 → 标准数字表）", t_preprocess),
     ("2", "问卷数据清洗（识别无效问卷）", t_clean),
-    ("3", "自动统计分析（信度/描述/相关/回归）", t_stats),
+    ("3", "自动统计分析（反向计分/信度/Harman/相关/回归）", t_stats),
     ("4", "检索英文学术文献（联网，免费）", t_search),
     ("5", "文献去重与分类", t_lit),
     ("6", "生成研究模型图", t_chart),
+    ("7", "生成演示数据（没收回问卷前先练手）", t_demo),
 ]
 
 
@@ -152,7 +169,7 @@ def main():
         print("        毕业论文工具箱（心理学问卷研究）")
         print("=" * 64)
         print("  典型顺序：先 1 预处理 → 2 清洗 → 3 统计")
-        print("  写文献综述时用 4 检索、5 整理；画图用 6")
+        print("  写文献综述时用 4 检索、5 整理；画图用 6；练手用 7")
         print("-" * 64)
         for num, name, _ in MENU:
             print(f"  {num}. {name}")

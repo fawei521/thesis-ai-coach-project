@@ -198,20 +198,27 @@
 **预期结果**：清洗能识别"用时(秒)"列；统计画像正确区分数值题与性别/年级文本列。
 **通过标准**：三步无报错，数值列数量正确（用时+6道量表题=7）。
 
-## 测试14：自动统计信度（脚本）
+## 测试14：自动统计（反向计分/信度/共同方法偏差/量表总分/相关/回归）
 
 **命令**：
-`python tools/auto_stats.py tests/test-data/sample_scales.csv --scales tests/test-data/scales_structured.txt --y NSSI --x "AI情感依赖,孤独感"`
+`python tools/auto_stats.py tests/test-data/demo_survey.csv --scales tests/test-data/demo_scales.txt --y NSSI --x "AI情感依赖,孤独感"`
 
-**预期结果**：
-- 反向题（X2/X4/Y3，标了(R)）先反向计分再算α；三量表α约0.89-0.93
+**预期结果（N=150, seed=20260917 基准）**：
+- 反向题（X2/X4/Y3，标了(R)）先反向计分再算α；α约 AI情感依赖.933 / 孤独感.899 / NSSI .942
+- Harman第一公因子解释率约39%（<40%，共同方法偏差不严重）
 - 导出 `_量表总分.csv`（含原始列+各量表总分/均分）
-- 量表总分层面相关：X-M、M-Y、X-Y均为正且显著（链式中介前提）
-- 初步回归Y~X+M：M显著、控制M后X减弱（典型中介模式）
+- 量表总分相关：X-M≈.25、M-Y≈.24、X-Y≈.21，均显著（链式中介前提满足）
+- 回归Y~X+M：整体显著(p≈.002)，孤独感显著(β≈.20,p≈.014)，控制M后AI依赖减弱(p≈.06)，呈典型中介模式
 
-**反向计分正确性对照**：对含反向题却不标(R)的数据，α会出现负值（如专用对照数据α=-5）；
-正确标注后α=1.000。这证明α必须在反向计分后计算。
-**通过标准**：α合理、相关方向正确、量表总分=反向计分后各题之和。
+**反向计分正确性对照**：含反向题却不标(R)时α会出现负值（专用对照数据α=-5.000）；
+正确标注后α=1.000。单构念数据Harman第一因子=100%，三构念数据约39%，算法能区分。
+**通过标准**：α合理、Harman<40%、相关方向正确、量表总分=反向计分后各题之和。
+
+## 测试14b：演示数据生成器（可复现）
+
+**命令**：`python tools/generate_demo_data.py --outdir <临时目录>`
+**预期**：生成 demo_survey.csv + demo_scales.txt；固定种子下再跑 auto_stats 结果与测试14基准一致。
+**通过标准**：两次生成同种子数据完全一致；脚本明确提示"模拟数据严禁写进真实论文"。
 
 ## 测试15：英文文献检索（脚本，联网）
 
@@ -283,8 +290,10 @@
 python tools\wjx_preprocess.py tests\test-data\sample_wjx_raw.csv --output tests\test-data\_t_std.csv --report tests\test-data\_t_report.txt
 # 2 数据清洗
 python tools\data_cleaner.py tests\test-data\sample_survey.csv
-# 3 自动统计（反向计分/信度/量表总分/相关/回归）
-python tools\auto_stats.py tests\test-data\sample_scales.csv --scales tests\test-data\scales_structured.txt --y NSSI --x "AI情感依赖,孤独感"
+# 3 自动统计（反向计分/信度/Harman/量表总分/相关/回归）
+python tools\auto_stats.py tests\test-data\demo_survey.csv --scales tests\test-data\demo_scales.txt --y NSSI --x "AI情感依赖,孤独感"
+# 3b 演示数据生成器
+python tools\generate_demo_data.py --outdir tests\test-data\_demo_check
 # 4 文献整理
 python tools\literature_organizer.py tests\test-data\sample_literature.txt
 # 5 模型图
@@ -295,5 +304,5 @@ python tools\paper_search.py --query "AI dependence NSSI" --limit 3
 python tools\menu.py
 ```
 
-测试结束后删除 `_t_*` 临时文件。所有脚本只用Python标准库（模型图需matplotlib），
+测试结束后删除 `_t_*` 临时文件和 `tests/test-data/_demo_check` 目录。所有脚本只用Python标准库（模型图需matplotlib），
 统计数字以SPSS/JASP为准，脚本用于快速预览和教学。
