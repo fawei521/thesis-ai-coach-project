@@ -478,6 +478,17 @@ python tests/test_special_columns.py`
 
 **通过标准**：四个菜单项小白路径均不报错；模型图在学生尚未得到系数时也能先出框架图。
 
+---
+
+## 测试32：缺第三方库优雅降级＋菜单1端到端（v1.36，自动化脚本 tests/test_graceful_degradation.py）
+
+- 用 meta_path 阻断 matplotlib/numpy/scipy/pandas 后：auto_stats 跑 demo 必须退出0、无 Traceback、信度/中介/统计结果 CSV 照常产出、热图 PNG 不生成且控制台提示 pip install matplotlib；chart_generator 必须退出1、提示 pip install、无 Traceback。
+- 菜单1 wjx_preprocess.py 对 sample_wjx_raw.csv 端到端退出0并产出 clean 与列映射报告。
+- 一键执行：`python tests/test_graceful_degradation.py`（退出0=过，临时文件自清）。
+
+**通过标准**：学生只装标准 Python、未装任何第三方库时，数值分析不崩、图表功能给出可执行的安装指引。
+
+
 
 
 
