@@ -75,6 +75,25 @@ def main():
     for n in py_files:
         all_exports |= py_export_suffixes(TOOLS / n)
 
+    # 全项目 Python 脚本名（tools + tests），用于核对命令里出现的脚本（含 tests/ 下脚本）
+    all_py_names = {p.name for p in ROOT.rglob("*.py")
+                    if "__pycache__" not in p.parts and ".git" not in p.parts}
+    # 全项目文档同名映射（用于裸文件名导航引用兜底，如文档里只写 stats-guide.md）
+    name_map = {}
+    for p in ROOT.rglob("*"):
+        if p.is_file() and ".git" not in p.parts and "__pycache__" not in p.parts:
+            name_map.setdefault(p.name, []).append(p)
+
+    def doc_exists(md: Path, ref: str):
+        """文档引用是否存在：依次试 相对当前md、相对ROOT、tools、test-data、工作区，最后全项目同名兜底。"""
+        ref = ref.strip().replace("\\", "/")
+        cands = [md.parent / ref, ROOT / ref, ROOT / "tools" / Path(ref).name,
+                 ROOT / "tests" / "test-data" / Path(ref).name,
+                 ROOT / "我的工作区" / Path(ref).name]
+        if any(c.exists() for c in cands):
+            return True
+        return bool(name_map.get(Path(ref).name))
+
     md_files = list(ROOT.rglob("*.md"))
     for md in md_files:
         # 跳过 .user_skills 等目录外内容（rglob 已限定 ROOT）
@@ -84,15 +103,21 @@ def main():
         text = md.read_text(encoding="utf-8", errors="replace")
 
         # 1. 显式 tools/xxx.py 引用存在性
-        for ref in re.findall(r"tools/([A-Za-z0-9_]+\.py)", text):
+        for ref in re.findall(r"tools/([A-Za-z0-9_]+\.py)\b", text):
             if ref not in py_set:
                 problems.append(f"[{rel}] 引用了不存在的 tools/{ref}")
 
         # 2. 命令片段（围栏块/逐行）内开关归属核对（-- 后首字符必须是字母/数字，排除 ---）
         sw_re = re.compile(r"(--[a-zA-Z0-9][a-zA-Z0-9-]*)")
         for block in command_segments(text):
-            tools_in_block = re.findall(r"([A-Za-z0-9_]+\.py)", block)
+            tools_in_block = re.findall(r"([A-Za-z0-9_]+\.py)\b", block)
             block_switches = set(sw_re.findall(block))
+            for t in tools_in_block:
+                # 带 tools/ 前缀的已由规则1核对，这里只补裸名/其它目录（如 tests/）脚本
+                if f"tools/{t}" in block or f"tools\\{t}" in block:
+                    continue
+                if t not in all_py_names:
+                    problems.append(f"[{rel}] 命令引用了项目中不存在的脚本 {t}")
             owner = next((t for t in tools_in_block if t in py_set), None) if tools_in_block else None
             if owner:
                 for sw in block_switches:
@@ -116,7 +141,18 @@ def main():
                 if exp not in all_exports:
                     problems.append(f"[{rel}] 文档声称导出 {exp}，但没有任何工具写出该文件")
 
-    # 汇总打印
+        # 4. 文档导航完整性：markdown 链接与反引号里引用的 .md 必须真实存在
+        #    （AI 会按引导去读这些文件，悬空会直接断链）；裸文件名用全项目同名兜底
+        md_refs = set(re.findall(r"\]\(([^)\s#]+\.md)(?:#[^)]*)?\)", text))
+        md_refs |= set(re.findall(r"`([^`\n\s]+\.md)`", text))
+        for ref in md_refs:
+            if ref.startswith(("http", "<")) or "*" in ref:
+                continue
+            if not doc_exists(md, ref):
+                problems.append(f"[{rel}] 引用了不存在的文档 {ref}")
+
+    # 汇总打印（去重排序）
+    problems = sorted(set(problems))
     print("=" * 56)
     print("文档 ↔ 代码 一致性自检")
     print("=" * 56)
