@@ -1,0 +1,46 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+venv/
+env/
+*.egg-info/
+dist/
+build/
+
+# 数据文件（学生的问卷数据不提交）
+data/
+*.xlsx
+*.xls
+*.sav
+
+# 测试数据中的生成产物排除，源文件保留
+tests/test-data/*_cleaned.csv
+tests/test-data/*_整理表.csv
+tests/test-data/*.png
+
+# 输出文件
+output/
+results/
+*.jpg
+*.jpeg
+*.pdf
+
+# 系统文件
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# 临时文件
+*.tmp
+*.bak
+*.log
