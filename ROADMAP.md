@@ -87,6 +87,7 @@
 - [x] Spearman秩相关＋偏相关（v1.21：`--spearman`偏态秩相关=scipy.spearmanr；`--partial 性别,年级`相关矩阵求逆净相关=回归残差法，报偏r/df/p、导出_偏相关.csv）
 - [x] 卡方独立性检验（v1.22：自动对人口学分类列两两交叉，χ²/df/p/Cramér's V，2×2 Yates校正，期望频数不足提示Fisher/合并类别，导出_卡方检验.csv，=scipy.chi2_contingency；三类变量组合分析齐备）
 - [x] 分半信度（v1.23：前后半SPSS口径+奇偶分半，两半α/两半相关r/Spearman-Brown=2r/(1+r)/Guttman λ4，奇数题报奇偶，导出_信度分析.csv，=numpy）
+- [x] 数据质量增强（v1.24：data_cleaner 新增注意力检查题IRI答错剔除、长直线longstring阈值可配、个体内低变异SD、缺失率过高；只对量表/Likert作答题判定；导出_清洗报告.csv剔除明细并按原因汇总；合成数据逐行黄金）
 - [ ] Promax斜交旋转（因子相关时，当前引导JASP）；手动固定因子数
 - [ ] 问卷星多选题/填空题的进一步适配
 - [ ] 知网检索流程针对更多学校适配（学校路径配置文件）

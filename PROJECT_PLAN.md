@@ -335,7 +335,8 @@
 - **v1.20** ✅ 非参数差异检验：`--nonparametric`，2组 Mann-Whitney U（U/z/p/r，结校正+连续性校正）、3+组 Kruskal-Wallis H（H/df/p/ε²，结校正，事后引导Dunn），自实现卡方上尾p（正则不完全gamma），与 scipy 逐位一致；补全 t/ANOVA 正态前提违反时的替代
 - **v1.21** ✅ Spearman秩相关与偏相关：`--spearman`（偏态/有序秩相关，=scipy.spearmanr）、`--partial "性别,年级"`（相关矩阵求逆法净相关，=回归残差法，报偏r/df/p、导出_偏相关.csv），相关分析三件套 Pearson/Spearman/偏相关齐备
 - **v1.22** ✅ 卡方独立性检验：自动对人口学分类列两两交叉（分类×分类），χ²(df)/p/Cramér's V，2×2 Yates校正，期望频数不足提示Fisher/合并类别，导出_卡方检验.csv，=scipy.chi2_contingency；至此连续×连续、分类×连续、分类×分类三类变量组合分析齐备
-- **v1.23** ✅ 分半信度（当前）：每个量表在α/CITC后自动报前后半（SPSS口径）两半α/两半相关r/Spearman-Brown=2r/(1+r)/Guttman λ4，奇数题另报奇偶分半，导出_信度分析.csv，与numpy逐位一致；信度体系α＋CITC/删题α＋分半齐备
+- **v1.23** ✅ 分半信度：每个量表在α/CITC后自动报前后半（SPSS口径）两半α/两半相关r/Spearman-Brown=2r/(1+r)/Guttman λ4，奇数题另报奇偶分半，导出_信度分析.csv，与numpy逐位一致；信度体系α＋CITC/删题α＋分半齐备
+- **v1.24** ✅ 数据质量增强（当前）：data_cleaner新增注意力检查题（IRI，答错即剔除）、长直线longstring（阈值可配）、个体内低变异SD、缺失率过高；质量指标只对量表/Likert作答题（--scales最准，否则启发式排除时长/人口学列）；新增剔除明细报告_清洗报告.csv并按原因汇总；合成数据逐行黄金
 - **v2.0**（远期）：本地知识库向量检索、实验/质性研究支持、多学科扩展
 - **v3.0**（远期）：网页应用、社区化
 

@@ -69,10 +69,17 @@ def t_clean():
     f = ask_path("  把（预处理后的）数据CSV拖进来，回车：")
     if not f:
         return
-    sec = input("  最短答题时间按多少秒算无效？直接回车用默认30秒：").strip()
     args = [f]
+    sec = input("  最短答题时间按多少秒算无效？直接回车用默认30秒：").strip()
     if sec:
         args += ["--min-seconds", sec]
+    sc = ask_path("  如果有 scales.txt，拖进来（让质量判断只针对量表题，更准；没有直接回车）：")
+    if sc:
+        args += ["--scales", sc]
+    att = input("  问卷里有没有注意力检查题（如“本题请选3”）？有就输入 列名关键词=正确答案，多道用分号隔开；没有直接回车：").strip()
+    if att:
+        args += ["--attention", att]
+    print("  （另自动检查长直线作答、作答几乎无变异SD、缺失率超两成；阈值默认即可，高级用法见说明书）")
     run("data_cleaner.py", args)
 
 
