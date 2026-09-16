@@ -201,10 +201,17 @@
 ## 测试14：自动统计信度（脚本）
 
 **命令**：
-`python tools/auto_stats.py tests/test-data/sample_survey_cleaned.csv --scales tests/test-data/scales.txt`
+`python tools/auto_stats.py tests/test-data/sample_scales.csv --scales tests/test-data/scales_structured.txt --y NSSI --x "AI情感依赖,孤独感"`
 
-**预期结果**：输出每个量表Cronbach's α、描述统计、相关矩阵及三线表CSV。
-**通过标准**：高一致性数据α接近0.95；公式已用理论值独立验证（r=.3,n=100→p≈.0024）。
+**预期结果**：
+- 反向题（X2/X4/Y3，标了(R)）先反向计分再算α；三量表α约0.89-0.93
+- 导出 `_量表总分.csv`（含原始列+各量表总分/均分）
+- 量表总分层面相关：X-M、M-Y、X-Y均为正且显著（链式中介前提）
+- 初步回归Y~X+M：M显著、控制M后X减弱（典型中介模式）
+
+**反向计分正确性对照**：对含反向题却不标(R)的数据，α会出现负值（如专用对照数据α=-5）；
+正确标注后α=1.000。这证明α必须在反向计分后计算。
+**通过标准**：α合理、相关方向正确、量表总分=反向计分后各题之和。
 
 ## 测试15：英文文献检索（脚本，联网）
 
@@ -276,8 +283,8 @@
 python tools\wjx_preprocess.py tests\test-data\sample_wjx_raw.csv --output tests\test-data\_t_std.csv --report tests\test-data\_t_report.txt
 # 2 数据清洗
 python tools\data_cleaner.py tests\test-data\sample_survey.csv
-# 3 自动统计（信度/描述/相关）
-python tools\auto_stats.py tests\test-data\sample_survey_cleaned.csv --scales tests\test-data\scales.txt
+# 3 自动统计（反向计分/信度/量表总分/相关/回归）
+python tools\auto_stats.py tests\test-data\sample_scales.csv --scales tests\test-data\scales_structured.txt --y NSSI --x "AI情感依赖,孤独感"
 # 4 文献整理
 python tools\literature_organizer.py tests\test-data\sample_literature.txt
 # 5 模型图

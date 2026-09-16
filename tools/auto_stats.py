@@ -15,10 +15,23 @@
 量表配置文件 scales.txt 格式（每行：量表名=列1,列2,列3）：
   AI情感依赖=Q1,Q2,Q3,Q4,Q5
   孤独感=Q6,Q7,Q8,Q9,Q10,Q11
+
+进阶（反向题与量表点数）：
+  - 题目后加 (R) 或 * 表示反向题，算α和总分前会自动反向计分（5点：6-原值）
+  - 量表名后用 :点数 指定是几点量表（默认5点），反向计分=点数+1-原值
+  示例：
+  孤独感:5=ULS1,ULS2(R),ULS3,ULS4(R),ULS5
+  生活满意度:7=LS1,LS2*,LS3
+
+提供 --scales 时会：
+  1) 对反向题计分后再算 Cronbach's α（否则含反向题的α是错的）
+  2) 自动计算每个量表的总分/均分，导出“_量表总分.csv”（供JASP/SPSS/PROCESS直接用）
+  3) 描述统计、相关、回归在“量表总分”层面进行（论文表1表2用这个）
 """
 
 import csv
 import sys
+import re
 import math
 import argparse
 from pathlib import Path
@@ -246,17 +259,62 @@ def cronbach_alpha(items_data):
     return alpha
 
 
+def recoded_item_series(matrix, conf):
+    """返回某量表【反向计分后】的题目数据（与可用题目同序），缺失保持None。"""
+    likert = conf.get("likert", 5)
+    reverse = conf.get("reverse", {})
+    out = []
+    for it in conf["items"]:
+        if it not in matrix:
+            continue
+        col = []
+        for v in matrix[it]:
+            if v is None:
+                col.append(None)
+            elif reverse.get(it):
+                col.append(float(likert + 1 - v))
+            else:
+                col.append(float(v))
+        out.append(col)
+    return out
+
+
+def build_scale_scores(matrix, scales):
+    """用反向计分后的题目计算每个量表的总分/均分。
+    返回 score_matrix：{“量表总分”:[...], “量表均分”:[...]}；题目有缺失则该样本为None。"""
+    n = len(next(iter(matrix.values()))) if matrix else 0
+    score_matrix = {}
+    for name, conf in scales.items():
+        available = [it for it in conf["items"] if it in matrix]
+        rec = recoded_item_series(matrix, conf) if available else []
+        totals, means = [], []
+        for i in range(n):
+            vals = [rec[j][i] for j in range(len(rec)) if rec[j][i] is not None]
+            if len(rec) >= 2 and len(vals) == len(rec):
+                totals.append(round(sum(vals), 3))
+                means.append(round(sum(vals) / len(vals), 3))
+            else:
+                totals.append(None)
+                means.append(None)
+        score_matrix[f"{name}总分"] = totals
+        score_matrix[f"{name}均分"] = means
+    return score_matrix, n
+
+
 def reliability_analysis(matrix, scales_config):
     print("\n" + "=" * 60)
-    print("三、信度分析（Cronbach's α）")
+    print("三、信度分析（Cronbach's α，反向题已先反向计分）")
     print("=" * 60)
     if not scales_config:
         print("未提供量表配置，跳过。")
-        print("配置方法：创建scales.txt，每行写 量表名=题1,题2,题3")
+        print("配置方法：创建scales.txt，每行写 量表名=题1,题2,题3；反向题加(R)")
         return []
 
     results = []
-    for scale_name, items in scales_config.items():
+    for scale_name, conf in scales_config.items():
+        items = conf["items"]
+        reverse = conf.get("reverse", {})
+        likert = conf.get("likert", 5)
         available = [it for it in items if it in matrix]
         missing_items = [it for it in items if it not in matrix]
         if missing_items:
@@ -264,26 +322,47 @@ def reliability_analysis(matrix, scales_config):
         if len(available) < 2:
             print(f"✗ {scale_name}：可用题目不足2个，无法计算α")
             continue
-        items_data = [matrix[it] for it in available]
+        # 关键：反向计分后的题目数据
+        items_data = recoded_item_series(matrix, conf)
         alpha = cronbach_alpha(items_data)
 
         # 删题后α
         item_alphas = {}
-        for idx, it in enumerate(available):
+        for idx in range(len(available)):
             rest = [items_data[j] for j in range(len(available)) if j != idx]
-            a = cronbach_alpha(rest)
-            item_alphas[it] = a
+            item_alphas[available[idx]] = cronbach_alpha(rest)
 
+        rev_names = [it for it in available if reverse.get(it)]
+        rev_tip = f"，反向题{len(rev_names)}道已按{likert}点反转" if rev_names else ""
         if alpha is not None:
             rating = "优秀" if alpha >= 0.9 else "良好" if alpha >= 0.8 else "可接受" if alpha >= 0.7 else "偏低，需检查"
-            print(f"\n{scale_name}（{len(available)}题）：α = {alpha:.3f}  [{rating}]")
+            print(f"\n{scale_name}（{len(available)}题{rev_tip}）：α = {alpha:.3f}  [{rating}]")
             for it in available:
                 a = item_alphas[it]
+                rtag = "(反向)" if reverse.get(it) else ""
                 flag = " ← 删题后α升高，考虑删除" if a and alpha and a > alpha + 0.02 else ""
-                print(f"    {it}：删题后α = {a:.3f}{flag}")
+                print(f"    {it}{rtag}：删题后α = {a:.3f}{flag}")
             results.append({"量表": scale_name, "题数": len(available),
                             "Cronbach_alpha": round(alpha, 3), "评价": rating})
     return results
+
+
+def export_scale_dataset(src_path, headers, data, score_matrix, scales):
+    """导出含量表总分/均分的分析数据集（保留原始所有列），供JASP/SPSS/PROCESS使用。"""
+    out_path = src_path.with_name(src_path.stem + "_量表总分.csv")
+    new_cols = []
+    for name in scales:
+        new_cols += [f"{name}总分", f"{name}均分"]
+    with open(out_path, "w", encoding="utf-8-sig", newline="") as f:
+        w = csv.writer(f)
+        w.writerow(headers + new_cols)
+        for i, row in enumerate(data):
+            extra = []
+            for c in new_cols:
+                v = score_matrix[c][i]
+                extra.append("" if v is None else v)
+            w.writerow(row + extra)
+    return out_path
 
 
 def correlation_matrix(matrix, num_cols, max_cols=15):
@@ -459,19 +538,58 @@ def export_three_line_table(desc, corr, output):
 # ============ 主程序 ============
 
 def parse_scales(path):
+    """解析量表配置，返回 {名称: {"items":[...], "reverse":{题:True}, "likert":点数}}。
+    格式：
+      量表名=题1,题2,题3
+      量表名:5=题1,题2(R),题3*       # :5 指定5点(默认)，(R)或*标记反向题
+      量表名:7=题1,题2(R)
+    """
     scales = {}
     p = Path(path)
     if not p.exists():
         print(f"⚠ 量表配置文件不存在：{path}")
         return scales
     with open(p, "r", encoding="utf-8-sig") as f:
-        for line in f:
-            line = line.strip()
+        for raw in f:
+            line = raw.strip()
             if not line or line.startswith("#") or "=" not in line:
                 continue
-            name, items = line.split("=", 1)
-            scales[name.strip()] = [it.strip() for it in items.split(",") if it.strip()]
+            left, right = line.split("=", 1)
+            left = left.strip()
+            likert = 5
+            m = re.match(r"^(.+?)\s*[:：]\s*(\d+)$", left)
+            if m:
+                left = m.group(1).strip()
+                likert = int(m.group(2))
+            items, reverse = [], {}
+            for tok in right.split(","):
+                tok = tok.strip()
+                if not tok:
+                    continue
+                is_rev = False
+                if tok.endswith("(R)") or tok.endswith("（R）") or tok.endswith("(r)") or tok.endswith("*"):
+                    is_rev = True
+                    tok = (tok.replace("(R)", "").replace("（R）", "")
+                              .replace("(r)", "").rstrip("*").strip())
+                if tok:
+                    items.append(tok)
+                    if is_rev:
+                        reverse[tok] = True
+            if left and items:
+                scales[left] = {"items": items, "reverse": reverse, "likert": likert}
     return scales
+
+
+def resolve_col(name, scales, matrix):
+    """学生可能传量表名或具体列名；传量表名时映射到其总分列。"""
+    name = name.strip()
+    if name in matrix:
+        return name
+    if scales and name in scales:
+        return f"{name}总分"
+    if name.endswith("总分") or name.endswith("均分"):
+        return name
+    return name
 
 
 def main():
@@ -501,29 +619,49 @@ def main():
     if args.profile:
         return
 
-    desc = descriptive(matrix, num_cols)
+    scales = parse_scales(args.scales) if args.scales else {}
 
-    rel = []
-    if args.scales:
-        scales = parse_scales(args.scales)
+    # 有量表配置：反向计分→信度→量表总分→在总分层面做描述/相关/回归
+    if scales:
         rel = reliability_analysis(matrix, scales)
+        score_matrix, _ = build_scale_scores(matrix, scales)
+        scale_total_cols = [f"{name}总分" for name in scales]
+        dataset = export_scale_dataset(path, headers, data, score_matrix, scales)
+        print(f"\n含量表总分的分析数据集已导出：{dataset}")
+        print("  （JASP/SPSS做中介、PROCESS时直接打开这个文件，用各量表“总分”列）")
 
-    corr = correlation_matrix(matrix, num_cols)
-
-    if args.y and args.x:
-        x_cols = [c.strip() for c in args.x.split(",")]
         print("\n" + "=" * 60)
-        print("五、回归分析")
+        print("量表总分层面的描述统计与相关分析")
         print("=" * 60)
-        linear_regression(matrix, x_cols, args.y)
+        desc = descriptive(score_matrix, scale_total_cols)
+        corr = correlation_matrix(score_matrix, scale_total_cols)
+
+        if args.y and args.x:
+            y_col = resolve_col(args.y, scales, score_matrix)
+            x_cols = [resolve_col(c, scales, score_matrix) for c in args.x.split(",")]
+            print("\n" + "=" * 60)
+            print("五、回归分析（量表总分层面）")
+            print("=" * 60)
+            linear_regression(score_matrix, x_cols, y_col)
+    else:
+        # 无量表配置：保持题目级全量分析（原行为）
+        print("\n提示：提供 --scales 量表配置后，将自动反向计分、算量表总分并在总分层面分析。")
+        desc = descriptive(matrix, num_cols)
+        corr = correlation_matrix(matrix, num_cols)
+        if args.y and args.x:
+            x_cols = [c.strip() for c in args.x.split(",")]
+            print("\n" + "=" * 60)
+            print("五、回归分析")
+            print("=" * 60)
+            linear_regression(matrix, x_cols, args.y)
 
     output = args.output or str(path.with_name(path.stem + "_统计结果.csv"))
     export_three_line_table(desc, corr, output)
 
     print("\n" + "=" * 60)
     print("分析完成。提示：")
-    print("- 中介/链式中介请用JASP或SPSS的PROCESS（模型4/6）")
-    print("- 建议用量表总分（而非单个题目）做相关和回归")
+    print("- 中介/链式中介请用JASP或SPSS的PROCESS（模型4/6），打开“_量表总分.csv”")
+    print("- 反向题已按scales.txt的(R)标记处理；请核对反向题是否标对")
     print("- 结果需人工核对，p值为近似计算，精确值以SPSS/JASP为准")
 
 
