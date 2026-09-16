@@ -101,7 +101,7 @@ def t_stats():
             args += ["--y", y, "--x", x]
             if med:
                 args += ["--mediators", med]
-        efa = input("  是否做完整探索性因子分析EFA（自编/重大修订量表才需要；输入y=是，直接回车=跳过）：").strip().lower()
+        efa = input("  是否做完整探索性因子分析EFA（自编/重大修订量表才需要；含平行分析定因子数、自动碎石图；输入y=是，直接回车=跳过）：").strip().lower()
         if efa in ("y", "yes", "是", "1"):
             names = input("    对哪个量表做？多个用逗号分隔，直接回车=对全部量表：").strip()
             args += ["--efa"] + ([names] if names else [])

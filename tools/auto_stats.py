@@ -558,8 +558,9 @@ def _varimax(loadings, normalize=True, max_iter=100, tol=1e-7):
     return Lr
 
 
-def _plot_scree(name, eigvals, nfac, out_png):
+def _plot_scree(name, eigvals, nfac, out_png, pa_mean=None, pa_p95=None):
     """画碎石图（Cattell scree plot）：折线+数据点+Kaiser λ=1 参考线，高亮保留因子。
+    若提供 pa_mean/pa_p95（平行分析随机特征值），叠加随机均值与95%分位线。
     matplotlib 为可选依赖，未安装时返回 False（不影响数值结果）。"""
     try:
         import matplotlib
@@ -573,9 +574,15 @@ def _plot_scree(name, eigvals, nfac, out_png):
     x = list(range(1, k + 1))
     fig, ax = plt.subplots(figsize=(8, 5))
     ax.plot(x, eigvals, "-", color="#9bb8d3", linewidth=1.6, zorder=2)
-    ax.plot(x, eigvals, "o", color="#1f4e79", markersize=6, zorder=3, label="特征值")
+    ax.plot(x, eigvals, "o", color="#1f4e79", markersize=6, zorder=3, label="真实特征值")
     ax.axhline(1.0, color="#C62828", linestyle="--", linewidth=1.3, zorder=1,
                label="Kaiser 基准 λ=1")
+    if pa_mean is not None:
+        ax.plot(x, pa_mean, "--", color="#ef6c00", linewidth=1.3, zorder=2,
+                label="平行分析 随机均值")
+    if pa_p95 is not None:
+        ax.plot(x, pa_p95, ":", color="#6a1b9a", linewidth=1.5, zorder=2,
+                label="平行分析 随机95%分位")
     ax.plot(x[:nfac], eigvals[:nfac], "o", color="#2e7d32", markersize=12,
             markerfacecolor="none", markeredgewidth=1.8, zorder=4,
             label=f"保留 {nfac} 个因子")
@@ -587,7 +594,10 @@ def _plot_scree(name, eigvals, nfac, out_png):
     ax.set_xticks(x)
     ax.set_xlabel("成分序号", fontsize=11)
     ax.set_ylabel("特征值", fontsize=11)
-    ax.set_title(f"{name} 碎石图（Scree Plot）", fontsize=13)
+    title = f"{name} 碎石图（Scree Plot）"
+    if pa_p95 is not None:
+        title += "＋平行分析"
+    ax.set_title(title, fontsize=13)
     ax.set_ylim(0, max(eigvals) * 1.15)
     ax.grid(True, axis="y", alpha=0.3)
     ax.legend(loc="upper right", fontsize=9)
@@ -597,12 +607,55 @@ def _plot_scree(name, eigvals, nfac, out_png):
     return True
 
 
+def _parallel_analysis(R, n, n_rep=500, base_seed=20260917):
+    """Horn 平行分析：生成 n_rep 个与原数据同 N、同题数、题间独立的随机数据，
+    求每个位置特征值的均值与95%分位；真实特征值超过随机95%分位的连续成分数即建议因子数。
+    返回 real/mean/p95 特征值与按均值、按95%分位的建议因子数（95%更保守，Glorfeld 1995）。"""
+    k = len(R)
+    real, _ = _eigen_sym(R)
+    sims = []
+    for i in range(n_rep):
+        rng = random.Random(base_seed + i + 1)
+        Z = []
+        for _a in range(k):
+            col = [rng.gauss(0.0, 1.0) for _ in range(n)]
+            mm = sum(col) / n
+            sd = math.sqrt(sum((x - mm) ** 2 for x in col) / (n - 1))
+            Z.append([(x - mm) / sd if sd > 0 else 0.0 for x in col])
+        M = [[0.0] * k for _ in range(k)]
+        for a in range(k):
+            za = Z[a]
+            for b in range(a, k):
+                rr = sum(za[j] * Z[b][j] for j in range(n)) / (n - 1)
+                M[a][b] = rr
+                M[b][a] = rr
+        ev, _ = _eigen_sym(M)
+        sims.append(ev)
+    mean_e, p95_e = [], []
+    for j in range(k):
+        col = sorted(s[j] for s in sims)
+        mean_e.append(sum(col) / n_rep)
+        p95_e.append(col[min(n_rep - 1, int(0.95 * n_rep))])
+
+    def _count(thr):
+        c = 0
+        for j in range(k):
+            if real[j] > thr[j]:
+                c = j + 1
+            else:
+                break
+        return c
+
+    return {"real": real, "mean": mean_e, "p95": p95_e,
+            "nfac_mean": _count(mean_e), "nfac_p95": _count(p95_e)}
+
+
 def _safe_filename(s):
     """去掉 Windows 文件名非法字符。"""
     return "".join(c for c in s if c not in '\\/:*?"<>|').strip().rstrip(".") or "量表"
 
 
-def _efa_one(name, items, conf, Z, R, n):
+def _efa_one(name, items, conf, Z, R, n, pa_rep=500):
     """对单个量表做完整探索性因子分析（PCA提取+varimax旋转），打印并返回结果行。"""
     k = len(items)
     kmo = kmo_value(R)
@@ -648,6 +701,18 @@ def _efa_one(name, items, conf, Z, R, n):
     # 特征值/碎石
     eig_str = "，".join(f"λ{i+1}={eigvals[i]:.2f}" for i in range(min(k, 8)))
     print(f"  特征值（Kaiser准则保留≥1，共{nfac}个）：{eig_str}" + ("…" if k > 8 else ""))
+    pa = None
+    if pa_rep and pa_rep > 0:
+        print(f"  平行分析(Horn)模拟中（{pa_rep}次随机数据，约数秒）…")
+        pa = _parallel_analysis(R, n, pa_rep)
+        show = min(k, max(nfac + 2, 5))
+        print("    成分   真实λ / 随机均值 / 随机95%分位")
+        for j in range(show):
+            keep = "保留" if pa["real"][j] > pa["p95"][j] else "—"
+            print(f"     {j+1:>2}    {pa['real'][j]:5.2f} / {pa['mean'][j]:5.2f} / "
+                  f"{pa['p95'][j]:5.2f}   {keep}")
+        print(f"    →平行分析建议保留 {pa['nfac_p95']} 个因子（95%分位准则，更保守）；"
+              f"均值准则 {pa['nfac_mean']} 个")
     # 总方差解释（旋转后）
     cum = 0.0
     var_line = []
@@ -685,15 +750,22 @@ def _efa_one(name, items, conf, Z, R, n):
         rows.append(row)
     if cum < 50:
         print("  ⚠ 累计方差解释率低于50%，结构解释力偏弱，需检查题目或因子数")
-    print("  注：脚本用于快速预览/教学；碎石图已随结果导出PNG。")
+    if pa is not None:
+        print(f"  因子数三依据：Kaiser特征值≥1→{nfac}个；碎石拐点→见碎石图；"
+              f"平行分析→{pa['nfac_p95']}个。三者不一致时结合理论、优先平行分析，"
+              f"并在JASP固定因子数复核。")
+    print("  注：脚本用于快速预览/教学；碎石图"
+          + ("（含平行分析线）" if pa is not None else "") + "已随结果导出PNG。")
     print("      固定因子数、斜交promax旋转、CFA验证性因子分析请在JASP/SPSS复核。")
     return {"量表": name, "题数": k, "N": n, "KMO": round(kmo, 3) if kmo else "",
             "Bartlett_p": "<.001" if pval < .001 else round(pval, 3),
             "因子数": nfac, "累计方差%": round(cum, 2),
-            "特征值": [round(e, 4) for e in eigvals], "rows": rows}
+            "平行分析因子数": pa["nfac_p95"] if pa else "",
+            "特征值": [round(e, 4) for e in eigvals],
+            "PA": pa, "rows": rows}
 
 
-def validity_analysis(matrix, scales, efa_names=None, efa_output=None):
+def validity_analysis(matrix, scales, efa_names=None, efa_output=None, pa_rep=500):
     """结构效度。默认对每个量表（反向计分后题目）做单维检查：KMO、Bartlett、第一主成分载荷。
     efa_names: None=全部走单维；'__ALL__'=全部做完整EFA；集合/列表=指定量表做完整EFA
     （主成分提取+特征值≥1定因子数+varimax旋转+共同度+交叉载荷）。"""
@@ -731,9 +803,10 @@ def validity_analysis(matrix, scales, efa_names=None, efa_output=None):
 
         do_efa = bool(efa_names) and (efa_names == "__ALL__" or name in efa_names)
         if do_efa:
-            res = _efa_one(name, items, conf, Z, R, n)
+            res = _efa_one(name, items, conf, Z, R, n, pa_rep=pa_rep)
             if res is not None:
-                efa_summaries.append({kk: vv for kk, vv in res.items() if kk != "rows"})
+                efa_summaries.append({kk: vv for kk, vv in res.items()
+                                      if kk not in ("rows", "PA")})
                 efa_item_rows.extend(res["rows"])
                 if efa_output:
                     if efa_output.endswith("_因子分析.csv"):
@@ -741,7 +814,12 @@ def validity_analysis(matrix, scales, efa_names=None, efa_output=None):
                     else:
                         stem = os.path.splitext(efa_output)[0]
                     png = stem + "_" + _safe_filename(name) + "_碎石图.png"
-                    if _plot_scree(name, res["特征值"], res["因子数"], png):
+                    pa = res.get("PA")
+                    hl = pa["nfac_p95"] if pa else res["因子数"]
+                    ok = _plot_scree(name, res["特征值"], hl, png,
+                                     pa_mean=pa["mean"] if pa else None,
+                                     pa_p95=pa["p95"] if pa else None)
+                    if ok:
                         scree_pngs.append(png)
                     else:
                         scree_fail = True
@@ -1317,6 +1395,8 @@ def main():
     parser.add_argument("--profile", action="store_true", help="只输出数据画像")
     parser.add_argument("--efa", nargs="*", default=None,
                         help="完整探索性因子分析：不跟量表名=对全部量表；也可跟量表名（空格或逗号分隔）")
+    parser.add_argument("--pa-rep", type=int, default=500,
+                        help="平行分析随机模拟次数（默认500，越大越稳但越慢；0=关闭平行分析）")
     parser.add_argument("--output", "-o", help="三线表输出路径")
     args = parser.parse_args()
 
@@ -1359,7 +1439,8 @@ def main():
     # 有量表配置：反向计分→信度→量表总分→在总分层面做描述/相关/回归
     if scales:
         rel = reliability_analysis(matrix, scales)
-        validity_analysis(matrix, scales, efa_names=efa_names, efa_output=efa_out)
+        validity_analysis(matrix, scales, efa_names=efa_names,
+                          efa_output=efa_out, pa_rep=args.pa_rep)
         harman_test(matrix, scales)
         score_matrix, _ = build_scale_scores(matrix, scales)
         scale_total_cols = [f"{name}总分" for name in scales]
