@@ -210,6 +210,71 @@ def data_profile(headers, data, matrix, num_cols):
         print("  无缺失值")
 
 
+def frequency_analysis(headers, data, matrix, scales, output=None):
+    """人口学/分类变量频数分析。自动识别量表题目之外、取值种类≤10的列
+    （性别、年级、生源地、是否独生子女、专业等，兼容文本和1/2编码），
+    输出频数与百分比并导出，供论文“研究对象/样本构成”部分直接使用。"""
+    scale_items = set()
+    for conf in scales.values():
+        scale_items.update(conf["items"])
+
+    sections = []
+    table_rows = []
+    for ci, c in enumerate(headers):
+        if c in scale_items:
+            continue
+        col = matrix.get(c, [])
+        if any(v is not None for v in col):
+            vals = [v for v in col if v is not None]
+            numeric = True
+        else:
+            vals = []
+            for r in data:
+                if ci < len(r):
+                    t = r[ci].strip()
+                    if t:
+                        vals.append(t)
+            numeric = False
+        if not vals:
+            continue
+        uniq = set(vals)
+        # 文本分类列（性别/生源地等）取值≤10类；数值编码列（性别1/2、年级1-4）取值≤4类，
+        # 以排除5点/7点Likert题（量表题另外已通过scale_items排除）
+        max_cat = 10 if not numeric else 4
+        if len(uniq) > max_cat:
+            continue
+        n = len(vals)
+        counts = {}
+        for v in vals:
+            counts[v] = counts.get(v, 0) + 1
+        keys = sorted(counts) if numeric else sorted(counts, key=lambda k: -counts[k])
+        lines = []
+        for k in keys:
+            pct = counts[k] / n * 100
+            label = str(int(k)) if numeric and float(k).is_integer() else str(k)
+            lines.append(f"    {label}：{counts[k]}人（{pct:.1f}%）")
+            table_rows.append({"变量": c, "取值": label, "频数": counts[k],
+                               "百分比%": round(pct, 1)})
+        sections.append((c, n, lines))
+
+    if not sections:
+        return None
+    print("\n" + "=" * 60)
+    print("研究对象（人口学/分类变量频数）")
+    print("=" * 60)
+    for c, n, lines in sections:
+        print(f"\n{c}（N={n}）")
+        for ln in lines:
+            print(ln)
+    if output:
+        with open(output, "w", encoding="utf-8-sig", newline="") as f:
+            w = csv.DictWriter(f, fieldnames=["变量", "取值", "频数", "百分比%"])
+            w.writeheader()
+            w.writerows(table_rows)
+        print(f"\n频数表已导出：{output}")
+    return table_rows
+
+
 def descriptive(matrix, num_cols):
     print("\n" + "=" * 60)
     print("描述统计")
@@ -977,6 +1042,10 @@ def main():
         return
 
     scales = parse_scales(args.scales) if args.scales else {}
+
+    # 人口学/分类变量频数（独立于量表，两个分支都做）
+    freq_out = str(path.with_name(path.stem + "_频数表.csv"))
+    frequency_analysis(headers, data, matrix, scales, output=freq_out)
 
     # 有量表配置：反向计分→信度→量表总分→在总分层面做描述/相关/回归
     if scales:

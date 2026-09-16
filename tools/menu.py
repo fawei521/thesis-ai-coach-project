@@ -78,9 +78,9 @@ def t_clean():
 
 def t_stats():
     print("\n【3/7】自动统计分析")
-    print("  自动完成：反向计分、信度α、结构效度(KMO/Bartlett/载荷)、")
+    print("  自动完成：人口学频数表、反向计分、信度α、结构效度(KMO/Bartlett/载荷)、")
     print("  共同方法偏差Harman、量表总分、描述统计、相关、回归、")
-    print("  Bootstrap中介（模型4/6），并导出三线表。")
+    print("  Bootstrap中介（模型4/6），并导出三线表和频数表。")
     f = ask_path("  把清洗后的数据CSV拖进来，回车：")
     if not f:
         return
