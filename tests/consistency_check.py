@@ -151,6 +151,18 @@ def main():
             if not doc_exists(md, ref):
                 problems.append(f"[{rel}] 引用了不存在的文档 {ref}")
 
+        # 5. 学生工作区路径引用完整：`我的工作区/子目录或文件` 必须真实存在
+        for ws_ref in re.findall(r"`(我的工作区/[^`\n\s]+)`", text):
+            if "*" in ws_ref or "<" in ws_ref:
+                continue
+            # 跳过示意性/枚举性引用：一个反引号里并列多个编号目录（01-…/02-…），或含占位措辞
+            if len(re.findall(r"\d+-", ws_ref)) >= 2:
+                continue
+            if "子目录" in ws_ref or "xxx" in ws_ref.lower():
+                continue
+            if not (ROOT / ws_ref.rstrip("/")).exists():
+                problems.append(f"[{rel}] 引用了不存在的工作区路径 {ws_ref}")
+
     # 汇总打印（去重排序）
     problems = sorted(set(problems))
     print("=" * 56)
