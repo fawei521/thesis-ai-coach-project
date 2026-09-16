@@ -170,13 +170,23 @@ def main():
     print('文献整理工具')
     print('=' * 50)
 
-    # 读取文献
+    # 读取文献（自动兼容UTF-8/GBK）
     literatures = []
-    with open(input_path, 'r', encoding='utf-8-sig') as f:
-        for line in f:
-            parsed = parse_literature_line(line)
-            if parsed:
-                literatures.append(parsed)
+    text = None
+    for enc in ("utf-8-sig", "gb18030", "gbk"):
+        try:
+            with open(input_path, 'r', encoding=enc) as f:
+                text = f.read()
+            break
+        except (UnicodeDecodeError, UnicodeError):
+            continue
+    if text is None:
+        print('无法识别文件编码，请把文献清单另存为UTF-8后重试。')
+        return
+    for line in text.splitlines():
+        parsed = parse_literature_line(line)
+        if parsed:
+            literatures.append(parsed)
 
     print(f'\n读取文献：{len(literatures)}篇')
 

@@ -13,10 +13,17 @@ from pathlib import Path
 
 
 def read_csv(filepath):
-    """读取CSV文件，返回表头和数据行"""
-    with open(filepath, 'r', encoding='utf-8-sig') as f:
-        reader = csv.reader(f)
-        rows = list(reader)
+    """读取CSV文件，返回表头和数据行；自动兼容UTF-8(含BOM)与GBK/GB18030。"""
+    rows = None
+    for enc in ("utf-8-sig", "gb18030", "gbk"):
+        try:
+            with open(filepath, 'r', encoding=enc, newline="") as f:
+                rows = list(csv.reader(f))
+            break
+        except (UnicodeDecodeError, UnicodeError):
+            continue
+    if rows is None:
+        raise ValueError("无法识别文件编码，请把CSV另存为UTF-8后重试")
     if not rows:
         return [], []
     return rows[0], rows[1:]

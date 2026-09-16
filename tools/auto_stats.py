@@ -153,14 +153,20 @@ def fmt_p(p):
 # ============ 数据读取 ============
 
 def read_data(filepath):
-    with open(filepath, "r", encoding="utf-8-sig") as f:
-        reader = csv.reader(f)
-        rows = list(reader)
-    if not rows:
-        return [], []
-    headers = rows[0]
-    data = rows[1:]
-    return headers, data
+    """读取CSV，自动兼容UTF-8(含BOM)与GBK/GB18030（问卷星等中文导出常见编码）。"""
+    last_err = None
+    for enc in ("utf-8-sig", "gb18030", "gbk"):
+        try:
+            with open(filepath, "r", encoding=enc, newline="") as f:
+                rows = list(csv.reader(f))
+            if rows:
+                return rows[0], rows[1:]
+            return [], []
+        except (UnicodeDecodeError, UnicodeError) as e:
+            last_err = e
+            continue
+    print(f"错误：无法识别文件编码，请先用菜单第1项预处理，或把CSV另存为UTF-8。({last_err})")
+    sys.exit(1)
 
 
 def to_float_matrix(headers, data):
@@ -968,34 +974,43 @@ def parse_scales(path):
     if not p.exists():
         print(f"⚠ 量表配置文件不存在：{path}")
         return scales
-    with open(p, "r", encoding="utf-8-sig") as f:
-        for raw in f:
-            line = raw.strip()
-            if not line or line.startswith("#") or "=" not in line:
+    text = None
+    for enc in ("utf-8-sig", "gb18030", "gbk"):
+        try:
+            text = p.read_text(encoding=enc)
+            break
+        except (UnicodeDecodeError, UnicodeError):
+            continue
+    if text is None:
+        print(f"⚠ 量表配置文件编码无法识别：{path}，请另存为UTF-8")
+        return scales
+    for raw in text.splitlines():
+        line = raw.strip()
+        if not line or line.startswith("#") or "=" not in line:
+            continue
+        left, right = line.split("=", 1)
+        left = left.strip()
+        likert = 5
+        m = re.match(r"^(.+?)\s*[:：]\s*(\d+)$", left)
+        if m:
+            left = m.group(1).strip()
+            likert = int(m.group(2))
+        items, reverse = [], {}
+        for tok in right.split(","):
+            tok = tok.strip()
+            if not tok:
                 continue
-            left, right = line.split("=", 1)
-            left = left.strip()
-            likert = 5
-            m = re.match(r"^(.+?)\s*[:：]\s*(\d+)$", left)
-            if m:
-                left = m.group(1).strip()
-                likert = int(m.group(2))
-            items, reverse = [], {}
-            for tok in right.split(","):
-                tok = tok.strip()
-                if not tok:
-                    continue
-                is_rev = False
-                if tok.endswith("(R)") or tok.endswith("（R）") or tok.endswith("(r)") or tok.endswith("*"):
-                    is_rev = True
-                    tok = (tok.replace("(R)", "").replace("（R）", "")
-                              .replace("(r)", "").rstrip("*").strip())
-                if tok:
-                    items.append(tok)
-                    if is_rev:
-                        reverse[tok] = True
-            if left and items:
-                scales[left] = {"items": items, "reverse": reverse, "likert": likert}
+            is_rev = False
+            if tok.endswith("(R)") or tok.endswith("（R）") or tok.endswith("(r)") or tok.endswith("*"):
+                is_rev = True
+                tok = (tok.replace("(R)", "").replace("（R）", "")
+                          .replace("(r)", "").rstrip("*").strip())
+            if tok:
+                items.append(tok)
+                if is_rev:
+                    reverse[tok] = True
+        if left and items:
+            scales[left] = {"items": items, "reverse": reverse, "likert": likert}
     return scales
 
 
