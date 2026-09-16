@@ -374,7 +374,7 @@ def build_scale_scores(matrix, scales):
     return score_matrix, n
 
 
-def reliability_analysis(matrix, scales_config):
+def reliability_analysis(matrix, scales_config, item_output=None):
     print("\n" + "=" * 60)
     print("二、信度分析（Cronbach's α，反向题已先反向计分）")
     print("=" * 60)
@@ -384,6 +384,7 @@ def reliability_analysis(matrix, scales_config):
         return []
 
     results = []
+    all_item_rows = []
     for scale_name, conf in scales_config.items():
         items = conf["items"]
         reverse = conf.get("reverse", {})
@@ -399,24 +400,52 @@ def reliability_analysis(matrix, scales_config):
         items_data = recoded_item_series(matrix, conf)
         alpha = cronbach_alpha(items_data)
 
-        # 删题后α
-        item_alphas = {}
-        for idx in range(len(available)):
-            rest = [items_data[j] for j in range(len(available)) if j != idx]
-            item_alphas[available[idx]] = cronbach_alpha(rest)
-
+        kk = len(available)
+        ncol = len(items_data[0]) if items_data else 0
         rev_names = [it for it in available if reverse.get(it)]
         rev_tip = f"，反向题{len(rev_names)}道已按{likert}点反转" if rev_names else ""
         if alpha is not None:
             rating = "优秀" if alpha >= 0.9 else "良好" if alpha >= 0.8 else "可接受" if alpha >= 0.7 else "偏低，需检查"
-            print(f"\n{scale_name}（{len(available)}题{rev_tip}）：α = {alpha:.3f}  [{rating}]")
-            for it in available:
-                a = item_alphas[it]
+            print(f"\n{scale_name}（{kk}题{rev_tip}）：α = {alpha:.3f}  [{rating}]")
+            print("    题项分析（CITC校正项总相关建议≥.40；删题后α不应高于总α）：")
+            min_citc = None
+            for idx, it in enumerate(available):
+                rest_data = [items_data[j] for j in range(kk) if j != idx]
+                a_del = cronbach_alpha(rest_data)
+                rest_total = []
+                for r in range(ncol):
+                    vals = [items_data[j][r] for j in range(kk) if j != idx]
+                    rest_total.append(sum(vals) if all(v is not None for v in vals) else None)
+                citc, _ = pearson_r(items_data[idx], rest_total)
+                flags = []
+                if citc is not None and citc < .4:
+                    flags.append("CITC<.40偏低")
+                if a_del is not None and a_del > alpha + .02:
+                    flags.append("删题后α升高")
+                if citc is not None and (min_citc is None or citc < min_citc):
+                    min_citc = citc
                 rtag = "(反向)" if reverse.get(it) else ""
-                flag = " ← 删题后α升高，考虑删除" if a and alpha and a > alpha + 0.02 else ""
-                print(f"    {it}{rtag}：删题后α = {a:.3f}{flag}")
-            results.append({"量表": scale_name, "题数": len(available),
-                            "Cronbach_alpha": round(alpha, 3), "评价": rating})
+                citc_txt = f"{citc:.3f}" if citc is not None else "NA"
+                a_txt = f"{a_del:.3f}" if a_del is not None else "NA"
+                mark = "；".join(flags)
+                tail = f"  ← {mark}，结合理论检查该题" if mark else ""
+                print(f"    {it}{rtag}：CITC={citc_txt}，删题后α={a_txt}{tail}")
+                all_item_rows.append({
+                    "量表": scale_name, "题项": it + rtag,
+                    "CITC校正项总相关": round(citc, 3) if citc is not None else "",
+                    "删题后alpha": round(a_del, 3) if a_del is not None else "",
+                    "量表alpha": round(alpha, 3), "提示": mark})
+            results.append({"量表": scale_name, "题数": kk,
+                            "Cronbach_alpha": round(alpha, 3),
+                            "最低CITC": round(min_citc, 3) if min_citc is not None else "",
+                            "评价": rating})
+    if item_output and all_item_rows:
+        with open(item_output, "w", newline="", encoding="utf-8-sig") as f:
+            w = csv.DictWriter(f, fieldnames=["量表", "题项", "CITC校正项总相关",
+                                              "删题后alpha", "量表alpha", "提示"])
+            w.writeheader()
+            w.writerows(all_item_rows)
+        print(f"\n题项分析表（CITC/删题α）已导出：{item_output}")
     return results
 
 
@@ -1435,10 +1464,11 @@ def main():
                     if sub.strip():
                         efa_names.add(sub.strip())
     efa_out = str(path.with_name(path.stem + "_因子分析.csv")) if efa_names else None
+    item_out = str(path.with_name(path.stem + "_题项分析.csv"))
 
     # 有量表配置：反向计分→信度→量表总分→在总分层面做描述/相关/回归
     if scales:
-        rel = reliability_analysis(matrix, scales)
+        rel = reliability_analysis(matrix, scales, item_output=item_out)
         validity_analysis(matrix, scales, efa_names=efa_names,
                           efa_output=efa_out, pa_rep=args.pa_rep)
         harman_test(matrix, scales)
