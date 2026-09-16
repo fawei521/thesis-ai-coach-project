@@ -141,9 +141,9 @@ python tools/auto_stats.py 数据.csv --scales scales.txt --efa
 # 只对自编/修订的某几个量表做（空格或逗号分隔）
 python tools/auto_stats.py 数据.csv --scales scales.txt --efa 我的新量表,修订量表
 ```
-输出 KMO、Bartlett、全部特征值、因子数、旋转后载荷矩阵、共同度、交叉载荷/低载荷标记、累计方差解释率，并导出"数据名_因子分析.csv"。判定：KMO>.7（>.6可接受）、Bartlett p<.05、载荷>.40（>.50理想）、交叉载荷（两个因子都≥.40且差<.20）考虑删题、累计方差≥50%~60%。算法（Jacobi谱分解＋Kaiser归一化Varimax）已用 Wolfram 独立黄金验证，2/3因子构造数据均能正确还原结构。
+输出 KMO、Bartlett、全部特征值、因子数、旋转后载荷矩阵、共同度、交叉载荷/低载荷标记、累计方差解释率，导出"数据名_因子分析.csv"，并为每个量表导出"数据名_量表名_碎石图.png"（300dpi，含λ=1线与保留因子高亮，可直接插图）。判定：KMO>.7（>.6可接受）、Bartlett p<.05、载荷>.40（>.50理想）、交叉载荷（两个因子都≥.40且差<.20）考虑删题、累计方差≥50%~60%。算法（Jacobi谱分解＋Kaiser归一化Varimax）已用 Wolfram 独立黄金验证，2/3因子构造数据均能正确还原结构。
 
-**脚本做不到、需 JASP/SPSS 的部分：** 碎石图、手动固定因子数、Promax斜交旋转（因子相关时）、因子相关矩阵。JASP：Factor → Exploratory Factor Analysis。
+**脚本做不到、需 JASP/SPSS 的部分：** 手动固定因子数、Promax斜交旋转（因子相关时）、因子相关矩阵。JASP：Factor → Exploratory Factor Analysis。
 
 **验证性因子分析CFA（进阶，需专门软件）：** AMOS/Mplus/R(lavaan) 或 JASP Factor → CFA，报告 χ²/df<3、RMSEA<.08、CFI/TLI>.90、SRMR<.08。脚本不做SEM，AI给具体点击步骤或 lavaan 代码。
 

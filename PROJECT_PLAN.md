@@ -308,7 +308,10 @@
 - **v1.9** ✅ 完整探索性因子分析 EFA（当前）：
   - auto_stats 新增 `--efa`：Jacobi 谱分解求特征值、特征值≥1定因子数、Kaiser 归一化 Varimax 旋转、旋转载荷/共同度/交叉载荷标记/累计方差，导出 `_因子分析.csv`
   - 特征值与旋转载荷经 Wolfram 独立黄金验证（2/3 因子构造数据逐元素吻合）；修复奇异矩阵 KMO 崩溃；菜单可交互触发 EFA；stats-guide/workflow/e2e 同步
-  - 剩余候选：问卷星多选/填空进一步适配、知网多学校路径配置、不装Python的Excel版统计、碎石图、Promax斜交（引导JASP）
+  - 剩余候选：问卷星多选/填空进一步适配、知网多学校路径配置、不装Python的Excel版统计、Promax斜交（引导JASP）
+- **v1.10** ✅ EFA碎石图自动出图（当前）：
+  - `--efa` 为每个量表导出 300dpi 碎石图 PNG（λ=1 参考线＋保留因子高亮＋特征值标注），可直接插图
+  - matplotlib 软依赖、未安装优雅降级不影响数值；已读图核验中文渲染与拐点，无字体警告
 - **v2.0**（远期）：本地知识库向量检索、实验/质性研究支持、多学科扩展
 - **v3.0**（远期）：网页应用、社区化
 
@@ -318,7 +321,7 @@
 |---|---|---|
 | wjx_preprocess.py | 问卷星原始答卷→标准数字表（编码/用时/文本选项/列映射报告） | 标准库 |
 | data_cleaner.py | 无效问卷检测（用时过短/规律作答/全同） | 标准库 |
-| auto_stats.py | 人口学频数、反向计分、α、结构效度(KMO/Bartlett/载荷)、`--efa`完整探索性因子分析(多因子+Varimax)、Harman、量表总分、描述/相关/回归、Bootstrap中介模型4/6、三线表 | 标准库 |
+| auto_stats.py | 人口学频数、反向计分、α、结构效度(KMO/Bartlett/载荷)、`--efa`完整探索性因子分析(多因子+Varimax+自动碎石图)、Harman、量表总分、描述/相关/回归、Bootstrap中介模型4/6、三线表 | 标准库（碎石图可选matplotlib，缺失自动降级） |
 | generate_demo_data.py | 生成内置链式中介的可复现模拟数据供练手（严禁写进论文） | 标准库 |
 | paper_search.py | 英文学术文献检索（OpenAlex/Semantic Scholar，免费无key） | 标准库+联网 |
 | literature_organizer.py | 文献去重、分类、导出 | 标准库 |

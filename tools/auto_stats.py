@@ -30,6 +30,7 @@
 """
 
 import csv
+import os
 import sys
 import re
 import math
@@ -557,6 +558,50 @@ def _varimax(loadings, normalize=True, max_iter=100, tol=1e-7):
     return Lr
 
 
+def _plot_scree(name, eigvals, nfac, out_png):
+    """画碎石图（Cattell scree plot）：折线+数据点+Kaiser λ=1 参考线，高亮保留因子。
+    matplotlib 为可选依赖，未安装时返回 False（不影响数值结果）。"""
+    try:
+        import matplotlib
+        matplotlib.use("Agg")
+        import matplotlib.pyplot as plt
+    except Exception:
+        return False
+    plt.rcParams["font.sans-serif"] = ["SimHei", "Microsoft YaHei", "Arial Unicode MS"]
+    plt.rcParams["axes.unicode_minus"] = False
+    k = len(eigvals)
+    x = list(range(1, k + 1))
+    fig, ax = plt.subplots(figsize=(8, 5))
+    ax.plot(x, eigvals, "-", color="#9bb8d3", linewidth=1.6, zorder=2)
+    ax.plot(x, eigvals, "o", color="#1f4e79", markersize=6, zorder=3, label="特征值")
+    ax.axhline(1.0, color="#C62828", linestyle="--", linewidth=1.3, zorder=1,
+               label="Kaiser 基准 λ=1")
+    ax.plot(x[:nfac], eigvals[:nfac], "o", color="#2e7d32", markersize=12,
+            markerfacecolor="none", markeredgewidth=1.8, zorder=4,
+            label=f"保留 {nfac} 个因子")
+    # 题数少时标注每个特征值，题数多时只标前10个避免重叠
+    for xi, yi in zip(x, eigvals):
+        if k <= 15 or xi <= 10:
+            ax.annotate(f"{yi:.2f}", (xi, yi), textcoords="offset points",
+                        xytext=(0, 8), ha="center", fontsize=8, color="#333")
+    ax.set_xticks(x)
+    ax.set_xlabel("成分序号", fontsize=11)
+    ax.set_ylabel("特征值", fontsize=11)
+    ax.set_title(f"{name} 碎石图（Scree Plot）", fontsize=13)
+    ax.set_ylim(0, max(eigvals) * 1.15)
+    ax.grid(True, axis="y", alpha=0.3)
+    ax.legend(loc="upper right", fontsize=9)
+    plt.tight_layout()
+    plt.savefig(out_png, dpi=300, bbox_inches="tight", facecolor="white")
+    plt.close(fig)
+    return True
+
+
+def _safe_filename(s):
+    """去掉 Windows 文件名非法字符。"""
+    return "".join(c for c in s if c not in '\\/:*?"<>|').strip().rstrip(".") or "量表"
+
+
 def _efa_one(name, items, conf, Z, R, n):
     """对单个量表做完整探索性因子分析（PCA提取+varimax旋转），打印并返回结果行。"""
     k = len(items)
@@ -640,11 +685,12 @@ def _efa_one(name, items, conf, Z, R, n):
         rows.append(row)
     if cum < 50:
         print("  ⚠ 累计方差解释率低于50%，结构解释力偏弱，需检查题目或因子数")
-    print("  注：脚本用于快速预览/教学；正式EFA（含碎石图、固定因子数、斜交promax）")
-    print("      请在JASP/SPSS复核，斜交情形报告因子相关与模式矩阵。")
+    print("  注：脚本用于快速预览/教学；碎石图已随结果导出PNG。")
+    print("      固定因子数、斜交promax旋转、CFA验证性因子分析请在JASP/SPSS复核。")
     return {"量表": name, "题数": k, "N": n, "KMO": round(kmo, 3) if kmo else "",
             "Bartlett_p": "<.001" if pval < .001 else round(pval, 3),
-            "因子数": nfac, "累计方差%": round(cum, 2), "rows": rows}
+            "因子数": nfac, "累计方差%": round(cum, 2),
+            "特征值": [round(e, 4) for e in eigvals], "rows": rows}
 
 
 def validity_analysis(matrix, scales, efa_names=None, efa_output=None):
@@ -659,6 +705,8 @@ def validity_analysis(matrix, scales, efa_names=None, efa_output=None):
     rows = []
     efa_summaries = []
     efa_item_rows = []
+    scree_pngs = []
+    scree_fail = False
     for name, conf in scales.items():
         items = [it for it in conf["items"] if it in matrix]
         if len(items) < 3:
@@ -687,6 +735,16 @@ def validity_analysis(matrix, scales, efa_names=None, efa_output=None):
             if res is not None:
                 efa_summaries.append({kk: vv for kk, vv in res.items() if kk != "rows"})
                 efa_item_rows.extend(res["rows"])
+                if efa_output:
+                    if efa_output.endswith("_因子分析.csv"):
+                        stem = efa_output[:-len("_因子分析.csv")]
+                    else:
+                        stem = os.path.splitext(efa_output)[0]
+                    png = stem + "_" + _safe_filename(name) + "_碎石图.png"
+                    if _plot_scree(name, res["特征值"], res["因子数"], png):
+                        scree_pngs.append(png)
+                    else:
+                        scree_fail = True
             continue
 
         kmo = kmo_value(R)
@@ -738,6 +796,11 @@ def validity_analysis(matrix, scales, efa_names=None, efa_output=None):
                 w.writeheader()
                 w.writerows(efa_item_rows)
             print(f"\nEFA旋转载荷矩阵已导出：{efa_output}")
+        for png in scree_pngs:
+            print(f"碎石图已导出：{png}（300dpi，可直接插入论文；结合λ=1线与拐点定因子数）")
+        if scree_fail and not scree_pngs:
+            print("\n未安装 matplotlib，未生成碎石图（不影响上面的数值结果）。")
+            print("  安装后重跑即可出图：pip install matplotlib；或在 JASP Factor 中查看碎石图。")
         print("EFA摘要：" + "；".join(
             f"{s['量表']}→{s['因子数']}因子/累计{s['累计方差%']}%/KMO={s['KMO']}"
             for s in efa_summaries))

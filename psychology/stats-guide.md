@@ -96,9 +96,9 @@ python tools/auto_stats.py 数据.csv --scales scales.txt --efa
 # 只对某几个自编量表做（空格或逗号分隔）
 python tools/auto_stats.py 数据.csv --scales scales.txt --efa 我的新量表,修订量表
 ```
-脚本会输出 KMO、Bartlett、全部特征值、按特征值≥1确定的因子数、Varimax 旋转后载荷矩阵、共同度、交叉载荷与低载荷标记、累计方差解释率，并导出"数据名_因子分析.csv"（题项×因子载荷长表，便于整理成三线表）。菜单第 3 项在输入 scales.txt 后会询问是否做 EFA。
+脚本会输出 KMO、Bartlett、全部特征值、按特征值≥1确定的因子数、Varimax 旋转后载荷矩阵、共同度、交叉载荷与低载荷标记、累计方差解释率，并导出"数据名_因子分析.csv"（题项×因子载荷长表，便于整理成三线表）；**同时为每个量表导出"数据名_量表名_碎石图.png"**（300dpi，含 λ=1 参考线与保留因子高亮，拐点一目了然，可直接插入论文）。菜单第 3 项在输入 scales.txt 后会询问是否做 EFA。
 
-**脚本做不到、需要 JASP/SPSS 的部分（要在论文中如实处理）：** 碎石图、手动固定因子数、Promax 斜交旋转与因子相关、CFA 拟合指标。JASP 免费：Factor → Exploratory Factor Analysis 可做 EFA（含碎石图、Promax），Factor → Confirmatory Factor Analysis 可做 CFA。
+**脚本做不到、需要 JASP/SPSS 的部分（要在论文中如实处理）：** 手动固定因子数、Promax 斜交旋转与因子相关矩阵、CFA 拟合指标。JASP 免费：Factor → Exploratory Factor Analysis 可固定因子数、做 Promax 斜交并查看碎石图，Factor → Confirmatory Factor Analysis 可做 CFA。
 
 ---
 
