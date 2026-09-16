@@ -79,7 +79,7 @@ def t_clean():
 def t_stats():
     print("\n【3/7】自动统计分析")
     print("  自动完成：反向计分、信度α、共同方法偏差Harman、量表总分、")
-    print("  描述统计、相关、初步回归，并导出三线表和“_量表总分.csv”。")
+    print("  描述统计、相关、回归、Bootstrap中介（模型4/6），并导出三线表。")
     f = ask_path("  把清洗后的数据CSV拖进来，回车：")
     if not f:
         return
@@ -91,12 +91,17 @@ def t_stats():
     if sc:
         args += ["--scales", sc]
         y = input("  因变量量表名（如 NSSI，没有就直接回车）：").strip()
-        x = input("  自变量/中介量表名，逗号分隔（如 AI情感依赖,孤独感，没有就回车）：").strip()
+        x = input("  自变量量表名（如 AI情感依赖，没有就回车）：").strip()
+        med = ""
+        if y and x:
+            med = input("  中介变量（简单中介填1个如 孤独感；链式填2个逗号分隔如 孤独感,反刍思维；不做直接回车）：").strip()
         if y and x:
             args += ["--y", y, "--x", x]
+            if med:
+                args += ["--mediators", med]
     run("auto_stats.py", args)
-    print("\n  提醒：中介/链式中介仍需用 JASP 或 SPSS 的 PROCESS，")
-    print("  打开刚导出的“_量表总分.csv”，让AI导师照 workflows/data-analysis-auto.md 带你点。")
+    print("\n  脚本已自动做Bootstrap中介；正式结果建议让AI导师带你用")
+    print("  JASP/SPSS PROCESS 打开“_量表总分.csv”复核一次。")
 
 
 def t_search():

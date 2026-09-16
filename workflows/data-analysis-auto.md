@@ -16,7 +16,7 @@
         反向计分 → 3.信度α → 5.Harman共同方法偏差 → 量表总分
         → 6.描述统计 → 7.相关分析 → 初步回归，并导出三线表和"_量表总分.csv"
   → 4. 效度检验（JASP/SPSS，引导）
-  → 8. 核心分析：中介/链式中介（JASP/SPSS PROCESS，打开"_量表总分.csv"，引导）
+  → 8. 核心分析：中介/链式中介（auto_stats --mediators 自动出Bootstrap结果，再用JASP/SPSS PROCESS复核）
   → 9. 补充分析：网络分析（R，进阶可选）
   → 10. 生成图表（chart_generator.py，自动）
   → 11. 撰写结果（AI解读+学生写）
@@ -173,20 +173,39 @@ Harman单因子检验：
 
 ---
 
-## 第8步：核心分析——中介效应（JASP/SPSS引导）
+## 第8步：核心分析——中介效应（脚本自动 + JASP/SPSS复核）
 
-这是论文核心，用成熟工具，AI给逐步操作。**数据打开第2步导出的 `_量表总分.csv`，变量选各量表"总分"列。**
+### 8.1 先用脚本一键出结果（自动）
+**工具**：`auto_stats.py --mediators`（菜单第3项，会依次问你因变量、自变量、中介）
 
-### 简单中介：PROCESS模型4
-### 链式中介：PROCESS模型6
+- 简单中介（模型4），1个中介：
+```
+python tools/auto_stats.py 数据_量表总分.csv --scales scales.txt \
+  --y NSSI --x AI情感依赖 --mediators 孤独感 --boot 5000
+```
+- 链式中介（模型6），2个中介（按路径顺序，逗号分隔）：
+```
+python tools/auto_stats.py 数据_量表总分.csv --scales scales.txt \
+  --y NSSI --x AI情感依赖 --mediators "孤独感,反刍思维" --boot 5000
+```
 
-**SPSS**：安装PROCESS宏（AI指导从hayesprocess.com免费下载安装）
+脚本自动输出（并导出 `_中介效应.csv`）：
+- 各路径系数（未标准化B和标准化β：a、b、c、c'，链式含d21）
+- 各条间接效应、Boot SE、95%CI（Bootstrap默认5000次，百分位法，固定种子可复现）
+- **CI不含0即该效应显著**；自动判断完全/部分中介、链式路径是否成立
+- 自检恒等式：总效应 c = 直接效应 c' + 间接效应合计
+
+### 8.2 再用JASP/SPSS复核（正式结果）
+脚本用于快速预览和练手；**写进论文的正式结果建议用成熟工具复核一遍**（导师更认可）。
+**数据打开第2步导出的 `_量表总分.csv`，变量选各量表"总分"列。**
+
+**SPSS**：安装PROCESS宏（AI指导从hayesprocess.com免费下载安装），模型4/6
 **JASP**：菜单 Regression → Mediation（新版原生支持链式中介）
 
-操作要点：
-- Bootstrap 5000次，95%置信区间
+复核要点：
+- Bootstrap 5000次，95%置信区间；建议同时看偏差校正(bias-corrected)CI
 - 置信区间不包含0 = 效应显著
-- AI解释每条路径、直接/间接效应、完全/部分中介
+- AI解释每条路径、直接/间接效应、完全/部分中介；脚本与JASP结论应一致，不一致以JASP为准并排查
 
 **结果表格**：
 - 表3：各路径回归系数（β、SE、t、p）

@@ -201,23 +201,33 @@
 ## 测试14：自动统计（反向计分/信度/共同方法偏差/量表总分/相关/回归）
 
 **命令**：
-`python tools/auto_stats.py tests/test-data/demo_survey.csv --scales tests/test-data/demo_scales.txt --y NSSI --x "AI情感依赖,孤独感"`
+`python tools/auto_stats.py tests/test-data/demo_survey.csv --scales tests/test-data/demo_scales.txt --y NSSI --x AI情感依赖`
 
-**预期结果（N=150, seed=20260917 基准）**：
-- 反向题（X2/X4/Y3，标了(R)）先反向计分再算α；α约 AI情感依赖.933 / 孤独感.899 / NSSI .942
-- Harman第一公因子解释率约39%（<40%，共同方法偏差不严重）
-- 导出 `_量表总分.csv`（含原始列+各量表总分/均分）
-- 量表总分相关：X-M≈.25、M-Y≈.24、X-Y≈.21，均显著（链式中介前提满足）
-- 回归Y~X+M：整体显著(p≈.002)，孤独感显著(β≈.20,p≈.014)，控制M后AI依赖减弱(p≈.06)，呈典型中介模式
+**预期结果（N=200, seed=20260917 基准）**：
+- 反向题（X2/X4/Y3标(R)）先反向计分；四量表α约 AI情感依赖.930/孤独感.925/反刍思维.938/NSSI .933
+- Harman第一公因子解释率约38.5%（<40%）
+- 导出 `_量表总分.csv`（含原始列+各量表总分/均分，文本人口学列保留）
 
 **反向计分正确性对照**：含反向题却不标(R)时α会出现负值（专用对照数据α=-5.000）；
-正确标注后α=1.000。单构念数据Harman第一因子=100%，三构念数据约39%，算法能区分。
-**通过标准**：α合理、Harman<40%、相关方向正确、量表总分=反向计分后各题之和。
+正确标注后α=1.000。单构念数据Harman第一因子=100%，多构念约38%，算法能区分。
 
-## 测试14b：演示数据生成器（可复现）
+## 测试14b：Bootstrap中介（模型4/6）
+
+**链式中介命令（模型6）**：
+`python tools/auto_stats.py tests/test-data/demo_survey.csv --scales tests/test-data/demo_scales.txt --y NSSI --x AI情感依赖 --mediators "孤独感,反刍思维" --boot 5000`
+
+**预期（N=200基准）**：
+- 链式间接 X→孤独感→反刍→NSSI 效应约.034，95%CI约[.012,.063]，不含0（显著）
+- 间接合计约.114显著；直接效应c'约.033、CI含0（不显著）→完全中介倾向
+- 恒等式自检：总效应c ≈ c' + 间接合计（.147≈.033+.114）
+- 导出 `_中介效应.csv`
+**简单中介（模型4）**：`--mediators 孤独感`（只填1个），间接a*b的CI不含0。
+**通过标准**：固定种子两次结果一致；间接效应CI判断与路径方向符合内置生成结构。
+
+## 测试14c：演示数据生成器（可复现）
 
 **命令**：`python tools/generate_demo_data.py --outdir <临时目录>`
-**预期**：生成 demo_survey.csv + demo_scales.txt；固定种子下再跑 auto_stats 结果与测试14基准一致。
+**预期**：生成 demo_survey.csv（链式四量表）+ demo_scales.txt；固定种子下 auto_stats 结果与测试14/14b基准一致。
 **通过标准**：两次生成同种子数据完全一致；脚本明确提示"模拟数据严禁写进真实论文"。
 
 ## 测试15：英文文献检索（脚本，联网）
@@ -290,8 +300,8 @@
 python tools\wjx_preprocess.py tests\test-data\sample_wjx_raw.csv --output tests\test-data\_t_std.csv --report tests\test-data\_t_report.txt
 # 2 数据清洗
 python tools\data_cleaner.py tests\test-data\sample_survey.csv
-# 3 自动统计（反向计分/信度/Harman/量表总分/相关/回归）
-python tools\auto_stats.py tests\test-data\demo_survey.csv --scales tests\test-data\demo_scales.txt --y NSSI --x "AI情感依赖,孤独感"
+# 3 自动统计（反向计分/信度/Harman/量表总分/相关/回归/Bootstrap链式中介）
+python tools\auto_stats.py tests\test-data\demo_survey.csv --scales tests\test-data\demo_scales.txt --y NSSI --x AI情感依赖 --mediators "孤独感,反刍思维" --boot 5000
 # 3b 演示数据生成器
 python tools\generate_demo_data.py --outdir tests\test-data\_demo_check
 # 4 文献整理

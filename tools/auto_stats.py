@@ -33,6 +33,7 @@ import csv
 import sys
 import re
 import math
+import random
 import argparse
 from pathlib import Path
 
@@ -594,6 +595,143 @@ def invert_matrix(A):
     return [row[n:] for row in M]
 
 
+def _ols_beta(y, Xpred):
+    """最小二乘系数，返回 [截距, 预测变量1系数, ...]。Xpred为预测变量列的列表。"""
+    n = len(y)
+    X = [[1.0] + [Xpred[j][i] for j in range(len(Xpred))] for i in range(n)]
+    return solve_least_squares(X, y)
+
+
+def _z(vals):
+    n = len(vals)
+    m = sum(vals) / n
+    sd = math.sqrt(sum((v - m) ** 2 for v in vals) / (n - 1)) if n > 1 else 0
+    return [(v - m) / sd if sd > 0 else 0.0 for v in vals]
+
+
+def _mediation_effects(x, ms, y, idx):
+    """对给定样本索引计算中介效应。ms长度1=简单中介(模型4)，长度2=链式中介(模型6)。"""
+    gx = [x[i] for i in idx]
+    gy = [y[i] for i in idx]
+    gms = [[m[i] for i in idx] for m in ms]
+    eff = {}
+    eff["c(总效应)"] = _ols_beta(gy, [gx])[1]
+    if len(gms) == 1:
+        m1 = gms[0]
+        eff["a(X→M)"] = _ols_beta(m1, [gx])[1]
+        bY = _ols_beta(gy, [gx, m1])
+        eff["c'(直接效应)"] = bY[1]
+        eff["b(M→Y)"] = bY[2]
+        eff["间接(a*b)"] = eff["a(X→M)"] * eff["b(M→Y)"]
+    else:
+        m1, m2 = gms[0], gms[1]
+        eff["a1(X→M1)"] = _ols_beta(m1, [gx])[1]
+        r2 = _ols_beta(m2, [gx, m1])
+        eff["a2(X→M2)"] = r2[1]
+        eff["d21(M1→M2)"] = r2[2]
+        rY = _ols_beta(gy, [gx, m1, m2])
+        eff["c'(直接效应)"] = rY[1]
+        eff["b1(M1→Y)"] = rY[2]
+        eff["b2(M2→Y)"] = rY[3]
+        eff["间接:X→M1→Y(a1*b1)"] = eff["a1(X→M1)"] * eff["b1(M1→Y)"]
+        eff["间接:X→M2→Y(a2*b2)"] = eff["a2(X→M2)"] * eff["b2(M2→Y)"]
+        eff["间接:链式X→M1→M2→Y"] = eff["a1(X→M1)"] * eff["d21(M1→M2)"] * eff["b2(M2→Y)"]
+        eff["间接合计"] = (eff["间接:X→M1→Y(a1*b1)"] + eff["间接:X→M2→Y(a2*b2)"]
+                          + eff["间接:链式X→M1→M2→Y"])
+    return eff
+
+
+def mediation_analysis(matrix, x_col, m_cols, y_col, reps=5000, seed=20260917, output=None):
+    """Bootstrap中介分析（模型4简单中介 / 模型6链式中介），百分位95%CI。"""
+    cols = [x_col] + m_cols + [y_col]
+    missing = [c for c in cols if c not in matrix]
+    if missing:
+        print(f"✗ 中介分析失败，以下列不存在：{missing}")
+        return None
+    rows = [i for i in range(len(matrix[x_col]))
+            if all(matrix[c][i] is not None for c in cols)]
+    n = len(rows)
+    if n < 30:
+        print(f"⚠ 有效样本仅{n}（<30），Bootstrap结果不稳定，建议加大样本。")
+    x = [matrix[x_col][i] for i in rows]
+    y = [matrix[y_col][i] for i in rows]
+    ms = [[matrix[m][i] for i in rows] for m in m_cols]
+
+    model = "模型6（链式中介）" if len(m_cols) == 2 else "模型4（简单中介）"
+    print("\n" + "=" * 60)
+    print(f"六、Bootstrap中介分析（PROCESS {model}）")
+    print("=" * 60)
+    print(f"X={x_col}  中介={'→'.join(m_cols)}  Y={y_col}")
+    print(f"N={n}，Bootstrap={reps}次，95%置信区间（百分位法），随机种子={seed}")
+
+    point = _mediation_effects(x, ms, y, list(range(n)))
+
+    # 标准化点估计（路径展示用β）
+    zx, zy, zms = _z(x), _z(y), [_z(m) for m in ms]
+    zpoint = _mediation_effects(zx, zms, zy, list(range(n)))
+
+    rng = random.Random(seed)
+    boots = {k: [] for k in point}
+    for _ in range(reps):
+        idx = [rng.randrange(n) for _ in range(n)]
+        e = _mediation_effects(x, ms, y, idx)
+        for k in boots:
+            boots[k].append(e[k])
+
+    def ci(k):
+        s = sorted(boots[k])
+        lo = s[int(0.025 * reps)]
+        hi = s[int(0.975 * reps) - 1]
+        return lo, hi
+
+    def sig(lo, hi):
+        return "显著（CI不含0）" if (lo > 0 or hi < 0) else "不显著（CI含0）"
+
+    print("\n路径系数（点估计；括号内为标准化β）：")
+    path_keys = [k for k in point if not k.startswith("间接")]
+    for k in path_keys:
+        print(f"  {k:<16} B={point[k]:.3f}   β={zpoint[k]:.3f}")
+
+    print("\n中介效应分解（未标准化，Bootstrap 95%CI）：")
+    rows_out = []
+    ind_keys = [k for k in point if k.startswith("间接")]
+    for k in ind_keys + ["c'(直接效应)", "c(总效应)"]:
+        lo, hi = ci(k)
+        se = (sum((v - point[k]) ** 2 for v in boots[k]) / (reps - 1)) ** 0.5
+        mark = "★" if k.startswith("间接") and (lo > 0 or hi < 0) else " "
+        print(f"  {mark}{k:<22} 效应={point[k]:.3f}  BootSE={se:.3f}  "
+              f"95%CI=[{lo:.3f}, {hi:.3f}]  {sig(lo, hi) if k.startswith('间接') else ''}")
+        rows_out.append({"效应": k, "效应值": round(point[k], 3), "BootSE": round(se, 3),
+                         "CI下限": round(lo, 3), "CI上限": round(hi, 3),
+                         "显著性": sig(lo, hi) if k.startswith("间接") else ""})
+
+    # 结论
+    if len(m_cols) == 1:
+        lo, hi = ci("间接(a*b)")
+        ind_sig = lo > 0 or hi < 0
+        direct_lo, direct_hi = ci("c'(直接效应)")
+        direct_sig = direct_lo > 0 or direct_hi < 0
+        if ind_sig and not direct_sig:
+            kind = "完全中介（间接效应显著、直接效应不显著）"
+        elif ind_sig and direct_sig:
+            kind = "部分中介（间接、直接效应均显著）"
+        else:
+            kind = "中介效应不显著"
+        print(f"\n结论：{kind}。")
+    else:
+        chain_lo, chain_hi = ci("间接:链式X→M1→M2→Y")
+        print(f"\n链式中介路径X→M1→M2→Y：{sig(chain_lo, chain_hi)}。")
+    print("提示：脚本用于快速预览，正式结果建议用JASP/SPSS PROCESS复核（含偏差校正CI）。")
+
+    if output:
+        with open(output, "w", encoding="utf-8-sig", newline="") as f:
+            w = csv.DictWriter(f, fieldnames=["效应", "效应值", "BootSE", "CI下限", "CI上限", "显著性"])
+            w.writeheader()
+            w.writerows(rows_out)
+        print(f"中介效应表已导出：{output}")
+    return rows_out
+
+
 def export_three_line_table(desc, corr, output):
     """导出三线表（描述统计+相关矩阵合并CSV）"""
     with open(output, "w", encoding="utf-8-sig", newline="") as f:
@@ -671,8 +809,11 @@ def main():
     parser = argparse.ArgumentParser(description="自动化统计分析工具（心理学问卷）")
     parser.add_argument("data", help="CSV数据文件")
     parser.add_argument("--scales", help="量表配置文件（算信度用）")
-    parser.add_argument("--y", help="回归因变量列名")
-    parser.add_argument("--x", help="回归自变量列名，逗号分隔")
+    parser.add_argument("--y", help="回归/中介因变量列名（可传量表名）")
+    parser.add_argument("--x", help="回归自变量列名，逗号分隔（中介时只取第一个作X）")
+    parser.add_argument("--mediators", help="中介变量，逗号分隔；1个=模型4简单中介，2个=模型6链式中介")
+    parser.add_argument("--boot", type=int, default=5000, help="Bootstrap次数（默认5000）")
+    parser.add_argument("--seed", type=int, default=20260917, help="Bootstrap随机种子（默认固定，可复现）")
     parser.add_argument("--profile", action="store_true", help="只输出数据画像")
     parser.add_argument("--output", "-o", help="三线表输出路径")
     args = parser.parse_args()
@@ -719,6 +860,7 @@ def main():
             print("五、回归分析（量表总分层面）")
             print("=" * 60)
             linear_regression(score_matrix, x_cols, y_col)
+        active_matrix = score_matrix
     else:
         # 无量表配置：保持题目级全量分析（原行为）
         print("\n提示：提供 --scales 量表配置后，将自动反向计分、算量表总分并在总分层面分析。")
@@ -730,13 +872,26 @@ def main():
             print("五、回归分析")
             print("=" * 60)
             linear_regression(matrix, x_cols, args.y)
+        active_matrix = matrix
 
     output = args.output or str(path.with_name(path.stem + "_统计结果.csv"))
     export_three_line_table(desc, corr, output)
 
+    # 中介分析（模型4/6，Bootstrap）
+    if args.mediators and args.y and args.x:
+        x_first = resolve_col(args.x.split(",")[0], scales, active_matrix)
+        y_col = resolve_col(args.y, scales, active_matrix)
+        m_cols = [resolve_col(c, scales, active_matrix) for c in args.mediators.split(",")]
+        if len(m_cols) > 2:
+            print("\n⚠ 链式中介最多支持2个中介变量（模型6），已取前两个。")
+            m_cols = m_cols[:2]
+        med_out = str(path.with_name(path.stem + "_中介效应.csv"))
+        mediation_analysis(active_matrix, x_first, m_cols, y_col,
+                           reps=args.boot, seed=args.seed, output=med_out)
+
     print("\n" + "=" * 60)
     print("分析完成。提示：")
-    print("- 中介/链式中介请用JASP或SPSS的PROCESS（模型4/6），打开“_量表总分.csv”")
+    print("- 已用 --mediators 自动做Bootstrap中介；正式结果建议JASP/SPSS PROCESS复核")
     print("- 反向题已按scales.txt的(R)标记处理；请核对反向题是否标对")
     print("- 结果需人工核对，p值为近似计算，精确值以SPSS/JASP为准")
 

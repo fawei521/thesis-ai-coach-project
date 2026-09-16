@@ -21,6 +21,8 @@ tests/test-data/*.png
 tests/test-data/test_papers.csv
 tests/test-data/*_标准.csv
 tests/test-data/*_量表总分.csv
+tests/test-data/*_中介效应.csv
+tests/test-data/demo_survey_统计结果.csv
 tests/test-data/*_列映射报告.txt
 tests/test-data/_*
 
