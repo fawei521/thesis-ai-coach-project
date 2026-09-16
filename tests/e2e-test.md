@@ -240,6 +240,14 @@ KMO对3变量等相关.8矩阵应得.764（解析解.7641）；单位阵Bartlett
 - 导出 `_频数表.csv`（变量、取值、频数、百分比%）
 **通过标准**：百分比合计100%；文本选项与1/2编码人口学列都能识别；5点量表题不被误判为分类。
 
+## 测试14e：多编码兼容（UTF-8/GBK，v1.7.1）
+
+**命令**：构造一份 GBK 编码的 CSV（含文本人口学列+量表题）和一份 GBK 编码的 scales.txt，直接运行 `auto_stats.py gbk.csv --scales gbk_scales.txt`（跳过预处理）；同法用 GBK CSV 跑 `data_cleaner.py`、用 GBK 文献清单跑 `literature_organizer.py`。
+**预期**：
+- 三个脚本均不报 UnicodeDecodeError，自动回退编码正常读取
+- 频数、信度、清洗、文献整理结果与同内容 UTF-8 文件一致
+**通过标准**：GBK 与 UTF-8-sig 都能读；无法识别的编码给出中文提示而非 Traceback。
+
 ## 测试15：英文文献检索（脚本，联网）
 
 **命令**：
@@ -299,6 +307,14 @@ KMO对3变量等相关.8矩阵应得.764（解析解.7641）；单位阵Bartlett
 **预期结果**：AI按 environment-setup.md 引导装Python（强调勾选Add to PATH）、JASP；可开虚拟电脑协助；安装后用最小命令验证；给出不需要Python的JASP替代路线。
 **通过标准**：小白照做能装好并验证成功；每步可回退。
 
+## 测试23：预置学生工作区（v1.8）
+
+**检查**：解压分发包后，`我的工作区/` 下应存在 `先读我.md`、`我的论文进度.md`、`01-文献PDF/`、`02-问卷数据/`、`03-分析结果/`（每个子目录有占位提示）。
+**预期**：
+- 进度卡内容与 templates/progress-template.md 一致，首次对话即可带填，无需再复制
+- 在工作区子目录放入任意 .csv/.xlsx/.pdf 后 `git status` 不显示这些学生文件（被 .gitignore 排除），但占位 .txt、先读我.md、进度卡仍被跟踪
+**通过标准**：解压即有完整归档结构；学生真实数据不会被误提交。
+
 ---
 
 # 脚本回归测试清单（每次改动后执行）
@@ -314,6 +330,7 @@ python tools\data_cleaner.py tests\test-data\sample_survey.csv
 python tools\auto_stats.py tests\test-data\demo_survey.csv --scales tests\test-data\demo_scales.txt --y NSSI --x AI情感依赖 --mediators "孤独感,反刍思维" --boot 5000
 # 3b 演示数据生成器
 python tools\generate_demo_data.py --outdir tests\test-data\_demo_check
+# 3c 多编码兼容（构造GBK文件后直接喂auto_stats/data_cleaner，应不报编码错；详见测试14e）
 # 4 文献整理
 python tools\literature_organizer.py tests\test-data\sample_literature.txt
 # 5 模型图
