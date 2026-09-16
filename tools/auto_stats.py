@@ -354,6 +354,70 @@ def _cohens_d(a, b):
     return (mean(a) - mean(b)) / math.sqrt(sp2)
 
 
+def _levene(groups, center="median"):
+    """Levene/Brown-Forsythe 方差齐性检验。center='median' 即 Brown-Forsythe
+    （更稳健、推荐），'mean' 为传统 Levene。对绝对离差做单因素 ANOVA，
+    统计量服从 F(k-1, N-k)。返回 (W, p)。"""
+    use = [g for g in groups if len(g) >= 2]
+    k = len(use)
+    if k < 2:
+        return None, None
+    zgroups = []
+    for g in use:
+        if center == "median":
+            sg = sorted(g)
+            m_ = len(sg)
+            c = sg[m_ // 2] if m_ % 2 else (sg[m_ // 2 - 1] + sg[m_ // 2]) / 2
+        else:
+            c = mean(g)
+        zgroups.append([abs(x - c) for x in g])
+    N = sum(len(z) for z in zgroups)
+    grand_z = sum(sum(z) for z in zgroups) / N
+    ssb = sum(len(z) * (mean(z) - grand_z) ** 2 for z in zgroups)
+    ssw = sum(sum((x - mean(z)) ** 2 for x in z) for z in zgroups)
+    dfb, dfw = k - 1, N - k
+    if dfw <= 0 or ssw <= 0:
+        return None, None
+    W = (ssb / dfb) / (ssw / dfw)
+    return W, f_p_value(W, dfb, dfw)
+
+
+def _welch_t(a, b):
+    """Welch 独立样本 t（不要求等方差），返回 (t, df, p)。"""
+    n1, n2 = len(a), len(b)
+    v1, v2 = variance(a), variance(b)
+    a1, a2 = v1 / n1, v2 / n2
+    se2 = a1 + a2
+    if se2 <= 0:
+        return None, None, None
+    t = (mean(a) - mean(b)) / math.sqrt(se2)
+    df = se2 ** 2 / (a1 ** 2 / (n1 - 1) + a2 ** 2 / (n2 - 1))
+    return t, df, t_p_two_sided(t, df)
+
+
+def _welch_anova(groups):
+    """Welch 单因素方差分析（不要求等方差），返回 (F, df1, df2, p)。
+    公式见 Liu (2015) / R oneway.test。"""
+    use = [g for g in groups if len(g) >= 2]
+    k = len(use)
+    if k < 2:
+        return None, None, None, None
+    w = [len(g) / variance(g) if variance(g) > 0 else 0.0 for g in use]
+    wtot = sum(w)
+    if wtot <= 0:
+        return None, None, None, None
+    xw = sum(w[j] * mean(use[j]) for j in range(k)) / wtot
+    num = sum(w[j] * (mean(use[j]) - xw) ** 2 for j in range(k)) / (k - 1)
+    D = sum((1.0 / (len(use[j]) - 1)) * (1.0 - w[j] / wtot) ** 2
+            for j in range(k))
+    den = 1.0 + 2.0 * (k - 2) / (k ** 2 - 1) * D
+    F = num / den
+    df1 = k - 1
+    df2 = (k ** 3 - k) / (3.0 * D) if D > 0 else float("inf")
+    p = f_p_value(F, df1, df2) if df2 != float("inf") else None
+    return F, df1, df2, p
+
+
 def group_difference_analysis(headers, data, matrix, scales, score_matrix,
                               total_cols, output=None):
     """人口学差异：2组用独立样本t检验(等方差)+Cohen's d；
@@ -396,13 +460,29 @@ def group_difference_analysis(headers, data, matrix, scales, score_matrix,
                 p = t_p_two_sided(t, df)
                 d = _cohens_d(a, b)
                 dt = "可忽略" if abs(d) < .2 else "小" if abs(d) < .5 else "中" if abs(d) < .8 else "大"
-                sig = "差异显著" if p < .05 else "差异不显著"
-                print(f"\n{gname} × {yshort}（独立样本t）：{k1}组 vs {k2}组")
+                lw, levp = _levene([a, b])
+                wt, wdf, wp = _welch_t(a, b)
+                equal = (levp is None) or (levp >= .05)
+                levtxt = ("Levene/Brown-Forsythe：无法计算（按方差齐处理）" if levp is None
+                          else f"Levene p={fmt_p(levp)}（方差齐性{'成立' if equal else '不成立'}）")
+                welchtxt = f"Welch t({wdf:.0f})={wt:.3f}, p={fmt_p(wp)}"
+                if equal:
+                    test_name, stat_t, df_t, p_t = "独立样本t", f"t={t:.3f}", df, p
+                    rec = "方差齐，采用等方差 t 检验"
+                else:
+                    test_name, stat_t, df_t, p_t = "独立样本t(Welch)", f"t={wt:.3f}", round(wdf, 1), wp
+                    rec = "方差不齐，采用 Welch t 检验"
+                sig = "差异显著" if p_t < .05 else "差异不显著"
+                print(f"\n{gname} × {yshort}（{test_name}）：{k1}组 vs {k2}组")
                 print(f"    {desc}")
-                print(f"    t({df})={t:.3f}, p={fmt_p(p)}, Cohen's d={d:.3f}（{dt}效应）→ {sig}")
-                rows.append({"分组变量": gname, "因变量": yshort, "检验": "独立样本t",
-                             "统计量": f"t={t:.3f}", "df": df, "p": fmt_p(p),
-                             "效应量": f"d={d:.3f}({dt})", "详情": desc + f"；{sig}"})
+                print(f"    {levtxt}")
+                print(f"    等方差 t({df})={t:.3f}, p={fmt_p(p)}；{welchtxt}")
+                print(f"    Cohen's d={d:.3f}（{dt}效应）→ {sig}（{rec}）")
+                rows.append({"分组变量": gname, "因变量": yshort, "检验": test_name,
+                             "统计量": stat_t, "df": df_t, "p": fmt_p(p_t),
+                             "效应量": f"d={d:.3f}({dt})",
+                             "方差齐性": levtxt, "稳健检验(Welch)": welchtxt,
+                             "详情": desc + f"；{sig}；{rec}"})
             else:
                 keys2 = list(gd.keys())
                 groups = [gd[k] for k in keys2]
@@ -419,6 +499,13 @@ def group_difference_analysis(headers, data, matrix, scales, score_matrix,
                 p = f_p_value(F, dfb, dfw)
                 eta = ssb / (ssb + ssw)
                 et = "小" if eta < .06 else "中" if eta < .14 else "大"
+                lw, levp = _levene(groups)
+                Fw, wd1, wd2, wp = _welch_anova(groups)
+                equal = (levp is None) or (levp >= .05)
+                levtxt = ("Levene/Brown-Forsythe：无法计算（按方差齐处理）" if levp is None
+                          else f"Levene p={fmt_p(levp)}（方差齐性{'成立' if equal else '不成立'}）")
+                welchtxt = (f"Welch F({wd1},{wd2:.0f})={Fw:.3f}, p={fmt_p(wp)}"
+                           if Fw is not None else "Welch：无法计算")
                 post = []
                 npairs = k * (k - 1) // 2
                 for ii in range(k):
@@ -430,18 +517,32 @@ def group_difference_analysis(headers, data, matrix, scales, score_matrix,
                             post.append(f"{keys2[ii]}组>{keys2[jj]}组" if mean(ga) > mean(gb)
                                         else f"{keys2[jj]}组>{keys2[ii]}组")
                 post_txt = "；".join(post) if post else "事后两两均不显著"
-                sig = "差异显著" if p < .05 else "差异不显著"
-                print(f"\n{gname} × {yshort}（单因素ANOVA，{k}组）")
+                if equal:
+                    test_name, stat_F, df_F, p_F = "单因素ANOVA", f"F={F:.3f}", f"{dfb},{dfw}", p
+                    rec = "方差齐，采用等方差 ANOVA＋Bonferroni事后"
+                    sig = "差异显著" if p < .05 else "差异不显著"
+                    post_show = f"Bonferroni事后：{post_txt}"
+                else:
+                    test_name, stat_F, df_F, p_F = "单因素ANOVA(Welch)", f"F={Fw:.3f}", f"{wd1},{wd2:.0f}", wp
+                    rec = "方差不齐，采用 Welch ANOVA；事后请用 Games-Howell（JASP/SPSS）"
+                    sig = "差异显著" if (wp is not None and wp < .05) else "差异不显著"
+                    post_show = "方差不齐，Bonferroni不适用，事后改用 Games-Howell（JASP：ANOVA→Games-Howell）"
+                print(f"\n{gname} × {yshort}（{test_name}，{k}组）")
                 print(f"    {desc}")
-                print(f"    F({dfb},{dfw})={F:.3f}, p={fmt_p(p)}, η²={eta:.3f}（{et}效应）→ {sig}")
-                print(f"    Bonferroni事后：{post_txt}")
-                rows.append({"分组变量": gname, "因变量": yshort, "检验": "单因素ANOVA",
-                             "统计量": f"F={F:.3f}", "df": f"{dfb},{dfw}", "p": fmt_p(p),
-                             "效应量": f"η²={eta:.3f}({et})", "详情": desc + f"；{sig}；{post_txt}"})
+                print(f"    {levtxt}")
+                print(f"    等方差 F({dfb},{dfw})={F:.3f}, p={fmt_p(p)}, η²={eta:.3f}（{et}效应）；{welchtxt}")
+                print(f"    {post_show}")
+                print(f"    → {sig}（{rec}）")
+                rows.append({"分组变量": gname, "因变量": yshort, "检验": test_name,
+                             "统计量": stat_F, "df": df_F, "p": fmt_p(p_F),
+                             "效应量": f"η²={eta:.3f}({et})",
+                             "方差齐性": levtxt, "稳健检验(Welch)": welchtxt,
+                             "详情": desc + f"；{sig}；{rec}；{post_show}"})
     if output and rows:
         with open(output, "w", encoding="utf-8-sig", newline="") as f:
             w = csv.DictWriter(f, fieldnames=["分组变量", "因变量", "检验", "统计量",
-                                              "df", "p", "效应量", "详情"])
+                                              "df", "p", "效应量", "方差齐性",
+                                              "稳健检验(Welch)", "详情"])
             w.writeheader()
             w.writerows(rows)
         print(f"\n人口学差异分析表已导出：{output}")

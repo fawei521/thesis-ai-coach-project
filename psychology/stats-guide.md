@@ -151,15 +151,15 @@ python tools/auto_stats.py 数据.csv --scales scales.txt --efa 我的新量表,
 
 **SPSS：** 分析 → 比较平均值 → 独立样本T检验（t）；单因素ANOVA（事后比较选 Bonferroni/LSD）。
 
-**脚本自动完成：** `auto_stats.py --scales scales.txt` 自动识别人口学分组列（非量表题、2–4类编码或文本"男/女"），对每个量表总分：
-- 2组：独立样本 t（等方差）+ **Cohen's d**（.2 小 / .5 中 / .8 大效应）
-- 3组及以上：ANOVA 的 F、p、**η²**（.01 小 / .06 中 / .14 大效应），并给 **Bonferroni 校正的事后两两比较**（看具体哪两组不同）
-- 结果导出"数据名_差异分析.csv"；t/F/p/d/η² 经 scipy 黄金对照逐位一致
+**脚本自动完成：** `auto_stats.py --scales scales.txt` 自动识别人口学分组列（非量表题、2–4类编码或文本"男/女"），先做 **Levene/Brown-Forsythe 方差齐性检验**，再对每个量表总分：
+- 2组：独立样本 t＋**Cohen's d**（.2 小 / .5 中 / .8 大效应）；**方差齐用等方差 t，不齐自动改用 Welch t**
+- 3组及以上：ANOVA 的 F、p、**η²**（.01 小 / .06 中 / .14 大效应）＋**Bonferroni 事后**；**方差不齐自动改用 Welch ANOVA**，事后改用 **Games-Howell**（脚本提示，在 JASP/SPSS 里看）
+- 结果导出"数据名_差异分析.csv"（含方差齐性、Welch 稳健检验列）；t/F/Welch/Levene 经 scipy 黄金对照逐位一致
 
 **结果解读要点：**
 - p < .05 才说差异显著；不显著就如实写"无显著差异"，不要硬找
 - 报告格式：t(df)=X.XX, p=.XX, d=.XX；F(dfb,dfw)=X.XX, p=.XX, η²=.XX
-- 前提：t/ANOVA 要求各组近似正态、方差齐性；严重不齐时 SPSS 看 Welch / Brown-Forsythe 行，脚本为等方差口径，结果以 SPSS/JASP 复核为准
+- 前提：t/ANOVA 要求各组近似正态、方差齐性。脚本已自动做 Levene 并在不齐时切换 Welch；正式结果仍建议在 SPSS/JASP 复核（SPSS：独立样本T读"不假定等方差"行；单因素ANOVA→选项→Welch/Brown-Forsythe，事后不齐选 Games-Howell）
 
 **论文表述：**
 "独立样本 t 检验显示，男女生在 XX 上差异不显著（t(df)=X.XX, p=.XX, d=.XX）。单因素方差分析显示，不同年级在 YY 上差异显著（F(dfb,dfw)=X.XX, p<.05, η²=.XX），事后比较表明 X 年级显著高于 Y 年级。"

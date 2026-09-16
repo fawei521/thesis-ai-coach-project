@@ -81,6 +81,7 @@
 - [x] 人口学差异分析（v1.14：自动识别分组列，2组独立样本t+Cohen's d，3组及以上单因素ANOVA+η²+Bonferroni事后，导出 `_差异分析.csv`）
 - [x] 调节效应模型1（v1.15：`--moderator`，X/W中心化交互项回归＋W均值±1SD简单斜率解析SE＋Bootstrap CI，导出 `_调节效应.csv`；以CI为准、边缘冲突不夸大）
 - [x] 共线性诊断（v1.16：多元回归输出容差/VIF，<5正常、5–10关注、≥10严重，numpy黄金对照）
+- [x] 方差齐性＋Welch稳健检验（v1.17：Levene/Brown-Forsythe，不齐自动切 Welch t/Welch ANOVA，多组事后提示 Games-Howell，scipy/Liu2015黄金对照）
 - [ ] Promax斜交旋转（因子相关时，当前引导JASP）；手动固定因子数
 - [ ] 问卷星多选题/填空题的进一步适配
 - [ ] 知网检索流程针对更多学校适配（学校路径配置文件）
