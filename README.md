@@ -92,6 +92,7 @@ thesis-ai-coach-project/
 ├── 启动工具箱.bat             # 双击打开中文工具菜单（无需记命令）
 ├── PROJECT_PLAN.md           # 项目计划
 ├── README.md / CONSTITUTION.md / ROADMAP.md
+├── DEVELOPMENT.md            # 维护者强制开发流程（九阶段门+测试金字塔，改功能前必读）
 ├── 我的工作区/                # 学生自己的文件：01文献PDF/02问卷数据/03分析结果 + 我的论文进度.md
 ├── core/                     # AI规则 + AI素养
 ├── workflows/                # 8个阶段工作流手册
