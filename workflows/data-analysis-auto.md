@@ -251,7 +251,7 @@ python tools/auto_stats.py 数据_量表总分.csv --scales scales.txt \
 
 ### 调节（PROCESS模型1，脚本可自动）
 - 命令：`auto_stats.py 数据.csv --scales scales.txt --y 因变量 --x 自变量 --moderator 调节变量 --boot 5000`
-- 自动中心化、交互项回归、W 均值±1SD 简单斜率（解析SE＋Bootstrap CI），导出 `_调节效应.csv`
+- 自动中心化、交互项回归、W 均值±1SD 简单斜率（解析SE＋Bootstrap CI），导出 `_调节效应.csv`，装有 matplotlib 时自动出 `_调节效应_简单斜率图.png`（三线图，可直接进论文）
 - 判读以 Bootstrap CI 是否含 0 为准；解析 p 与 CI 冲突时脚本提示边缘、以 PROCESS 复核为准
 - 分类调节变量（性别等）建议在 SPSS PROCESS 做虚拟编码并出简单斜率图
 

@@ -910,6 +910,45 @@ def _plot_scree(name, eigvals, nfac, out_png, pa_mean=None, pa_p95=None):
     return True
 
 
+def _plot_simple_slopes(x_col, w_col, y_col, sdx, sdw, b0, b1, b2, b3,
+                        slope_marks, mod_sig, b3_p_txt, out_png):
+    """调节效应（模型1）简单斜率图：W 低(-1SD)/均值/高(+1SD) 三条回归线，
+    横轴为中心化后的 X，纵轴为预测的 Y。斜率 θ=b1+b3·w。
+    matplotlib 为可选依赖，未安装时返回 False（不影响数值结果）。"""
+    try:
+        import matplotlib
+        matplotlib.use("Agg")
+        import matplotlib.pyplot as plt
+    except Exception:
+        return False
+    plt.rcParams["font.sans-serif"] = ["SimHei", "Microsoft YaHei", "Arial Unicode MS"]
+    plt.rcParams["axes.unicode_minus"] = False
+    xgrid = [(-1.5 + 3.0 * i / 100.0) * sdx for i in range(101)]
+    conds = [(-sdw, "低（-1SD）", "#1565c0", "low"),
+             (0.0, "均值", "#2e7d32", "mid"),
+             (sdw, "高（+1SD）", "#c62828", "high")]
+    fig, ax = plt.subplots(figsize=(8, 5.5))
+    for w, lab, color, key in conds:
+        theta = b1 + b3 * w
+        line = [b0 + b2 * w + theta * xc for xc in xgrid]
+        mk = slope_marks.get(key, "")
+        ax.plot(xgrid, line, "-", color=color, linewidth=2.0,
+                label=f"{w_col}{lab}：斜率={theta:.3f}{('（'+mk+'）') if mk else ''}")
+    ax.axvline(0, color="#999999", linestyle=":", linewidth=1.0)
+    ax.axhline(b0, color="#cccccc", linestyle=":", linewidth=0.9)
+    ax.set_xlabel(f"{x_col}（中心化值，0 = 均值；±{sdx:.1f} 为 ±1SD）", fontsize=11)
+    ax.set_ylabel(f"{y_col}（预测值）", fontsize=11)
+    verdict = "调节效应成立" if mod_sig else "调节效应未达稳健显著"
+    ax.set_title(f"{x_col} × {w_col} → {y_col} 简单斜率图（交互项 p={b3_p_txt}，{verdict}）",
+                 fontsize=12)
+    ax.grid(True, alpha=0.3)
+    ax.legend(loc="best", fontsize=9)
+    plt.tight_layout()
+    plt.savefig(out_png, dpi=300, bbox_inches="tight", facecolor="white")
+    plt.close(fig)
+    return True
+
+
 def _parallel_analysis(R, n, n_rep=500, base_seed=20260917):
     """Horn 平行分析：生成 n_rep 个与原数据同 N、同题数、题间独立的随机数据，
     求每个位置特征值的均值与95%分位；真实特征值超过随机95%分位的连续成分数即建议因子数。
@@ -1606,6 +1645,15 @@ def moderation_analysis(matrix, x_col, w_col, y_col, reps=5000,
             for r_ in coef_rows + out_rows:
                 w.writerow(r_)
         print(f"调节分析表已导出：{output}")
+        slope_marks = {"low": out_rows[0]["说明"], "mid": out_rows[1]["说明"],
+                       "high": out_rows[2]["说明"]} if len(out_rows) == 3 else {}
+        png_path = output.replace("_调节效应.csv", "_调节效应_简单斜率图.png")
+        if png_path != output:
+            if _plot_simple_slopes(x_col, w_col, y_col, sdx, sdw, b0, b1, b2, b3,
+                                   slope_marks, mod_sig, fmt_p(b3_p), png_path):
+                print(f"简单斜率图已导出：{png_path}")
+            else:
+                print("未安装 matplotlib，未生成简单斜率图（不影响数值结果）；pip install matplotlib 后重跑即可。")
     return {"R2": round(r2, 3), "交互B": round(b3, 3), "交互p": fmt_p(b3_p),
             "调节成立": bool(mod_sig), "简单斜率": out_rows}
 

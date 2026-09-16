@@ -79,7 +79,7 @@
 - [x] 题项分析（v1.12：逐题 CITC 校正项总相关＋删题后α，自动标记异常题并导出 `_题项分析.csv`）
 - [x] 正态性与整合三线表（v1.13：SPSS口径偏度/峰度＋Kline判读；`_统计结果.csv` 输出 M/SD/相关矩阵/对角α 整合表）
 - [x] 人口学差异分析（v1.14：自动识别分组列，2组独立样本t+Cohen's d，3组及以上单因素ANOVA+η²+Bonferroni事后，导出 `_差异分析.csv`）
-- [x] 调节效应模型1（v1.15：`--moderator`，X/W中心化交互项回归＋W均值±1SD简单斜率解析SE＋Bootstrap CI，导出 `_调节效应.csv`；以CI为准、边缘冲突不夸大）
+- [x] 调节效应模型1（v1.15：`--moderator`，X/W中心化交互项回归＋W均值±1SD简单斜率解析SE＋Bootstrap CI，导出 `_调节效应.csv`；以CI为准、边缘冲突不夸大；v1.18：自动出 `_调节效应_简单斜率图.png` 三线图）
 - [x] 共线性诊断（v1.16：多元回归输出容差/VIF，<5正常、5–10关注、≥10严重，numpy黄金对照）
 - [x] 方差齐性＋Welch稳健检验（v1.17：Levene/Brown-Forsythe，不齐自动切 Welch t/Welch ANOVA，多组事后提示 Games-Howell，scipy/Liu2015黄金对照）
 - [ ] Promax斜交旋转（因子相关时，当前引导JASP）；手动固定因子数

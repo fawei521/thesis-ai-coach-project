@@ -220,7 +220,7 @@ KMO对3变量等相关.8矩阵应得.764（解析解.7641）；单位阵Bartlett
 CITC 与删题α经 Wolfram 黄金对照（4题8人整数例）：总α=.967078，Q1 CITC=.982797/删题α=.938931、Q2 .835498/.981110、Q3 .915677/.959545，逐位一致。
 偏度/峰度（SPSS 调整 G1/G2）经 scipy.stats.skew/kurtosis(bias=False) 黄金对照（正态、指数偏态、均匀、n5/n8 小样本）逐位一致；n<3 偏度 None、n<4 峰度 None、常数列均 None。
 独立样本 t/Cohen's d 经 scipy.stats.ttest_ind(equal_var=True)、单因素 ANOVA F/η² 经 scipy.stats.f_oneway 黄金对照逐位一致；Levene/Brown-Forsythe 经 scipy.stats.levene(center='median')、Welch t 经 ttest_ind(equal_var=False) 逐位一致，Welch ANOVA 与 Liu(2015)/R oneway.test 公式独立复现一致（等方差时与经典 F 接近、方差异构时自动切换）；文本"男/女"分组可识别，单组/常数列/组内n<2 不崩溃。
-调节效应（模型1）系数 b0–b3 经 numpy.linalg.lstsq、简单斜率 θ=b1+b3·w 与其 SE（Cov11+w²Cov33+2w·Cov13）经 (X'X)⁻¹·MSE 协方差矩阵黄金对照逐位一致；增强型调节（b3>0、CI不含0）正确判成立，解析 p 与 Bootstrap CI 冲突时判"边缘"不夸大。
+调节效应（模型1）系数 b0–b3 经 numpy.linalg.lstsq、简单斜率 θ=b1+b3·w 与其 SE（Cov11+w²Cov33+2w·Cov13）经 (X'X)⁻¹·MSE 协方差矩阵黄金对照逐位一致；增强型调节（b3>0、CI不含0）正确判成立，解析 p 与 Bootstrap CI 冲突时判"边缘"不夸大。`--moderator` 装有 matplotlib 时须另出 `数据名_调节效应_简单斜率图.png`（W 低/中/高三条回归线、中文标题/坐标轴/图例无乱码、图例标注各斜率及显著性，目视核对三线方向与 b3 正负一致）；未装 matplotlib 时打印降级提示且退出码为 0。
 VIF 经 numpy 对"每个预测变量对其余预测变量回归的 1/(1-R²)"黄金对照逐位一致（独立变量≈1、X3=X1+小噪声时 X1/X3 VIF≈104 正确标严重）；单预测变量不输出诊断且不崩溃。
 
 ## 测试14b：Bootstrap中介（模型4/6）
