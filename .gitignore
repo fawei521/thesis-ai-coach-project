@@ -1,4 +1,4 @@
-# Python
+# ===== Python =====
 __pycache__/
 *.py[cod]
 *$py.class
@@ -10,37 +10,36 @@ env/
 dist/
 build/
 
-# 数据文件（学生的问卷数据不提交）
+# ===== 学生真实数据（隐私，绝不提交）=====
 data/
 *.xlsx
 *.xls
 *.sav
 
-# 测试数据中的生成产物排除，源文件保留
-tests/test-data/*_cleaned.csv
-tests/test-data/*_整理表.csv
+# ===== 测试目录：保留源数据和CSV基准，忽略二进制与易变联网产物 =====
 tests/test-data/*.png
+tests/test-data/test_papers.csv
 
-# 输出文件
+# ===== 输出产物 =====
 output/
 results/
 *.jpg
 *.jpeg
 *.pdf
 
-# 系统文件
+# ===== 系统文件 =====
 .DS_Store
 Thumbs.db
 desktop.ini
 
-# IDE
+# ===== IDE =====
 .vscode/
 .idea/
 *.swp
 *.swo
 *~
 
-# 临时文件
+# ===== 临时文件 =====
 *.tmp
 *.bak
 *.log
