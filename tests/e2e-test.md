@@ -466,6 +466,19 @@ python tests/test_special_columns.py`
 
 **通过标准**：进度模板与工作区进度文件无字段断档；工具链不引用不存在的脚本。
 
+---
+
+## 测试31：工具箱菜单4/5/6/7真人端到端（v1.35）
+
+- 菜单6模型图：`chart_generator.py --variables 四变量 --type chain` **不传 --coefs** 必须退出0并产出 PNG（自动补0占位）；少传系数自动补齐、多传截断；非数字系数友好报错退出1而非 traceback；源码不含 `fontweight='bold'`（无 SimHei findfont 警告）。
+- 菜单7 `generate_demo_data.py --outdir 临时目录` 退出0并生成 demo_survey.csv 与 demo_scales.txt。
+- 菜单5 `literature_organizer.py sample_literature.txt` 退出0，去重并导出整理表。
+- 菜单4 `paper_search.py --query ... --limit 3 --output ...` 联网时退出0并导出 CSV（离线环境应优雅提示而非崩溃）。
+- `menu.py` 第6项提示含"直接回车"。
+
+**通过标准**：四个菜单项小白路径均不报错；模型图在学生尚未得到系数时也能先出框架图。
+
+
 
 
 

@@ -158,7 +158,7 @@ def t_chart():
     if not vars_:
         print("  未输入，已取消。")
         return
-    coefs = input("  输入对应路径系数（逗号分隔，可先都填0占位）：").strip() or ""
+    coefs = input("  输入对应路径系数（逗号分隔；还没结果就直接回车，先用0占位出框架图）：").strip() or ""
     out = input("  图片保存成什么文件名？直接回车默认 研究模型图.png：").strip()
     n = len([v for v in vars_.split(",") if v.strip()])
     mtype = "chain" if n >= 3 else "simple"

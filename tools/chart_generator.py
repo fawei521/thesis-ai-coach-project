@@ -53,7 +53,7 @@ def draw_mediation_model(variables, coefficients, output_path, title='研究模�
             facecolor=colors[i], edgecolor='#333', linewidth=1.5
         )
         ax.add_patch(box)
-        ax.text(x, y, var, ha='center', va='center', fontsize=12, fontweight='bold')
+        ax.text(x, y, var, ha='center', va='center', fontsize=12)
 
     # 绘制箭头和路径系数
     coef_labels = ['a', 'b1', 'b2', "c'"]
@@ -89,7 +89,7 @@ def draw_mediation_model(variables, coefficients, output_path, title='研究模�
         ax.text((x1 + x2) / 2, 0.8, f"直接效应 c'={coefficients[3]:.2f}",
                 ha='center', va='center', fontsize=10, color='#666')
 
-    ax.set_title(title, fontsize=14, fontweight='bold', pad=20)
+    ax.set_title(title, fontsize=14, pad=20)
     plt.tight_layout()
     plt.savefig(output_path, dpi=300, bbox_inches='tight', facecolor='white')
     plt.close()
@@ -121,7 +121,7 @@ def draw_simple_model(variables, coefficients, output_path, title='研究模型�
             facecolor=colors[i], edgecolor='#333', linewidth=1.5
         )
         ax.add_patch(box)
-        ax.text(x, y, var, ha='center', va='center', fontsize=12, fontweight='bold')
+        ax.text(x, y, var, ha='center', va='center', fontsize=12)
 
     # a路径和b路径
     for i in range(2):
@@ -150,7 +150,7 @@ def draw_simple_model(variables, coefficients, output_path, title='研究模型�
         ax.text((x1 + x2) / 2, 0.8, f"直接效应 c'={coefficients[2]:.2f}",
                 ha='center', va='center', fontsize=10, color='#666')
 
-    ax.set_title(title, fontsize=14, fontweight='bold', pad=20)
+    ax.set_title(title, fontsize=14, pad=20)
     plt.tight_layout()
     plt.savefig(output_path, dpi=300, bbox_inches='tight', facecolor='white')
     plt.close()
@@ -161,8 +161,8 @@ def main():
     parser = argparse.ArgumentParser(description='研究模型图生成工具')
     parser.add_argument('--variables', '-v', required=True,
                         help='变量名，用逗号分隔，如"AI情感依赖,孤独感,反刍思维,NSSI"')
-    parser.add_argument('--coefs', '-c', required=True,
-                        help='路径系数，用逗号分隔，链式中介4个：a,b1,b2,c\'')
+    parser.add_argument('--coefs', '-c', required=False, default=None,
+                        help="路径系数，逗号分隔，链式4个 a,b1,b2,c'；不填则先用0占位")
     parser.add_argument('--type', '-t', choices=['chain', 'simple'], default='chain',
                         help='模型类型：chain链式中介，simple简单中介')
     parser.add_argument('--output', '-o', default='model.png', help='输出图片路径')
@@ -174,8 +174,23 @@ def main():
         print('请运行：pip install matplotlib')
         sys.exit(1)
 
-    variables = [v.strip() for v in args.variables.split(',')]
-    coefficients = [float(c.strip()) for c in args.coefs.split(',')]
+    variables = [v.strip() for v in args.variables.split(',') if v.strip()]
+    need = 4 if args.type == 'chain' else 3
+    if args.coefs:
+        try:
+            coefficients = [float(c.strip()) for c in args.coefs.split(',') if c.strip() != '']
+        except ValueError:
+            print('错误：路径系数必须是数字，用英文逗号分隔，例如 0.2,0.3,0.4,0.1')
+            sys.exit(1)
+        if len(coefficients) < need:
+            print(f'提示：只填了{len(coefficients)}个系数，{args.type}模型需要{need}个，缺少的先用0占位。')
+            coefficients += [0.0] * (need - len(coefficients))
+        elif len(coefficients) > need:
+            print(f'提示：填了{len(coefficients)}个系数，{args.type}模型只需{need}个，多余的已忽略。')
+            coefficients = coefficients[:need]
+    else:
+        coefficients = [0.0] * need
+        print('提示：未填路径系数，已先用0占位；结果出来后可重跑补上系数。')
 
     print('=' * 50)
     print('研究模型图生成工具')
