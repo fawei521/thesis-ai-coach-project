@@ -108,6 +108,12 @@ def t_stats():
         nprm = input("  人口学差异是否用非参数检验（因变量明显偏态/有序等级、t检验前提不满足时选是；2组Mann-Whitney U、多组Kruskal-Wallis；y=是，回车=默认t/ANOVA）：").strip().lower()
         if nprm in ("y", "yes", "是", "1"):
             args += ["--nonparametric"]
+        sp = input("  相关分析是否用 Spearman 秩相关（变量明显偏态/有序等级时选是；回车=默认Pearson）：").strip().lower()
+        if sp in ("y", "yes", "是", "1"):
+            args += ["--spearman"]
+        pc = input("  是否做偏相关（控制性别/年级等后看净相关，回车=不做；要做就填控制变量，如 性别,年级）：").strip()
+        if pc:
+            args += ["--partial", pc]
     run("auto_stats.py", args)
     print("\n  脚本已自动做Bootstrap中介；正式结果建议让AI导师带你用")
     print("  JASP/SPSS PROCESS 打开“_量表总分.csv”复核一次。")

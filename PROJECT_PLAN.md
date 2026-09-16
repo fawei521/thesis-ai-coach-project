@@ -332,7 +332,8 @@
 - **v1.17** ✅ 方差齐性＋稳健检验：差异分析先做 Levene/Brown-Forsythe，不齐自动切 Welch t/Welch ANOVA（多组事后提示 Games-Howell），csv 增方差齐性与稳健检验列；经 scipy/Liu(2015) 黄金对照
 - **v1.18** ✅ 调节效应简单斜率图：`--moderator` 自动出 W 低/中/高三水平回归线 png（标注斜率与显著性），复用 matplotlib 软依赖，未装自动降级
 - **v1.19** ✅ 开题样本量/功效估算：新增 sample_size.py（相关 Fisher z、回归/R²增量/ANOVA 非中心F Poisson混合，与 scipy.stats.ncf 逐位一致），三档效应量速查＋无效卷冗余，菜单第8项；stats-guide 增"十一、样本量与统计功效"
-- **v1.20** ✅ 非参数差异检验（当前）：`--nonparametric`，2组 Mann-Whitney U（U/z/p/r，结校正+连续性校正）、3+组 Kruskal-Wallis H（H/df/p/ε²，结校正，事后引导Dunn），自实现卡方上尾p（正则不完全gamma），与 scipy 逐位一致；补全 t/ANOVA 正态前提违反时的替代
+- **v1.20** ✅ 非参数差异检验：`--nonparametric`，2组 Mann-Whitney U（U/z/p/r，结校正+连续性校正）、3+组 Kruskal-Wallis H（H/df/p/ε²，结校正，事后引导Dunn），自实现卡方上尾p（正则不完全gamma），与 scipy 逐位一致；补全 t/ANOVA 正态前提违反时的替代
+- **v1.21** ✅ Spearman秩相关与偏相关（当前）：`--spearman`（偏态/有序秩相关，=scipy.spearmanr）、`--partial "性别,年级"`（相关矩阵求逆法净相关，=回归残差法，报偏r/df/p、导出_偏相关.csv），相关分析三件套 Pearson/Spearman/偏相关齐备
 - **v2.0**（远期）：本地知识库向量检索、实验/质性研究支持、多学科扩展
 - **v3.0**（远期）：网页应用、社区化
 

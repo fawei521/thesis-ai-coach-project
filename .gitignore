@@ -63,3 +63,4 @@ tests/test-data/*_统计结果.csv
 tests/test-data/*_差异分析.csv
 tests/test-data/*_差异分析_非参数.csv
 tests/test-data/*_调节效应.csv
+tests/test-data/*_偏相关.csv
