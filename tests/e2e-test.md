@@ -431,6 +431,16 @@ python tests/test_special_columns.py`
 
 ---
 
+## 测试27：紧急模式红线与量表库专业准确性（v1.31）
+
+- `core/coach-rules.md` 紧急模式：含 7天/3天/1天三档逐日任务，且明确"任何紧急版本都不可破的三条红线"（不编数据、不代写不伪引、宁可延期不造假）。
+- `psychology/scale-library.md` NSSI 一节：含循证量表 FASM（含中文版 C-FASM）、DSHI（Gratz，含青少年 DSHI-9）、ISAS（Klonsky）；**不得**再出现已证伪/张冠李戴的缩写 ASFQ、SBI；提示 NSSI 常为 0/1 或计数变量、以所引论文版本为准。
+
+**通过标准**：上述关键串全部符合；量表名称、作者、题数与公开文献一致（FASM/DSHI/ISAS 已联网核实）。
+
+
+---
+
 # 脚本回归测试清单（每次改动后执行）
 
 在项目根目录（PowerShell）逐条运行，全部通过才算合格：
