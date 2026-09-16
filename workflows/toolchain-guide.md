@@ -173,5 +173,5 @@ status: 未读
 | 中文文献元数据乱 | 知网导入后手动检查标题作者；用"知网"版本translator |
 | Obsidian插件搜不到 | 关闭安全模式；网络问题可手动下载插件放入plugins文件夹 |
 | 引用格式不对 | 确认选了GB/T 7714-2015 numeric；让AI检查格式 |
-| 联动失败 | 确保Zotero桌面版开着；Better BibTeX插件已装 |
+| 联动失败 | 确保 Zotero 桌面版开着；Zotero Integration 一般可直接用，若你的模板用到 citekey，再装 Better BibTeX 插件 |
 | 同步空间不够 | Zotero免费300MB附件空间；PDF可只不同步（用坚果云WebDAV扩容，AI可指导） |

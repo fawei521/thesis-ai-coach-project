@@ -457,6 +457,16 @@ python tests/test_special_columns.py`
 
 **通过标准**：上述关键串全部符合；模板不引导学生预填结果、不夸大创新性。
 
+---
+
+## 测试30：进度卡模板与工具链走查（v1.34）
+
+- `templates/progress-template.md` 阶段7含剔除份数与五指标标准（时长/长直线/低变异/高缺失/注意力题）；数据记录含剔除日志、G*Power 功效最小 N、分半信度、差异/卡方/调节结果栏，与 `我的工作区/我的论文进度.md` 字段一致。
+- `workflows/toolchain-guide.md` 引用的本项目脚本名 `literature_organizer.py` 真实存在；Better BibTeX 表述为非必需。
+
+**通过标准**：进度模板与工作区进度文件无字段断档；工具链不引用不存在的脚本。
+
+
 
 
 
