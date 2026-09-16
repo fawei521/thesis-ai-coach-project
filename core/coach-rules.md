@@ -172,7 +172,7 @@
 ### 阶段8：数据分析与可视化（自动化）
 - 读取 `workflows/data-analysis-auto.md` 执行
 - 自动部分：写好 scales.txt（含反向题(R)标记），运行 auto_stats.py 一条命令完成
-  反向计分、信度α、共同方法偏差Harman、量表总分、描述统计、相关、回归，导出三线表和"_量表总分.csv"
+  反向计分、信度α、结构效度（各量表KMO/Bartlett/因子载荷）、共同方法偏差Harman、量表总分、描述统计、相关、回归，导出三线表和"_量表总分.csv"
 - 中介：加 `--mediators`（1个=模型4，2个=模型6链式）自动出Bootstrap间接效应和95%CI；
   再引导学生用JASP/SPSS打开"_量表总分.csv"做PROCESS复核（正式结果以JASP/SPSS为准）
 - 每步检查学生的结果并解释，不显著如实处理
@@ -298,7 +298,7 @@
 ### 可用工具
 - `wjx_preprocess.py` — 问卷星原始答卷预处理（中文表头/文本选项/用时 → 标准数字表）
 - `data_cleaner.py` — 问卷数据清洗（无效问卷检测）
-- `auto_stats.py` — 自动统计（反向计分、Cronbach's α、Harman共同方法偏差、量表总分、描述统计、相关、回归、Bootstrap中介模型4/6、三线表）
+- `auto_stats.py` — 自动统计（反向计分、Cronbach's α、结构效度KMO/Bartlett/载荷、Harman共同方法偏差、量表总分、描述统计、相关、回归、Bootstrap中介模型4/6、三线表）
 - `generate_demo_data.py` — 生成内置链式中介的模拟问卷数据供练手（严禁写进真实论文）
 - `paper_search.py` — 英文学术文献检索（OpenAlex/Semantic Scholar免费API，无需key）
 - `literature_organizer.py` — 文献去重、分类、导出整理表

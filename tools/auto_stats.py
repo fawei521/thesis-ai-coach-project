@@ -212,7 +212,7 @@ def data_profile(headers, data, matrix, num_cols):
 
 def descriptive(matrix, num_cols):
     print("\n" + "=" * 60)
-    print("二、描述统计")
+    print("描述统计")
     print("=" * 60)
     print(f"{'变量':<12}{'N':>6}{'均值':>10}{'标准差':>10}{'最小值':>9}{'最大值':>9}")
     print("-" * 60)
@@ -304,7 +304,7 @@ def build_scale_scores(matrix, scales):
 
 def reliability_analysis(matrix, scales_config):
     print("\n" + "=" * 60)
-    print("三、信度分析（Cronbach's α，反向题已先反向计分）")
+    print("二、信度分析（Cronbach's α，反向题已先反向计分）")
     print("=" * 60)
     if not scales_config:
         print("未提供量表配置，跳过。")
@@ -346,6 +346,118 @@ def reliability_analysis(matrix, scales_config):
             results.append({"量表": scale_name, "题数": len(available),
                             "Cronbach_alpha": round(alpha, 3), "评价": rating})
     return results
+
+
+def _first_pc(R):
+    """幂迭代求相关矩阵R的最大特征值与特征向量。"""
+    p = len(R)
+    vec = [1.0 / math.sqrt(p)] * p
+    lam = 0.0
+    for _ in range(1000):
+        nv = [sum(R[a][b] * vec[b] for b in range(p)) for a in range(p)]
+        norm = math.sqrt(sum(x * x for x in nv))
+        if norm < 1e-12:
+            break
+        nv = [x / norm for x in nv]
+        nl = sum(nv[a] * sum(R[a][b] * nv[b] for b in range(p)) for a in range(p))
+        vec = nv
+        if abs(nl - lam) < 1e-10:
+            lam = nl
+            break
+        lam = nl
+    return lam, vec
+
+
+def kmo_value(corr):
+    """KMO抽样适合度：基于相关系数平方和与偏相关系数平方和。"""
+    p = len(corr)
+    try:
+        inv = invert_matrix(corr)
+    except Exception:
+        return None
+    sum_r2 = sum_p2 = 0.0
+    for i in range(p):
+        for j in range(i + 1, p):
+            denom = math.sqrt(inv[i][i] * inv[j][j])
+            q = (-inv[i][j] / denom) if denom > 0 else 0.0
+            r = corr[i][j]
+            sum_r2 += r * r
+            sum_p2 += q * q
+    denom = sum_r2 + sum_p2
+    return sum_r2 / denom if denom > 0 else None
+
+
+def validity_analysis(matrix, scales):
+    """对每个量表（反向计分后题目）做结构效度：KMO、Bartlett球形检验、第一主成分载荷。
+    适用于单维量表（引用/改编成熟量表）：期望KMO>.7、Bartlett显著、各题载荷>.5、
+    第一主成分方差解释率较高（经验阈值50%~60%）。"""
+    print("\n" + "=" * 60)
+    print("三、结构效度检验（各量表内部，反向计分后题目）")
+    print("=" * 60)
+    rows = []
+    for name, conf in scales.items():
+        items = [it for it in conf["items"] if it in matrix]
+        if len(items) < 3:
+            print(f"\n{name}：题目不足3题，跳过因子分析。")
+            continue
+        series = recoded_item_series(matrix, conf)
+        k = len(series)
+        rows = [i for i in range(len(series[0])) if all(c[i] is not None for c in series)]
+        n = len(rows)
+        Z = []
+        for col in series:
+            vals = [col[i] for i in rows]
+            mm = sum(vals) / n
+            sd = math.sqrt(sum((v - mm) ** 2 for v in vals) / (n - 1)) if n > 1 else 0
+            Z.append([(v - mm) / sd if sd > 0 else 0.0 for v in vals])
+        R = [[0.0] * k for _ in range(k)]
+        for a in range(k):
+            for b in range(a, k):
+                r = sum(Z[a][i] * Z[b][i] for i in range(n)) / (n - 1) if n > 1 else 0
+                R[a][b] = r
+                R[b][a] = r
+
+        kmo = kmo_value(R)
+        det = determinant(R)
+        df = k * (k - 1) / 2
+        if det > 1e-300:
+            chi2 = -(n - 1 - (2 * k + 5) / 6.0) * math.log(det)
+            pval = chi2_pvalue(chi2, df)
+        else:
+            chi2, pval = float("inf"), 0.0
+        eigval, eigvec = _first_pc(R)
+        if sum(eigvec) < 0:
+            eigvec = [-v for v in eigvec]
+        loadings = [eigvec[i] * math.sqrt(max(eigval, 0)) for i in range(k)]
+        var_pct = eigval / k * 100
+
+        kmo_txt = f"{kmo:.3f}" if kmo is not None else "无法计算"
+        if kmo is not None:
+            rate = "极佳" if kmo >= .9 else "适合" if kmo >= .8 else "可接受" if kmo >= .7 \
+                else "勉强" if kmo >= .6 else "不适合因子分析"
+        else:
+            rate = ""
+        bart = "p<.001" if pval < .001 else f"p={pval:.3f}"
+        print(f"\n{name}（{k}题，N={n}）")
+        print(f"  KMO = {kmo_txt}  [{rate}]")
+        print(f"  Bartlett球形检验：χ²={chi2:.1f}（df={int(df)}），{bart}（需p<.05）")
+        print(f"  第一主成分特征值={eigval:.3f}，方差解释率={var_pct:.2f}%"
+              f"（单维量表建议>50%~60%）")
+        low = []
+        for idx, it in enumerate(items):
+            tag = "(反向)" if conf["reverse"].get(it) else ""
+            flag = "  ←载荷<.5，检查" if loadings[idx] < .5 else ""
+            if loadings[idx] < .5:
+                low.append(it)
+            print(f"    {it}{tag}：因子载荷={loadings[idx]:.3f}{flag}")
+        rows.append({"量表": name, "KMO": round(kmo, 3) if kmo else "",
+                     "Bartlett_chi2": round(chi2, 1) if chi2 != float("inf") else "很大",
+                     "Bartlett_p": "<.001" if pval < .001 else round(pval, 3),
+                     "第一因子解释率%": round(var_pct, 2),
+                     "低载荷题": ",".join(low)})
+    print("\n提示：引用成熟量表通常报告KMO、Bartlett显著、各题载荷>.5即可；")
+    print("  自编多维量表需在JASP/SPSS做完整探索性因子分析（含旋转、多因子），AI可给步骤。")
+    return rows
 
 
 def export_scale_dataset(src_path, headers, data, score_matrix, scales):
@@ -414,7 +526,7 @@ def first_pc_variance_ratio(item_cols_data):
 def harman_test(matrix, scales):
     """共同方法偏差Harman单因子检验：所有量表题目（反向计分后）一起做未旋转因子分析。"""
     print("\n" + "=" * 60)
-    print("共同方法偏差检验（Harman单因子）")
+    print("四、共同方法偏差检验（Harman单因子）")
     print("=" * 60)
     item_cols, item_names = [], []
     for name, conf in scales.items():
@@ -443,7 +555,7 @@ def harman_test(matrix, scales):
 
 def correlation_matrix(matrix, num_cols, max_cols=15):
     print("\n" + "=" * 60)
-    print("四、相关分析（Pearson）")
+    print("相关分析（Pearson）")
     print("=" * 60)
     cols = num_cols[:max_cols]
     if len(num_cols) > max_cols:
@@ -565,6 +677,35 @@ def f_p_value(f, df1, df2):
     return betai(df2 / 2.0, df1 / 2.0, x)
 
 
+def determinant(m):
+    """方阵行列式（高斯消元，部分选主元）。"""
+    n = len(m)
+    a = [row[:] for row in m]
+    det = 1.0
+    for i in range(n):
+        piv = max(range(i, n), key=lambda r: abs(a[r][i]))
+        if abs(a[piv][i]) < 1e-12:
+            return 0.0
+        if piv != i:
+            a[i], a[piv] = a[piv], a[i]
+            det = -det
+        det *= a[i][i]
+        for r in range(i + 1, n):
+            factor = a[r][i] / a[i][i]
+            for c in range(i, n):
+                a[r][c] -= factor * a[i][c]
+    return det
+
+
+def chi2_pvalue(chi2, df):
+    """卡方检验p值，Wilson-Hilferty正态近似（df较大时足够准确）。"""
+    if df <= 0 or chi2 <= 0:
+        return 1.0
+    t = (chi2 / df) ** (1.0 / 3.0)
+    z = (t - (1 - 2.0 / (9 * df))) / math.sqrt(2.0 / (9 * df))
+    return 1 - 0.5 * (1 + math.erf(z / math.sqrt(2)))
+
+
 def solve_least_squares(X, y):
     """最小二乘：β=(X'X)^-1 X'y"""
     n = len(X)
@@ -659,7 +800,7 @@ def mediation_analysis(matrix, x_col, m_cols, y_col, reps=5000, seed=20260917, o
 
     model = "模型6（链式中介）" if len(m_cols) == 2 else "模型4（简单中介）"
     print("\n" + "=" * 60)
-    print(f"六、Bootstrap中介分析（PROCESS {model}）")
+    print(f"七、Bootstrap中介分析（PROCESS {model}）")
     print("=" * 60)
     print(f"X={x_col}  中介={'→'.join(m_cols)}  Y={y_col}")
     print(f"N={n}，Bootstrap={reps}次，95%置信区间（百分位法），随机种子={seed}")
@@ -840,6 +981,7 @@ def main():
     # 有量表配置：反向计分→信度→量表总分→在总分层面做描述/相关/回归
     if scales:
         rel = reliability_analysis(matrix, scales)
+        validity_analysis(matrix, scales)
         harman_test(matrix, scales)
         score_matrix, _ = build_scale_scores(matrix, scales)
         scale_total_cols = [f"{name}总分" for name in scales]
@@ -848,7 +990,7 @@ def main():
         print("  （JASP/SPSS做中介、PROCESS时直接打开这个文件，用各量表“总分”列）")
 
         print("\n" + "=" * 60)
-        print("量表总分层面的描述统计与相关分析")
+        print("五、描述统计与相关分析（量表总分层面）")
         print("=" * 60)
         desc = descriptive(score_matrix, scale_total_cols)
         corr = correlation_matrix(score_matrix, scale_total_cols)
@@ -857,19 +999,22 @@ def main():
             y_col = resolve_col(args.y, scales, score_matrix)
             x_cols = [resolve_col(c, scales, score_matrix) for c in args.x.split(",")]
             print("\n" + "=" * 60)
-            print("五、回归分析（量表总分层面）")
+            print("六、回归分析（量表总分层面）")
             print("=" * 60)
             linear_regression(score_matrix, x_cols, y_col)
         active_matrix = score_matrix
     else:
-        # 无量表配置：保持题目级全量分析（原行为）
-        print("\n提示：提供 --scales 量表配置后，将自动反向计分、算量表总分并在总分层面分析。")
+        # 无量表配置：题目级全量分析（降级模式，建议提供 --scales）
+        print("\n提示：提供 --scales 量表配置后，将自动反向计分、算信度效度和量表总分。")
+        print("\n" + "=" * 60)
+        print("二、描述统计与相关分析（题目级）")
+        print("=" * 60)
         desc = descriptive(matrix, num_cols)
         corr = correlation_matrix(matrix, num_cols)
         if args.y and args.x:
             x_cols = [c.strip() for c in args.x.split(",")]
             print("\n" + "=" * 60)
-            print("五、回归分析")
+            print("三、回归分析")
             print("=" * 60)
             linear_regression(matrix, x_cols, args.y)
         active_matrix = matrix

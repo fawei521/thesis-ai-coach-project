@@ -43,7 +43,7 @@
 - `menu.py` + 根目录「启动工具箱.bat」 — **零门槛入口**，双击看中文菜单，文件可拖进窗口
 - `wjx_preprocess.py` — 问卷星原始答卷预处理（中文表头/文本选项/"2分3秒"用时→标准数字表，附列映射报告）
 - `paper_search.py` — 一键检索英文学术文献（免费API，无需key，返回真实文献和下载链接）
-- `auto_stats.py` — 自动统计分析（反向计分、信度α、Harman共同方法偏差、量表总分、描述统计、相关矩阵、回归、Bootstrap中介模型4/6、三线表）
+- `auto_stats.py` — 自动统计分析（反向计分、信度α、结构效度KMO/Bartlett/因子载荷、Harman共同方法偏差、量表总分、描述统计、相关矩阵、回归、Bootstrap中介模型4/6、三线表）
 - `generate_demo_data.py` — 生成内置链式中介的模拟问卷数据（练手/测试，严禁写进论文）
 - `data_cleaner.py` — 问卷数据清洗（识别无效问卷）
 - `literature_organizer.py` — 文献去重分类
@@ -101,6 +101,11 @@ thesis-ai-coach-project/
 ```
 
 ## 版本
+
+**v1.6 结构效度自动化版**
+- auto_stats 增加结构效度检验：每个量表自动出 KMO、Bartlett球形检验(χ²/df/p)、第一主成分方差解释率与各题因子载荷
+- 单维量表（引用/改编成熟量表）效度一键出齐；多维自编量表仍引导JASP/SPSS做完整EFA/CFA
+- 至此本科问卷量化论文标准分析（描述/频数、信度、效度、共同方法偏差、相关、回归、Bootstrap中介）全部脚本化，JASP/SPSS仅作复核
 
 **v1.5 中介分析自动化版**
 - auto_stats 增加 Bootstrap 中介分析：`--mediators` 一个中介=模型4、两个=模型6链式
