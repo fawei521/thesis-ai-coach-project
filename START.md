@@ -42,7 +42,7 @@
 `tools/` 目录下的脚本（调用前遵守 coach-rules.md 的"告知-确认-保护"三步）：
 - `wjx_preprocess.py` — 问卷星原始答卷预处理（中文表头/文本选项/"2分3秒"用时 → 标准数字表，附列映射报告供核对）
 - `data_cleaner.py` — 问卷数据清洗（注意力检查题/长直线/低变异SD/高缺失/时长过短，导出清洗后数据＋剔除明细报告）
-- `auto_stats.py` — 自动统计（人口学频数表、反向计分、Cronbach's α+逐题CITC/删题α题项分析+分半信度(前后半/奇偶,Spearman-Brown/Guttman λ4,_信度分析.csv)、结构效度KMO/Bartlett/因子载荷、`--efa`完整探索性因子分析(多因子+Varimax旋转+Horn平行分析定因子数+自动碎石图)、共同方法偏差Harman、量表总分、描述统计(偏度/峰度正态性)、M/SD/相关/α对角整合三线表、人口学差异(Levene方差齐性+独立样本t/Welch t/单因素ANOVA/Welch ANOVA+效应量+Bonferroni事后，不齐提示Games-Howell；`--nonparametric`偏态/有序时改Mann-Whitney U/Kruskal-Wallis H非参数检验)、`--spearman`秩相关、`--partial "性别,年级"`控制混淆后的偏相关矩阵，自动人口学交叉卡方χ²/Cramér's V(分类×分类,期望频数不足提示Fisher)、多元回归(含容差/VIF共线性诊断)、Bootstrap中介模型4/6、调节效应模型1(--moderator，中心化交互项+±1SD简单斜率+Bootstrap CI+简单斜率图)，导出可直接进PROCESS复核的量表总分数据集）
+- `auto_stats.py` — 自动统计（人口学频数表、反向计分、Cronbach's α+逐题CITC/删题α题项分析+分半信度(前后半/奇偶,Spearman-Brown/Guttman λ4,_信度分析.csv)、结构效度KMO/Bartlett/因子载荷、`--efa`完整探索性因子分析(多因子+Varimax旋转+Horn平行分析定因子数+自动碎石图)、共同方法偏差Harman、量表总分、描述统计(偏度/峰度正态性)、M/SD/相关/α对角整合三线表并自动出相关矩阵下三角热图(系数+显著性星号,对角α,_相关热图.png)、人口学差异(Levene方差齐性+独立样本t/Welch t/单因素ANOVA/Welch ANOVA+效应量+Bonferroni事后，不齐提示Games-Howell；`--nonparametric`偏态/有序时改Mann-Whitney U/Kruskal-Wallis H非参数检验)、`--spearman`秩相关、`--partial "性别,年级"`控制混淆后的偏相关矩阵，自动人口学交叉卡方χ²/Cramér's V(分类×分类,期望频数不足提示Fisher)、多元回归(含容差/VIF共线性诊断)、Bootstrap中介模型4/6、调节效应模型1(--moderator，中心化交互项+±1SD简单斜率+Bootstrap CI+简单斜率图)，导出可直接进PROCESS复核的量表总分数据集）
 - `generate_demo_data.py` — 生成结构真实的模拟问卷数据（内置链式中介、含反向题，没收回问卷前练手用，严禁写进论文）
 - `paper_search.py` — 英文学术文献检索（OpenAlex/Semantic Scholar免费API）
 - `literature_organizer.py` — 文献去重、分类、导出

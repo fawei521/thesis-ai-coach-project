@@ -155,6 +155,8 @@ python tools/auto_stats.py 数据.csv --scales scales.txt --efa 我的新量表,
 **论文表述：**
 "相关分析结果显示，XX与YY呈显著正相关（r = .XX, p < .01），与ZZ呈显著负相关（r = -.XX, p < .05）。"
 
+**脚本自动出图：** `auto_stats.py --scales scales.txt` 跑量表总分相关时，除数值矩阵与整合三线表外，自动导出"数据名_相关热图.png"——下三角为各变量对的相关系数与显著性星号，对角线为该量表 Cronbach α，上三角留白，红蓝色标对应 −1~1，300dpi 可直接插入结果部分或答辩 PPT；加 `--spearman` 时热图同步为秩相关。热图只用于直观呈现与快速检查，正式投稿的相关系数与 p 值仍以数值表/JASP 复核为准。
+
 ### Spearman 秩相关（偏态/有序时）
 当变量明显偏态（如 NSSI、成瘾、零膨胀频次）、为等级数据，或只关心单调关系时，用 **Spearman 秩相关（rs/ρ）**，它对变量排秩后再算相关，不要求正态。
 - **脚本：** `auto_stats.py --scales scales.txt --spearman`（菜单第3项选"是"），相关分析节改报 Spearman 矩阵（系数与 p，p 用 t 近似）；整合三线表仍报 Pearson，二者可并列附录

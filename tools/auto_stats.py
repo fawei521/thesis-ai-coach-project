@@ -1211,6 +1211,80 @@ def _plot_simple_slopes(x_col, w_col, y_col, sdx, sdw, b0, b1, b2, b3,
     return True
 
 
+def _plot_corr_heatmap(matrix, cols, out_png, method="pearson", alpha_map=None,
+                       max_cols=12):
+    """画研究变量（量表总分）相关矩阵下三角热图：下三角为相关系数＋显著性星号，
+    对角线为 Cronbach α（无则 1），上三角留白。matplotlib/numpy 为可选依赖，
+    缺失时返回 False，不影响数值结果。"""
+    try:
+        import matplotlib
+        matplotlib.use("Agg")
+        import matplotlib.pyplot as plt
+        import numpy as np
+    except Exception:
+        return False
+    corr_fn = spearman_r if method == "spearman" else pearson_r
+    use_cols = cols[:max_cols]
+    k = len(use_cols)
+    if k < 2:
+        return False
+    R = np.full((k, k), np.nan)
+    P = np.full((k, k), np.nan)
+    diag_alpha = {}
+    for i in range(k):
+        for j in range(k):
+            if j < i:
+                r, nn = corr_fn(matrix[use_cols[i]], matrix[use_cols[j]])
+                if r is not None and nn and nn > 2:
+                    R[i, j] = r
+                    t = r * math.sqrt((nn - 2) / max(1 - r * r, 1e-12))
+                    P[i, j] = t_p_two_sided(t, nn - 2)
+    # 短名：去掉“总分/均分”后缀
+    def short(c):
+        return c.replace("总分", "").replace("均分", "")
+    labels = [short(c) for c in use_cols]
+    plt.rcParams["font.sans-serif"] = ["SimHei", "Microsoft YaHei", "Arial Unicode MS"]
+    plt.rcParams["axes.unicode_minus"] = False
+    masked = np.ma.array(R, mask=np.isnan(R))
+    cmap = plt.get_cmap("RdBu_r").copy()
+    cmap.set_bad(color="#f2f2f2")
+    fig, ax = plt.subplots(figsize=(max(6.2, 1.05 * k + 1.6), max(5.6, 0.92 * k + 1.4)))
+    im = ax.imshow(masked, cmap=cmap, vmin=-1, vmax=1)
+    ax.set_xticks(range(k)); ax.set_yticks(range(k))
+    ax.set_xticklabels(labels, rotation=40, ha="right", fontsize=10)
+    ax.set_yticklabels(labels, fontsize=10)
+    for i in range(k):
+        for j in range(k):
+            if j < i and not np.isnan(R[i, j]):
+                p = P[i, j]
+                mark = sig_mark(p) if not np.isnan(p) else ""
+                color = "white" if abs(R[i, j]) >= 0.55 else "#222"
+                ax.text(j, i, f"{R[i, j]:.2f}{mark}", ha="center", va="center",
+                        fontsize=9.5, color=color)
+            elif j == i:
+                a = None
+                if alpha_map:
+                    a = alpha_map.get(use_cols[i])
+                txt = f"α={a:.3f}" if isinstance(a, (int, float)) else "1"
+                ax.text(j, i, txt, ha="center", va="center", fontsize=9,
+                        color="#555", style="italic")
+    ax.set_xticks(np.arange(-0.5, k, 1), minor=True)
+    ax.set_yticks(np.arange(-0.5, k, 1), minor=True)
+    ax.grid(which="minor", color="white", linewidth=1.4)
+    ax.tick_params(which="minor", length=0)
+    for spine in ax.spines.values():
+        spine.set_color("#cccccc")
+    kind = "Spearman" if method == "spearman" else "Pearson"
+    ax.set_title(f"研究变量相关矩阵热图（{kind}）\n对角线为 Cronbach α；*p<.05  **p<.01  ***p<.001",
+                 fontsize=12)
+    cb = fig.colorbar(im, ax=ax, fraction=0.046, pad=0.04)
+    cb.set_label("相关系数", fontsize=10)
+    plt.tight_layout()
+    plt.savefig(out_png, dpi=300, bbox_inches="tight", facecolor="white")
+    plt.close(fig)
+    return True
+
+
 def _parallel_analysis(R, n, n_rep=500, base_seed=20260917):
     """Horn 平行分析：生成 n_rep 个与原数据同 N、同题数、题间独立的随机数据，
     求每个位置特征值的均值与95%分位；真实特征值超过随机95%分位的连续成分数即建议因子数。
@@ -2529,6 +2603,16 @@ def main():
         desc = descriptive(score_matrix, scale_total_cols)
         corr = correlation_matrix(score_matrix, scale_total_cols,
                                   method=("spearman" if args.spearman else "pearson"))
+        # 相关矩阵下三角热图（对角线 α），matplotlib 缺失时静默跳过
+        heat_png = str(path.with_name(path.stem + "_相关热图.png"))
+        _alpha_for_heat = {f"{r['量表']}总分": r.get("Cronbach_alpha")
+                          for r in rel if r.get("Cronbach_alpha") is not None}
+        if _plot_corr_heatmap(score_matrix, scale_total_cols, heat_png,
+                              method=("spearman" if args.spearman else "pearson"),
+                              alpha_map=_alpha_for_heat):
+            print(f"相关矩阵热图已导出：{heat_png}")
+        else:
+            print("（未安装 matplotlib，跳过相关热图；数值相关矩阵见上表，可用 JASP 出图）")
         if args.spearman:
             print("  （本节为 Spearman 秩相关；M/SD/相关/α 整合三线表仍报 Pearson，二者可并列于附录）")
 

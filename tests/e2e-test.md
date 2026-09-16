@@ -222,6 +222,7 @@
 - **分半信度**：每个量表在 α 后打印"分半信度（前后半，SPSS口径）"，报两半α、两半相关r、Spearman-Brown、Guttman λ4（demo 各量表 SB 约 .92–.95、与 α 一致）；5题量表（AI/NSSI，奇数题）另报奇偶分半；导出 `demo_survey_信度分析.csv`（量表/题数/Cronbach_alpha/最低CITC/两半alpha/分半SpearmanBrown/分半Guttmanλ4/评价 8列）；题数<4 的量表跳过且不崩溃
 - **正态性**：各量表总分打印偏度/峰度（demo 近似正态，|偏度|<3、|峰度|<10，判读"可接受"）
 - **整合三线表**：`demo_survey_统计结果.csv` 表1含偏度/峰度/正态性列；表2为 M、SD、下三角相关（带星号，如 AI情感依赖—孤独感 r=.269***）、对角为 α（.930/.925/.938/.933）；表3为含双尾 p 的相关明细
+- **相关热图**（v1.27，自动）：跑量表总分相关后导出 `demo_survey_相关热图.png`（300dpi，下三角相关系数＋显著性星号、对角为三位 Cronbach α、上三角留白、色标 −1~1，中文不乱码）；图中系数与 Pearson/Spearman 矩阵逐元素一致（numpy 对照差<1e-15）；`--spearman` 时标题与系数为秩相关；未安装 matplotlib 时打印跳过提示、不报错且数值结果完整；量表少于2个时不出图
 - **人口学差异**（demo 含性别1/2、年级1–4两列，与题目独立随机）：第七节先报 Levene/Brown-Forsythe 方差齐性，再对每个量表做性别独立样本 t（报 t(df)/p/Cohen's d；方差齐用等方差、不齐自动切 Welch t）、年级单因素 ANOVA（报 F(3,196)/p/η²/Bonferroni；不齐切 Welch ANOVA 并提示 Games-Howell），导出 `demo_survey_差异分析.csv`（UTF-8-SIG，含方差齐性、稳健检验(Welch)两列，共10列）；demo 方差齐、多为不显著属正常
 - **调节效应**（`--y NSSI --x AI情感依赖 --moderator 孤独感`）：第八节输出中心化后的交互项回归（b0–b3/SE/标准化β/t/p/R²）与 W 低/均值/高三水平简单斜率（解析SE＋Bootstrap CI），导出 `demo_survey_调节效应.csv`（UTF-8-SIG）；判读以 Bootstrap CI 是否含0为准，解析 p 与 CI 冲突时打印"边缘、以PROCESS复核为准"而非直接判成立
 - **共线性诊断**（多元回归 `--y NSSI --x "AI情感依赖,孤独感,反刍思维"`）：输出每个预测变量的容差与 VIF、判读（<5正常/5–10关注/≥10严重）；单预测变量时不输出该表且不报错
