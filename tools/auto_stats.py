@@ -56,6 +56,36 @@ def stdev(values, ddof=1):
     return math.sqrt(variance(values, ddof))
 
 
+def skew_kurt(values):
+    """SPSS/Excel 口径的调整偏度 G1 与超额峰度 G2（Fisher-Pearson 近似无偏）。
+    用样本标准差(ddof=1)标准化；n<3 偏度为 None，n<4 峰度为 None。"""
+    vals = [v for v in values if v is not None]
+    n = len(vals)
+    if n < 3:
+        return None, None
+    m = mean(vals)
+    sd = stdev(vals)
+    if sd == 0:
+        return None, None
+    z = [(x - m) / sd for x in vals]
+    s3 = sum(t ** 3 for t in z)
+    g1 = n / ((n - 1) * (n - 2)) * s3
+    g2 = None
+    if n >= 4:
+        g2 = (n * (n + 1)) / ((n - 1) * (n - 2) * (n - 3)) * sum(t ** 4 for t in z) \
+             - 3 * (n - 1) ** 2 / ((n - 2) * (n - 3))
+    return g1, g2
+
+
+def normality_tag(g1, g2):
+    """社科常用 Kline 判据：|偏度|<3 且 |峰度|<10 视为不严重偏离正态。"""
+    if g1 is None or g2 is None:
+        return "样本不足"
+    if abs(g1) < 3 and abs(g2) < 10:
+        return "可接受(|S|<3,|K|<10)"
+    return "偏离正态，用Bootstrap/稳健法"
+
+
 def pearson_r(x, y):
     """Pearson相关系数，成对删除缺失"""
     pairs = [(a, b) for a, b in zip(x, y) if a is not None and b is not None]
@@ -284,19 +314,26 @@ def frequency_analysis(headers, data, matrix, scales, output=None):
 
 def descriptive(matrix, num_cols):
     print("\n" + "=" * 60)
-    print("描述统计")
+    print("描述统计（含偏度/峰度正态性；Kline判据 |偏度|<3、|峰度|<10）")
     print("=" * 60)
-    print(f"{'变量':<12}{'N':>6}{'均值':>10}{'标准差':>10}{'最小值':>9}{'最大值':>9}")
-    print("-" * 60)
+    print(f"{'变量':<12}{'N':>6}{'均值':>9}{'标准差':>9}{'最小':>7}{'最大':>7}{'偏度':>8}{'峰度':>8}")
+    print("-" * 70)
     results = []
     for h in num_cols:
         vals = [v for v in matrix[h] if v is not None]
         if not vals:
             continue
         m, sd = mean(vals), stdev(vals)
-        print(f"{h:<12}{len(vals):>6}{m:>10.3f}{sd:>10.3f}{min(vals):>9.1f}{max(vals):>9.1f}")
-        results.append({"变量": h, "N": len(vals), "均值": round(m, 3),
-                        "标准差": round(sd, 3), "最小值": min(vals), "最大值": max(vals)})
+        g1, g2 = skew_kurt(vals)
+        g1t = f"{g1:>8.2f}" if g1 is not None else f"{'NA':>8}"
+        g2t = f"{g2:>8.2f}" if g2 is not None else f"{'NA':>8}"
+        print(f"{h:<12}{len(vals):>6}{m:>9.3f}{sd:>9.3f}{min(vals):>7.1f}{max(vals):>7.1f}{g1t}{g2t}")
+        results.append({"变量": h, "N": len(vals),
+                        "均值": round(m, 3), "标准差": round(sd, 3),
+                        "最小值": min(vals), "最大值": max(vals),
+                        "偏度": round(g1, 3) if g1 is not None else "",
+                        "峰度": round(g2, 3) if g2 is not None else "",
+                        "正态性": normality_tag(g1, g2)})
     return results
 
 
@@ -1330,16 +1367,46 @@ def mediation_analysis(matrix, x_col, m_cols, y_col, reps=5000, seed=20260917, o
     return rows_out
 
 
-def export_three_line_table(desc, corr, output):
-    """导出三线表（描述统计+相关矩阵合并CSV）"""
+def export_three_line_table(desc, corr, output, matrix=None, score_cols=None, alpha_map=None):
+    """导出三线表：表1描述统计与正态性；表2描述+相关矩阵+信度(对角α)；表3相关明细(含p)。"""
     with open(output, "w", encoding="utf-8-sig", newline="") as f:
         w = csv.writer(f)
-        w.writerow(["表1 描述统计与相关分析结果"])
-        w.writerow(["变量", "N", "均值", "标准差"])
+        w.writerow(["表1 描述统计与正态性"])
+        w.writerow(["变量", "N", "均值", "标准差", "最小值", "最大值", "偏度", "峰度", "正态性判读"])
         for d in desc:
-            w.writerow([d["变量"], d["N"], d["均值"], d["标准差"]])
+            w.writerow([d["变量"], d["N"], d["均值"], d["标准差"],
+                        d.get("最小值", ""), d.get("最大值", ""),
+                        d.get("偏度", ""), d.get("峰度", ""), d.get("正态性", "")])
         w.writerow([])
-        w.writerow(["表2 相关分析（r, 双尾）"])
+
+        if matrix is not None and score_cols:
+            cols = [c for c in score_cols if c in matrix]
+            if cols:
+                dmap = {d["变量"]: d for d in desc}
+                w.writerow(["表2 描述统计、相关矩阵与信度（对角括号内为Cronbach's α，下三角为Pearson r，*p<.05 **p<.01 ***p<.001）"])
+                w.writerow(["变量", "均值M", "标准差SD"] + [str(i + 1) for i in range(len(cols))])
+                for i, ci in enumerate(cols):
+                    row = [ci, dmap.get(ci, {}).get("均值", ""), dmap.get(ci, {}).get("标准差", "")]
+                    for j, cj in enumerate(cols):
+                        if j > i:
+                            row.append("")
+                        elif j == i:
+                            a = alpha_map.get(ci) if alpha_map else None
+                            row.append(f"({a:.3f})" if a is not None else "1")
+                        else:
+                            r, nn = pearson_r(matrix[ci], matrix[cj])
+                            if r is not None and nn and nn > 2:
+                                t = r * math.sqrt((nn - 2) / max(1 - r * r, 1e-12))
+                                star = sig_mark(t_p_two_sided(t, nn - 2))
+                            else:
+                                star = ""
+                            row.append(f"{r:.3f}{star}" if r is not None else "")
+                    w.writerow(row)
+                w.writerow([])
+                w.writerow(["变量编号"] + [f"{i + 1}={c}" for i, c in enumerate(cols)])
+                w.writerow([])
+
+        w.writerow(["表3 相关分析明细（r, 双尾p, 成对N）"])
         w.writerow(["变量1", "变量2", "r", "p", "显著性", "N"])
         for c in corr:
             w.writerow([c["变量1"], c["变量2"], c["r"], c["p"], c["显著性"], c["N"]])
@@ -1492,6 +1559,7 @@ def main():
             print("=" * 60)
             linear_regression(score_matrix, x_cols, y_col)
         active_matrix = score_matrix
+        active_cols = scale_total_cols
     else:
         # 无量表配置：题目级全量分析（降级模式，建议提供 --scales）
         print("\n提示：提供 --scales 量表配置后，将自动反向计分、算信度效度和量表总分。")
@@ -1507,9 +1575,15 @@ def main():
             print("=" * 60)
             linear_regression(matrix, x_cols, args.y)
         active_matrix = matrix
+        active_cols = num_cols
 
+    alpha_map = None
+    if scales:
+        alpha_map = {f"{r['量表']}总分": r.get("Cronbach_alpha")
+                     for r in rel if r.get("Cronbach_alpha") is not None}
     output = args.output or str(path.with_name(path.stem + "_统计结果.csv"))
-    export_three_line_table(desc, corr, output)
+    export_three_line_table(desc, corr, output, matrix=active_matrix,
+                            score_cols=active_cols, alpha_map=alpha_map)
 
     # 中介分析（模型4/6，Bootstrap）
     if args.mediators and args.y and args.x:
