@@ -445,7 +445,9 @@ def kmo_value(corr):
     try:
         inv = invert_matrix(corr)
     except Exception:
-        return None
+        inv = None
+    if inv is None:
+        return None  # 相关矩阵奇异（题目高度共线/全同或样本不足），无法算偏相关
     sum_r2 = sum_p2 = 0.0
     for i in range(p):
         for j in range(i + 1, p):
@@ -458,14 +460,205 @@ def kmo_value(corr):
     return sum_r2 / denom if denom > 0 else None
 
 
-def validity_analysis(matrix, scales):
-    """对每个量表（反向计分后题目）做结构效度：KMO、Bartlett球形检验、第一主成分载荷。
-    适用于单维量表（引用/改编成熟量表）：期望KMO>.7、Bartlett显著、各题载荷>.5、
-    第一主成分方差解释率较高（经验阈值50%~60%）。"""
+def _eigen_sym(A, tol=1e-11, max_sweep=100):
+    """对称矩阵全部特征值/特征向量（循环Jacobi法，纯标准库）。
+    返回 (特征值降序列表, 向量矩阵[行=变量,列=对应特征向量])。"""
+    n = len(A)
+    a = [row[:] for row in A]
+    V = [[1.0 if i == j else 0.0 for j in range(n)] for i in range(n)]
+    for _ in range(max_sweep):
+        off = math.sqrt(sum(a[p][q] ** 2 for p in range(n) for q in range(p + 1, n)))
+        if off < tol:
+            break
+        for p in range(n - 1):
+            for q in range(p + 1, n):
+                apq = a[p][q]
+                if abs(apq) < 1e-14:
+                    continue
+                app, aqq = a[p][p], a[q][q]
+                tau = (aqq - app) / (2.0 * apq)
+                if tau >= 0:
+                    t = 1.0 / (tau + math.sqrt(1 + tau * tau))
+                else:
+                    t = 1.0 / (tau - math.sqrt(1 + tau * tau))
+                c = 1.0 / math.sqrt(1 + t * t)
+                s = t * c
+                for i in range(n):  # 列旋转
+                    aip, aiq = a[i][p], a[i][q]
+                    a[i][p] = c * aip - s * aiq
+                    a[i][q] = s * aip + c * aiq
+                for i in range(n):  # 行旋转
+                    api, aqi = a[p][i], a[q][i]
+                    a[p][i] = c * api - s * aqi
+                    a[q][i] = s * api + c * aqi
+                for i in range(n):  # 累积特征向量
+                    vip, viq = V[i][p], V[i][q]
+                    V[i][p] = c * vip - s * viq
+                    V[i][q] = s * vip + c * viq
+    eig = [a[i][i] for i in range(n)]
+    order = sorted(range(n), key=lambda i: -eig[i])
+    eig_sorted = [eig[i] for i in order]
+    vecs = [[V[r][order[j]] for j in range(n)] for r in range(n)]
+    return eig_sorted, vecs
+
+
+def _varimax(loadings, normalize=True, max_iter=100, tol=1e-7):
+    """Kaiser归一化的最大方差正交旋转（varimax，Kaiser 1958逐对旋转）。
+    输入未旋转载荷[题×因子]，返回旋转后载荷（已统一符号、按解释方差降序）。"""
+    p, k = len(loadings), len(loadings[0])
+    if k <= 1:
+        return [row[:] for row in loadings]
+    h = [math.sqrt(sum(loadings[i][j] ** 2 for j in range(k))) for i in range(p)]
+    X = [[loadings[i][j] / h[i] if normalize and h[i] > 1e-12 else loadings[i][j]
+          for j in range(k)] for i in range(p)]
+
+    def v_criterion(M):
+        v = 0.0
+        for j in range(k):
+            v += sum(M[i][j] ** 4 for i in range(p)) / p \
+                - (sum(M[i][j] ** 2 for i in range(p)) / p) ** 2
+        return v
+
+    prev_v = v_criterion(X)
+    for _ in range(max_iter):
+        max_theta = 0.0
+        for a in range(k - 1):
+            for b in range(a + 1, k):
+                u = [X[i][a] ** 2 - X[i][b] ** 2 for i in range(p)]
+                v = [2.0 * X[i][a] * X[i][b] for i in range(p)]
+                As = sum(u)
+                Bs = sum(v)
+                Cs = sum(u[i] ** 2 - v[i] ** 2 for i in range(p))
+                Ds = 2.0 * sum(u[i] * v[i] for i in range(p))
+                num = Ds - 2.0 * As * Bs / p
+                den = Cs - (As * As - Bs * Bs) / p
+                theta = math.atan2(num, den) / 4.0
+                max_theta = max(max_theta, abs(theta))
+                if abs(theta) > 1e-12:
+                    c, s = math.cos(theta), math.sin(theta)
+                    for i in range(p):  # 旋转方向经Wolfram/暴力扫描验证为单调上升方向
+                        xa, xb = X[i][a], X[i][b]
+                        X[i][a] = c * xa + s * xb
+                        X[i][b] = -s * xa + c * xb
+        cur_v = v_criterion(X)
+        if max_theta < tol or abs(cur_v - prev_v) < 1e-10:
+            break
+        prev_v = cur_v
+    Lr = [[X[i][j] * (h[i] if normalize else 1.0) for j in range(k)] for i in range(p)]
+    # 符号统一：每列载荷和为负则翻转
+    for j in range(k):
+        if sum(Lr[i][j] for i in range(p)) < 0:
+            for i in range(p):
+                Lr[i][j] = -Lr[i][j]
+    # 按旋转后各因子载荷平方和降序排列因子
+    ss = [sum(Lr[i][j] ** 2 for i in range(p)) for j in range(k)]
+    order = sorted(range(k), key=lambda j: -ss[j])
+    Lr = [[Lr[i][order[j]] for j in range(k)] for i in range(p)]
+    return Lr
+
+
+def _efa_one(name, items, conf, Z, R, n):
+    """对单个量表做完整探索性因子分析（PCA提取+varimax旋转），打印并返回结果行。"""
+    k = len(items)
+    kmo = kmo_value(R)
+    if kmo is None:
+        print(f"\n{'─' * 58}")
+        print(f"【完整EFA】{name}（{k}题，N={n}）：相关矩阵奇异，无法做因子分析。")
+        print("  常见原因：有题目高度雷同/所有作答全同、有效样本过少或题目数超过样本数。")
+        print("  请先做数据清洗、检查题目，再重跑。")
+        return None
+    det = determinant(R)
+    dfb = k * (k - 1) / 2
+    if det > 1e-300:
+        chi2 = -(n - 1 - (2 * k + 5) / 6.0) * math.log(det)
+        pval = chi2_pvalue(chi2, dfb)
+    else:
+        chi2, pval = float("inf"), 0.0
+
+    eigvals, eigvecs = _eigen_sym(R)
+    nfac = sum(1 for e in eigvals if e >= 1.0)
+    nfac = max(1, min(nfac, k))
+    # 未旋转载荷（主成分）：L0[:,j]=v_j*sqrt(λ_j)
+    L0 = [[eigvecs[i][j] * math.sqrt(max(eigvals[j], 0)) for j in range(nfac)]
+          for i in range(k)]
+    # 共同度（提取nfac个因子，正交旋转不变）
+    comm = [sum(L0[i][j] ** 2 for j in range(nfac)) for i in range(k)]
+    Lr = _varimax(L0, normalize=True) if nfac > 1 else [[L0[i][0]] for i in range(k)]
+    ss = [sum(Lr[i][j] ** 2 for i in range(k)) for j in range(nfac)]
+
+    kmo_txt = f"{kmo:.3f}" if kmo is not None else "无法计算"
+    if kmo is not None:
+        rate = "极佳" if kmo >= .9 else "适合" if kmo >= .8 else "可接受" if kmo >= .7 \
+            else "勉强(需谨慎)" if kmo >= .6 else "不适合因子分析"
+    else:
+        rate = ""
+    bart = "p<.001" if pval < .001 else f"p={pval:.3f}"
+    print(f"\n{'─' * 58}")
+    print(f"【完整EFA】{name}（{k}题，N={n}）  提取：主成分分析  旋转：最大方差法Varimax")
+    print(f"  KMO = {kmo_txt}  [{rate}]；Bartlett球形检验：χ²={chi2:.1f}"
+          f"（df={int(dfb)}），{bart}（需p<.05）")
+    ratio = n / k
+    if ratio < 5:
+        print(f"  ⚠ 样本量/题数={ratio:.1f}，偏少（建议≥5，理想≥10，N≥200），结果可能不稳定")
+    # 特征值/碎石
+    eig_str = "，".join(f"λ{i+1}={eigvals[i]:.2f}" for i in range(min(k, 8)))
+    print(f"  特征值（Kaiser准则保留≥1，共{nfac}个）：{eig_str}" + ("…" if k > 8 else ""))
+    # 总方差解释（旋转后）
+    cum = 0.0
+    var_line = []
+    for j in range(nfac):
+        pct = ss[j] / k * 100
+        cum += pct
+        var_line.append(f"因子{j+1}={pct:.1f}%")
+    print(f"  旋转后方差解释率：{'，'.join(var_line)}；累计={cum:.1f}%"
+          f"（社会科学建议≥50%~60%）")
+    # 旋转载荷矩阵
+    header = "  题项".ljust(10) + "".join(f"因子{j+1}".rjust(9) for j in range(nfac)) \
+        + "共同度".rjust(8) + "  归属/提示"
+    print(header)
+    rows = []
+    for i, it in enumerate(items):
+        vals = [Lr[i][j] for j in range(nfac)]
+        order_abs = sorted(range(nfac), key=lambda j: -abs(vals[j]))
+        top, second = order_abs[0], order_abs[1] if nfac > 1 else None
+        tag = "(反向)" if conf["reverse"].get(it) else ""
+        flags = []
+        if abs(vals[top]) < .4:
+            flags.append("载荷<.4，考虑删题")
+        if second is not None and abs(vals[second]) >= .4 and \
+                abs(vals[top]) - abs(vals[second]) < .2:
+            flags.append(f"交叉载荷(因子{top+1}/因子{second+1})")
+        note = f"→因子{top+1}" + ("；" + "；".join(flags) if flags else "")
+        cells = "".join(f"{vals[j]:9.3f}" for j in range(nfac))
+        print(f"  {it[:8]}{tag}".ljust(10) + cells + f"{comm[i]:8.3f}  {note}")
+        row = {"量表": name, "题项": it + tag}
+        for j in range(nfac):
+            row[f"因子{j+1}载荷"] = round(vals[j], 3)
+        row["共同度"] = round(comm[i], 3)
+        row["归属因子"] = top + 1
+        row["提示"] = "；".join(flags)
+        rows.append(row)
+    if cum < 50:
+        print("  ⚠ 累计方差解释率低于50%，结构解释力偏弱，需检查题目或因子数")
+    print("  注：脚本用于快速预览/教学；正式EFA（含碎石图、固定因子数、斜交promax）")
+    print("      请在JASP/SPSS复核，斜交情形报告因子相关与模式矩阵。")
+    return {"量表": name, "题数": k, "N": n, "KMO": round(kmo, 3) if kmo else "",
+            "Bartlett_p": "<.001" if pval < .001 else round(pval, 3),
+            "因子数": nfac, "累计方差%": round(cum, 2), "rows": rows}
+
+
+def validity_analysis(matrix, scales, efa_names=None, efa_output=None):
+    """结构效度。默认对每个量表（反向计分后题目）做单维检查：KMO、Bartlett、第一主成分载荷。
+    efa_names: None=全部走单维；'__ALL__'=全部做完整EFA；集合/列表=指定量表做完整EFA
+    （主成分提取+特征值≥1定因子数+varimax旋转+共同度+交叉载荷）。"""
     print("\n" + "=" * 60)
     print("三、结构效度检验（各量表内部，反向计分后题目）")
     print("=" * 60)
+    if efa_names:
+        print("（已开启完整探索性因子分析EFA：主成分提取 + Varimax正交旋转）")
     rows = []
+    efa_summaries = []
+    efa_item_rows = []
     for name, conf in scales.items():
         items = [it for it in conf["items"] if it in matrix]
         if len(items) < 3:
@@ -487,6 +680,14 @@ def validity_analysis(matrix, scales):
                 r = sum(Z[a][i] * Z[b][i] for i in range(n)) / (n - 1) if n > 1 else 0
                 R[a][b] = r
                 R[b][a] = r
+
+        do_efa = bool(efa_names) and (efa_names == "__ALL__" or name in efa_names)
+        if do_efa:
+            res = _efa_one(name, items, conf, Z, R, n)
+            if res is not None:
+                efa_summaries.append({kk: vv for kk, vv in res.items() if kk != "rows"})
+                efa_item_rows.extend(res["rows"])
+            continue
 
         kmo = kmo_value(R)
         det = determinant(R)
@@ -526,8 +727,23 @@ def validity_analysis(matrix, scales):
                      "Bartlett_p": "<.001" if pval < .001 else round(pval, 3),
                      "第一因子解释率%": round(var_pct, 2),
                      "低载荷题": ",".join(low)})
+    if efa_item_rows:
+        if efa_output:
+            nfac_max = max(len([k for k in r if k.startswith("因子") and k.endswith("载荷")])
+                           for r in efa_item_rows)
+            fields = ["量表", "题项"] + [f"因子{j+1}载荷" for j in range(nfac_max)] + \
+                     ["共同度", "归属因子", "提示"]
+            with open(efa_output, "w", newline="", encoding="utf-8-sig") as f:
+                w = csv.DictWriter(f, fieldnames=fields, extrasaction="ignore")
+                w.writeheader()
+                w.writerows(efa_item_rows)
+            print(f"\nEFA旋转载荷矩阵已导出：{efa_output}")
+        print("EFA摘要：" + "；".join(
+            f"{s['量表']}→{s['因子数']}因子/累计{s['累计方差%']}%/KMO={s['KMO']}"
+            for s in efa_summaries))
+        print("提示：因子归属应与理论维度一致；交叉载荷、低载荷题目需结合理论删改后重跑。")
     print("\n提示：引用成熟量表通常报告KMO、Bartlett显著、各题载荷>.5即可；")
-    print("  自编多维量表需在JASP/SPSS做完整探索性因子分析（含旋转、多因子），AI可给步骤。")
+    print("  自编/重大修订量表用 --efa 做完整探索性因子分析；CFA验证性因子分析请用JASP/lavaan。")
     return rows
 
 
@@ -1036,6 +1252,8 @@ def main():
     parser.add_argument("--boot", type=int, default=5000, help="Bootstrap次数（默认5000）")
     parser.add_argument("--seed", type=int, default=20260917, help="Bootstrap随机种子（默认固定，可复现）")
     parser.add_argument("--profile", action="store_true", help="只输出数据画像")
+    parser.add_argument("--efa", nargs="*", default=None,
+                        help="完整探索性因子分析：不跟量表名=对全部量表；也可跟量表名（空格或逗号分隔）")
     parser.add_argument("--output", "-o", help="三线表输出路径")
     args = parser.parse_args()
 
@@ -1062,10 +1280,23 @@ def main():
     freq_out = str(path.with_name(path.stem + "_频数表.csv"))
     frequency_analysis(headers, data, matrix, scales, output=freq_out)
 
+    # 完整EFA：--efa（全部）或 --efa 量表A 量表B / --efa 量表A,量表B
+    efa_names = None
+    if args.efa is not None:
+        if len(args.efa) == 0:
+            efa_names = "__ALL__"
+        else:
+            efa_names = set()
+            for tok in args.efa:
+                for sub in tok.split(","):
+                    if sub.strip():
+                        efa_names.add(sub.strip())
+    efa_out = str(path.with_name(path.stem + "_因子分析.csv")) if efa_names else None
+
     # 有量表配置：反向计分→信度→量表总分→在总分层面做描述/相关/回归
     if scales:
         rel = reliability_analysis(matrix, scales)
-        validity_analysis(matrix, scales)
+        validity_analysis(matrix, scales, efa_names=efa_names, efa_output=efa_out)
         harman_test(matrix, scales)
         score_matrix, _ = build_scale_scores(matrix, scales)
         scale_total_cols = [f"{name}总分" for name in scales]

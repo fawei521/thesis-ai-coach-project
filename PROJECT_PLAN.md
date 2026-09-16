@@ -300,10 +300,15 @@
 - **v1.7.1** ✅ 编码健壮性补丁（commit a474b3f）：
   - auto_stats / data_cleaner / literature_organizer 读取文件自动兼容 UTF-8(含BOM) 与 GBK/GB18030
   - 修复小白跳过预处理、直接喂问卷星 GBK 编码文件会崩溃的断点；GBK数据+配置实测通过
-- **v1.8** ✅ 预置学生工作区（commit 3cc450d，当前）：
+- **v1.8** ✅ 预置学生工作区（commit 3cc450d）：
   - 新增 `我的工作区/`（01文献PDF/02问卷数据/03分析结果 + 先读我），进度卡直接就位，解压即有清晰归档
   - .gitignore 只跟踪占位与进度卡，学生真实文件不入库；START/QUICKSTART/README 同步
-- **v1.9**（后续候选）：问卷星多选/填空进一步适配、量表库扩充（正念/生命意义感等）、知网多学校路径配置、不装Python的Excel版统计、多维量表EFA(varimax旋转)脚本化
+- **v1.8.1** ✅ 量表库扩到 16 类（新增正念 FFMQ/MAAS、生命意义感 MLQ，commit 364cb9e）
+- **v1.8.2** ✅ 启动器编码关键修复（commit 127afd1）：bat 改 GBK+CRLF+chcp936，修复中文 cmd 下中文被误当命令；未解压防呆；.gitattributes 锁行尾
+- **v1.9** ✅ 完整探索性因子分析 EFA（当前）：
+  - auto_stats 新增 `--efa`：Jacobi 谱分解求特征值、特征值≥1定因子数、Kaiser 归一化 Varimax 旋转、旋转载荷/共同度/交叉载荷标记/累计方差，导出 `_因子分析.csv`
+  - 特征值与旋转载荷经 Wolfram 独立黄金验证（2/3 因子构造数据逐元素吻合）；修复奇异矩阵 KMO 崩溃；菜单可交互触发 EFA；stats-guide/workflow/e2e 同步
+  - 剩余候选：问卷星多选/填空进一步适配、知网多学校路径配置、不装Python的Excel版统计、碎石图、Promax斜交（引导JASP）
 - **v2.0**（远期）：本地知识库向量检索、实验/质性研究支持、多学科扩展
 - **v3.0**（远期）：网页应用、社区化
 
@@ -313,7 +318,7 @@
 |---|---|---|
 | wjx_preprocess.py | 问卷星原始答卷→标准数字表（编码/用时/文本选项/列映射报告） | 标准库 |
 | data_cleaner.py | 无效问卷检测（用时过短/规律作答/全同） | 标准库 |
-| auto_stats.py | 人口学频数、反向计分、α、结构效度(KMO/Bartlett/载荷)、Harman、量表总分、描述/相关/回归、Bootstrap中介模型4/6、三线表 | 标准库 |
+| auto_stats.py | 人口学频数、反向计分、α、结构效度(KMO/Bartlett/载荷)、`--efa`完整探索性因子分析(多因子+Varimax)、Harman、量表总分、描述/相关/回归、Bootstrap中介模型4/6、三线表 | 标准库 |
 | generate_demo_data.py | 生成内置链式中介的可复现模拟数据供练手（严禁写进论文） | 标准库 |
 | paper_search.py | 英文学术文献检索（OpenAlex/Semantic Scholar，免费无key） | 标准库+联网 |
 | literature_organizer.py | 文献去重、分类、导出 | 标准库 |

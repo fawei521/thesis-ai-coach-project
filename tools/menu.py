@@ -81,6 +81,7 @@ def t_stats():
     print("  自动完成：人口学频数表、反向计分、信度α、结构效度(KMO/Bartlett/载荷)、")
     print("  共同方法偏差Harman、量表总分、描述统计、相关、回归、")
     print("  Bootstrap中介（模型4/6），并导出三线表和频数表。")
+    print("  自编/修订量表还可选做完整探索性因子分析EFA（多因子+方差最大旋转）。")
     f = ask_path("  把清洗后的数据CSV拖进来，回车：")
     if not f:
         return
@@ -100,6 +101,10 @@ def t_stats():
             args += ["--y", y, "--x", x]
             if med:
                 args += ["--mediators", med]
+        efa = input("  是否做完整探索性因子分析EFA（自编/重大修订量表才需要；输入y=是，直接回车=跳过）：").strip().lower()
+        if efa in ("y", "yes", "是", "1"):
+            names = input("    对哪个量表做？多个用逗号分隔，直接回车=对全部量表：").strip()
+            args += ["--efa"] + ([names] if names else [])
     run("auto_stats.py", args)
     print("\n  脚本已自动做Bootstrap中介；正式结果建议让AI导师带你用")
     print("  JASP/SPSS PROCESS 打开“_量表总分.csv”复核一次。")
@@ -160,7 +165,7 @@ def t_demo():
 MENU = [
     ("1", "问卷星数据预处理（原始答卷 → 标准数字表）", t_preprocess),
     ("2", "问卷数据清洗（识别无效问卷）", t_clean),
-    ("3", "自动统计分析（频数/信度/效度/Harman/相关/回归/Bootstrap中介）", t_stats),
+    ("3", "自动统计分析（频数/信度/效度/EFA/Harman/相关/回归/Bootstrap中介）", t_stats),
     ("4", "检索英文学术文献（联网，免费）", t_search),
     ("5", "文献去重与分类", t_lit),
     ("6", "生成研究模型图", t_chart),

@@ -1,4 +1,4 @@
-# ===== Python =====
+﻿# ===== Python =====
 __pycache__/
 *.py[cod]
 *$py.class
@@ -58,3 +58,5 @@ desktop.ini
 *.tmp
 *.bak
 *.log
+tests/test-data/*_因子分析.csv
+tests/test-data/*_统计结果.csv

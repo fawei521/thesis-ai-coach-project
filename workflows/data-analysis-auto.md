@@ -15,7 +15,7 @@
   → 2. 写 scales.txt（标量表归属和反向题），auto_stats.py 一条命令自动完成：
         反向计分 → 3.信度α → 4.效度(KMO/Bartlett/载荷) → 5.Harman共同方法偏差 → 量表总分
         → 6.描述统计 → 7.相关分析 → 初步回归，并导出三线表和"_量表总分.csv"
-  → 4. 效度检验（脚本自动出KMO/Bartlett/载荷；多维自编量表JASP引导）
+  → 4. 效度检验（脚本自动出KMO/Bartlett/载荷；自编多维量表加 --efa 做完整探索性因子分析；CFA引导JASP）
   → 8. 核心分析：中介/链式中介（auto_stats --mediators 自动出Bootstrap结果，再用JASP/SPSS PROCESS复核）
   → 9. 补充分析：网络分析（R，进阶可选）
   → 10. 生成图表（chart_generator.py，自动）
@@ -133,12 +133,21 @@ NSSI:5=Y1,Y2,Y3(R),Y4,Y5
 
 引用/改编成熟单维量表时，报告 KMO、Bartlett显著、各题载荷>.5、第一因子解释率即可，脚本一次出齐。
 
-### 4.2 多维/自编量表（JASP/SPSS引导）
-- 探索性因子分析EFA：KMO>.70、Bartlett p<.05、按特征值>1或理论维度定因子数、varimax旋转、载荷>.40
-- 验证性因子分析CFA（进阶）：AMOS/Mplus/R(lavaan)，χ²/df<3、RMSEA<.08、CFI/TLI>.90、SRMR<.08
-- 这两类AI给JASP/SPSS/R具体点击步骤或代码；脚本只自动单维量表的第一主成分
+### 4.2 多维/自编量表（脚本可做EFA + JASP/SPSS补充CFA）
+**探索性因子分析EFA（脚本已支持，一键）：**
+```
+# 对全部量表做完整EFA（主成分提取＋特征值≥1定因子数＋Varimax最大方差旋转）
+python tools/auto_stats.py 数据.csv --scales scales.txt --efa
+# 只对自编/修订的某几个量表做（空格或逗号分隔）
+python tools/auto_stats.py 数据.csv --scales scales.txt --efa 我的新量表,修订量表
+```
+输出 KMO、Bartlett、全部特征值、因子数、旋转后载荷矩阵、共同度、交叉载荷/低载荷标记、累计方差解释率，并导出"数据名_因子分析.csv"。判定：KMO>.7（>.6可接受）、Bartlett p<.05、载荷>.40（>.50理想）、交叉载荷（两个因子都≥.40且差<.20）考虑删题、累计方差≥50%~60%。算法（Jacobi谱分解＋Kaiser归一化Varimax）已用 Wolfram 独立黄金验证，2/3因子构造数据均能正确还原结构。
 
-> 多数本科问卷研究引用成熟量表，4.1的自动结果 + 报告原量表效度通常已够；自编多维量表才必须做4.2。
+**脚本做不到、需 JASP/SPSS 的部分：** 碎石图、手动固定因子数、Promax斜交旋转（因子相关时）、因子相关矩阵。JASP：Factor → Exploratory Factor Analysis。
+
+**验证性因子分析CFA（进阶，需专门软件）：** AMOS/Mplus/R(lavaan) 或 JASP Factor → CFA，报告 χ²/df<3、RMSEA<.08、CFI/TLI>.90、SRMR<.08。脚本不做SEM，AI给具体点击步骤或 lavaan 代码。
+
+> 多数本科问卷研究引用成熟量表，4.1的自动结果 + 报告原量表效度通常已够；**自编或重大修订的多维量表**才需要 4.2 的完整 EFA（脚本一键出结果，JASP补碎石图/斜交）。
 
 ---
 
