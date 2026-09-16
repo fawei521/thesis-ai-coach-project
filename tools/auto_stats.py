@@ -1663,6 +1663,101 @@ def partial_correlation_analysis(score_matrix, target_cols, control_names,
     return rows
 
 
+def chi_square_analysis(headers, data, matrix, scales, output=None):
+    """分类×分类变量的卡方独立性检验（人口学变量两两交叉，如性别×年级、性别×是否独生）。
+    χ²=Σ(O−E)²/E，df=(r−1)(c−1)，p 用卡方上尾；效应量 Cramér's V=√(χ²/(N·min(r−1,c−1)))，
+    .1/.3/.5 为小/中/大；2×2 默认 Yates 连续性校正；期望频数不足时引导 Fisher 精确检验。"""
+    group_cols = _detect_group_cols(headers, data, matrix, scales)
+    if len(group_cols) < 2:
+        print("\n卡方检验：识别到的分类变量不足2个，跳过（需要性别、年级、是否独生等≥2个人口学分类列）。")
+        return None
+    print("\n" + "=" * 60)
+    print("七、人口学分类变量交叉：卡方独立性检验（分类×分类）")
+    print("=" * 60)
+
+    def _key(v):
+        try:
+            return (0, float(v))
+        except (TypeError, ValueError):
+            return (1, str(v))
+
+    rows = []
+    for a in range(len(group_cols)):
+        for b in range(a + 1, len(group_cols)):
+            name1, lab1 = group_cols[a]
+            name2, lab2 = group_cols[b]
+            pairs = [(x, y) for x, y in zip(lab1, lab2)
+                     if x is not None and y is not None]
+            if len(pairs) < 4:
+                continue
+            lv1 = sorted(set(p[0] for p in pairs), key=_key)
+            lv2 = sorted(set(p[1] for p in pairs), key=_key)
+            r, c = len(lv1), len(lv2)
+            if r < 2 or c < 2:
+                continue
+            n = len(pairs)
+            i1 = {v: i for i, v in enumerate(lv1)}
+            i2 = {v: j for j, v in enumerate(lv2)}
+            table = [[0] * c for _ in range(r)]
+            for x, y in pairs:
+                table[i1[x]][i2[y]] += 1
+            rt = [sum(table[i]) for i in range(r)]
+            ct = [sum(table[i][j] for i in range(r)) for j in range(c)]
+            exp = [[rt[i] * ct[j] / n for j in range(c)] for i in range(r)]
+            chi = 0.0
+            for i in range(r):
+                for j in range(c):
+                    o, e = table[i][j], exp[i][j]
+                    if e <= 0:
+                        continue
+                    dev = (abs(o - e) - 0.5) if (r == 2 and c == 2) else (o - e)
+                    chi += dev * dev / e
+            df = (r - 1) * (c - 1)
+            p = chi2_sf(chi, df)
+            denom = n * min(r - 1, c - 1)
+            v = math.sqrt(chi / denom) if denom > 0 else 0.0
+            ncells = r * c
+            low = sum(1 for i in range(r) for j in range(c) if exp[i][j] < 5)
+            min_e = min(exp[i][j] for i in range(r) for j in range(c))
+            low_pct = low / ncells
+            if r == 2 and c == 2 and (min_e < 5):
+                advice = "2×2且有期望频数<5，正式分析请用Fisher精确检验（JASP：Contingency Tables 勾 Fisher；SPSS：交叉表-统计量-Fisher）"
+                method = "卡方(Yates校正)"
+            elif min_e < 1 or low_pct > 0.2:
+                advice = "期望频数不足（最小<1或>20%单元格<5），请合并稀有类别或用Fisher精确检验"
+                method = "卡方"
+            else:
+                size = "小" if v < .3 else ("中" if v < .5 else "大")
+                if p < .05:
+                    advice = f"两变量显著关联（Cramér's V={v:.3f}，{size}效应）"
+                else:
+                    advice = "两变量无显著关联（相互独立）"
+                method = "卡方(Yates校正)" if (r == 2 and c == 2) else "卡方(Pearson)"
+            mark = sig_mark(p)
+            print(f"  {name1} × {name2}（{r}×{c}, N={n}）："
+                  f"χ²({df})={chi:.3f}, p={fmt_p(p)}, Cramér's V={v:.3f}{mark}  [{method}]")
+            if min_e < 5:
+                print(f"      ⚠ 最小期望频数={min_e:.2f}，{low}/{ncells}个单元格<5；{advice}")
+            rows.append({"变量1": name1, "变量2": name2, "χ²": round(chi, 3),
+                         "df": df, "p": fmt_p(p), "显著性": mark,
+                         "Cramér's V": round(v, 3), "N": n,
+                         "最小期望": round(min_e, 2),
+                         "期望<5占比": f"{low_pct*100:.0f}%", "检验方式": method, "建议": advice})
+    if not rows:
+        print("  没有可交叉的分类变量对。")
+        return None
+    print("\n解读：Cramér's V .1/.3/.5 为小/中/大效应；卡方只回答'是否关联'，效应量回答'关联多强'。")
+    if output:
+        with open(output, "w", encoding="utf-8-sig", newline="") as f:
+            w = csv.DictWriter(f, fieldnames=["变量1", "变量2", "χ²", "df", "p", "显著性",
+                                              "Cramér's V", "N", "最小期望", "期望<5占比",
+                                              "检验方式", "建议"])
+            w.writeheader()
+            w.writerows(rows)
+        print(f"卡方检验表已导出：{output}")
+    return rows
+
+
 def _vif(cases_x):
     """方差膨胀因子：对每个预测变量，用其余预测变量回归它，VIF=1/(1-R²)。
     返回与列等长的 VIF 列表；单预测变量返回 [1.0]，奇异返回 None。"""
@@ -2378,6 +2473,8 @@ def main():
             partial_correlation_analysis(score_matrix, scale_total_cols,
                                          args.partial.split(","), scales=scales,
                                          extra_matrix=matrix, output=pout)
+        chi_out = str(path.with_name(path.stem + "_卡方检验.csv"))
+        chi_square_analysis(headers, data, matrix, scales, output=chi_out)
     else:
         # 无量表配置：题目级全量分析（降级模式，建议提供 --scales）
         print("\n提示：提供 --scales 量表配置后，将自动反向计分、算信度效度和量表总分。")

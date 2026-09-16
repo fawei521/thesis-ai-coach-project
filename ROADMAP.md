@@ -85,6 +85,7 @@
 - [x] 开题样本量/功效估算（v1.19：`sample_size.py`，相关Fisher z＋回归/R²增量/ANOVA非中心F Poisson混合，与 scipy.stats.ncf 逐位一致，三档效应量速查＋无效卷冗余，菜单第8项）
 - [x] 非参数差异检验（v1.20：`--nonparametric`，2组Mann-Whitney U报U/z/p/r、3+组Kruskal-Wallis H报H/df/p/ε²，含结校正，事后引导Dunn，自实现卡方上尾p，与scipy逐位一致）
 - [x] Spearman秩相关＋偏相关（v1.21：`--spearman`偏态秩相关=scipy.spearmanr；`--partial 性别,年级`相关矩阵求逆净相关=回归残差法，报偏r/df/p、导出_偏相关.csv）
+- [x] 卡方独立性检验（v1.22：自动对人口学分类列两两交叉，χ²/df/p/Cramér's V，2×2 Yates校正，期望频数不足提示Fisher/合并类别，导出_卡方检验.csv，=scipy.chi2_contingency；三类变量组合分析齐备）
 - [ ] Promax斜交旋转（因子相关时，当前引导JASP）；手动固定因子数
 - [ ] 问卷星多选题/填空题的进一步适配
 - [ ] 知网检索流程针对更多学校适配（学校路径配置文件）

@@ -185,6 +185,14 @@ t/ANOVA 还要求各组**近似正态**。当因变量明显偏态（如 NSSI、
 **JASP 复核：** Nonparametric Tests → Independent Samples（Mann-Whitney）/ Kruskal-Wallis；SPSS：分析→非参数检验→独立样本。n<20 的小组建议用精确检验（Exact）。
 **论文表述：** "因 XX 呈偏态分布，采用 Mann-Whitney U 检验，结果显示男女生在 XX 上差异不显著（U=XXXX, z=X.XX, p=.XX, r=.XX）。"
 
+### 分类×分类：卡方独立性检验（χ² test of independence）
+两个人口学**分类**变量是否相互关联（如性别×年级、性别×是否独生子女、年级×是否使用过AI、生源地×是否独生），用卡方独立性检验；它与上面"分类×连续"的 t/ANOVA、"连续×连续"的相关互补，三类变量组合各有对应方法。
+- 报告 `χ²(df)、p、Cramér's V`（效应量，.1 小 / .3 中 / .5 大）；卡方只回答"是否关联"，V 回答"关联多强"
+- **2×2 表**默认带 **Yates 连续性校正**；当**期望频数<5 的单元格超过20%、或任一期望<1** 时，卡方不准，2×2 改用 **Fisher 精确检验**，更大表考虑合并稀有类别
+- **脚本：** `auto_stats.py` 跑完自动对识别到的人口学分类列两两做卡方，无需额外开关，导出"数据名_卡方检验.csv"（含 χ²/df/p/V/最小期望/期望<5占比/检验方式/建议）；χ²、Yates、V 与 scipy.stats.chi2_contingency 逐位一致
+- **JASP/SPSS：** JASP：Frequencies→Contingency Tables（行/列放两个分类变量，勾 Chi-square、Fisher、Phi/Cramér's V）；SPSS：分析→描述统计→交叉表，统计量勾卡方、Phi 和 Cramér's V
+- **论文表述：** "卡方独立性检验显示，性别与年级分布无显著关联（χ²(3)=X.XX, p=.XX, Cramér's V=.XX），样本在各年级的性别构成基本均衡。"
+
 ---
 
 ## 六、中介效应检验（PROCESS宏）
