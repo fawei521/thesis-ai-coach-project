@@ -100,10 +100,14 @@ thesis-ai-coach-project/
 ├── tools/                    # 9个脚本（含统一菜单menu.py）
 ├── psychology/               # 量表/统计/伦理知识库
 ├── templates/                # 问卷/大纲/开题/答辩/进度卡/AI声明模板
-└── tests/                    # 端到端测试用例与测试数据
+└── tests/                    # 端到端测试用例、测试数据，consistency_check.py 文档↔代码一致性自检
 ```
 
 ## 版本
+
+**v1.25 文档↔代码一致性自检版**
+- 新增 `tests/consistency_check.py`：用 AST 解析每个工具真实的 CLI 开关与导出文件，交叉核对全部文档（README/START/workflows/模板等），自动抓出"文档引用了不存在的脚本、开关、导出文件名"三类漂移；退出码 0 才允许打包，已纳入发布清单与测试金字塔 L7
+- 经变异测试验证能稳定抓出植入的假脚本/假开关/假导出，正常状态零误报
 
 **v1.24 数据质量增强版**
 - `data_cleaner.py` 在时长/连续相同基础上新增：注意力检查题（instructed response item，`--attention "列名=答案;..."`，答错即剔除，最受认可的硬指标）、长直线作答（阈值可配 `--longstring`）、个体内低变异SD（`--low-sd`）、缺失率过高（`--max-missing`）；质量指标只对量表/Likert作答题计算（提供 `--scales` 最准，否则启发式排除时长/人口学列）

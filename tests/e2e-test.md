@@ -384,6 +384,21 @@ python tools/auto_stats.py tests/test-data/efa3f_survey.csv --scales tests/test-
 
 ---
 
+## 测试24：文档↔代码一致性自检（v1.25）
+
+**命令**：`python tests/consistency_check.py`
+
+**预期**：退出码 0，打印"全部一致，未发现漂移"。脚本用 AST 解析 tools 下每个工具真实的 argparse 长开关、正则抓取其写出的中文报告 csv，交叉核对全部 Markdown：
+- 文档显式引用的工具脚本路径必须真实存在；
+- 文档命令（围栏代码块、行内、逐行）里的 `--开关` 必须在对应工具（或任一工具）中定义；`python --version` 等环境命令开关在白名单内；
+- 文档声称导出的含中文 `_xxx.csv`，必须确有工具写出（学生自由工作区 `我的工作区/` 为自命名示例，跳过）。
+
+**变异测试（验证检查器不空转）**：临时新建一个 md，写入一个不存在的脚本路径（形如 tools/ 后跟一个编造的文件名）、一个未定义的长开关（形如两个连字符后跟编造的英文开关名）、一个不存在的中文导出 csv 名，脚本必须退出码 1 且逐条报出这 3 类漂移；删除临时文件后恢复 0。注意变异用的名字要用编造占位、不要与真实文件重名，避免与正常文档混淆。
+
+**通过标准**：正常 0 漂移、植入 3 类假错误全部被抓。
+
+---
+
 # 脚本回归测试清单（每次改动后执行）
 
 在项目根目录（PowerShell）逐条运行，全部通过才算合格：
@@ -406,6 +421,8 @@ python tools\chart_generator.py --variables "X,M1,M2,Y" --coefs "0.3,0.4,0.2,0.1
 python tools\paper_search.py --query "AI dependence NSSI" --limit 3
 # 7 菜单（交互，手动）
 python tools\menu.py
+# 8 文档↔代码一致性自检（退出码必须为0）
+python tests\consistency_check.py
 ```
 
 测试结束后删除 `_t_*` 临时文件和 `tests/test-data/_demo_check` 目录。所有脚本只用Python标准库（模型图需matplotlib），
