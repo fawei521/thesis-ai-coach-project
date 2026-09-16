@@ -248,8 +248,14 @@ python tools/auto_stats.py 数据_量表总分.csv --scales scales.txt \
 - AI给完整R代码和结果解读
 - 定位：加分项，不是必须；样本不够不要硬做
 
-### 调节/有调节中介
-- PROCESS模型1（调节）、7/14/15（有调节中介）
+### 调节（PROCESS模型1，脚本可自动）
+- 命令：`auto_stats.py 数据.csv --scales scales.txt --y 因变量 --x 自变量 --moderator 调节变量 --boot 5000`
+- 自动中心化、交互项回归、W 均值±1SD 简单斜率（解析SE＋Bootstrap CI），导出 `_调节效应.csv`
+- 判读以 Bootstrap CI 是否含 0 为准；解析 p 与 CI 冲突时脚本提示边缘、以 PROCESS 复核为准
+- 分类调节变量（性别等）建议在 SPSS PROCESS 做虚拟编码并出简单斜率图
+
+### 有调节的中介（PROCESS模型7/14/15）
+- 模型更复杂，脚本不自动，直接在 SPSS PROCESS（模型7/14/15，Bootstrap 5000）完成，AI 协助解读
 - 按研究假设决定是否需要
 
 ---

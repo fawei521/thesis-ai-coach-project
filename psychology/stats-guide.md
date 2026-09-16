@@ -224,6 +224,18 @@ python tools/auto_stats.py 数据.csv --scales scales.txt --efa 我的新量表,
 **结果解读：**
 - 交互项（X×W）显著则调节效应存在
 - 看简单斜率：在W的均值±1个标准差时，X对Y的效应是否显著
+- b3>0 为增强型调节（W越高，X→Y越强）；b3<0 为缓冲型调节（W越高，X→Y越弱）
+
+**脚本自动完成（PROCESS模型1）：**
+```
+python tools/auto_stats.py 数据.csv --scales scales.txt \
+  --y 因变量量表 --x 自变量量表 --moderator 调节变量量表 --boot 5000
+```
+- 自动对 X、W **中心化**后构造交互项，回归给出 b0/b1/b2/b3、SE、标准化β、t、p 与 R²
+- 输出 W 低（−1SD）/均值/高（+1SD）三水平的**简单斜率**、解析 SE、t、p 与 Bootstrap 95%CI
+- 导出"数据名_调节效应.csv"；系数与简单斜率 SE 经 numpy 最小二乘黄金对照逐位一致
+- **判读以 Bootstrap CI 是否含 0 为准**；若解析 p<.05 但 CI 含 0（边缘不一致），脚本会明确提示以 PROCESS 复核为准，不夸大结论
+- 连续变量用中心化/标准化交互项；分类调节变量（如性别）应先做虚拟编码，建议直接在 SPSS PROCESS 中完成并出简单斜率图
 
 ---
 
