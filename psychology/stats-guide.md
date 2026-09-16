@@ -164,6 +164,15 @@ python tools/auto_stats.py 数据.csv --scales scales.txt --efa 我的新量表,
 **论文表述：**
 "独立样本 t 检验显示，男女生在 XX 上差异不显著（t(df)=X.XX, p=.XX, d=.XX）。单因素方差分析显示，不同年级在 YY 上差异显著（F(dfb,dfw)=X.XX, p<.05, η²=.XX），事后比较表明 X 年级显著高于 Y 年级。"
 
+### 前提不满足时：非参数检验（Mann-Whitney U / Kruskal-Wallis H）
+t/ANOVA 还要求各组**近似正态**。当因变量明显偏态（如 NSSI、成瘾、自伤频次多为零膨胀/严重偏态）、为有序等级、或样本很小且偏度峰度超 Kline 判据时，改用非参数检验，它不要求正态与方差齐：
+- **2 组**：Mann-Whitney U 检验（独立样本 t 的非参数对应），报告 `U、z、p、效应量 r`（r：.1 小 / .3 中 / .5 大）
+- **3 组及以上**：Kruskal-Wallis H 检验（单因素 ANOVA 的非参数对应），报告 `H(df)、p、效应量 ε²`（.01 小 / .06 中 / .14 大）；事后两两用 **Dunn 检验**（含 Bonferroni 校正，JASP：非参数检验→独立样本→Dunn事后）
+
+**脚本：** `auto_stats.py --scales scales.txt --nonparametric`（菜单第3项中选"是"），2组自动出 U/z/p/r、多组出 H/df/p/ε²，导出"数据名_差异分析_非参数.csv"；U（含结校正、连续性校正）、H（含结校正）与 scipy 逐位一致。
+**JASP 复核：** Nonparametric Tests → Independent Samples（Mann-Whitney）/ Kruskal-Wallis；SPSS：分析→非参数检验→独立样本。n<20 的小组建议用精确检验（Exact）。
+**论文表述：** "因 XX 呈偏态分布，采用 Mann-Whitney U 检验，结果显示男女生在 XX 上差异不显著（U=XXXX, z=X.XX, p=.XX, r=.XX）。"
+
 ---
 
 ## 六、中介效应检验（PROCESS宏）

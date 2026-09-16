@@ -34,7 +34,7 @@
 | 文献 | 自动操作知网检索、英文API检索、PDF结构化分析、研究空白梳理 |
 | 量表 | 16类常用量表对比（含AI依赖、NSSI、孤独、反刍等），信效度信息、问卷生成 |
 | 数据 | 问卷星预处理、自动清洗、反向计分、算总分 |
-| 分析 | 一键跑人口学频数/信度α+题项分析(CITC/删题α)/结构效度KMO/自编量表完整EFA(多因子+Varimax+平行分析+自动碎石图)/Harman/描述统计(含偏度峰度正态性)/相关矩阵+α对角整合三线表/人口学差异(Levene方差齐性+独立样本t/Welch t+单因素ANOVA/Welch ANOVA+Cohen d/η²+Bonferroni事后)/回归(含容差/VIF共线性诊断)/Bootstrap中介(模型4/6)/调节效应(模型1中心化交互项+±1SD简单斜率+简单斜率图)、开题样本量功效估算(sample_size.py，G*Power等价)、生成三线表、画模型图，JASP/SPSS仅复核 |
+| 分析 | 一键跑人口学频数/信度α+题项分析(CITC/删题α)/结构效度KMO/自编量表完整EFA(多因子+Varimax+平行分析+自动碎石图)/Harman/描述统计(含偏度峰度正态性)/相关矩阵+α对角整合三线表/人口学差异(Levene方差齐性+独立样本t/Welch t+单因素ANOVA/Welch ANOVA+Cohen d/η²+Bonferroni事后；偏态/有序时--nonparametric给Mann-Whitney U/Kruskal-Wallis H非参数检验)/回归(含容差/VIF共线性诊断)/Bootstrap中介(模型4/6)/调节效应(模型1中心化交互项+±1SD简单斜率+简单斜率图)、开题样本量功效估算(sample_size.py，G*Power等价)、生成三线表、画模型图，JASP/SPSS仅复核 |
 | 写作 | 大纲、各章节要点、语言润色、格式检查、去AI味 |
 | 答辩 | PPT大纲、发言稿、20个高频问题、模拟答辩 |
 
@@ -43,7 +43,7 @@
 - `menu.py` + 根目录「启动工具箱.bat」 — **零门槛入口**，双击看中文菜单，文件可拖进窗口
 - `wjx_preprocess.py` — 问卷星原始答卷预处理（中文表头/文本选项/"2分3秒"用时→标准数字表，附列映射报告）
 - `paper_search.py` — 一键检索英文学术文献（免费API，无需key，返回真实文献和下载链接）
-- `auto_stats.py` — 自动统计分析（人口学频数表、反向计分、信度α+逐题CITC/删题α题项分析表、结构效度KMO/Bartlett/因子载荷、`--efa`完整探索性因子分析(主成分+Varimax旋转+共同度+交叉载荷+Horn平行分析定因子数+自动碎石图PNG)、Harman共同方法偏差、量表总分、描述统计(偏度/峰度正态性)、M/SD/相关矩阵/α对角整合三线表、人口学差异(Levene方差齐性+独立样本t/Welch t/单因素ANOVA/Welch ANOVA+Cohen d/η²+Bonferroni事后，不齐提示Games-Howell)、多元回归(含容差/VIF共线性诊断)、Bootstrap中介模型4/6、调节效应模型1(中心化交互项+W均值±1SD简单斜率+Bootstrap CI，导出_调节效应.csv并出_调节效应_简单斜率图.png)；绘图（碎石图、简单斜率图）为可选依赖，未装matplotlib不影响数值结果）
+- `auto_stats.py` — 自动统计分析（人口学频数表、反向计分、信度α+逐题CITC/删题α题项分析表、结构效度KMO/Bartlett/因子载荷、`--efa`完整探索性因子分析(主成分+Varimax旋转+共同度+交叉载荷+Horn平行分析定因子数+自动碎石图PNG)、Harman共同方法偏差、量表总分、描述统计(偏度/峰度正态性)、M/SD/相关矩阵/α对角整合三线表、人口学差异(Levene方差齐性+独立样本t/Welch t/单因素ANOVA/Welch ANOVA+Cohen d/η²+Bonferroni事后，不齐提示Games-Howell)、多元回归(含容差/VIF共线性诊断)、Bootstrap中介模型4/6、调节效应模型1(中心化交互项+W均值±1SD简单斜率+Bootstrap CI，导出_调节效应.csv并出_调节效应_简单斜率图.png)、`--nonparametric`非参数差异(偏态/有序时2组Mann-Whitney U报U/z/p/r、多组Kruskal-Wallis H报H/df/p/ε²，事后引导Dunn)；绘图（碎石图、简单斜率图）为可选依赖，未装matplotlib不影响数值结果）
 - `generate_demo_data.py` — 生成内置链式中介的模拟问卷数据（练手/测试，严禁写进论文）
 - `data_cleaner.py` — 问卷数据清洗（识别无效问卷）
 - `literature_organizer.py` — 文献去重分类
@@ -104,6 +104,10 @@ thesis-ai-coach-project/
 ```
 
 ## 版本
+
+**v1.20 非参数差异检验版**
+- `auto_stats.py --nonparametric`：因变量偏态/有序等级、t 与 ANOVA 正态前提不满足时，2组用 Mann-Whitney U（U/z/p/r，含结校正与连续性校正）、3+组用 Kruskal-Wallis H（H/df/p/ε²，含结校正，事后引导 Dunn），导出 `_差异分析_非参数.csv`；自实现卡方上尾 p（正则不完全 gamma），U/H 与 scipy 逐位一致
+- stats-guide 差异小节、data-analysis-auto 增补非参数路径与判定（偏度/峰度）；菜单第3项可勾选非参数
 
 **v1.19 开题样本量/功效估算版**
 - 新增 `sample_size.py`：相关/多元回归总体R²/R²增量/单因素ANOVA 的先验功效分析，非中心F（Poisson混合，与 scipy.stats.ncf 逐位一致）＋Fisher z，三档效应量速查＋无效卷冗余建议，开题"需要多少份"直接给依据

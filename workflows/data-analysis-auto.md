@@ -196,6 +196,7 @@ Harman单因子检验：
 - **3 组及以上 → 单因素 ANOVA**：报 F(dfb,dfw)、p、η²（.01/.06/.14 小中大），并给 Bonferroni 校正事后两两比较
 - 导出 `_差异分析.csv`，可直接整理成"人口学差异分析表"
 - 脚本先做 Levene/Brown-Forsythe 方差齐性检验：方差齐用等方差 t/ANOVA（Bonferroni事后），**不齐自动切换 Welch t / Welch ANOVA**（多组事后改 Games-Howell，在 JASP/SPSS 查看）；`_差异分析.csv` 含方差齐性与 Welch 稳健检验列；正式结果可在 SPSS/JASP 复核
+- **因变量明显偏态/有序等级（如 NSSI、成瘾、频次零膨胀）、正态前提不满足时**：加 `--nonparametric`（菜单第3项选"是"），2组改 **Mann-Whitney U**（报 U/z/p/r），多组改 **Kruskal-Wallis H**（报 H/df/p/ε²，事后用 Dunn，JASP查看），导出 `_差异分析_非参数.csv`；与 scipy 逐位一致。是否需要非参数，先看第4步描述统计的偏度/峰度（|偏度|>3、|峰度|>10 为明显违反）
 
 ---
 

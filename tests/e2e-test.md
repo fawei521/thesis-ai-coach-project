@@ -214,6 +214,7 @@
 - **人口学差异**（demo 含性别1/2、年级1–4两列，与题目独立随机）：第七节先报 Levene/Brown-Forsythe 方差齐性，再对每个量表做性别独立样本 t（报 t(df)/p/Cohen's d；方差齐用等方差、不齐自动切 Welch t）、年级单因素 ANOVA（报 F(3,196)/p/η²/Bonferroni；不齐切 Welch ANOVA 并提示 Games-Howell），导出 `demo_survey_差异分析.csv`（UTF-8-SIG，含方差齐性、稳健检验(Welch)两列，共10列）；demo 方差齐、多为不显著属正常
 - **调节效应**（`--y NSSI --x AI情感依赖 --moderator 孤独感`）：第八节输出中心化后的交互项回归（b0–b3/SE/标准化β/t/p/R²）与 W 低/均值/高三水平简单斜率（解析SE＋Bootstrap CI），导出 `demo_survey_调节效应.csv`（UTF-8-SIG）；判读以 Bootstrap CI 是否含0为准，解析 p 与 CI 冲突时打印"边缘、以PROCESS复核为准"而非直接判成立
 - **共线性诊断**（多元回归 `--y NSSI --x "AI情感依赖,孤独感,反刍思维"`）：输出每个预测变量的容差与 VIF、判读（<5正常/5–10关注/≥10严重）；单预测变量时不输出该表且不报错
+- **非参数差异**（`--nonparametric`）：第七节标题切换为非参数；性别2组对每个量表出 Mann-Whitney U（U/z/p/r，报各组中位数与n），年级4组出 Kruskal-Wallis H（H(3)/p/ε²，提示事后用 Dunn）；导出 `demo_survey_差异分析_非参数.csv`（10列，检验列含"(非参数)"，方差齐性列填"非参数不要求正态/方差齐"）；ε² 完全无效应时不出现负值（截断为0）
 
 **算法正确性对照**：含反向题却不标(R)时α会出现负值（专用对照数据α=-5.000），正确标注后α=1.000；
 KMO对3变量等相关.8矩阵应得.764（解析解.7641）；单位阵Bartlett p=1；单构念Harman第一因子=100%，多构念约38%。
@@ -222,6 +223,7 @@ CITC 与删题α经 Wolfram 黄金对照（4题8人整数例）：总α=.967078�
 独立样本 t/Cohen's d 经 scipy.stats.ttest_ind(equal_var=True)、单因素 ANOVA F/η² 经 scipy.stats.f_oneway 黄金对照逐位一致；Levene/Brown-Forsythe 经 scipy.stats.levene(center='median')、Welch t 经 ttest_ind(equal_var=False) 逐位一致，Welch ANOVA 与 Liu(2015)/R oneway.test 公式独立复现一致（等方差时与经典 F 接近、方差异构时自动切换）；文本"男/女"分组可识别，单组/常数列/组内n<2 不崩溃。
 调节效应（模型1）系数 b0–b3 经 numpy.linalg.lstsq、简单斜率 θ=b1+b3·w 与其 SE（Cov11+w²Cov33+2w·Cov13）经 (X'X)⁻¹·MSE 协方差矩阵黄金对照逐位一致；增强型调节（b3>0、CI不含0）正确判成立，解析 p 与 Bootstrap CI 冲突时判"边缘"不夸大。`--moderator` 装有 matplotlib 时须另出 `数据名_调节效应_简单斜率图.png`（W 低/中/高三条回归线、中文标题/坐标轴/图例无乱码、图例标注各斜率及显著性，目视核对三线方向与 b3 正负一致）；未装 matplotlib 时打印降级提示且退出码为 0。
 VIF 经 numpy 对"每个预测变量对其余预测变量回归的 1/(1-R²)"黄金对照逐位一致（独立变量≈1、X3=X1+小噪声时 X1/X3 VIF≈104 正确标严重）；单预测变量不输出诊断且不崩溃。
+非参数检验经 scipy 黄金对照：Mann-Whitney U（含结校正、连续性校正）对 scipy.stats.mannwhitneyu(method='asymptotic') 的 z/p 逐位一致（U 报 min(U1,U2)，与 scipy 的 U1 互补、p 相同）；Kruskal-Wallis H（含结校正）对 scipy.stats.kruskal 的 H/p 逐位一致；卡方上尾 p（自实现正则不完全 gamma 级数/连分式）对 scipy.stats.chi2.sf 在 df=1/2/3/5 临界值处逐位一致；连续数据与李克特结数据均验证。
 
 ## 测试14b：Bootstrap中介（模型4/6）
 

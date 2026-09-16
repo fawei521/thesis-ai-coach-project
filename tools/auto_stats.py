@@ -418,17 +418,145 @@ def _welch_anova(groups):
     return F, df1, df2, p
 
 
+def _rankdata(x):
+    """平均秩（结取平均秩，1 基），等价 scipy.stats.rankdata(method='average')。"""
+    n = len(x)
+    order = sorted(range(n), key=lambda i: x[i])
+    ranks = [0.0] * n
+    i = 0
+    while i < n:
+        j = i
+        while j + 1 < n and x[order[j + 1]] == x[order[i]]:
+            j += 1
+        avg = (i + j) / 2.0 + 1.0
+        for k in range(i, j + 1):
+            ranks[order[k]] = avg
+        i = j + 1
+    return ranks
+
+
+def _gamma_series(a, x):
+    """正则化下不完全 gamma P(a,x) 的级数展开（Numerical Recipes gser）。"""
+    ap, s, d = a, 1.0 / a, 1.0 / a
+    for _ in range(400):
+        ap += 1.0
+        d *= x / ap
+        s += d
+        if abs(d) < abs(s) * 1e-14:
+            break
+    return s * math.exp(-x + a * math.log(x) - math.lgamma(a))
+
+
+def _gamma_cf(a, x):
+    """正则化上不完全 gamma Q(a,x) 的连分式展开（Numerical Recipes gcf）。"""
+    fpmin = 1e-300
+    b = x + 1.0 - a
+    c = 1.0 / fpmin
+    d = 1.0 / b
+    h = d
+    for i in range(1, 401):
+        an = -i * (i - a)
+        b += 2.0
+        d = an * d + b
+        if abs(d) < fpmin:
+            d = fpmin
+        c = b + an / c
+        if abs(c) < fpmin:
+            c = fpmin
+        d = 1.0 / d
+        delt = d * c
+        h *= delt
+        if abs(delt - 1.0) < 1e-14:
+            break
+    return math.exp(-x + a * math.log(x) - math.lgamma(a)) * h
+
+
+def chi2_sf(x, df):
+    """卡方分布上尾概率 p=P(χ²_df ≥ x)。"""
+    if x <= 0:
+        return 1.0
+    a, xx = df / 2.0, x / 2.0
+    if xx < a + 1.0:
+        return 1.0 - _gamma_series(a, xx)
+    return _gamma_cf(a, xx)
+
+
+def _tie_term_from_ranks(ranks):
+    """结校正项 Σ(t³−t)，t 为每个结的大小（按平均秩分组）。"""
+    counts = {}
+    for r in ranks:
+        counts[r] = counts.get(r, 0) + 1
+    return sum(c ** 3 - c for c in counts.values() if c > 1)
+
+
+def mann_whitney_u(a, b):
+    """Mann-Whitney U（两独立样本，非参数 t 替代）。
+    返回 (U, z, p双侧, r效应量)；大样本正态近似（含结校正与连续性校正），
+    与 scipy.stats.mannwhitneyu(method='asymptotic') 一致。n<20 建议用 JASP 精确检验。"""
+    n1, n2 = len(a), len(b)
+    N = n1 + n2
+    ranks = _rankdata(a + b)
+    R1 = sum(ranks[:n1])
+    U1 = R1 - n1 * (n1 + 1) / 2.0
+    U2 = n1 * n2 - U1
+    U = min(U1, U2)
+    mu = n1 * n2 / 2.0
+    T = _tie_term_from_ranks(ranks)
+    var = n1 * n2 / 12.0 * ((N + 1) - T / (N * (N - 1))) if N > 1 else 0.0
+    if var <= 0:
+        return U, None, None, None
+    cc = 0.5 if U < mu else -0.5
+    z = (U - mu + cc) / math.sqrt(var)
+    p = 2.0 * (1.0 - 0.5 * (1.0 + math.erf(abs(z) / math.sqrt(2.0))))
+    r_eff = abs(z) / math.sqrt(N)
+    return U, z, min(max(p, 0.0), 1.0), r_eff
+
+
+def kruskal_wallis(groups):
+    """Kruskal-Wallis H（k 个独立样本，ANOVA 的非参数替代）。
+    返回 (H校正结, df, p, ε²效应量)，与 scipy.stats.kruskal 一致。"""
+    use = [g for g in groups if len(g) >= 1]
+    k = len(use)
+    N = sum(len(g) for g in use)
+    if k < 2 or N <= k:
+        return None, k - 1, None, None
+    comb = [v for g in use for v in g]
+    ranks = _rankdata(comb)
+    idx = 0
+    H = 0.0
+    for g in use:
+        n = len(g)
+        R = sum(ranks[idx:idx + n])
+        idx += n
+        H += R * R / n
+    H = 12.0 / (N * (N + 1)) * H - 3.0 * (N + 1)
+    T = _tie_term_from_ranks(ranks)
+    denom = N ** 3 - N
+    C = 1.0 - T / denom if denom > 0 else 1.0
+    Hc = H / C if C > 0 else H
+    p = chi2_sf(Hc, k - 1)
+    eps = (Hc - k + 1) / (N - k) if N > k else 0.0
+    eps = max(eps, 0.0)  # 完全无效应时 epsilon² 可能为微小负（估计偏差），截断为0
+    return Hc, k - 1, p, eps
+
+
 def group_difference_analysis(headers, data, matrix, scales, score_matrix,
-                              total_cols, output=None):
+                              total_cols, output=None, nonparametric=False):
     """人口学差异：2组用独立样本t检验(等方差)+Cohen's d；
     3组及以上用单因素方差分析(ANOVA)+η²+Bonferroni校正事后两两比较。
+    nonparametric=True 时改用非参数检验（不要求正态/方差齐）：
+    2组 Mann-Whitney U（效应量 r），3组及以上 Kruskal-Wallis H（效应量 ε²）。
     对每个人口学分组列 × 每个量表总分进行。"""
     group_cols = _detect_group_cols(headers, data, matrix, scales)
     if not group_cols or not total_cols:
         return None
     rows = []
     print("\n" + "=" * 60)
-    print("七、人口学差异分析（独立样本t / 单因素ANOVA）")
+    if nonparametric:
+        print("七、人口学差异分析（非参数：Mann-Whitney U / Kruskal-Wallis H）")
+        print("  适用：因变量明显偏态、有序等级、或 t/ANOVA 正态前提不满足时")
+    else:
+        print("七、人口学差异分析（独立样本t / 单因素ANOVA）")
     print("=" * 60)
     for gname, glabels in group_cols:
         for ycol in total_cols:
@@ -449,6 +577,51 @@ def group_difference_analysis(headers, data, matrix, scales, score_matrix,
             yshort = ycol.replace("总分", "")
             desc = "；".join(f"{k}组 M={mean(v):.2f},SD={stdev(v):.2f},n={len(v)}"
                              for k, v in gd.items())
+
+            def _mdn(v):
+                s = sorted(v)
+                n = len(s)
+                mid = n // 2
+                return s[mid] if n % 2 else (s[mid - 1] + s[mid]) / 2.0
+
+            if nonparametric:
+                ndesc = "；".join(f"{k}组 中位数={_mdn(v):.2f},n={len(v)}" for k, v in gd.items())
+                if len(gd) == 2:
+                    (k1, a), (k2, b) = list(gd.items())[0], list(gd.items())[1]
+                    U, z, p, r_eff = mann_whitney_u(a, b)
+                    if z is None:
+                        continue
+                    rt = "小" if r_eff < .3 else "中" if r_eff < .5 else "大"
+                    sig = "差异显著" if p < .05 else "差异不显著"
+                    print(f"\n{gname} × {yshort}（Mann-Whitney U，非参数）：{k1}组 vs {k2}组")
+                    print(f"    {ndesc}")
+                    print(f"    U={U:.0f}, z={z:.3f}, p={fmt_p(p)}, r={r_eff:.3f}（{rt}效应）→ {sig}")
+                    if min(len(a), len(b)) < 20:
+                        print("    提示：某组 n<20，建议在 JASP 中改用精确检验（Exact）复核")
+                    rows.append({"分组变量": gname, "因变量": yshort,
+                                 "检验": "Mann-Whitney U(非参数)", "统计量": f"U={U:.0f}",
+                                 "df": "-", "p": fmt_p(p), "效应量": f"r={r_eff:.3f}({rt})",
+                                 "方差齐性": "非参数不要求正态/方差齐", "稳健检验(Welch)": "-",
+                                 "详情": ndesc + f"；z={z:.3f}；{sig}"})
+                else:
+                    keys2 = list(gd.keys())
+                    groups = [gd[k] for k in keys2]
+                    H, dfn, p, eps = kruskal_wallis(groups)
+                    if H is None:
+                        continue
+                    et = "小" if eps < .06 else "中" if eps < .14 else "大"
+                    sig = "差异显著" if p < .05 else "差异不显著"
+                    print(f"\n{gname} × {yshort}（Kruskal-Wallis H，非参数，{len(groups)}组）")
+                    print(f"    {ndesc}")
+                    print(f"    H({dfn})={H:.3f}, p={fmt_p(p)}, ε²={eps:.3f}（{et}效应）→ {sig}")
+                    print("    事后两两比较请用 Dunn 检验（JASP：非参数检验→独立样本→Dunn事后，含Bonferroni校正）")
+                    rows.append({"分组变量": gname, "因变量": yshort,
+                                 "检验": "Kruskal-Wallis H(非参数)", "统计量": f"H={H:.3f}",
+                                 "df": dfn, "p": fmt_p(p), "效应量": f"ε²={eps:.3f}({et})",
+                                 "方差齐性": "非参数不要求正态/方差齐", "稳健检验(Welch)": "-",
+                                 "详情": ndesc + f"；{sig}；事后用Dunn检验(JASP)"})
+                continue
+
             if len(gd) == 2:
                 (k1, a), (k2, b) = list(gd.items())[0], list(gd.items())[1]
                 n1, n2 = len(a), len(b)
@@ -1982,6 +2155,8 @@ def main():
     parser.add_argument("--x", help="回归自变量列名，逗号分隔（中介时只取第一个作X）")
     parser.add_argument("--mediators", help="中介变量，逗号分隔；1个=模型4简单中介，2个=模型6链式中介")
     parser.add_argument("--moderator", help="调节变量W（配合--x X --y Y做PROCESS模型1：中心化交互项+±1SD简单斜率）")
+    parser.add_argument("--nonparametric", action="store_true",
+                        help="人口学差异改用非参数检验（2组Mann-Whitney U、3+组Kruskal-Wallis H），用于因变量明显偏态/有序等级")
     parser.add_argument("--boot", type=int, default=5000, help="Bootstrap次数（默认5000）")
     parser.add_argument("--seed", type=int, default=20260917, help="Bootstrap随机种子（默认固定，可复现）")
     parser.add_argument("--profile", action="store_true", help="只输出数据画像")
@@ -2056,9 +2231,11 @@ def main():
             linear_regression(score_matrix, x_cols, y_col)
         active_matrix = score_matrix
         active_cols = scale_total_cols
-        diff_out = str(path.with_name(path.stem + "_差异分析.csv"))
+        diff_suffix = "_差异分析_非参数.csv" if args.nonparametric else "_差异分析.csv"
+        diff_out = str(path.with_name(path.stem + diff_suffix))
         group_difference_analysis(headers, data, matrix, scales, score_matrix,
-                                  scale_total_cols, output=diff_out)
+                                  scale_total_cols, output=diff_out,
+                                  nonparametric=args.nonparametric)
     else:
         # 无量表配置：题目级全量分析（降级模式，建议提供 --scales）
         print("\n提示：提供 --scales 量表配置后，将自动反向计分、算信度效度和量表总分。")

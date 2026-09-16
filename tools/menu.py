@@ -56,7 +56,7 @@ def pause():
 
 
 def t_preprocess():
-    print("\n【1/7】问卷星数据预处理")
+    print("\n【1/8】问卷星数据预处理")
     print("  用途：把问卷星下载的原始表，转成后面能统计的标准数字表。")
     f = ask_path("  把问卷星导出的原始CSV拖进来，回车：")
     if not f:
@@ -65,7 +65,7 @@ def t_preprocess():
 
 
 def t_clean():
-    print("\n【2/7】问卷数据清洗（找无效问卷）")
+    print("\n【2/8】问卷数据清洗（找无效问卷）")
     f = ask_path("  把（预处理后的）数据CSV拖进来，回车：")
     if not f:
         return
@@ -77,7 +77,7 @@ def t_clean():
 
 
 def t_stats():
-    print("\n【3/7】自动统计分析")
+    print("\n【3/8】自动统计分析")
     print("  自动完成：人口学频数表、反向计分、信度α、结构效度(KMO/Bartlett/载荷)、")
     print("  共同方法偏差Harman、量表总分、描述统计、相关、回归、")
     print("  Bootstrap中介（模型4/6），并导出三线表和频数表。")
@@ -105,13 +105,16 @@ def t_stats():
         if efa in ("y", "yes", "是", "1"):
             names = input("    对哪个量表做？多个用逗号分隔，直接回车=对全部量表：").strip()
             args += ["--efa"] + ([names] if names else [])
+        nprm = input("  人口学差异是否用非参数检验（因变量明显偏态/有序等级、t检验前提不满足时选是；2组Mann-Whitney U、多组Kruskal-Wallis；y=是，回车=默认t/ANOVA）：").strip().lower()
+        if nprm in ("y", "yes", "是", "1"):
+            args += ["--nonparametric"]
     run("auto_stats.py", args)
     print("\n  脚本已自动做Bootstrap中介；正式结果建议让AI导师带你用")
     print("  JASP/SPSS PROCESS 打开“_量表总分.csv”复核一次。")
 
 
 def t_search():
-    print("\n【4/7】检索英文学术文献（需要联网，免费，不用账号）")
+    print("\n【4/8】检索英文学术文献（需要联网，免费，不用账号）")
     kw = input("  输入英文关键词（例如 AI dependence adolescent NSSI）：").strip()
     if not kw:
         print("  关键词为空，已取消。")
@@ -127,7 +130,7 @@ def t_search():
 
 
 def t_lit():
-    print("\n【5/7】文献去重与分类")
+    print("\n【5/8】文献去重与分类")
     f = ask_path("  把文献列表（每行一篇的txt）拖进来，回车：")
     if not f:
         return
@@ -135,7 +138,7 @@ def t_lit():
 
 
 def t_chart():
-    print("\n【6/7】生成研究模型图")
+    print("\n【6/8】生成研究模型图")
     print("  链式模型示例变量：AI依赖,孤独感,反刍,NSSI（用英文逗号分隔，4个）")
     print("  简单模型示例变量：AI依赖,NSSI（2个）")
     vars_ = input("  输入变量名（逗号分隔）：").strip()

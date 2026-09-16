@@ -83,6 +83,7 @@
 - [x] 共线性诊断（v1.16：多元回归输出容差/VIF，<5正常、5–10关注、≥10严重，numpy黄金对照）
 - [x] 方差齐性＋Welch稳健检验（v1.17：Levene/Brown-Forsythe，不齐自动切 Welch t/Welch ANOVA，多组事后提示 Games-Howell，scipy/Liu2015黄金对照）
 - [x] 开题样本量/功效估算（v1.19：`sample_size.py`，相关Fisher z＋回归/R²增量/ANOVA非中心F Poisson混合，与 scipy.stats.ncf 逐位一致，三档效应量速查＋无效卷冗余，菜单第8项）
+- [x] 非参数差异检验（v1.20：`--nonparametric`，2组Mann-Whitney U报U/z/p/r、3+组Kruskal-Wallis H报H/df/p/ε²，含结校正，事后引导Dunn，自实现卡方上尾p，与scipy逐位一致）
 - [ ] Promax斜交旋转（因子相关时，当前引导JASP）；手动固定因子数
 - [ ] 问卷星多选题/填空题的进一步适配
 - [ ] 知网检索流程针对更多学校适配（学校路径配置文件）
