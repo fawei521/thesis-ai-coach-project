@@ -305,3 +305,32 @@ centralityPlot(network)
 - 小数保留2-3位
 - p值：p < .05, p < .01, p < .001（不写p = .000）
 - β、r、t、F、χ²等统计量保留2位小数
+
+## 十一、样本量与统计功效（开题·先验功效分析）
+
+开题报告"拟发放多少份问卷"必须有依据，标准做法是 **G\*Power 先验功效分析**（a priori power）：给定效应量、显著性水平 α（通常 .05）、目标功效 1−β（通常 .80），反推最小样本量。
+
+**效应量基准（Cohen，须结合本方向已发表研究/预实验，不能拍脑袋）：**
+- 相关 r：小 .10 / 中 .30 / 大 .50
+- 回归 f²：小 .02 / 中 .15 / 大 .35（f²=R²/(1−R²)；R²增量用 ΔR²/(1−R²全模型)）
+- ANOVA f：小 .10 / 中 .25 / 大 .40
+
+**脚本自动完成（与 G\*Power 3.1 非中心分布等价）：** `tools/sample_size.py`
+```bash
+python tools/sample_size.py                                   # 三档效应量速查表
+python tools/sample_size.py --design regression --predictors 5 --effect 0.15
+python tools/sample_size.py --design r2-change --tested 1 --total 6 --effect 0.02
+python tools/sample_size.py --design anova --groups 4
+python tools/sample_size.py --design correlation --effect 0.3
+```
+- 相关用 Fisher z（与非中心 t 精确解约差 1–2 人）；回归/增量/ANOVA 用非中心 F 的 Poisson 混合，功效与 scipy.stats.ncf 逐位一致、最小 N 与之一致
+- 输出统计最小 N，并按 `--extra`（默认预留 15% 无效卷）给建议发放量
+
+**口径与下限（务必同时满足，取较大值）：**
+- 样本量 ≥ 量表最长条目数的 5–10 倍；做 EFA/CFA/SEM 通常 ≥200
+- Bootstrap 中介（模型4/6）建议 ≥200，链式中介/调节中介等复杂模型 300–500（Fritz & Mackinnon, 2007）
+- 效应量宁取小到中等做**保守**估计，样本量留足；不要为少收问卷而故意取大效应
+- 正式开题用免费的 G\*Power 3.1 按同样参数复核并截图附在报告里；本脚本适用于横断面问卷的相关/差异/回归设计，纵向、实验、多层模型需单独估算
+
+**论文/开题表述示例：** "采用 G\*Power 3.1，多元回归（预测变量 5 个），设定 α=.05、功效=.80、效应量 f²=.15（中等），估算最小样本量 92 人；考虑无效问卷及 Bootstrap 中介需要，实际发放并回收有效问卷 ___ 份。"
+

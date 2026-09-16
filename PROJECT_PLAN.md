@@ -90,6 +90,7 @@
 | psychology/ethics.md | 伦理规范 | ✅ |
 | tools/data_cleaner.py | 数据清洗 | ✅已测试 |
 | tools/chart_generator.py | 模型图 | ✅已测试 |
+| tools/sample_size.py | 开题样本量/功效估算(G*Power等价) | ✅scipy黄金 |
 | tools/literature_organizer.py | 文献整理 | ✅已测试 |
 | templates/questionnaire-template.md | 问卷模板 | ✅ |
 | templates/paper-outline.md | 论文大纲 | ✅ |
@@ -329,7 +330,8 @@
   - 系数/简单斜率SE经 numpy 黄金对照；以 Bootstrap CI 为准、解析p与CI冲突标"边缘"不夸大
 - **v1.16** ✅ 共线性诊断：多元回归输出容差/VIF（<5/5–10/≥10判读），经 numpy 黄金对照，中介多预测变量前先查共线性
 - **v1.17** ✅ 方差齐性＋稳健检验：差异分析先做 Levene/Brown-Forsythe，不齐自动切 Welch t/Welch ANOVA（多组事后提示 Games-Howell），csv 增方差齐性与稳健检验列；经 scipy/Liu(2015) 黄金对照
-- **v1.18** ✅ 调节效应简单斜率图（当前）：`--moderator` 自动出 W 低/中/高三水平回归线 png（标注斜率与显著性），复用 matplotlib 软依赖，未装自动降级
+- **v1.18** ✅ 调节效应简单斜率图：`--moderator` 自动出 W 低/中/高三水平回归线 png（标注斜率与显著性），复用 matplotlib 软依赖，未装自动降级
+- **v1.19** ✅ 开题样本量/功效估算（当前）：新增 sample_size.py（相关 Fisher z、回归/R²增量/ANOVA 非中心F Poisson混合，与 scipy.stats.ncf 逐位一致），三档效应量速查＋无效卷冗余，菜单第8项；stats-guide 增"十一、样本量与统计功效"
 - **v2.0**（远期）：本地知识库向量检索、实验/质性研究支持、多学科扩展
 - **v3.0**（远期）：网页应用、社区化
 

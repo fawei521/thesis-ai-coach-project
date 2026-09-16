@@ -47,6 +47,7 @@
 - `paper_search.py` — 英文学术文献检索（OpenAlex/Semantic Scholar免费API）
 - `literature_organizer.py` — 文献去重、分类、导出
 - `chart_generator.py` — 研究模型图生成
+- `sample_size.py` — 开题样本量/功效估算（G*Power等价：相关/回归R²/R²增量/ANOVA，非中心F精确+三档效应量速查+无效卷冗余，回答"要发多少份"）
 - `menu.py` — 统一菜单（不想记命令时用）
 
 **零门槛用法**：让学生双击项目根目录的「启动工具箱.bat」，按数字菜单操作；可把文件直接拖进窗口填路径。

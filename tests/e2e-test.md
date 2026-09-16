@@ -242,6 +242,17 @@ VIF 经 numpy 对"每个预测变量对其余预测变量回归的 1/(1-R²)"黄
 **预期**：生成 demo_survey.csv（链式四量表）+ demo_scales.txt；固定种子下 auto_stats 结果与测试14/14b基准一致。
 **通过标准**：两次生成同种子数据完全一致；脚本明确提示"模拟数据严禁写进真实论文"。
 
+## 测试14c-2：开题样本量/功效估算（sample_size.py）
+
+**命令**：
+- `python tools/sample_size.py`（无参数，打印三档效应量速查表）
+- `python tools/sample_size.py --design regression --predictors 5 --effect 0.15`
+- `python tools/sample_size.py --design anova --groups 4`
+- `python tools/sample_size.py --design correlation --effect 0.3`
+
+**预期（α=.05、power=.80，Cohen 中效应）**：相关 r=.3 最小 N≈85；ANOVA 4组 f=.25 最小 N≈179（≈G*Power 180）；回归5预测 f²=.15 最小 N≈92；R²增量（全模型6、新增1、f²=.02）≈395；输出含建议发放量（默认+15%无效卷）与中介/SEM 下限提醒。
+**通过标准**：非中心 F 功效与 scipy.stats.ncf 逐位一致（差<2e-3）、最小 N 与 scipy 迭代一致（差0）；相关 Fisher z 与非中心 t 精确解约差 1–3 人并在文档标注为近似；菜单第8项可进入；不装任何第三方库可运行（纯标准库）。
+
 ## 测试14d：人口学频数分析
 
 **命令**：先 `wjx_preprocess.py sample_wjx_raw.csv --output std.csv`，再写 scales.txt 把Q3-Q8列入量表，运行 `auto_stats.py std.csv --scales scales.txt`

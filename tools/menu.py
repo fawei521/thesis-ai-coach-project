@@ -154,12 +154,40 @@ def t_chart():
 
 
 def t_demo():
-    print("\n【7/7】生成演示数据（还没收回问卷时，先拿它练手）")
+    print("\n【7/8】生成演示数据（还没收回问卷时，先拿它练手）")
     print("  会生成一份内置链式中介结构、含反向题的模拟数据，")
     print("  用来跑通第3步统计流程。模拟数据严禁写进真实论文。")
     out = input("  保存到哪个文件夹？可直接拖入一个文件夹，回车默认当前目录：").strip().strip('"').strip("'")
     args = ["--outdir", out] if out else ["--outdir", "."]
     run("generate_demo_data.py", args)
+
+
+def t_power():
+    print("\n【8/8】开题样本量 / 功效估算（G*Power 等价，回答要发多少份）")
+    print("  1 相关分析（Pearson r）")
+    print("  2 多元回归总体 R²（检验整组预测变量）")
+    print("  3 多元回归 R² 增量（检验新增变量，如交互项）")
+    print("  4 单因素方差分析 ANOVA（多个组）")
+    d = input("  输入 1-4，回车默认先看三档效应量速查表：").strip()
+    if d == "1":
+        e = input("  相关系数 r（如 .3，回车看小/中/大三档）：").strip()
+        args = ["--design", "correlation"] + (["--effect", e] if e else [])
+    elif d == "2":
+        u = input("  预测变量个数（回车默认5）：").strip() or "5"
+        e = input("  效应量 f²（小.02/中.15/大.35，回车看三档）：").strip()
+        args = ["--design", "regression", "--predictors", u] + (["--effect", e] if e else [])
+    elif d == "3":
+        tested = input("  本次新增检验的变量数（回车默认1）：").strip() or "1"
+        total = input("  全模型预测变量总数（回车默认6）：").strip() or "6"
+        e = input("  效应量 f²（小.02/中.15/大.35，回车看三档）：").strip()
+        args = ["--design", "r2-change", "--tested", tested, "--total", total] + (["--effect", e] if e else [])
+    elif d == "4":
+        k = input("  组数（回车默认4）：").strip() or "4"
+        e = input("  效应量 f（小.10/中.25/大.40，回车看三档）：").strip()
+        args = ["--design", "anova", "--groups", k] + (["--effect", e] if e else [])
+    else:
+        args = []
+    run("sample_size.py", args)
 
 
 MENU = [
@@ -170,6 +198,7 @@ MENU = [
     ("5", "文献去重与分类", t_lit),
     ("6", "生成研究模型图", t_chart),
     ("7", "生成演示数据（没收回问卷前先练手）", t_demo),
+    ("8", "开题样本量/功效估算（G*Power等价，要发多少份）", t_power),
 ]
 
 
@@ -180,7 +209,7 @@ def main():
         print("        毕业论文工具箱（心理学问卷研究）")
         print("=" * 64)
         print("  典型顺序：先 1 预处理 → 2 清洗 → 3 统计")
-        print("  写文献综述时用 4 检索、5 整理；画图用 6；练手用 7")
+        print("  写文献综述时用 4 检索、5 整理；画图用 6；练手用 7；开题估样本量用 8")
         print("-" * 64)
         for num, name, _ in MENU:
             print(f"  {num}. {name}")
