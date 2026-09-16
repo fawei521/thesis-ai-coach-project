@@ -438,6 +438,17 @@ python tests/test_special_columns.py`
 
 **通过标准**：上述关键串全部符合；量表名称、作者、题数与公开文献一致（FASM/DSHI/ISAS 已联网核实）。
 
+---
+
+## 测试28：论文大纲模板结果章与伦理对齐（v1.32）
+
+- `templates/paper-outline.md` 研究程序含未成年人监护人书面知情同意＋学生本人同意、注意力检查题等质量埋点；数据处理含分半信度、Bootstrap 5000。
+- 结果章含正态性（偏度峰度）、EFA/平行分析、人口学差异（t/Welch/ANOVA/非参数）、卡方、调节与简单斜率，顺序与 `workflows/writing-guide.md`、stats-guide 及 auto_stats 输出一致。
+- `psychology/stats-guide.md` 所述脚本能力（Welch t、Welch ANOVA、Levene）在 auto_stats.py 中真实存在；Games-Howell/Dunn 明确引导 JASP，不得写成脚本已实现。
+
+**通过标准**：上述关键串全部符合，无"文档声称但代码没有"的能力。
+
+
 
 ---
 
