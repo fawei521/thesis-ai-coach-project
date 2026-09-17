@@ -451,6 +451,21 @@ try:
     check("v1564文献防假空白反查", all(s in tx("workflows/literature-auto-search.md")
                                   for s in ("假空白", "0 命中", "上位词")))
 
+    # ---- v1.56.6 专业文档接线 + 行为自测补盲与可追溯走查 ----
+    psy = {p.name: p.read_text(encoding="utf-8") for p in (ROOT / "psychology").glob("*.md")}
+    check("v1566专业文档三份", set(psy) == {"ethics.md", "scale-library.md", "stats-guide.md"}, str(set(psy)))
+    check("v1566专业文档使用约定指针",
+          all("**使用约定**" in t and "core/coaching-protocol.md" in t for t in psy.values()))
+    check("v1566伦理危机口径", "12356" in psy["ethics.md"] and "不做临床诊断" in psy["ethics.md"])
+    check("v1566统计数据真实性P0",
+          "P0 红线" in psy["stats-guide.md"] and "不显著也是结果" in psy["stats-guide.md"])
+    check("v1566量表库需核实", "需核实" in psy["scale-library.md"])
+    check("v1566自测用例扩至38且连续", len(bt_nums) == 38 and bt_nums == list(range(1, 39)),
+          "n=%d" % len(bt_nums))
+    check("v1566自测新增六场景", all(s in bt for s in ("T33", "T34", "T35", "T36", "T37", "T38")))
+    check("v1566走查记录诚实标注",
+          "桌面静态走查" in bt and "非真人" in bt and "最高优先级遗留" in bt)
+
     # ---- v1.2 手机独立版：能力边界三处一致 + 合并单文件可生成且自包含 ----
     mgp = ROOT / "doubao-skill" / "references" / "mobile-guide.md"
     check("v12手机说明文件", mgp.exists())
