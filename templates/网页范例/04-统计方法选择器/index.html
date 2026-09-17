@@ -1,0 +1,523 @@
+<!DOCTYPE html>
+<!--
+  ============================================================================
+  范例，请勿直接使用（templates/网页范例/04-统计方法选择器）
+  这是一个“交互设计范例”：示范如何用单文件、零依赖、数据与界面分离的方式，
+  做一个“统计方法选择向导”。可以学做法（决策树数据结构、问答式交互、速查表），
+  但方法选择必须结合你自己的数据分布、研究设计与导师要求，并以 psychology/stats-guide.md
+  与 JASP/SPSS 正式结果为准。本页不是论文成果，不能替代统计教材与专业判断。
+  ============================================================================
+-->
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>统计方法选择器（范例，请勿直接使用）</title>
+<style>
+  :root{
+    --bg:#f4f6f7; --card:#ffffff; --ink:#1f2a30; --muted:#5c6b73; --line:#d9e0e3;
+    --accent:#0f766e; --accent-soft:#e3f1ef; --accent-ink:#0b5751;
+    --warn:#9a6a00; --warn-soft:#fdf3dd; --ok:#1e6b3a; --ok-soft:#e6f3ea;
+    --code-bg:#1f2a30; --code-ink:#e8eef0;
+    --radius:14px; --shadow:0 2px 10px rgba(31,42,48,.07);
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0}
+  body{
+    background:var(--bg); color:var(--ink); line-height:1.7;
+    font-family:'PingFang SC','Hiragino Sans GB','Microsoft YaHei','Segoe UI',system-ui,-apple-system,sans-serif;
+    -webkit-text-size-adjust:100%;
+  }
+  .wrap{max-width:880px;margin:0 auto;padding:20px 16px 64px}
+  header h1{font-size:22px;margin:6px 0 4px}
+  header .sub{color:var(--muted);font-size:14px;margin:0 0 12px}
+  .banner{
+    background:var(--warn-soft); border:1px solid #ecd7a4; color:var(--warn);
+    border-radius:var(--radius); padding:10px 14px; font-size:13.5px; margin:10px 0 18px;
+  }
+  .banner b{color:#7a5200}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);
+        box-shadow:var(--shadow);padding:18px 18px 20px;margin-bottom:16px}
+  .crumb{font-size:12.5px;color:var(--muted);margin-bottom:10px;min-height:20px}
+  .crumb span{display:inline-block}
+  .crumb .sep{margin:0 6px;color:#aeb9bd}
+  h2.q{font-size:18px;margin:2px 0 14px;line-height:1.5}
+  .opts{display:flex;flex-direction:column;gap:10px}
+  button.opt{
+    text-align:left; width:100%; border:1.5px solid var(--line); background:#fbfcfc;
+    border-radius:11px; padding:12px 14px; font-size:15px; color:var(--ink); cursor:pointer;
+    font-family:inherit; line-height:1.5; transition:border-color .12s,background .12s;
+  }
+  button.opt:hover{border-color:var(--accent);background:var(--accent-soft)}
+  button.opt .tag{display:inline-block;font-size:12px;color:var(--accent-ink);
+    background:var(--accent-soft);border-radius:6px;padding:1px 8px;margin-right:8px}
+  .toolbar{display:flex;gap:10px;margin-top:14px;flex-wrap:wrap}
+  button.ghost{border:1px solid var(--line);background:#fff;border-radius:9px;padding:7px 14px;
+    font-size:13.5px;color:var(--muted);cursor:pointer;font-family:inherit}
+  button.ghost:hover{border-color:var(--accent);color:var(--accent)}
+  .result h3{font-size:19px;margin:2px 0 4px;color:var(--accent-ink)}
+  .result .why{color:var(--muted);font-size:14px;margin:0 0 12px}
+  .block{margin:12px 0;padding:0 0 0 14px;border-left:3px solid var(--accent-soft)}
+  .block h4{font-size:14px;margin:0 0 4px;color:var(--accent-ink);letter-spacing:.5px}
+  .block p,.block li{font-size:14.5px;margin:2px 0}
+  .block ul{margin:4px 0;padding-left:20px}
+  pre{background:var(--code-bg);color:var(--code-ink);border-radius:9px;padding:11px 13px;
+      font-size:13px;overflow-x:auto;margin:6px 0;font-family:ui-monospace,Consolas,'Courier New',monospace;line-height:1.55;
+      white-space:pre-wrap;word-break:break-word;overflow-wrap:anywhere}
+  .sentence{background:var(--ok-soft);border:1px solid #cfe6d6;border-radius:9px;padding:10px 13px;font-size:14px}
+  .integrity{background:var(--warn-soft);border:1px solid #ecd7a4;border-radius:9px;padding:10px 13px;font-size:13.5px;color:#6d4c00}
+  .integrity b{color:#7a5200}
+  table.cheat{border-collapse:collapse;width:100%;font-size:13.5px;overflow:hidden;border-radius:10px}
+  table.cheat th,table.cheat td{border:1px solid var(--line);padding:7px 9px;text-align:left;vertical-align:top}
+  table.cheat th{background:var(--accent-soft);color:var(--accent-ink);font-weight:600}
+  details{margin-top:8px}
+  summary{cursor:pointer;font-size:14px;color:var(--accent);font-weight:600}
+  footer{color:var(--muted);font-size:12.5px;margin-top:18px;text-align:center;line-height:1.7}
+  .pill{display:inline-block;font-size:12px;background:#eef2f3;border:1px solid var(--line);
+        border-radius:999px;padding:1px 9px;margin:2px 4px 2px 0;color:var(--muted)}
+  @media (max-width:520px){ header h1{font-size:19px} .card{padding:15px 14px} h2.q{font-size:16.5px} }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>统计方法选择器（问卷研究 · 向导）</h1>
+    <p class="sub">按你的研究问题和数据情况，几步选出对应的统计方法、要报告的统计量与效应量、脚本命令和 JASP/SPSS 路径。</p>
+    <div class="banner">
+      <b>【范例，请勿直接使用】</b> 本页是项目自带的<b>交互设计范例</b>，用来学“决策树向导”怎么做，
+      不是可照抄的统计结论。方法是否合适取决于你的真实数据分布与研究设计；最终以
+      <b>psychology/stats-guide.md</b>、教材与 JASP/SPSS 正式结果、并和导师确认为准。
+    </div>
+  </header>
+
+  <section class="card" id="wizard">
+    <div class="crumb" id="crumb"></div>
+    <div id="body"></div>
+    <div class="toolbar" id="toolbar"></div>
+  </section>
+
+  <section class="card">
+    <details open>
+      <summary>效应量与常用判据速查（点开/收起）</summary>
+      <div style="margin-top:10px">
+        <table class="cheat">
+          <tr><th>指标</th><th>小</th><th>中</th><th>大</th><th>备注</th></tr>
+          <tr><td>相关系数 r / rs / 偏 r</td><td>.10</td><td>.30</td><td>.50</td><td>小/中/大（Cohen 经验值）</td></tr>
+          <tr><td>Cohen's d（t 检验）</td><td>.2</td><td>.5</td><td>.8</td><td>非参数对应效应量 r：.1/.3/.5</td></tr>
+          <tr><td>η² / ε²（方差分析）</td><td>.01</td><td>.06</td><td>.14</td><td>Kruskal-Wallis 常用 ε²</td></tr>
+          <tr><td>Cramér's V（卡方）</td><td>.1</td><td>.3</td><td>.5</td><td>卡方只答“是否关联”，V 答“多强”</td></tr>
+        </table>
+        <div style="margin-top:12px">
+          <span class="pill">Cronbach α：&gt;.70 可接受 / &gt;.80 好 / &gt;.90 优秀</span>
+          <span class="pill">正态 Kline：|偏度|&lt;3 且 |峰度|&lt;10（更严 2 / 7）</span>
+          <span class="pill">KMO&gt;.7、Bartlett p&lt;.05 才适合做因子分析</span>
+          <span class="pill">因子载荷一般 &gt;.4（严格 &gt;.5）</span>
+          <span class="pill">VIF&lt;5 正常 / 5–10 关注 / ≥10 严重共线性</span>
+          <span class="pill">Harman 单因子首因子方差 &lt;40%</span>
+          <span class="pill">多元异常值 Mahalanobis：p&lt;.001，只标记不删除</span>
+          <span class="pill">Bootstrap 中介：95%CI 不含 0 即显著</span>
+        </div>
+      </div>
+    </details>
+  </section>
+
+  <footer>
+    脚本用于快速预览与教学，精确 p 值以 JASP/SPSS 为准。<br>
+    <b>不显著也是结果</b>，如实报告，不为“好看”删数据、删题、改方法。网页不是论文成果。
+  </footer>
+</div>
+
+<script>
+/* ===========================================================================
+   数据与界面分离：下面两棵数据结构（NODES 问题节点 / RESULTS 结果节点）即全部“知识”，
+   改方法口径只动这里，不用碰渲染逻辑。内容口径对齐 psychology/stats-guide.md。
+   =========================================================================== */
+var NODES = {
+  root: {
+    q: "你这一步最想回答什么问题？",
+    opts: [
+      {t:"描述现状 / 检验量表的信度效度", d:"频数、均值、α、因子结构、共同方法偏差", go:"describe"},
+      {t:"看变量之间的关系", d:"两个连续变量是否相关、控制混淆后的净相关", go:"relation"},
+      {t:"比较不同组的差异", d:"性别/年级等分组在某个量表上的差别", go:"compare"},
+      {t:"检验两个分类变量是否关联", d:"如 性别 × 年级 是否独立", go:"assoc"},
+      {t:"做预测或检验机制", d:"回归、中介、调节", go:"mechanism"},
+      {t:"数据筛查与统计前提检查", d:"正态性、异常值、共线性、无效作答", go:"screening"},
+      {t:"估算需要多少样本 / 统计功效", d:"开题阶段的先验功效分析", go:"power"}
+    ]
+  },
+  describe: {
+    q: "描述与信效度里，你具体要做哪件事？",
+    opts: [
+      {t:"样本与变量的基本情况", d:"频数/百分比、均值/标准差、偏度峰度", go:"r_desc"},
+      {t:"量表可不可靠（信度）", d:"Cronbach α、分半信度、CITC、删题α", go:"r_reliability"},
+      {t:"量表的结构效度（自编/修订量表）", d:"EFA 探索性因子分析；CFA 验证性因子分析", go:"r_efa"},
+      {t:"共同方法偏差检验", d:"Harman 单因子检验", go:"r_harman"}
+    ]
+  },
+  relation: {
+    q: "这两个（或多个）连续变量的数据形态是？",
+    opts: [
+      {t:"近似正态、线性关系", d:"最常见的量表总分之间", go:"r_pearson"},
+      {t:"明显偏态 / 等级数据 / 零膨胀", d:"如 NSSI、成瘾、频次类变量", go:"r_spearman"},
+      {t:"想排除混淆变量后的净关系", d:"控制性别、年级、社会赞许性等", go:"r_partial"}
+    ]
+  },
+  compare: {
+    q: "这些组是同一批人测两次（配对），还是不同的人（独立）？共几组？",
+    opts: [
+      {t:"不同的人，分 2 组", d:"如 男 vs 女、独生 vs 非独生", go:"cmp2"},
+      {t:"不同的人，分 3 组及以上", d:"如 大一/大二/大三/大四、生源地", go:"cmp3"},
+      {t:"同一批人，前后两次 / 两种条件", d:"配对设计（前测-后测）", go:"cmppair"}
+    ]
+  },
+  cmp2: {
+    q: "2 个独立组：因变量（量表总分）的分布与方差情况？",
+    opts: [
+      {t:"近似正态，且两组方差齐", d:"Levene 检验 p&gt;.05", go:"r_ttest"},
+      {t:"近似正态，但方差不齐", d:"Levene p&lt;.05", go:"r_welch_t"},
+      {t:"明显偏态 / 有序等级 / 样本很小", d:"不满足正态前提", go:"r_mwu"}
+    ]
+  },
+  cmp3: {
+    q: "3 组及以上独立组：因变量的分布与方差情况？",
+    opts: [
+      {t:"近似正态、方差齐", d:"标准单因素方差分析", go:"r_anova"},
+      {t:"近似正态、但方差不齐", d:"稳健方差分析", go:"r_welch_anova"},
+      {t:"明显偏态 / 有序等级", d:"用非参数检验", go:"r_kw"}
+    ]
+  },
+  cmppair: {
+    q: "配对设计：差值（前后变化）是否近似正态？",
+    opts: [
+      {t:"差值近似正态", d:"配对样本 t 检验", go:"r_paired_t"},
+      {t:"差值偏态 / 有序", d:"Wilcoxon 符号秩检验", go:"r_wilcoxon"}
+    ]
+  },
+  mechanism: {
+    q: "你要检验的是哪一种关系？",
+    opts: [
+      {t:"用多个自变量预测一个连续因变量", d:"多元线性回归、共线性诊断", go:"r_regression"},
+      {t:"X 通过一个中介 M 影响 Y", d:"简单中介（PROCESS 模型4，Bootstrap）", go:"r_med4"},
+      {t:"链式中介 M1→M2", d:"链式中介（PROCESS 模型6）", go:"r_med6"},
+      {t:"某个变量 W 改变 X→Y 的强弱/方向", d:"调节效应（PROCESS 模型1，简单斜率）", go:"r_moderation"},
+      {t:"中介同时被调节（有调节的中介）", d:"PROCESS 模型 7 / 14 / 15", go:"r_modmed"}
+    ]
+  },
+  screening: {
+    q: "你想检查哪个前提或数据问题？",
+    opts: [
+      {t:"正态性", d:"偏度峰度；正式的 Shapiro-Wilk / Q-Q 图", go:"r_normality"},
+      {t:"多元异常值", d:"几个变量同时异常的个案（Mahalanobis D²）", go:"r_mahalanobis"},
+      {t:"多重共线性", d:"容差 / VIF", go:"r_vif"},
+      {t:"无效作答与缺失值", d:"注意力检查题、长直线、低变异、高缺失、时长", go:"r_clean"}
+    ]
+  }
+};
+
+var RESULTS = {
+  r_desc: {
+    name:"描述性统计（频数/百分比、M±SD、偏度峰度）",
+    why:"在一切推断检验之前，先交代样本构成与各变量分布；连续变量报均值标准差（偏态时加报中位数/四分位），分类变量报频数与百分比。",
+    report:["分类变量：n（%）","连续变量：M（SD），并报偏度、峰度","正态性经验判据 Kline：|偏度|&lt;3 且 |峰度|&lt;10（更严格 &lt;2 / &lt;7）"],
+    script:"python tools\\auto_stats.py 数据.csv --scales scales.txt",
+    software:"JASP：Descriptives（勾选 Distribution/Skewness/Kurtosis）；SPSS：分析→描述统计→频率/描述。",
+    sentence:"样本中男生 ___ 人（___%）、女生 ___ 人（___%）；XX 总分 M=___，SD=___（偏度=___，峰度=___），未严重偏离正态。"
+  },
+  r_reliability: {
+    name:"信度分析（Cronbach α + 分半信度 + 题项分析）",
+    why:"量表在进入后续分析前要先证明内部一致；同时看 CITC（校正项总相关）和“删除该项后的 α”来决定是否删题，删题必须有依据并报告。",
+    report:["Cronbach's α（&gt;.70 可接受、&gt;.80 好、&gt;.90 优秀）","分半信度（Spearman-Brown、Guttman λ4）","各题 CITC（一般 &gt;.3/.4）与删题后 α","α 异常低先查反向题是否标错（最常见原因）"],
+    script:"python tools\\auto_stats.py 数据.csv --scales scales.txt",
+    software:"JASP：Reliability→Cronbach's alpha（勾 Split-half、Item statistics）；SPSS：分析→刻度→可靠性分析。",
+    sentence:"XX 量表 Cronbach's α=___，分半 Spearman-Brown=___，各题 CITC 在 ___~___ 之间，表明内部一致性（良好/可接受）。"
+  },
+  r_efa: {
+    name:"探索性因子分析 EFA（自编/修订量表）；验证用 CFA",
+    why:"当你要探索或确认量表由几个维度构成时用 EFA；KMO 与 Bartlett 通过才适合做。平行分析/碎石图定因子数，主成分/主轴 + 方差极大旋转，看载荷归属。",
+    report:["KMO（&gt;.7）、Bartlett 球形检验（p&lt;.05）","因子数依据：平行分析 / 特征根&gt;1 / 碎石图","旋转后因子载荷（一般&gt;.4，严格&gt;.5）、交叉载荷、累计方差解释率","验证结构效度用 CFA：χ²/df、CFI/TLI（&gt;.9）、RMSEA（&lt;.08）、SRMR"],
+    script:"python tools\\auto_stats.py 数据.csv --scales scales.txt   （自动 KMO/Bartlett、平行分析、Varimax 与碎石图）",
+    software:"CFA 脚本不替代：JASP 用 SEM（lavaan）模块，或 SPSS AMOS；EFA 也可在 JASP：Factor→Exploratory Factor Analysis。",
+    sentence:"KMO=___，Bartlett χ²(___)=___，p&lt;.001，适合做因子分析；平行分析提示保留 ___ 个因子，方差极大旋转后各题载荷在 ___~___，累计解释方差 ___%。",
+    integrity:"EFA 与 CFA 最好用不同样本（或拆分样本）做交叉验证；不要为了载荷好看反复删题凑结构，删题过程要如实报告。"
+  },
+  r_harman: {
+    name:"共同方法偏差检验（Harman 单因子）",
+    why:"问卷自陈、同一批人同一时间填答时，需要检验共同方法偏差；Harman 单因子是最常用的入门检验，但它只是必要不充分条件。",
+    report:["未旋转主成分第一公因子解释的方差百分比（一般 &lt;40% 视为不严重）","程序控制更根本：匿名、区分指导语、正反向题混合、时间分隔"],
+    script:"python tools\\auto_stats.py 数据.csv --scales scales.txt   （自动输出 Harman 单因子百分比）",
+    software:"JASP：Factor→EFA 不旋转看首因子；SPSS：分析→降维→因子分析。",
+    sentence:"Harman 单因子检验显示，未旋转第一公因子解释方差为 ___%（&lt;40%），提示不存在严重的共同方法偏差；同时已通过匿名作答、正反向题混合等程序控制。"
+  },
+  r_pearson: {
+    name:"Pearson 积差相关",
+    why:"两个连续变量、近似正态、线性关系时使用；只说明线性共变，不代表因果。",
+    report:["相关系数 r（.1 小 / .3 中 / .5 大）与 p","样本量 N；可用相关热图直观呈现（对角为 α）"],
+    script:"python tools\\auto_stats.py 数据.csv --scales scales.txt",
+    software:"JASP：Regression→Correlations（Pearson）；SPSS：分析→相关→双变量。",
+    sentence:"相关分析显示，XX 与 YY 呈显著正相关（r=.___，p&lt;.01），与 ZZ 呈显著负相关（r=-.___，p&lt;.05）。"
+  },
+  r_spearman: {
+    name:"Spearman 秩相关（rs/ρ）",
+    why:"变量明显偏态（NSSI、成瘾、零膨胀频次）、为等级数据，或只关心单调关系时使用，对变量排秩、不要求正态。",
+    report:["Spearman rs（.1/.3/.5 判读同 Pearson）与 p","说明改用秩相关的原因（偏态/等级）"],
+    script:"python tools\\auto_stats.py 数据.csv --scales scales.txt --spearman",
+    software:"JASP/SPSS：双变量相关里勾选 Spearman。",
+    sentence:"因 XX 呈偏态分布，采用 Spearman 秩相关，XX 与 YY 呈显著正相关（rs=.___，p&lt;.05）。"
+  },
+  r_partial: {
+    name:"偏相关（控制混淆变量后的净相关）",
+    why:"想排除性别、年级、社会赞许性等第三变量的影响，看 X 与 Y 的“净关系”；若控制后由显著变不显著，说明原相关很大程度由混淆解释，须如实报告。",
+    report:["偏相关系数 r、自由度 df=N−2−k（k 为控制变量数）、p","说明控制了哪些变量"],
+    script:'python tools\\auto_stats.py 数据.csv --scales scales.txt --partial "性别,年级"',
+    software:"JASP：Regression→Partial Correlations；SPSS：分析→相关→偏相关。",
+    sentence:"控制性别、年级后，XX 与 YY 仍呈显著正相关（r=.___，df=___，p&lt;.05）。"
+  },
+  r_ttest: {
+    name:"独立样本 t 检验（等方差）+ Cohen's d",
+    why:"两个独立组、因变量近似正态且方差齐时比较均值；先看 Levene 是否方差齐。",
+    report:["t(df)、p","效应量 Cohen's d（.2 小 / .5 中 / .8 大）","各组 M、SD"],
+    script:"python tools\\auto_stats.py 数据.csv --scales scales.txt   （自动 Levene，齐则等方差 t）",
+    software:"JASP：T-Tests→Independent Samples T（勾 Levene、Cohen's d）；SPSS：分析→比较平均值→独立样本T。",
+    sentence:"独立样本 t 检验显示，男女生在 XX 上差异（不）显著（t(___)=___，p=.___，d=.___）。"
+  },
+  r_welch_t: {
+    name:"Welch t 检验（方差不齐时的稳健 t）",
+    why:"两组独立、近似正态但方差不齐时，读 Welch（不假定等方差）那一行，不要用普通 t。",
+    report:["Welch t、Welch-Satterthwaite 校正后的 df、p","Cohen's d（可报稳健版本）"],
+    script:"python tools\\auto_stats.py 数据.csv --scales scales.txt   （Levene 不齐时自动切换 Welch t）",
+    software:"JASP：独立样本 T 勾选 Welch；SPSS：独立样本T读“不假定等方差”行。",
+    sentence:"Levene 检验显示方差不齐（p&lt;.05），采用 Welch t 检验，两组在 XX 上差异（不）显著（t=___，df=___，p=.___）。"
+  },
+  r_mwu: {
+    name:"Mann-Whitney U 检验（两独立组的非参数检验）",
+    why:"因变量明显偏态、为有序等级或样本很小、不满足正态时，替代独立样本 t。",
+    report:["U、z、p","效应量 r（.1 小 / .3 中 / .5 大）；报告各组中位数（可加四分位距）","n&lt;20 的小组建议用精确检验（Exact）"],
+    script:"python tools\\auto_stats.py 数据.csv --scales scales.txt --nonparametric",
+    software:"JASP：Nonparametric Tests→Independent Samples→Mann-Whitney；SPSS：分析→非参数检验→独立样本。",
+    sentence:"因 XX 偏态，采用 Mann-Whitney U 检验，男女生在 XX 上差异（不）显著（U=___，z=___，p=.___，r=.___）。"
+  },
+  r_anova: {
+    name:"单因素方差分析（One-way ANOVA）+ η² + Bonferroni 事后",
+    why:"三个及以上独立组、因变量近似正态且方差齐时比较均值；整体显著后再做事后两两比较确定差异在哪两组。",
+    report:["F(组间df,组内df)、p","效应量 η²（.01 小 / .06 中 / .14 大）","显著后做事后两两比较（方差齐用 Bonferroni）","各组 M、SD 与 Levene 结果"],
+    script:"python tools\\auto_stats.py 数据.csv --scales scales.txt   （自动 ANOVA、η²、Bonferroni）",
+    software:"JASP：ANOVA→One-Way ANOVA（勾 Homogeneity、Tukey/Bonferroni、η²）；SPSS：比较平均值→单因素ANOVA。",
+    sentence:"单因素方差分析显示，不同年级在 YY 上差异显著（F(___,___)=___，p&lt;.05，η²=.___），Bonferroni 事后表明 ___ 年级显著高于 ___ 年级。"
+  },
+  r_welch_anova: {
+    name:"Welch ANOVA（方差不齐）+ Games-Howell 事后",
+    why:"3 组及以上、近似正态但方差不齐时使用稳健的 Welch 方差分析，事后两两用 Games-Howell（不用 Bonferroni）。",
+    report:["Welch F、两个自由度、p","效应量（可报 ω²/η²）","Games-Howell 事后两两比较"],
+    script:"python tools\\auto_stats.py 数据.csv --scales scales.txt   （Levene 不齐自动切 Welch ANOVA，并提示 Games-Howell）",
+    software:"JASP：One-Way ANOVA 勾 Welch + Games-Howell；SPSS：单因素ANOVA→选项→Welch/Brown-Forsythe，事后选 Games-Howell。",
+    sentence:"方差不齐（Levene p&lt;.05），采用 Welch ANOVA，各组在 XX 上差异（不）显著（F(___,___)=___，p=.___），Games-Howell 事后显示 ___。"
+  },
+  r_kw: {
+    name:"Kruskal-Wallis H 检验（多组非参数）+ Dunn 事后",
+    why:"3 组及以上、因变量偏态或为有序等级时，替代单因素 ANOVA。",
+    report:["H(df)、p","效应量 ε²（.01/.06/.14）","显著后用 Dunn 检验做事后（含 Bonferroni 校正）"],
+    script:"python tools\\auto_stats.py 数据.csv --scales scales.txt --nonparametric",
+    software:"JASP：Nonparametric→Independent Samples→Kruskal-Wallis（勾 Dunn 事后）；SPSS：非参数检验→独立样本。",
+    sentence:"因 XX 偏态，采用 Kruskal-Wallis H 检验，不同年级在 XX 上差异（不）显著（H(___)=___，p=.___，ε²=.___），Dunn 事后显示 ___。"
+  },
+  r_paired_t: {
+    name:"配对样本 t 检验（前后测/两条件）",
+    why:"同一批被试在两个时间点或两种条件下测量、差值近似正态时使用。",
+    report:["t(df)、p","配对差值的 M、SD","效应量（配对 d_z = 差值均值/差值SD）"],
+    script:"横断面问卷脚本以独立样本为主；配对检验请在 JASP/SPSS 完成并复核。",
+    software:"JASP：T-Tests→Paired Samples T；SPSS：比较平均值→配对样本T检验。",
+    sentence:"配对样本 t 检验显示，干预后 XX（M=___）较干预前（M=___）显著提高（t(___)=___，p&lt;.05，d_z=.___）。"
+  },
+  r_wilcoxon: {
+    name:"Wilcoxon 符号秩检验（配对非参数）",
+    why:"配对设计但差值偏态、或为有序等级时，替代配对 t。",
+    report:["Z（或 W）、p","效应量 r；前后中位数"],
+    script:"横断面问卷脚本以独立样本为主；配对非参数检验请在 JASP/SPSS 完成。",
+    software:"JASP：Nonparametric→Paired Samples→Wilcoxon；SPSS：非参数检验→相关样本。",
+    sentence:"因前后差值偏态，采用 Wilcoxon 符号秩检验，干预前后 XX 差异（不）显著（Z=___，p=.___，r=.___）。"
+  },
+  r_chi: {
+    name:"卡方独立性检验（χ² test of independence）+ Cramér's V",
+    why:"两个分类变量是否相互关联（如 性别×年级、年级×是否用过AI）；与“分类×连续”的 t/ANOVA、“连续×连续”的相关互补。",
+    report:["χ²(df)、p","效应量 Cramér's V（.1 小 / .3 中 / .5 大）","2×2 表默认 Yates 连续性校正","期望频数&lt;5 的格&gt;20% 或任一期望&lt;1：2×2 改 Fisher 精确检验，大表合并稀有类别"],
+    script:"python tools\\auto_stats.py 数据.csv --scales scales.txt   （自动对人口学分类列两两做卡方并导出）",
+    software:"JASP：Frequencies→Contingency Tables（勾 Chi-square、Fisher、Phi/Cramér's V）；SPSS：描述统计→交叉表。",
+    sentence:"卡方独立性检验显示，性别与年级分布（无）显著关联（χ²(___)=___，p=.___，Cramér's V=.___）。"
+  },
+  r_regression: {
+    name:"多元线性回归（含容差/VIF 共线性诊断）",
+    why:"用多个连续（或虚拟编码分类）自变量预测一个连续因变量；放入多个 X 前先查共线性，避免系数不稳、符号反常。",
+    report:["R²、调整 R²、整体 F、p","各自变量标准化 β、t、p","容差与 VIF（VIF&lt;5 正常，5–10 关注，≥10 严重需删并变量）"],
+    script:'python tools\\auto_stats.py 数据.csv --scales scales.txt --y Y总分 --x "X1总分,X2总分"',
+    software:"JASP：Regression→Linear Regression（勾 Collinearity diagnostics）；SPSS：回归→线性→统计勾共线性诊断。",
+    sentence:"多元回归整体显著（F(___,___)=___，p&lt;.001，调整 R²=.___）；控制其他变量后，XX 显著正向预测 YY（β=.___，p&lt;.01），各变量 VIF&lt;5，无严重共线性。"
+  },
+  r_med4: {
+    name:"简单中介（PROCESS 模型4，Bootstrap 5000 次）",
+    why:"检验 X 是否通过中介 M 影响 Y；间接效应用 Bootstrap 置信区间判断，不要求正态，CI 不含 0 即显著。",
+    report:["总效应、直接效应、间接效应（a×b）及各自 Boot SE","间接效应 95%  bootstrap CI（不含0显著）","据直接效应是否显著判完全/部分中介（现更推荐报告效应与CI即可）"],
+    script:'python tools\\auto_stats.py 数据.csv --scales scales.txt --y Y总分 --x X总分 --mediators M总分 --boot 5000',
+    software:"JASP：Regression→Mediation（勾 Bootstrap）；SPSS：安装 PROCESS 宏（processmacro.org 官方下载）选模型4。链式中介见模型6。",
+    sentence:"Bootstrap（5000次）显示，M 的间接效应=___，95%CI[___, ___]不含0，中介效应显著；控制 M 后直接效应=___（p=.___），为（部分/完全）中介。"
+  },
+  r_med6: {
+    name:"链式中介（PROCESS 模型6：X→M1→M2→Y）",
+    why:"当中介有先后顺序、形成 X→M1→M2→Y 的链条时使用；逐段间接效应与链式间接效应都看 Bootstrap CI。",
+    report:["各段路径系数","链式间接效应及其 95% bootstrap CI（不含0显著）","总间接/直接效应"],
+    script:'python tools\\auto_stats.py 数据.csv --scales scales.txt --y Y总分 --x X总分 --mediators "M1总分,M2总分" --boot 5000',
+    software:"JASP：链式（模型6）需在模块库安装官方 Process 模块后选 Model 6（0.18.2+），或用 SEM(lavaan)；SPSS：PROCESS 选模型6。",
+    sentence:"Bootstrap 显示链式间接效应 X→M1→M2→Y =___，95%CI[___,___]不含0，链式中介成立。"
+  },
+  r_moderation: {
+    name:"调节效应（PROCESS 模型1：中心化 + 交互项 + 简单斜率）",
+    why:"检验 W 是否改变 X→Y 的强度或方向；连续变量先中心化，交互项显著后做 ±1SD 的简单斜率并画图。",
+    report:["交互项 β、t、p、ΔR²","W 高/低（±1SD）水平下 X→Y 的简单斜率、SE、p","简单斜率图"],
+    script:'python tools\\auto_stats.py 数据.csv --scales scales.txt --y Y总分 --x X总分 --moderator W总分 --boot 5000',
+    software:"JASP：Regression→Moderation（勾简单斜率/交互图）；SPSS：PROCESS 选模型1。",
+    sentence:"X×W 交互项显著（β=.___，t=___，p&lt;.05，ΔR²=.___）；简单斜率显示，高 W 组 X 对 Y 的预测更强（b=.___，p&lt;.001），低 W 组不显著（b=.___，p=.___）。"
+  },
+  r_modmed: {
+    name:"有调节的中介（PROCESS 模型 7 / 14 / 15）",
+    why:"中介路径的前半段（模型7：调节 a 路径）、后半段（模型14：调节 b 路径）或直接路径（模型15）被 W 调节时使用；看有调节的中介指数（index of moderated mediation）的 Bootstrap CI。",
+    report:["条件间接效应在 W 不同水平的值与 95%CI","有调节的中介指数及其 CI（不含0成立）"],
+    script:"模型7/14/15 请在 JASP/SPSS PROCESS 完成（脚本先支持模型1/4/6）；可用脚本先跑通中介与调节做预览。",
+    software:"JASP：SEM(lavaan) 或安装 Process 模块；SPSS：PROCESS 选模型 7/14/15，Bootstrap 5000。",
+    sentence:"有调节的中介指数=___，95% bootstrap CI[___,___]（不含0），表明中介效应随 W 水平显著变化；W 高时间接效应=___（CI[_,_]），W 低时=___（CI[_,_]）。"
+  },
+  r_normality: {
+    name:"正态性检查（偏度峰度 + 正式 Shapiro-Wilk / Q-Q 图）",
+    why:"参数检验（t/ANOVA/Pearson）要求近似正态；问卷研究常用偏度峰度 Kline 判据，正式正态检验与图形在 JASP/SPSS 生成。",
+    report:["偏度、峰度（Kline：|偏度|&lt;3、|峰度|&lt;10；更严 &lt;2/&lt;7）","需要正式检验时报 Shapiro-Wilk（S-W）的 W、p，并看 Q-Q 图/直方图","轻度偏态时相关/回归较稳健，中介直接用 Bootstrap"],
+    script:"python tools\\auto_stats.py 数据.csv --scales scales.txt   （报偏度峰度与 Kline 提示）",
+    software:"JASP：Descriptives 勾 Normality tests/Plots；SPSS：描述统计→探索→绘图→正态性图与检验。",
+    sentence:"XX 偏度=___、峰度=___，按 Kline 判据未严重偏离正态，结合 Q-Q 图可采用参数检验（或：明显偏态，改用 Spearman/非参数检验）。"
+  },
+  r_mahalanobis: {
+    name:"多元异常值筛查（Mahalanobis D²）——只标记、不删除",
+    why:"回归/中介/SEM 前，找“单变量不极端、但变量组合很罕见”的个案；D² 近似 χ²(df=变量数)，常用 p&lt;.001 判异常。",
+    report:["异常个案的数据行号、D²、p（临界 χ²）","只【标记】不自动删除；先回查原始作答排除录入错误","做敏感性分析：剔除与保留各跑一次核心模型，结论稳定则保留并说明，翻转则与导师如实讨论","D² 假设多元正态，非正态/小样本会偏大，用 JASP/SPSS 复核"],
+    script:"python tools\\auto_stats.py 数据.csv --scales scales.txt --mahalanobis        （空=全部量表总分；也可 --mahalanobis X总分,Y总分；--mah-alpha 0.01）",
+    software:"SPSS：回归→保存→马氏距离；AMOS：输出 Mahalanobis d-squared；JASP 回归/SEM 相关诊断。",
+    sentence:"以进入模型的量表总分为变量做 Mahalanobis D² 筛查（p&lt;.001），标记出 ___ 个多元异常个案；回查原始数据未见录入错误，敏感性分析显示剔除前后核心路径系数方向与显著性一致，故保留并在此说明。",
+    integrity:"多元异常值≠无效问卷，不能为了让模型好看而删点（数据真实性 P0）。"
+  },
+  r_vif: {
+    name:"多重共线性诊断（容差 / VIF）",
+    why:"多元回归、把 X 与多个中介同时放入方程前检查，避免系数不稳、符号反常；VIF 越大共线性越严重。",
+    report:["每个预测变量的容差（1-R²）与 VIF","VIF&lt;5 正常；5≤VIF&lt;10 关注；VIF≥10（容差&lt;.1）严重"],
+    script:'python tools\\auto_stats.py 数据.csv --scales scales.txt --y Y总分 --x "X,M1,M2"   （回归结果含容差/VIF）',
+    software:"SPSS：回归→线性→统计→共线性诊断；JASP：Linear Regression→Collinearity。",
+    sentence:"各自变量 VIF 在 ___~___（均&lt;5），容差均&gt;.1，不存在严重多重共线性。"
+  },
+  r_clean: {
+    name:"数据清洗（无效作答与缺失值）",
+    why:"正式分析前先按预注册/问卷说明的规则剔除无效作答并生成可审计的剔除报告，规则要在方法部分写明、保持全程一致。",
+    report:["注意力检查题未通过、规律/长直线作答、低变异、高缺失比例、作答时长过短","每份保留/剔除及原因（剔除报告），缺失如何处理"],
+    script:"python tools\\data_cleaner.py 数据.csv",
+    software:"清洗规则与阈值在开题/预注册阶段定好，不要看到结果再改规则。",
+    sentence:"按既定标准（注意力检查题、规律作答、缺失&gt;__%、时长&lt;__秒）剔除无效问卷 ___ 份，保留有效问卷 ___ 份，有效率 ___%。",
+    integrity:"清洗标准必须事先确定、对所有变量一视同仁；不能为了显著而临时调整剔除规则。"
+  },
+  power: {
+    name:"先验功效分析 / 样本量估算（开题阶段）",
+    why:"在收数前，依据预期效应量、α=.05、功效 1−β=.8（建议.8以上）估算所需样本，而不是事后用 p 反推。",
+    report:["设计类型、预期效应量及依据（来自前人研究/预实验）","α、1−β、算出的最小 N，并预留无效问卷余量","问卷/中介/SEM 常建议 N≥200，条目数越多样本要越大"],
+    script:"python tools\\sample_size.py",
+    software:"G*Power（t/ANOVA/回归/F 检验）；中介/SEM 常用蒙特卡洛或经验法则（如被试:题项 ≥10:1）。",
+    sentence:"依据 G*Power（检验=___，预期效应量 f/d=___，α=.05，1−β=.80），最少需 ___ 人；考虑 ___% 无效率，计划发放 ___ 份。"
+  }
+};
+
+/* 让 assoc 这一类直接落到卡方（两个分类变量只有这一种主力方法） */
+NODES.assoc = {
+  q:"两个分类变量的独立性检验（列联表）。你的列联表情况？",
+  opts:[
+    {t:"一般情况，直接做卡方独立性检验", d:"多数 2×2 / R×C 表", go:"r_chi"},
+    {t:"2×2 但期望频数过小", d:"期望<5 的格>20% 或任一期望<1", go:"r_chi"}
+  ]
+};
+
+/* ============================= 渲染逻辑（一般无需改） ============================= */
+var stack = [];
+function el(id){return document.getElementById(id);}
+function esc(s){return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");}
+
+function renderCrumb(){
+  var c = el("crumb"); c.innerHTML = "";
+  var home = document.createElement("span"); home.textContent = "研究问题"; c.appendChild(home);
+  stack.forEach(function(id){
+    var sep = document.createElement("span"); sep.className="sep"; sep.textContent="›"; c.appendChild(sep);
+    var s = document.createElement("span");
+    s.textContent = NODES[id] ? shortQ(NODES[id].q) : "推荐方法";
+    c.appendChild(s);
+  });
+}
+function shortQ(q){ return q.length>14 ? q.slice(0,14)+"…" : q; }
+
+function renderNode(id){
+  stack.push(id); renderCrumb();
+  var node = NODES[id], body = el("body"); body.innerHTML = "";
+  var h = document.createElement("h2"); h.className="q"; h.innerHTML = node.q; body.appendChild(h);
+  var wrap = document.createElement("div"); wrap.className="opts";
+  node.opts.forEach(function(o){
+    var b = document.createElement("button"); b.className="opt";
+    var tag = document.createElement("span"); tag.className="tag"; tag.textContent="选择";
+    b.appendChild(tag);
+    b.appendChild(document.createTextNode(o.t));
+    if(o.d){ var br=document.createElement("div");
+      br.style.cssText="color:#5c6b73;font-size:13px;margin-top:3px;margin-left:52px";
+      br.innerHTML=o.d; b.appendChild(br); }
+    b.addEventListener("click",function(){ go(o.go); });
+    wrap.appendChild(b);
+  });
+  body.appendChild(wrap); renderToolbar(true);
+}
+
+function renderResult(id){
+  stack.push(id); renderCrumb();
+  var r = RESULTS[id], body = el("body"); body.innerHTML="";
+  if(!r){ var e=document.createElement("p"); e.textContent="该方法资料缺失，请回到上一步。"; body.appendChild(e); renderToolbar(true); return; }
+  var box=document.createElement("div"); box.className="result";
+  var h=document.createElement("h3"); h.textContent="✔ "+r.name; box.appendChild(h);
+  if(r.why){ var w=document.createElement("p"); w.className="why"; w.innerHTML=r.why; box.appendChild(w); }
+  if(r.report && r.report.length){ box.appendChild(block("要报告什么（统计量与效应量）", ul(r.report))); }
+  if(r.script){ box.appendChild(block("项目脚本怎么做", pre(r.script))); }
+  if(r.software){ box.appendChild(block("JASP / SPSS 复核路径", para(r.software))); }
+  if(r.sentence){ var s=document.createElement("div"); s.className="block";
+    var sh=document.createElement("h4"); sh.textContent="论文表述模板（数字留空，按实填）"; s.appendChild(sh);
+    var p=document.createElement("div"); p.className="sentence"; p.innerHTML=r.sentence; s.appendChild(p); box.appendChild(s); }
+  if(r.integrity){ var g=document.createElement("div"); g.className="integrity";
+    g.innerHTML="<b>数据真实性：</b>"+r.integrity; box.appendChild(g); }
+  body.appendChild(box); renderToolbar(true);
+}
+function block(title, node){ var d=document.createElement("div"); d.className="block";
+  var h=document.createElement("h4"); h.textContent=title; d.appendChild(h); d.appendChild(node); return d; }
+function ul(items){ var u=document.createElement("ul"); items.forEach(function(t){var li=document.createElement("li"); li.innerHTML=t; u.appendChild(li);}); return u; }
+function pre(t){ var p=document.createElement("pre"); p.textContent=t; return p; }
+function para(t){ var p=document.createElement("p"); p.innerHTML=t; return p; }
+
+function renderToolbar(showBack){
+  var tb=el("toolbar"); tb.innerHTML="";
+  var back=document.createElement("button"); back.className="ghost"; back.textContent="‹ 上一步";
+  back.disabled = stack.length<=1;
+  back.style.opacity = stack.length<=1 ? ".45":"1";
+  back.addEventListener("click",function(){ stack.pop(); var cur=stack.pop(); if(cur!==undefined){ renderNode(cur); } else { start(); } });
+  tb.appendChild(back);
+  var reset=document.createElement("button"); reset.className="ghost"; reset.textContent="重新开始";
+  reset.addEventListener("click",start); tb.appendChild(reset);
+}
+function go(id){ if(RESULTS[id]){ renderResult(id); } else if(NODES[id]){ renderNode(id); } }
+function start(){ stack=[]; renderCrumb(); renderNode("root"); stack=[]; renderCrumb();
+  // renderNode 会 push root，这里重置为仅 root 一层
+  stack=["root"]; renderCrumb(); }
+
+/* 启动 */
+(function init(){
+  el("body").innerHTML="";
+  stack=["root"];
+  renderNode("root");
+  stack=["root"]; renderCrumb();
+})();
+</script>
+</body>
+</html>

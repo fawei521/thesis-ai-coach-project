@@ -817,6 +817,20 @@ python tests/test_special_columns.py`
 
 ---
 
+## 测试56：第 4 个网页范例——问答式统计方法选择器
+
+**目的**：给学生一个"我这种数据到底该用什么统计方法"的可交互决策参考，同时示范"数据（决策树）与界面（渲染逻辑）分离"的单文件网页做法；它是范例不是结论，方法口径对齐 `psychology/stats-guide.md`，最终以 JASP/SPSS 与导师确认为准。
+
+**步骤与预期**：
+1. `templates/网页范例/04-统计方法选择器/index.html` 双击可离线打开，无任何外链/CDN/外部字体（自包含，`full_e2e.py` 断言不含 `src="http`、`href="http`、`<link`、`@import`、`cdn`、`<script src`）。
+2. 页面含可见"范例，请勿直接使用"横幅与 HTML 注释双标注（沿用网页范例硬规矩）。
+3. 从"研究问题"根问题逐级选择，可到达全部结果页：描述/信度/EFA/Harman、Pearson/Spearman/偏相关、t/Welch t/Mann-Whitney、ANOVA/Welch ANOVA/Kruskal-Wallis、配对 t/Wilcoxon、卡方+Cramér's V、回归、中介模型4/6、调节模型1、有调节中介7/14/15、正态、Mahalanobis、VIF、数据清洗、功效分析（维护者用 node 桩遍历：10 个问题节点、26 个结果节点全部从根可达、无悬空跳转、结果页字段无缺失、渲染无 undefined）。
+4. 每个结果页给出：要报告的统计量与效应量及阈值、对应脚本命令（与 `auto_stats.py` 实际开关一致）、JASP/SPSS 菜单路径、数字留空的论文句式；Mahalanobis 页带"只标记不删除、不为模型好看删点"的数据真实性提示。
+5. 底部效应量速查表（r/d/η²/V 的小中大、α、Kline 偏度峰度、KMO、载荷、VIF、Harman<40%、Mahalanobis p<.001、Bootstrap CI）口径与 stats-guide 一致。
+6. 文档同步：`templates/网页范例/README.md`、`START.md`、`README.md`、`QUICKSTART.md`、`workflows/webpage-guide.md` 网页范例计数改为 4；`full_e2e.py` 页面清单与断言覆盖新页。
+
+---
+
 # 脚本回归测试清单（每次改动后执行）
 
 在项目根目录（PowerShell）逐条运行，全部通过才算合格：
@@ -849,6 +863,8 @@ python tools\anonymize_data.py tests\test-data\sample_pii.csv --dry-run
 python tools\anonymize_data.py tests\test-data\sample_pii.csv -o tests\test-data\_t_去标识化.csv --report tests\test-data\_t_去标识化报告.txt --key tests\test-data\_t_假名对照表.csv
 # 11 多元异常值筛查（Mahalanobis D²，只标记不删；对 demo 干净数据应"未发现"）
 python tools\auto_stats.py tests\test-data\demo_survey.csv --scales tests\test-data\demo_scales.txt --mahalanobis
+# 12 第4个网页范例（静态检查由 full_e2e 覆盖；人工双击确认向导可点、结果页正常）
+#    templates\网页范例\04-统计方法选择器\index.html
 ```
 
 测试结束后删除 `_t_*` 临时文件和 `tests/test-data/_demo_check` 目录。（test_special_columns.py 会自清其 `_special*` 临时文件）所有脚本只用Python标准库（模型图需matplotlib），

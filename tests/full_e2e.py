@@ -533,8 +533,9 @@ try:
     ex = ROOT / "templates" / "网页范例"
     ex_pages = [ex / "01-文献笔记网页" / "index.html",
                 ex / "02-术语词典网页" / "index.html",
-                ex / "03-研究流程图" / "research-flow.html"]
-    check("三个网页范例齐备", all(p.exists() for p in ex_pages),
+                ex / "03-研究流程图" / "research-flow.html",
+                ex / "04-统计方法选择器" / "index.html"]
+    check("四个网页范例齐备", all(p.exists() for p in ex_pages),
           str([p.name for p in ex_pages if not p.exists()]))
     check("范例带勿直接使用标注",
           all("范例，请勿直接使用" in p.read_text(encoding="utf-8", errors="replace") for p in ex_pages))
@@ -542,6 +543,13 @@ try:
           "只用来学" in tx("templates/网页范例/README.md") or
           ("可以学的是" in tx("templates/网页范例/README.md")
            and "只能参考代码结构与交互设计" in tx("templates/网页范例/README.md")))
+    sel = tx("templates/网页范例/04-统计方法选择器/index.html")
+    check("方法选择器范例标注", "范例，请勿直接使用" in sel)
+    check("方法选择器自包含无外链", not any(s in sel for s in
+          ['src="http', 'href="http', "<link", "@import", "cdn", "<script src"]))
+    check("方法选择器决策覆盖", all(s in sel for s in
+          ["Welch t", "Mann-Whitney", "Kruskal-Wallis", "Games-Howell", "Cramér",
+           "模型6", "Mahalanobis", "Spearman", "偏相关", "Fisher", "不显著也是结果"]))
     pw = tx("tools/webpage_preview.py")
     check("预览器只读", "SimpleHTTPRequestHandler" in pw and "do_POST" not in pw and "do_PUT" not in pw)
     check("预览器默认只绑本机", "127.0.0.1" in pw and "--lan" in pw)
