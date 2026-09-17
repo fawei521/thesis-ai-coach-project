@@ -216,7 +216,7 @@ t/ANOVA 还要求各组**近似正态**。当因变量明显偏态（如 NSSI、
 - SPSS：分析 → 回归 → 线性 → 统计 → 勾选"共线性诊断"，看容差与 VIF
 
 ### 安装PROCESS
-1. 下载PROCESS宏（hayesprocess.com，免费）
+1. 从 PROCESS 官方网站 processmacro.org 免费下载 PROCESS 宏（Hayes 官方站点，勿从第三方站点下载，以免版本过时或被捆绑软件）
 2. SPSS → 实用程序 → 安装自定义对话框
 3. 选择下载的process.spd文件
 4. 安装后在"分析→回归"里能看到PROCESS
@@ -324,7 +324,16 @@ centralityPlot(network)
 - 节点：变量或维度
 - 边：偏相关系数，越粗越强，绿色正相关，红色负相关
 - 中心性指标：强度（strength）、接近性（closeness）、中介性（betweenness）
-- 强度最高的节点是核心节点
+- 强度最高（或期望影响 expected influence 最高）的节点常被视为网络中的核心节点
+- **稳定性必须先检验、否则结论站不住（答辩高频追问）**：EBICglasso 正则化网络里 closeness、betweenness 往往不稳定，当代实践主要看 strength / expected influence；用 bootnet 做①边权自助法（edge-weight bootstrap，看边的 CI 是否含 0、边之间差异是否显著）、②删案例自助法（case-dropping bootstrap，报中心性稳定性系数 CS-coefficient，一般建议 CS>.25、最好>.5）
+```r
+library(bootnet)
+net_boot <- bootnet(network, nBoots = 1000, nCores = 8)   # 边权自助
+plot(net_boot, labels = FALSE, order = "sample")
+net_case <- bootnet(network, nBoots = 1000, type = "case", nCores = 8)
+corStability(net_case)                                    # 中心性 CS 系数
+```
+- 网络分析样本量通常需数百人（经验上越接近/超过 500 越稳），且它只刻画关联结构、不能推断因果；本科论文里定位为"补充/探索性分析"，主检验仍用相关、回归与中介
 
 ---
 

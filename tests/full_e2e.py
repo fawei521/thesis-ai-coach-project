@@ -199,6 +199,8 @@ try:
     check("stats能力真实", "Welch" in sg and "_welch_anova" in asrc and "_levene" in asrc and "_welch_t" in asrc)
     check("GamesHowell引导JASP", "Games-Howell" in sg and "JASP" in sg)
     check("正态性边界引导JASP", "Shapiro-Wilk" in sg and "Q-Q" in sg and "JASP" in sg)
+    check("stats指南PROCESS域名", "processmacro.org" in sg and "hayesprocess.com" not in sg)
+    check("网络分析稳定性检验", "corStability" in sg and "expected influence" in sg and "CS>.25" in sg)
     lit = tx("core/ai-literacy.md")
     check("AI素养agentic去魅", all(s in lit for s in ["能联网", "虚拟电脑", "关键动作", "动手查", "动手算"]))
     check("AI素养隐私去标识化", all(s in lit for s in ["去标识化", "身份证号", "验证码"]))

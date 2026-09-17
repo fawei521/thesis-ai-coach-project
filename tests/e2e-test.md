@@ -640,9 +640,21 @@ python tests/test_special_columns.py`
 - 第二节扩为"三层同意"（监护人书面许可＋适龄书面 assent＋学校批准）并补 dissent 尊重、assent/许可不可互替说明；新增中学生"学生本人同意（assent）简短模板"（通俗、退出保密、不影响成绩）。
 - 敏感话题节新增"研究前先定风险预案/提前对接学校心理老师转介路径"与"校园投放伦理"（避免班主任在场盯填、不与成绩操行挂钩、退出保密、研究者统一回收）。
 - 数据保存年限改为"毕业后不少于5年、科研记录一般5-7年，以本校规定为准"。
-- full_e2e 新增 4 条断言（126 项）。
+- full_e2e 新增 3 条断言（125 项）。
 
 **通过标准**：ethics 含书面 assent/dissent/assent模板/风险预案/校园投放/不少于5年且不含"至少保存3年"；干净副本 full_e2e 退出 0。
+
+---
+
+## 测试48：stats-guide PROCESS 域名漏网纠错＋网络分析稳定性（v1.52）
+
+- 逐字走查 psychology/stats-guide.md 全部十一节（Kline 判据、λ4/Spearman-Brown、CFA 指标、EFA 平行分析 Glorfeld、Welch/Games-Howell、非参数 U/H/Dunn、卡方 Yates/Fisher、PROCESS 模型4/6/1/7/14/15、Cohen 效应量、先验功效）方法学均正确。
+- 纠错：v1.46 已把 data-analysis-auto.md 的 PROCESS 域名 hayesprocess.com 改为官方 processmacro.org 并对该文件加断言，但 stats-guide.md 第六节"安装PROCESS"步骤漏改、仍写 hayesprocess.com，本版订正为 processmacro.org（Hayes 官方站点，提示勿从第三方下载）。
+- 增强第九节网络分析：EBICglasso 正则化网络中 closeness/betweenness 常不稳定，当代实践主要看 strength / expected influence；补 bootnet 边权自助（CI 是否含0、边差异）与删案例自助 corStability 的 CS 系数（建议>.25、最好>.5）R 代码；强调样本需数百、只刻画关联不可推因果、本科定位为补充/探索性分析。
+- full_e2e 新增 2 条断言（125→127 项）。
+
+**通过标准**：stats-guide 含 processmacro.org 且不含 hayesprocess.com；含 corStability/expected influence/CS>.25；干净副本 full_e2e 退出 0 且计数为 127。
+
 
 
 
