@@ -413,6 +413,7 @@ def main():
         print("\n本次 0 条结果。请检查网络，或换更上位的词重检（例：chatbot→artificial intelligence）。")
     else:
         print("\n下一步：用 tools/literature_organizer.py 去重分类，再用 tools/literature_cards.py 把重点做成卡片网页。")
+        print("找不到全文时走合法途径：学校图书馆已购权限、开放获取（OA）版本、联系作者或馆际互借，不要用盗版站点。")
     return 0
 
 

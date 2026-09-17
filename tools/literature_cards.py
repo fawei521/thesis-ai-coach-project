@@ -498,7 +498,7 @@ def main():
 
     print(f"\n已生成：{out}")
     print(f"候选池 {len(papers)} 篇，其中重点 {len(star_idx)} 篇；分类 {len(cats)} 个。")
-    print("手机/电脑双击均可打开；可放进 我的工作区/04-网页/，用菜单第 10 项或 webpage_preview.py 预览。")
+    print("手机/电脑双击均可打开；可放进 我的工作区/04-网页/，用菜单第 9 项或 webpage_preview.py 预览。")
     if len(papers) < 90:
         print(f"提示：候选池目前 {len(papers)} 篇，建议先用 paper_search.py --source all --min 90 多词凑够 90 篇，重点会更全。")
     return 0
