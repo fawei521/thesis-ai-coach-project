@@ -780,6 +780,26 @@ python tests/test_special_columns.py`
 
 ---
 
+## 测试54：数据去标识化工具（v1.58 本体，隐私闸）
+
+**目的**：学生把问卷数据发给 AI / 上传 / 给外校前，自动隐去直接标识符并体检准标识符组合再识别风险；全程不改原文件。
+
+**构造数据**：用 `tests/test-data/sample_pii.csv`（合成数据，含序号/姓名/学号/手机/邮箱/身份证/微信/QQ/IP/一个表头普通但内容全是手机号的 C1 列/性别/年级/专业/生源地/Q1-Q3，其中"男·大一·考古学·北京"为唯一组合）。
+
+**步骤与预期**：
+1. `--dry-run`：屏幕列出每列处理动作与 k-匿名体检（最小等价类 k=1、点名"考古学/北京"稀有组合），**不写任何文件**。
+2. 正式运行：生成 `_去标识化.csv`（姓名→编号 P001…，学号/手机/邮箱/身份证/微信/QQ/IP/C1 全部消失，性别年级专业生源与 Q1-Q3 原样保留，行数不变）、`_去标识化报告.txt`、`_假名对照表.csv`（P001↔张三，可还原）。
+3. 打开去标识化文件确认：搜不到任何姓名、手机号、邮箱、身份证、IP、学号。
+4. `--no-key`：数据仍有编号，但不生成对照表、提示"不可复原"。
+5. `-o` 指向原文件：报错退出（拒绝覆盖原始数据）。
+6. GBK 编码文件：正常识别处理，不乱码。
+7. 只有性别/年级/作答题的无标识符文件：友好提示"未发现直接标识符"，不生成多余文件。
+8. `--columns "手机号:mask;姓名:drop;学号:drop"`：手机号列保留但打码成 `138****0001`，姓名学号删除。
+9. 全过程原 `sample_pii.csv` 内容不变。
+10. 菜单第 10 项、START、QUICKSTART、AI 素养、自动化数据分析工作流均有入口与说明。
+
+---
+
 # 脚本回归测试清单（每次改动后执行）
 
 在项目根目录（PowerShell）逐条运行，全部通过才算合格：
@@ -807,6 +827,9 @@ python tests\consistency_check.py
 # 9 网页预览器（只列不启，安全；实启时浏览器会自动打开，Ctrl+C 停止）
 python tools\webpage_preview.py --list
 python tools\webpage_preview.py templates\网页范例
+# 10 数据去标识化（隐私闸；--dry-run 只体检不写文件）
+python tools\anonymize_data.py tests\test-data\sample_pii.csv --dry-run
+python tools\anonymize_data.py tests\test-data\sample_pii.csv -o tests\test-data\_t_去标识化.csv --report tests\test-data\_t_去标识化报告.txt --key tests\test-data\_t_假名对照表.csv
 ```
 
 测试结束后删除 `_t_*` 临时文件和 `tests/test-data/_demo_check` 目录。（test_special_columns.py 会自清其 `_special*` 临时文件）所有脚本只用Python标准库（模型图需matplotlib），

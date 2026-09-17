@@ -63,7 +63,7 @@ def pause():
 
 
 def t_preprocess():
-    print("\n【1/9】问卷星数据预处理")
+    print("\n【1/10】问卷星数据预处理")
     print("  用途：把问卷星下载的原始表，转成后面能统计的标准数字表。")
     f = ask_path("  把问卷星导出的原始CSV拖进来，回车：")
     if not f:
@@ -72,7 +72,7 @@ def t_preprocess():
 
 
 def t_clean():
-    print("\n【2/9】问卷数据清洗（找无效问卷）")
+    print("\n【2/10】问卷数据清洗（找无效问卷）")
     f = ask_path("  把（预处理后的）数据CSV拖进来，回车：")
     if not f:
         return
@@ -91,7 +91,7 @@ def t_clean():
 
 
 def t_stats():
-    print("\n【3/9】自动统计分析")
+    print("\n【3/10】自动统计分析")
     print("  自动完成：人口学频数表、反向计分、信度α、结构效度(KMO/Bartlett/载荷)、")
     print("  共同方法偏差Harman、量表总分、描述统计、相关、回归、")
     print("  Bootstrap中介（模型4/6），并导出三线表和频数表。")
@@ -134,7 +134,7 @@ def t_stats():
 
 
 def t_search():
-    print("\n【4/9】检索英文学术文献（需要联网，免费，不用账号）")
+    print("\n【4/10】检索英文学术文献（需要联网，免费，不用账号）")
     kw = input("  输入英文关键词（例如 AI dependence adolescent NSSI）：").strip()
     if not kw:
         print("  关键词为空，已取消。")
@@ -150,7 +150,7 @@ def t_search():
 
 
 def t_lit():
-    print("\n【5/9】文献去重与分类")
+    print("\n【5/10】文献去重与分类")
     print("  可拖入的有两种：① 每行一篇的 txt；② 第 4 项检索导出的标准 CSV（含 标题/作者 表头）。")
     print("  也可以直接拖知网导出的题录 txt。")
     f = ask_path("  把文献文件拖进来，回车：")
@@ -160,7 +160,7 @@ def t_lit():
 
 
 def t_chart():
-    print("\n【6/9】生成研究模型图")
+    print("\n【6/10】生成研究模型图")
     print("  链式模型示例变量：AI依赖,孤独感,反刍,NSSI（用英文逗号分隔，4个）")
     print("  简单模型示例变量：AI依赖,NSSI（2个）")
     vars_ = input("  输入变量名（逗号分隔）：").strip()
@@ -179,7 +179,7 @@ def t_chart():
 
 
 def t_demo():
-    print("\n【7/9】生成演示数据（还没收回问卷时，先拿它练手）")
+    print("\n【7/10】生成演示数据（还没收回问卷时，先拿它练手）")
     print("  会生成一份内置链式中介结构、含反向题的模拟数据，")
     print("  用来跑通第3步统计流程。模拟数据严禁写进真实论文。")
     out = input("  保存到哪个文件夹？可直接拖入一个文件夹，回车默认放进 我的工作区\\02-问卷数据：").strip().strip('"').strip("'")
@@ -190,7 +190,7 @@ def t_demo():
 
 
 def t_power():
-    print("\n【8/9】开题样本量 / 功效估算（G*Power 等价，回答要发多少份）")
+    print("\n【8/10】开题样本量 / 功效估算（G*Power 等价，回答要发多少份）")
     print("  1 相关分析（Pearson r）")
     print("  2 多元回归总体 R²（检验整组预测变量）")
     print("  3 多元回归 R² 增量（检验新增变量，如交互项）")
@@ -219,7 +219,7 @@ def t_power():
 
 
 def t_preview():
-    print("\n【9/9】预览我做的网页（本地预览，不上传任何东西）")
+    print("\n【9/10】预览我做的网页（本地预览，不上传任何东西）")
     print("  把你做的网页放进「我的工作区\\04-网页」，这里用浏览器打开它。")
     print("  还没有网页？对你的AI导师说：")
     print("     「我想做一个网页，你读一下 workflows/webpage-guide.md 带我做一个。」")
@@ -235,6 +235,27 @@ def t_preview():
     run("webpage_preview.py", args)
 
 
+def t_anonymize():
+    print("\n【10/10】数据去标识化（发给AI/上传/给外校前，隐去姓名学号手机等）")
+    print("  自动识别并假名化/删除姓名、学号、手机、邮箱、身份证、微信/QQ、IP、住址等，")
+    print("  并对性别/年级/专业/生源等组合做 k-匿名风险体检；只读原文件、另存新文件，绝不改原数据。")
+    f = ask_path("  把要外发的原始数据CSV拖进来，回车：")
+    if not f:
+        return
+    args = [f]
+    d = input("  只先体检、不写文件吗？（回车=正式处理并另存；输入 y=只体检）：").strip().lower()
+    if d in ("y", "yes", "是", "1"):
+        args += ["--dry-run"]
+        run("anonymize_data.py", args)
+        return
+    nk = input("  要不要保留“编号↔姓名”对照表用于前后测配对？（回车=保留对照表并单独收好；输入 n=彻底不留、不可复原）：").strip().lower()
+    if nk in ("n", "no", "否", "0"):
+        args += ["--no-key"]
+    run("anonymize_data.py", args)
+    print("\n  提醒：若生成了“假名对照表”，它是唯一能还原身份的钥匙，")
+    print("  必须和数据分开单独保管，绝不发给AI/上传，配对完尽早删除。")
+
+
 MENU = [
     ("1", "问卷星数据预处理（原始答卷 → 标准数字表）", t_preprocess),
     ("2", "问卷数据清洗（识别无效问卷）", t_clean),
@@ -245,6 +266,7 @@ MENU = [
     ("7", "生成演示数据（没收回问卷前先练手）", t_demo),
     ("8", "开题样本量/功效估算（G*Power等价，要发多少份）", t_power),
     ("9", "预览我做的网页（本地预览，不上传）", t_preview),
+    ("10", "数据去标识化（外发前隐去姓名/学号/手机，附k-匿名体检）", t_anonymize),
 ]
 
 
@@ -256,7 +278,7 @@ def main():
         print("=" * 64)
         print("  典型顺序：先 1 预处理 → 2 清洗 → 3 统计")
         print("  写文献综述时用 4 检索、5 整理；画图用 6；练手用 7；开题估样本量用 8")
-        print("  做了自己的网页想看看效果，用 9")
+        print("  做了自己的网页想看看效果，用 9；数据外发前用 10 去标识化")
         print("-" * 64)
         for num, name, _ in MENU:
             print(f"  {num}. {name}")

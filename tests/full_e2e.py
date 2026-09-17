@@ -217,7 +217,7 @@ try:
     check("coach5多选填空", "多选题" in cr and "scales.txt 时勿列入" in cr)
     check("coach6样本量", "sample_size.py" in cr)
     check("coach7五指标", "低变异" in cr and "注意力检查题答错" in cr)
-    menu = tx("tools/menu.py"); check("menu第8项", "【8/9】" in menu and "sample_size.py" in menu)
+    menu = tx("tools/menu.py"); check("menu第8项", "【8/10】" in menu and "sample_size.py" in menu)
     qs = tx("QUICKSTART.md"); check("QS菜单8", "8. 开题样本量" in qs)
     check("QS流程顺序", qs.find("查文献读文献") < qs.find("开题报告/开题答辩"))
     bad = []
@@ -496,12 +496,75 @@ try:
     check("预览器--list可运行", pl.returncode == 0 and "index.html" in (pl.stdout or ""), (pl.stderr or "")[-200:])
     wdir = ROOT / "我的工作区" / "04-网页"
     check("工作区04-网页就位", wdir.is_dir() and (wdir / "把网页放这里.txt").exists())
-    check("菜单第9项", "【9/9】" in menu and "webpage_preview.py" in menu)
+    check("菜单第9项", "【9/10】" in menu and "webpage_preview.py" in menu)
     check("网页能力已登记到入口",
           "webpage-guide.md" in st and "webpage_preview.py" in st and "webpage-guide.md" in cr)
     check("README登记网页能力", "webpage-guide.md" in rm and "webpage_preview.py" in rm)
     check("QUICKSTART登记第9项", "预览我做的网页" in tx("QUICKSTART.md"))
     check("工作区说明含04-网页", "04-网页" in tx("我的工作区/先读我.md"))
+
+    # ---- v1.58(本体) 数据去标识化工具（隐私闸：假名化/删除直接标识符 + 准标识符 k-匿名体检）----
+    an_src = tx("tools/anonymize_data.py")
+    check("脱敏工具纯标准库", "import csv" in an_src and "matplotlib" not in an_src and "pandas" not in an_src)
+    check("脱敏工具有安全开关", all(s in an_src for s in ["--dry-run", "--no-key", "--columns", "--k"]))
+    check("脱敏工具另存不改原文件", "_去标识化.csv" in an_src and "同名同路径" in an_src)
+    check("菜单第10项去标识化", "【10/10】" in menu and "anonymize_data.py" in menu and "去标识化" in menu)
+    check("START登记去标识化", "anonymize_data.py" in st and "去标识化" in st)
+    check("QUICKSTART登记第10项", "去标识化" in tx("QUICKSTART.md"))
+    check("AI素养接线去标识化工具", "anonymize_data.py" in tx("core/ai-literacy.md"))
+    check("数据工作流接线去标识化", "anonymize_data.py" in tx("workflows/data-analysis-auto.md"))
+
+    pii_fixture = ROOT / "tests/test-data/sample_pii.csv"
+    check("脱敏夹具就位", pii_fixture.exists())
+    an_dir = new_tmp("anonymize")
+    an_dry = run(["tools/anonymize_data.py", str(pii_fixture), "--dry-run", "-o", str(an_dir / "dry.csv")])
+    check("脱敏dry-run退出0", an_dry.returncode == 0, (an_dry.stderr or "")[-200:])
+    check("脱敏dry-run零写入", not (an_dir / "dry.csv").exists() and "体检模式" in (an_dry.stdout or "")
+          and "k-匿名" in (an_dry.stdout or ""))
+    an_r = run(["tools/anonymize_data.py", str(pii_fixture), "-o", str(an_dir / "out.csv"),
+                "--report", str(an_dir / "r.txt"), "--key", str(an_dir / "key.csv")])
+    check("脱敏正式运行退出0", an_r.returncode == 0 and (an_dir / "out.csv").exists(), (an_r.stderr or "")[-300:])
+    with open(an_dir / "out.csv", encoding="utf-8-sig") as an_f:
+        an_out_rows = list(csv.reader(an_f))
+    an_out_header, an_out_body = an_out_rows[0], an_out_rows[1:]
+    an_out_text = "\n".join([",".join(an_out_header)] + [",".join(x) for x in an_out_body])
+    check("脱敏行数守恒", len(an_out_body) == 12, "rows=%d" % len(an_out_body))
+    for an_removed in ["姓名", "学号", "手机号", "邮箱", "身份证号", "微信号", "QQ", "IP地址", "C1"]:
+        check("脱敏删除列_" + an_removed, an_removed not in an_out_header, "header=%s" % an_out_header)
+    check("脱敏保留编号与分析列", all(c in an_out_header for c in ["编号", "序号", "性别", "年级", "专业", "生源地", "Q1"]))
+    for an_leak in ["张三", "李四", "13800000001", "13900000001", "zhangsan", "110101200001011234",
+                    "zhangsan_wx", "192.168.1.10", "20210101"]:
+        check("脱敏无泄漏_" + an_leak, an_leak not in an_out_text, "found %s" % an_leak)
+    check("脱敏编号形如P码", all(row[an_out_header.index("编号")].startswith("P") for row in an_out_body if row))
+    with open(an_dir / "key.csv", encoding="utf-8-sig") as an_kf:
+        an_key_text = "\n".join([",".join(x) for x in list(csv.reader(an_kf))])
+    check("假名对照表可还原", "P001" in an_key_text and "张三" in an_key_text and "原姓名" in an_key_text)
+    an_nk = run(["tools/anonymize_data.py", str(pii_fixture), "-o", str(an_dir / "nk.csv"),
+                 "--report", str(an_dir / "nk_r.txt"), "--no-key"])
+    check("no-key退出0且无对照表", an_nk.returncode == 0 and (an_dir / "nk.csv").exists()
+          and not (an_dir / "sample_pii_假名对照表.csv").exists() and "不可复原" in (an_nk.stdout or ""))
+    an_refuse = run(["tools/anonymize_data.py", str(pii_fixture), "-o", str(pii_fixture)])
+    check("脱敏拒绝覆盖原文件", an_refuse.returncode != 0 and "同名同路径" in (an_refuse.stdout or ""))
+    (an_dir / "gbk.csv").write_bytes("姓名,手机号,性别,Q1\n张三,13812345678,男,4\n李四,13987654321,女,5\n".encode("gbk"))
+    an_gbk_run = run(["tools/anonymize_data.py", str(an_dir / "gbk.csv"), "-o", str(an_dir / "gbk_out.csv"),
+                      "--report", str(an_dir / "gbk_r.txt"), "--key", str(an_dir / "gbk_key.csv")])
+    an_gbk_text = (an_dir / "gbk_out.csv").read_text(encoding="utf-8-sig") if (an_dir / "gbk_out.csv").exists() else ""
+    check("脱敏兼容GBK", an_gbk_run.returncode == 0 and "编号" in an_gbk_text and "手机号" not in an_gbk_text
+          and "13812345678" not in an_gbk_text, (an_gbk_run.stderr or "")[-200:])
+    (an_dir / "nopii.csv").write_text("性别,年级,Q1\n男,大四,4\n女,大三,5\n男,大四,3\n", encoding="utf-8")
+    an_nopii_run = run(["tools/anonymize_data.py", str(an_dir / "nopii.csv"), "-o", str(an_dir / "nopii_out.csv"),
+                        "--report", str(an_dir / "nopii_r.txt")])
+    check("脱敏无标识符友好退出", an_nopii_run.returncode == 0 and not (an_dir / "nopii_out.csv").exists()
+          and "未发现" in (an_nopii_run.stdout or ""))
+    an_mask_run = run(["tools/anonymize_data.py", str(pii_fixture), "-o", str(an_dir / "mask.csv"),
+                       "--report", str(an_dir / "mask_r.txt"), "--no-key",
+                       "--columns", "手机号:mask;姓名:drop;学号:drop"])
+    an_mask_text = (an_dir / "mask.csv").read_text(encoding="utf-8-sig") if (an_dir / "mask.csv").exists() else ""
+    check("脱敏mask打码", an_mask_run.returncode == 0 and "手机号" in an_mask_text and "138****0001" in an_mask_text
+          and "13800000001" not in an_mask_text, (an_mask_run.stderr or "")[-200:])
+    check("k匿名识别稀有组合", "考古学" in (an_r.stdout or "") and "最小等价类 k = 1" in (an_r.stdout or ""))
+    an_raw = pii_fixture.read_text(encoding="utf-8")
+    check("脱敏原文件不变", "张三" in an_raw and "13800000001" in an_raw)
 
     # ---- v1.55 豆包 Skill 轻量版（doubao-skill/ 独立分发子包，自带 validate.py 门禁）----
     SK = ROOT / "doubao-skill"
