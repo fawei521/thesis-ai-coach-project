@@ -99,3 +99,6 @@ tools/stats/__pycache__/
 我的工作区/**/*登录*.txt
 我的工作区/**/*密码*
 
+
+# ===== 手机版合并单文件是构建产物（由 doubao-skill/build_mobile_single.py 生成，源文件在 doubao-skill/），不入库 =====
+doubao-skill/thesis-ai-coach-手机版.md
