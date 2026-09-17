@@ -73,7 +73,7 @@
 - **门**：一个不懂的 AI 只读文档就能正确调用并解读结果。
 
 ### 阶段 G — 发布 Release（打包验证）
-1. `python -m py_compile` 全部脚本；跑 `python tests/full_e2e.py` 一键全量回归（用例清单与历史见 `tests/e2e-test.md`）。
+1. `python -m py_compile` 全部脚本；跑 `python doubao-skill/validate.py`（轻量 Skill 子包自检）；跑 `python tests/full_e2e.py` 一键全量回归（用例清单与历史见 `tests/e2e-test.md`，已含 Skill 自检与其阴性测试）。
 2. 更新版本号（语义化：新增功能 minor，修复 patch），三处保持一致：`CHANGELOG.md` 顶部新增该版本条目、`START.md` 顶部版本行、git tag；README 的"当前版本"同步；然后 commit、打 tag。
 3. `git archive` 打包到**全新临时目录解压**，在副本里再跑一遍 `python tests/full_e2e.py`（不是在开发目录）。
 4. 核对：文件齐全、中文文件名正常、启动器（GBK+CRLF）正常、演示数据/工作区就位、无 `__pycache__`/临时文件/学生真实数据入库。
@@ -96,7 +96,7 @@
 
 > **L7 自检用法**：每次改动 CLI 开关、导出文件名、文档命令、文档间引用或工作区路径后必须跑一遍，退出码 0 才允许打包；该脚本还应能"抓得到假错误"（临时植入不存在的脚本/开关/导出/文档链接/工作区路径应报非 0），避免检查器空转。
 
-> **L5 一键回归用法**：`python tests/full_e2e.py` 把统计/清洗/样本量/模型图/文献脚本的真实运行、统计基准数值、缺库降级闭环、文档-代码一致性、合规与量表事实断言全部跑一遍（163 项起，随能力增长只增不减），退出码 0 才算通过。脚本自动定位项目根、自动备份并恢复 `tests/test-data` 基准样例、自动清理生成物，因此开发仓库与解压后的干净副本都能直接跑；新增能力必须同步往该脚本加断言，不允许只加功能不加回归。
+> **L5 一键回归用法**：`python tests/full_e2e.py` 把统计/清洗/样本量/模型图/文献脚本的真实运行、统计基准数值、缺库降级闭环、文档-代码一致性、合规与量表事实断言、doubao-skill 轻量版自检（含植入变异的阴性测试）全部跑一遍（175 项起，随能力增长只增不减），退出码 0 才算通过。脚本自动定位项目根、自动备份并恢复 `tests/test-data` 基准样例、自动清理生成物，因此开发仓库与解压后的干净副本都能直接跑；新增能力必须同步往该脚本加断言，不允许只加功能不加回归。
 
 > Wolfram 调用：先用 `tool_search` 找到 wolfram 连接器工具，用 `WolframLanguageEvaluator` 跑独立实现，**不看本项目代码**算一遍，再比对，避免"自我印证"。
 
@@ -124,6 +124,17 @@
 - tag 与 zip 同名；每次发布重新在干净副本验证。
 - `.gitattributes` 锁定 `*.bat` 为 GBK+CRLF 不转换；学生真实文件被 `.gitignore` 排除。
 
+## 5.5 doubao-skill 轻量版维护规范
+
+`doubao-skill/` 是可安装到豆包技能目录的**独立分发子包**（Skill 自有语义化版本，记录在 `doubao-skill/CHANGELOG.md`，每条注明对应的完整版版本）。
+
+- **单一权威源**：只改项目内 `doubao-skill/`；安装位 `.user_skills/thesis-ai-coach/` 是镜像，发布时整目录覆盖同步，不在镜像位直接改。
+- **独立门禁**：轻量版有自己的 `validate.py`（frontmatter、必备文件、阶段编号连续性、三闸 checkbox、内部链接、鼓励默认开关、安全口径、占位残留）；`tests/consistency_check.py` 将该目录列为独立命名空间跳过，不做完整版文档↔代码核对。
+- **口径一致**：轻量版的硬数字（样本量、清洗五指标、Harman、Bootstrap、热线、伦理流程、答辩问题数等）必须与完整版同源；任一侧改动都要追平另一侧，并在两边 CHANGELOG 留痕。
+- **不虚构工具**：轻量版不含脚本，不得描述或假装运行自动化工具；需要自动化时指引完整版。
+- **行为变更先写自测**：引导行为的改动同步更新 `doubao-skill/references/self-test.md`（该文件是测试计划，不是已通过证据；实际行为以 full_e2e 断言与人工走查为准）。
+- 发布完整版时：validate.py 退出 0 → full_e2e 全绿 → 同步镜像 → 在 `doubao-skill/CHANGELOG.md` 追加条目（含对应完整版版本号）。
+
 ## 6. 上下文卫生（防"记忆幻觉"）
 
 - 每次续作先 `git log/status` + Read 目标文件现状，再动手；不凭历史摘要假设内容。
@@ -138,6 +149,7 @@
 - [ ] 菜单/工作流/指南/README/START/测试/版本记录全部同步
 - [ ] 全脚本 py_compile 通过、`python tests/full_e2e.py` 全绿
 - [ ] `python tests/consistency_check.py` 退出码 0（文档命令/开关/导出与代码一致）
+- [ ] `python doubao-skill/validate.py` 退出码 0；轻量版口径与完整版一致；镜像已同步、Skill CHANGELOG 已追加
 - [ ] 全新解压副本里 `python tests/full_e2e.py` PASS，启动器中文正常
 - [ ] 无密码/凭据/学生数据/临时文件入库
 - [ ] ROADMAP、PROJECT_PLAN、tag、zip 一致

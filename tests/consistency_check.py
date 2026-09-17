@@ -111,10 +111,14 @@ def main():
         return bool(name_map.get(Path(ref).name))
 
     md_files = list(ROOT.rglob("*.md"))
+    skill_files = [p for p in md_files if p.relative_to(ROOT).parts[0] == "doubao-skill"]
     for md in md_files:
         # 跳过 .user_skills 等目录外内容（rglob 已限定 ROOT）
         rel = md.relative_to(ROOT)
         # 学生自由工作区：文件由学生自己命名，不由工具保证，不做导出一致性核对
+        # doubao-skill 独立分发子包，由其 validate.py 自检，不纳入完整版核对
+        if rel.parts[0] == "doubao-skill":
+            continue
         is_workspace = rel.parts[0] == "我的工作区"
         text = md.read_text(encoding="utf-8", errors="replace")
 
@@ -184,7 +188,8 @@ def main():
     print("=" * 56)
     print("文档 ↔ 代码 一致性自检")
     print("=" * 56)
-    print(f"工具脚本 {len(top_py_files)} 个（含 stats/ 子包共 {len(tool_keys)} 个实现模块）；Markdown {len(md_files)} 个；")
+    print(f"工具脚本 {len(top_py_files)} 个（含 stats/ 子包共 {len(tool_keys)} 个实现模块）；"
+          f"Markdown {len(md_files) - len(skill_files)} 个（另 doubao-skill 子包 {len(skill_files)} 个由其 validate.py 自检）；")
     print(f"已定义 CLI 开关 {len(all_switches)} 个；导出 csv 后缀 {len(all_exports)} 个。")
     if problems:
         print(f"\n发现 {len(problems)} 处漂移：")

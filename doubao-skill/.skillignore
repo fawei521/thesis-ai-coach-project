@@ -1,0 +1,20 @@
+# 系统与编辑器杂项
+.DS_Store
+**/.DS_Store
+__MACOSX/
+**/__MACOSX/
+._*
+Thumbs.db
+
+# 运行时产物
+__pycache__/
+**/__pycache__/
+*.py[cod]
+*.log
+*.tmp
+*.swp
+*~
+
+# 维护者本地验证证据不随技能分发
+selftest_evidence.json
+evidence/

@@ -335,6 +335,40 @@ try:
     check("README登记网页能力", "webpage-guide.md" in rm and "webpage_preview.py" in rm)
     check("QUICKSTART登记第9项", "预览我做的网页" in tx("QUICKSTART.md"))
     check("工作区说明含04-网页", "04-网页" in tx("我的工作区/先读我.md"))
+
+    # ---- v1.55 豆包 Skill 轻量版（doubao-skill/ 独立分发子包，自带 validate.py 门禁）----
+    SK = ROOT / "doubao-skill"
+    check("Skill目录就位", SK.is_dir() and (SK / "SKILL.md").exists())
+    skr = run(["doubao-skill/validate.py"], 120)
+    check("Skill自检退出0", skr.returncode == 0 and "全部通过" in (skr.stdout or ""),
+          ((skr.stdout or "")[-400:]) + ((skr.stderr or "")[-200:]))
+    skm = (SK / "SKILL.md").read_text(encoding="utf-8")
+    check("Skill默认自然风格", "自然专业（默认" in skm and "不套任何人设" in skm)
+    check("Skill鼓励默认可关", "标准（默认" in skm and "关闭鼓励" in skm)
+    stage_list = list((SK / "stages").glob("stage-*.md"))
+    check("Skill阶段12个", len(stage_list) == 12, "n=%d" % len(stage_list))
+    check("Skill三闸入阶段", all(all(g in p.read_text(encoding="utf-8") for g in ("动机闸", "质量闸", "留痕闸"))
+                                  for p in stage_list))
+    skp = (SK / "references" / "coaching-protocol.md").read_text(encoding="utf-8")
+    check("Skill危机与紧急", all(s in skp for s in ("12356", "120 或 110", "紧急模式")))
+    ske = (SK / "references" / "encouragement-guide.md").read_text(encoding="utf-8")
+    check("Skill鼓励P0不包装", "P0 不包装" in ske and "成长型思维" in ske)
+    check("Skill进度模板", (SK / "templates" / "我的论文进度模板.md").exists())
+    check("Skill轻量版不虚构工具", "不含脚本" in (SK / "references" / "tools.md").read_text(encoding="utf-8"))
+    # 阴性测试：在临时副本植入断链与占位，validate.py 必须判失败（防止自检是空壳）
+    import tempfile
+    neg = Path(tempfile.mkdtemp(dir=TD, prefix="_skill_neg_"))
+    try:
+        shutil.copytree(SK, neg / "doubao-skill")
+        vf = neg / "doubao-skill" / "SKILL.md"
+        vf.write_text(vf.read_text(encoding="utf-8") + "\n见 `ghost-ref-xyz.md`，TODO 待补充\n",
+                      encoding="utf-8")
+        nr = run([str(neg / "doubao-skill" / "validate.py")], 60)
+        check("Skill自检能抓变异", nr.returncode != 0 and "ghost-ref-xyz.md" in (nr.stdout or ""),
+              "rc=%s" % nr.returncode)
+    finally:
+        shutil.rmtree(neg, ignore_errors=True)
+    check("一致性检查跳过Skill子包", "doubao-skill" in tx("tests/consistency_check.py"))
 finally:
     cleanup()
 
