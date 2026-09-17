@@ -1,0 +1,18 @@
+# 可选依赖（Requirements）
+#
+# 重要：本项目**不装任何第三方库也能完整运行**。
+#   - 全部数值计算（信度 α、KMO/Bartlett、EFA、相关、回归、Bootstrap 中介、调节、
+#     非参数检验、卡方、样本量功效）都用 Python 标准库自己实现，结果与 JASP/SPSS/Wolfram
+#     做过黄金对照，不依赖 numpy/scipy/pandas。
+#   - 未安装下面的库时，脚本会**跳过出图并给出 pip install 提示**，退出码与数值结果不受影响
+#     （该降级行为由 tests/test_graceful_degradation.py 回归测试守着）。
+#
+# 需要生成图表（碎石图 / 相关热图 / 简单斜率图 / 研究模型图）时再安装：
+#
+#   pip install -r requirements.txt
+#
+# 只想装最必需的（纯数值，不出图）：什么都不用装。
+# 想省事一次装齐（含 JASP 无关，仅 Python 侧）：
+
+matplotlib>=3.5    # 碎石图、相关矩阵热图、调节效应简单斜率图、研究模型图
+numpy>=1.20        # 仅"相关矩阵热图"的矩阵渲染需要（plots.py 内部延迟导入）

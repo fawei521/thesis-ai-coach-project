@@ -682,6 +682,48 @@ python tests/test_special_columns.py`
 
 ---
 
+## 测试51：学生自己做网页（引导手册＋预览器＋3个范例）＋治理补齐（v1.54）
+
+**背景**：学生希望 AI 导师不只是带他跑统计，还能引导他**做一个属于自己的网页**（把文献、结果、流程整理成能检索、能看懂的一页），并且能看到自己已经做好的网页。项目已有 3 个现成网页（文献阅读笔记 141 篇、心理学论文写作术语词典 179 词、研究流程一图流），需要接入现有导师流程。
+
+**新增能力**
+
+- `workflows/webpage-guide.md`：① 先判断该不该做（含"该劝住的四种情况"：想当成果、还没读文献、想凑工作量、要做带服务器/数据库的网站）；
+  ② 五类网页对应论文阶段；③ **六条硬规矩**（单文件自包含／不引用外部资源／不放个人隐私／内容真实可追溯／**网页不是论文成果**／不联网不上传不改学生数据）；
+  ④ 七步引导流程（每步沿用 coach-rules 的"告知-确认-保护"）；⑤ 生成时要求（数据与界面分离、中文优先、移动端可用、不引入框架、代码可读、标注数据来源与日期）；
+  ⑥ 预览方式；⑦ 常见坑表；⑧ 三闸检查清单。
+- `tools/webpage_preview.py`：纯标准库静态服务器。学生可能没装 Node，故不沿用项目内原有的 `server.js`（Node 写）。
+  安全与健壮性：只读（仅 GET/HEAD，无上传/写入/删除）、限根（`posixpath.normpath` + 反斜杠归一 + `Path.relative_to` 双保险）、
+  默认只绑 `127.0.0.1`（`--lan` 才允许手机看并打印风险提示）、文本类型显式声明 `charset=utf-8`、端口占用自动顺延 20 个、
+  目录不存在/无网页给中文引导、`--list` 只列不启、中文目录列表与中文 404 页。
+- `templates/网页范例/`：3 个网页逐字保留内容拷贝入包，仅在 DOCTYPE 后插入一行不可见注释标注"范例，请勿直接使用"；
+  附 README 说明每页示范的做法，并把其中一处外链字体（飞书 CDN）作为**偏差教学点**保留（真实项目里的不一致，不是标准做法）。
+- `我的工作区/04-网页/`（含引导说明）+ `.gitignore` 同步；菜单增至 9 项（`【N/8】`全部重编为 `【N/9】`）。
+
+**治理补齐（承接上一轮审计遗留项）**
+
+- `CONSTITUTION.md` 进入 `START.md` 第二步，列为**最高优先级第 1 条**，并写明规则层级与"冲突以宪法为准"。
+  此前它只被 README 的结构块提及，AI 启动时**永远不会读到**"项目宪法"。
+- `psychology/` 由"启动全读"改为按需读取表。启动全读 6 个文件约 77 KB（≈2.6 万汉字），
+  而其中 `stats-guide.md`（25 KB）要到数据分析阶段才用——等于白占学生首次对话的上下文。最大文件抢加载、小文件反而懒加载的倒挂被纠正。
+- `DEVELOPMENT.md` 在启动序列中标注"只有维护者读，学生辅导时不需要遵守九阶段门"，避免学生端 AI 误以为改任何东西都要走九阶段门。
+- 新增 `AGENTS.md`（自动化 AI 助手入口）、`LICENSE`（宪法第九条授权落地 + 免责声明，条款以宪法为准）、
+  `requirements.txt`（**实测**全项目第三方依赖仅 matplotlib/numpy 且可选，非按印象罗列）。
+
+**验证**
+
+- full_e2e 新增 25 条断言（138→163 项）：网页指南硬规矩/五类网页/三闸/警示语；3 个范例齐备且带"范例，请勿直接使用"标注；
+  范例 README 提示只学做法；预览器只读（无 do_POST/do_PUT）、默认绑本机、防穿越（normpath+relative_to+反斜杠归一）、charset 声明；
+  `--list` 实跑；菜单第 9 项；START/coach-rules/README/QUICKSTART/先读我 登记；`我的工作区/04-网页` 就位；README 与 DEVELOPMENT 的断言计数同步。
+- 预览器路径穿越实测 9 个用例（`../`、多层 `../`、反斜杠、`%5c`、`%2e%2e`、双重编码）全部符合预期；范围内文件正常 200、越界 404。
+- 该轮开发中 `consistency_check.py` 抓到 1 处真实漂移（范例 README 里的 CSS 变量写作双横线形式，被误判为未定义 CLI 开关），改措辞后退出 0。
+
+**通过标准**：`full_e2e.py` 在本机与全新解压副本均退出 0 且计数 163；`consistency_check.py` 退出 0；
+预览器 `--list` 与实启均正常且越界请求返回 404；`START.md` 第二步含 `CONSTITUTION.md` 且标注优先级；
+`psychology/` 改为按需读取（含"什么时候读"表）；菜单含 `【9/9】` 与 `webpage_preview.py`。
+
+---
+
 
 
 
@@ -731,6 +773,9 @@ python tools\paper_search.py --query "AI dependence NSSI" --limit 3
 python tools\menu.py
 # 8 文档↔代码一致性自检（退出码必须为0）
 python tests\consistency_check.py
+# 9 网页预览器（只列不启，安全；实启时浏览器会自动打开，Ctrl+C 停止）
+python tools\webpage_preview.py --list
+python tools\webpage_preview.py templates\网页范例
 ```
 
 测试结束后删除 `_t_*` 临时文件和 `tests/test-data/_demo_check` 目录。（test_special_columns.py 会自清其 `_special*` 临时文件）所有脚本只用Python标准库（模型图需matplotlib），

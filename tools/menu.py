@@ -63,7 +63,7 @@ def pause():
 
 
 def t_preprocess():
-    print("\n【1/8】问卷星数据预处理")
+    print("\n【1/9】问卷星数据预处理")
     print("  用途：把问卷星下载的原始表，转成后面能统计的标准数字表。")
     f = ask_path("  把问卷星导出的原始CSV拖进来，回车：")
     if not f:
@@ -72,7 +72,7 @@ def t_preprocess():
 
 
 def t_clean():
-    print("\n【2/8】问卷数据清洗（找无效问卷）")
+    print("\n【2/9】问卷数据清洗（找无效问卷）")
     f = ask_path("  把（预处理后的）数据CSV拖进来，回车：")
     if not f:
         return
@@ -91,7 +91,7 @@ def t_clean():
 
 
 def t_stats():
-    print("\n【3/8】自动统计分析")
+    print("\n【3/9】自动统计分析")
     print("  自动完成：人口学频数表、反向计分、信度α、结构效度(KMO/Bartlett/载荷)、")
     print("  共同方法偏差Harman、量表总分、描述统计、相关、回归、")
     print("  Bootstrap中介（模型4/6），并导出三线表和频数表。")
@@ -134,7 +134,7 @@ def t_stats():
 
 
 def t_search():
-    print("\n【4/8】检索英文学术文献（需要联网，免费，不用账号）")
+    print("\n【4/9】检索英文学术文献（需要联网，免费，不用账号）")
     kw = input("  输入英文关键词（例如 AI dependence adolescent NSSI）：").strip()
     if not kw:
         print("  关键词为空，已取消。")
@@ -150,7 +150,7 @@ def t_search():
 
 
 def t_lit():
-    print("\n【5/8】文献去重与分类")
+    print("\n【5/9】文献去重与分类")
     f = ask_path("  把文献列表（每行一篇的txt）拖进来，回车：")
     if not f:
         return
@@ -158,7 +158,7 @@ def t_lit():
 
 
 def t_chart():
-    print("\n【6/8】生成研究模型图")
+    print("\n【6/9】生成研究模型图")
     print("  链式模型示例变量：AI依赖,孤独感,反刍,NSSI（用英文逗号分隔，4个）")
     print("  简单模型示例变量：AI依赖,NSSI（2个）")
     vars_ = input("  输入变量名（逗号分隔）：").strip()
@@ -177,7 +177,7 @@ def t_chart():
 
 
 def t_demo():
-    print("\n【7/8】生成演示数据（还没收回问卷时，先拿它练手）")
+    print("\n【7/9】生成演示数据（还没收回问卷时，先拿它练手）")
     print("  会生成一份内置链式中介结构、含反向题的模拟数据，")
     print("  用来跑通第3步统计流程。模拟数据严禁写进真实论文。")
     out = input("  保存到哪个文件夹？可直接拖入一个文件夹，回车默认放进 我的工作区\\02-问卷数据：").strip().strip('"').strip("'")
@@ -188,7 +188,7 @@ def t_demo():
 
 
 def t_power():
-    print("\n【8/8】开题样本量 / 功效估算（G*Power 等价，回答要发多少份）")
+    print("\n【8/9】开题样本量 / 功效估算（G*Power 等价，回答要发多少份）")
     print("  1 相关分析（Pearson r）")
     print("  2 多元回归总体 R²（检验整组预测变量）")
     print("  3 多元回归 R² 增量（检验新增变量，如交互项）")
@@ -215,6 +215,24 @@ def t_power():
     run("sample_size.py", args)
 
 
+
+def t_preview():
+    print("\n【9/9】预览我做的网页（本地预览，不上传任何东西）")
+    print("  把你做的网页放进「我的工作区\\04-网页」，这里用浏览器打开它。")
+    print("  还没有网页？对你的AI导师说：")
+    print("     「我想做一个网页，你读一下 workflows/webpage-guide.md 带我做一个。」")
+    print("  项目里已带 3 个现成范例，也可以先看看效果：")
+    print("     templates\\网页范例\\  （双击里面的 index.html 即可）")
+    print("-" * 60)
+    d = ask_path("  要预览哪个文件夹？（直接回车 = 我的工作区\\04-网页）：", must_exist=False)
+    args = [d] if d else []
+    lan = input("  手机上也想看吗？（需与电脑连同一WiFi，回车=不看）[y/N]：").strip().lower()
+    if lan in ("y", "yes", "是"):
+        args.append("--lan")
+    print("  预览期间保持这个窗口开着；看完按 Ctrl+C 停止，再按回车回到菜单。")
+    run("webpage_preview.py", args)
+
+
 MENU = [
     ("1", "问卷星数据预处理（原始答卷 → 标准数字表）", t_preprocess),
     ("2", "问卷数据清洗（识别无效问卷）", t_clean),
@@ -224,6 +242,7 @@ MENU = [
     ("6", "生成研究模型图", t_chart),
     ("7", "生成演示数据（没收回问卷前先练手）", t_demo),
     ("8", "开题样本量/功效估算（G*Power等价，要发多少份）", t_power),
+    ("9", "预览我做的网页（本地预览，不上传）", t_preview),
 ]
 
 
@@ -235,6 +254,7 @@ def main():
         print("=" * 64)
         print("  典型顺序：先 1 预处理 → 2 清洗 → 3 统计")
         print("  写文献综述时用 4 检索、5 整理；画图用 6；练手用 7；开题估样本量用 8")
+        print("  做了自己的网页想看看效果，用 9")
         print("-" * 64)
         for num, name, _ in MENU:
             print(f"  {num}. {name}")

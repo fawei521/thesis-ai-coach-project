@@ -1,0 +1,579 @@
+<!DOCTYPE html>
+<!-- ===== 【范例，请勿直接使用】 由 thesis-ai-coach-project 随包分发（templates/网页范例/），内容版权与真实性归原作者。===== -->
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>心理学毕业论文研究流程 · 逻辑一图流</title>
+<link rel="stylesheet" href="https://miaoda.feishu.cn/fonts/css2?family=Noto+Serif+SC:wght@400;600;700;900&family=Noto+Sans+SC:wght@300;400;500;700&display=swap">
+<style>
+:root {
+  --bg-paper: #F5F1E8;
+  --bg-card: #FFFFFF;
+  --ink-primary: #1A1A1A;
+  --ink-secondary: #555555;
+  --ink-muted: #888888;
+  --accent-green: #1B4332;
+  --accent-green-light: #2D6A4F;
+  --accent-orange: #C2410C;
+  --accent-blue: #0369A1;
+  --accent-purple: #7C3AED;
+  --accent-teal: #0E7490;
+  --accent-red: #BE123C;
+  --accent-lime: #4D7C0F;
+  --border-soft: #E0D8C8;
+  --font-serif: 'Noto Serif SC', serif;
+  --font-sans: 'Noto Sans SC', sans-serif;
+}
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body {
+  font-family: var(--font-sans);
+  background: var(--bg-paper);
+  color: var(--ink-primary);
+  line-height: 1.6;
+  padding: 40px 24px 60px;
+}
+.container { max-width: 1200px; margin: 0 auto; }
+.header {
+  text-align: center;
+  margin-bottom: 40px;
+}
+.header h1 {
+  font-family: var(--font-serif);
+  font-size: 32px;
+  font-weight: 700;
+  color: var(--accent-green);
+  margin-bottom: 8px;
+}
+.header p {
+  font-size: 15px;
+  color: var(--ink-secondary);
+}
+/* 阶段时间线 */
+.timeline {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+.stage {
+  display: grid;
+  grid-template-columns: 80px 1fr;
+  gap: 20px;
+  position: relative;
+  padding-bottom: 8px;
+}
+.stage-num {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  position: relative;
+}
+.stage-circle {
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-serif);
+  font-size: 22px;
+  font-weight: 700;
+  color: #fff;
+  z-index: 2;
+  flex-shrink: 0;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+}
+.stage-line {
+  width: 3px;
+  flex: 1;
+  min-height: 20px;
+  background: var(--border-soft);
+  margin-top: 4px;
+}
+.stage:last-child .stage-line { display: none; }
+.stage-card {
+  background: var(--bg-card);
+  border-radius: 12px;
+  padding: 20px 24px;
+  margin-bottom: 16px;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+  border-left: 5px solid var(--stage-color, var(--accent-green));
+  position: relative;
+}
+.stage-title {
+  font-family: var(--font-serif);
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--stage-color, var(--accent-green));
+  margin-bottom: 4px;
+}
+.stage-subtitle {
+  font-size: 13px;
+  color: var(--ink-muted);
+  margin-bottom: 14px;
+}
+.stage-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: 14px;
+}
+.action-tag {
+  font-size: 12.5px;
+  padding: 4px 10px;
+  border-radius: 4px;
+  background: var(--stage-bg, rgba(27,67,50,0.06));
+  color: var(--stage-color, var(--accent-green));
+  font-weight: 500;
+}
+.stage-terms {
+  border-top: 1px dashed var(--border-soft);
+  padding-top: 12px;
+}
+.terms-label {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--ink-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 8px;
+}
+.terms-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.term-chip {
+  font-size: 12.5px;
+  padding: 3px 9px;
+  border-radius: 12px;
+  background: var(--bg-paper);
+  color: var(--ink-secondary);
+  border: 1px solid var(--border-soft);
+  cursor: default;
+  transition: all 0.15s;
+}
+.term-chip:hover {
+  background: var(--stage-color, var(--accent-green));
+  color: #fff;
+  border-color: var(--stage-color, var(--accent-green));
+}
+/* 关键决策点 */
+.decision-box {
+  background: linear-gradient(135deg, rgba(194,65,12,0.06) 0%, rgba(194,65,12,0.02) 100%);
+  border: 1px dashed var(--accent-orange);
+  border-radius: 10px;
+  padding: 16px 20px;
+  margin: 12px 0 20px 100px;
+  position: relative;
+}
+.decision-box::before {
+  content: '关键决策';
+  position: absolute;
+  top: -10px;
+  left: 16px;
+  background: var(--accent-orange);
+  color: #fff;
+  font-size: 11px;
+  font-weight: 600;
+  padding: 2px 10px;
+  border-radius: 8px;
+}
+.decision-box p {
+  font-size: 13.5px;
+  color: var(--ink-secondary);
+  line-height: 1.7;
+}
+.decision-box strong { color: var(--accent-orange); }
+/* 底部总结 */
+.summary {
+  margin-top: 40px;
+  background: var(--accent-green);
+  color: #fff;
+  border-radius: 12px;
+  padding: 28px 32px;
+}
+.summary h3 {
+  font-family: var(--font-serif);
+  font-size: 18px;
+  margin-bottom: 12px;
+}
+.summary-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 16px;
+}
+.summary-item {
+  font-size: 13.5px;
+  line-height: 1.6;
+  opacity: 0.9;
+}
+.summary-item strong {
+  display: block;
+  font-size: 14px;
+  margin-bottom: 4px;
+  opacity: 1;
+}
+@media (max-width: 700px) {
+  body { padding: 24px 12px 40px; }
+  .header h1 { font-size: 24px; }
+  .stage { grid-template-columns: 56px 1fr; gap: 12px; }
+  .stage-circle { width: 44px; height: 44px; font-size: 18px; }
+  .stage-card { padding: 16px; }
+  .stage-title { font-size: 17px; }
+  .decision-box { margin-left: 68px; padding: 14px 16px; }
+}
+</style>
+</head>
+<body>
+<div class="container">
+  <div class="header">
+    <h1>心理学毕业论文研究流程</h1>
+    <p>从选题到答辩 · 8个阶段 · 每个阶段的关键动作与核心术语</p>
+  </div>
+
+  <div class="timeline">
+
+    <!-- 阶段1 -->
+    <div class="stage">
+      <div class="stage-num">
+        <div class="stage-circle" style="background:var(--accent-green)">1</div>
+        <div class="stage-line"></div>
+      </div>
+      <div class="stage-card" style="--stage-color:var(--accent-green);--stage-bg:rgba(27,67,50,0.06)">
+        <div class="stage-title">选题与文献综述</div>
+        <div class="stage-subtitle">确定研究问题 → 检索文献 → 找到研究空白 → 提出假设</div>
+        <div class="stage-actions">
+          <span class="action-tag">确定研究领域</span>
+          <span class="action-tag">知网/Web of Science检索</span>
+          <span class="action-tag">阅读核心文献30-50篇</span>
+          <span class="action-tag">识别研究空白</span>
+          <span class="action-tag">提出研究假设</span>
+        </div>
+        <div class="stage-terms">
+          <div class="terms-label">本阶段核心术语</div>
+          <div class="terms-list">
+            <span class="term-chip">构念/建构</span>
+            <span class="term-chip">变量</span>
+            <span class="term-chip">自变量</span>
+            <span class="term-chip">因变量</span>
+            <span class="term-chip">中介变量</span>
+            <span class="term-chip">调节变量</span>
+            <span class="term-chip">元分析</span>
+            <span class="term-chip">心理韧性</span>
+            <span class="term-chip">反刍思维</span>
+            <span class="term-chip">正念</span>
+            <span class="term-chip">自我决定理论</span>
+            <span class="term-chip">孤独感</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="decision-box">
+      <p><strong>决策点：</strong>研究问题是"相关关系"还是"因果关系"？相关关系→横断面设计即可；因果关系→需要实验设计或纵向追踪设计。本科论文建议从横断面相关研究入手，可行性最高。</p>
+    </div>
+
+    <!-- 阶段2 -->
+    <div class="stage">
+      <div class="stage-num">
+        <div class="stage-circle" style="background:var(--accent-blue)">2</div>
+        <div class="stage-line"></div>
+      </div>
+      <div class="stage-card" style="--stage-color:var(--accent-blue);--stage-bg:rgba(3,105,161,0.06)">
+        <div class="stage-title">研究设计</div>
+        <div class="stage-subtitle">选择研究类型 → 确定被试 → 设计研究流程</div>
+        <div class="stage-actions">
+          <span class="action-tag">选择研究设计类型</span>
+          <span class="action-tag">确定样本量（≥200）</span>
+          <span class="action-tag">选择抽样方法</span>
+          <span class="action-tag">设计研究流程</span>
+          <span class="action-tag">伦理审查（知情同意）</span>
+        </div>
+        <div class="stage-terms">
+          <div class="terms-label">本阶段核心术语</div>
+          <div class="terms-list">
+            <span class="term-chip">横断面研究</span>
+            <span class="term-chip">纵向研究</span>
+            <span class="term-chip">实验研究</span>
+            <span class="term-chip">准实验研究</span>
+            <span class="term-chip">随机对照试验</span>
+            <span class="term-chip">方便抽样</span>
+            <span class="term-chip">滚雪球抽样</span>
+            <span class="term-chip">生态瞬时评估</span>
+            <span class="term-chip">每日日记法</span>
+            <span class="term-chip">知情同意</span>
+            <span class="term-chip">匿名/保密</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 阶段3 -->
+    <div class="stage">
+      <div class="stage-num">
+        <div class="stage-circle" style="background:var(--accent-purple)">3</div>
+        <div class="stage-line"></div>
+      </div>
+      <div class="stage-card" style="--stage-color:var(--accent-purple);--stage-bg:rgba(124,58,237,0.06)">
+        <div class="stage-title">测量工具选择</div>
+        <div class="stage-subtitle">为每个变量选择成熟量表 → 确认信效度 → 组装问卷</div>
+        <div class="stage-actions">
+          <span class="action-tag">为每个变量选量表</span>
+          <span class="action-tag">优先选中文版成熟量表</span>
+          <span class="action-tag">检查量表信效度证据</span>
+          <span class="action-tag">设置反向计分题</span>
+          <span class="action-tag">添加人口学变量</span>
+          <span class="action-tag">问卷星/金数据组装</span>
+        </div>
+        <div class="stage-terms">
+          <div class="terms-label">本阶段核心术语</div>
+          <div class="terms-list">
+            <span class="term-chip">操作定义</span>
+            <span class="term-chip">信度</span>
+            <span class="term-chip">效度</span>
+            <span class="term-chip">内部一致性</span>
+            <span class="term-chip">Cronbach's α</span>
+            <span class="term-chip">重测信度</span>
+            <span class="term-chip">内容效度</span>
+            <span class="term-chip">结构效度</span>
+            <span class="term-chip">聚合效度</span>
+            <span class="term-chip">区分效度</span>
+            <span class="term-chip">Likert量表</span>
+            <span class="term-chip">反向计分</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="decision-box">
+      <p><strong>决策点：</strong>用现成量表还是自编量表？本科论文<strong>强烈建议用现成成熟量表</strong>——自编量表需要做条目分析、EFA、CFA、信效度检验，工作量翻倍且容易被导师质疑。现成量表引用文献说明来源即可。</p>
+    </div>
+
+    <!-- 阶段4 -->
+    <div class="stage">
+      <div class="stage-num">
+        <div class="stage-circle" style="background:var(--accent-teal)">4</div>
+        <div class="stage-line"></div>
+      </div>
+      <div class="stage-card" style="--stage-color:var(--accent-teal);--stage-bg:rgba(14,116,144,0.06)">
+        <div class="stage-title">数据收集与预处理</div>
+        <div class="stage-subtitle">发放问卷 → 回收数据 → 清洗数据 → 检验前提假设</div>
+        <div class="stage-actions">
+          <span class="action-tag">班级群/朋友圈发问卷</span>
+          <span class="action-tag">目标回收≥有效样本200份</span>
+          <span class="action-tag">剔除无效问卷（答题时间<60秒/规律作答）</span>
+          <span class="action-tag">反向计分转换</span>
+          <span class="action-tag">计算各量表总分/维度分</span>
+          <span class="action-tag">检验正态性、共同方法偏差</span>
+        </div>
+        <div class="stage-terms">
+          <div class="terms-label">本阶段核心术语</div>
+          <div class="terms-list">
+            <span class="term-chip">共同方法偏差</span>
+            <span class="term-chip">Harman单因子检验</span>
+            <span class="term-chip">社会期望偏差</span>
+            <span class="term-chip">正态分布</span>
+            <span class="term-chip">偏度</span>
+            <span class="term-chip">峰度</span>
+            <span class="term-chip">标准化</span>
+            <span class="term-chip">中心化</span>
+            <span class="term-chip">反向计分</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 阶段5 -->
+    <div class="stage">
+      <div class="stage-num">
+        <div class="stage-circle" style="background:var(--accent-orange)">5</div>
+        <div class="stage-line"></div>
+      </div>
+      <div class="stage-card" style="--stage-color:var(--accent-orange);--stage-bg:rgba(194,65,12,0.06)">
+        <div class="stage-title">数据分析</div>
+        <div class="stage-subtitle">描述统计 → 相关分析 → 主分析（中介/调节/SEM等）→ 稳健性检验</div>
+        <div class="stage-actions">
+          <span class="action-tag">描述统计（均值、标准差）</span>
+          <span class="action-tag">相关分析矩阵</span>
+          <span class="action-tag">共同方法偏差检验</span>
+          <span class="action-tag">信度检验（Cronbach's α）</span>
+          <span class="action-tag">主分析（回归/中介/调节）</span>
+          <span class="action-tag">Bootstrap 5000次</span>
+          <span class="action-tag">报告效应量和置信区间</span>
+        </div>
+        <div class="stage-terms">
+          <div class="terms-label">基础统计（必做）</div>
+          <div class="terms-list" style="margin-bottom:10px">
+            <span class="term-chip">相关分析</span>
+            <span class="term-chip">回归分析</span>
+            <span class="term-chip">t检验</span>
+            <span class="term-chip">方差分析</span>
+            <span class="term-chip">卡方检验</span>
+            <span class="term-chip">效应量</span>
+            <span class="term-chip">p值</span>
+            <span class="term-chip">显著性</span>
+            <span class="term-chip">置信区间</span>
+            <span class="term-chip">多重共线性</span>
+            <span class="term-chip">控制变量</span>
+            <span class="term-chip">协变量</span>
+          </div>
+          <div class="terms-label">进阶模型（选做，提升论文档次）</div>
+          <div class="terms-list">
+            <span class="term-chip">中介效应检验</span>
+            <span class="term-chip">调节效应检验</span>
+            <span class="term-chip">链式中介</span>
+            <span class="term-chip">有调节的中介</span>
+            <span class="term-chip">有中介的调节</span>
+            <span class="term-chip">简单斜率分析</span>
+            <span class="term-chip">Bootstrap法</span>
+            <span class="term-chip">结构方程模型</span>
+            <span class="term-chip">验证性因子分析</span>
+            <span class="term-chip">探索性因子分析</span>
+            <span class="term-chip">模型拟合指数</span>
+            <span class="term-chip">潜变量</span>
+            <span class="term-chip">潜在剖面分析</span>
+            <span class="term-chip">网络分析</span>
+            <span class="term-chip">交叉滞后模型</span>
+            <span class="term-chip">多层线性模型</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="decision-box">
+      <p><strong>决策点：</strong>用SPSS还是AMOS/Mplus？<strong>SPSS + PROCESS宏</strong>足够完成90%的本科论文分析（相关、回归、t检验、ANOVA、中介、调节、有调节的中介）。SEM/LPA/网络分析需要Mplus或R，属于锦上添花，不是必须。本科论文把中介/调节做扎实就够了。</p>
+    </div>
+
+    <!-- 阶段6 -->
+    <div class="stage">
+      <div class="stage-num">
+        <div class="stage-circle" style="background:var(--accent-lime)">6</div>
+        <div class="stage-line"></div>
+      </div>
+      <div class="stage-card" style="--stage-color:var(--accent-lime);--stage-bg:rgba(77,124,15,0.06)">
+        <div class="stage-title">论文撰写</div>
+        <div class="stage-subtitle">按IMRAD结构撰写 → 摘要 → 引言 → 方法 → 结果 → 讨论 → 参考文献</div>
+        <div class="stage-actions">
+          <span class="action-tag">先写方法和结果（最容易）</span>
+          <span class="action-tag">再写引言（漏斗结构）</span>
+          <span class="action-tag">然后写讨论（解释结果+对比文献+局限）</span>
+          <span class="action-tag">最后写摘要和题目</span>
+          <span class="action-tag">结果用三线表呈现</span>
+          <span class="action-tag">参考文献用GB/T 7714格式</span>
+        </div>
+        <div class="stage-terms">
+          <div class="terms-label">本阶段核心术语</div>
+          <div class="terms-list">
+            <span class="term-chip">IMRAD结构</span>
+            <span class="term-chip">摘要</span>
+            <span class="term-chip">引言</span>
+            <span class="term-chip">方法</span>
+            <span class="term-chip">结果</span>
+            <span class="term-chip">讨论</span>
+            <span class="term-chip">三线表</span>
+            <span class="term-chip">抄袭</span>
+            <span class="term-chip">查重率</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 阶段7 -->
+    <div class="stage">
+      <div class="stage-num">
+        <div class="stage-circle" style="background:var(--accent-red)">7</div>
+        <div class="stage-line"></div>
+      </div>
+      <div class="stage-card" style="--stage-color:var(--accent-red);--stage-bg:rgba(190,18,60,0.06)">
+        <div class="stage-title">修改与查重</div>
+        <div class="stage-subtitle">导师反馈修改 → 查重 → 降重 → 格式排版 → 终稿</div>
+        <div class="stage-actions">
+          <span class="action-tag">提交导师审阅</span>
+          <span class="action-tag">根据反馈修改（通常2-3轮）</span>
+          <span class="action-tag">知网/维普查重</span>
+          <span class="term-chip">目标查重率<20%</span>
+          <span class="action-tag">降重（改写句子结构，非换同义词）</span>
+          <span class="action-tag">按学校模板排版</span>
+          <span class="action-tag">终稿打印+电子版提交</span>
+        </div>
+        <div class="stage-terms">
+          <div class="terms-label">本阶段核心术语</div>
+          <div class="terms-list">
+            <span class="term-chip">查重率</span>
+            <span class="term-chip">抄袭</span>
+            <span class="term-chip">三线表</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 阶段8 -->
+    <div class="stage">
+      <div class="stage-num">
+        <div class="stage-circle" style="background:var(--accent-green)">8</div>
+      </div>
+      <div class="stage-card" style="--stage-color:var(--accent-green);--stage-bg:rgba(27,67,50,0.06)">
+        <div class="stage-title">答辩</div>
+        <div class="stage-subtitle">准备PPT → 陈述研究 → 回答评委问题 → 修改终稿</div>
+        <div class="stage-actions">
+          <span class="action-tag">制作答辩PPT（15-20页）</span>
+          <span class="action-tag">陈述8-10分钟（研究背景+方法+结果+结论）</span>
+          <span class="action-tag">预判评委问题（样本代表性、因果推断、共同方法偏差、创新点）</span>
+          <span class="action-tag">根据答辩意见修改终稿</span>
+          <span class="action-tag">提交最终版</span>
+        </div>
+        <div class="stage-terms">
+          <div class="terms-label">答辩高频问题涉及术语</div>
+          <div class="terms-list">
+            <span class="term-chip">共同方法偏差</span>
+            <span class="term-chip">横断面研究（因果局限）</span>
+            <span class="term-chip">方便抽样（代表性）</span>
+            <span class="term-chip">效应量</span>
+            <span class="term-chip">中介变量</span>
+            <span class="term-chip">调节变量</span>
+            <span class="term-chip">信度</span>
+            <span class="term-chip">效度</span>
+            <span class="term-chip">操作定义</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- 底部总结 -->
+  <div class="summary">
+    <h3>本科论文避坑速记</h3>
+    <div class="summary-grid">
+      <div class="summary-item">
+        <strong>样本量</strong>
+        问卷调查至少200份有效样本，做SEM至少300份。样本量不够，什么分析都白搭。
+      </div>
+      <div class="summary-item">
+        <strong>量表选择</strong>
+        用现成中文版成熟量表，不要自编。每个量表在你的样本中都要报告Cronbach's α。
+      </div>
+      <div class="summary-item">
+        <strong>分析策略</strong>
+        SPSS + PROCESS宏足够。先做相关，再做回归，然后中介/调节。报告p值的同时必须报告效应量和置信区间。
+      </div>
+      <div class="summary-item">
+        <strong>因果表述</strong>
+        横断面研究只能说"相关""预测"，绝对不能说"导致""引起"。讨论部分要主动承认这个局限。
+      </div>
+      <div class="summary-item">
+        <strong>共同方法偏差</strong>
+        自陈问卷必须做Harman单因子检验，第一个因子解释率<40%就说"不严重"。这是审稿人必查项。
+      </div>
+      <div class="summary-item">
+        <strong>查重降重</strong>
+        查重率目标<20%。降重不是换同义词，是改写句子结构——把长句拆短句、主动改被动、调整语序、用自己的话重新表述。
+      </div>
+    </div>
+  </div>
+
+</div>
+</body>
+</html>

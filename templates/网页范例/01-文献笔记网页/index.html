@@ -1,0 +1,766 @@
+<!DOCTYPE html>
+<!-- ===== 【范例，请勿直接使用】范例来源：某学生的文献阅读笔记网页（141篇）。仅示范「单文件 + 数组数据 + 搜索/分类筛选 + localStorage 星标 + 知网检索跳转」的做法。请勿直接使用其中的文献条目作为自己的综述材料。 由 thesis-ai-coach-project 随包分发（templates/网页范例/），内容版权与真实性归原作者。===== -->
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>文献阅读笔记 · 141篇</title>
+<style>
+:root{
+  --bg:#F5F1E8;--card:#FFF;--ink:#1A1A1A;--ink2:#555;--muted:#888;
+  --green:#1B4332;--green2:#2D6A4F;--orange:#C2410C;--orange2:#EA580C;
+  --border:#E0D8C8;--hl:#FEF3C7;--shadow:0 1px 3px rgba(27,67,50,.08);
+  --serif:'Noto Serif SC','Songti SC','SimSun',serif;--sans:'Noto Sans SC','PingFang SC','Microsoft YaHei',sans-serif;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:var(--bg);font-family:var(--sans);color:var(--ink);line-height:1.7}
+.header{background:var(--green);color:#fff;padding:28px 20px 24px;text-align:center}
+.header h1{font-family:var(--serif);font-size:26px;font-weight:900;letter-spacing:2px}
+.header p{font-size:13px;opacity:.8;margin-top:6px}
+.search-bar{max-width:800px;margin:18px auto 0;position:relative}
+.search-bar input{width:100%;padding:12px 16px 12px 42px;border:none;border-radius:8px;font-size:15px;font-family:var(--sans);background:rgba(255,255,255,.95);color:var(--ink)}
+.search-bar input:focus{outline:2px solid var(--orange2)}
+.search-icon{position:absolute;left:14px;top:50%;transform:translateY(-50%);color:var(--muted);font-size:16px}
+.filters{max-width:900px;margin:16px auto;padding:0 16px;display:flex;flex-wrap:wrap;gap:8px;justify-content:center}
+.filter-btn{padding:7px 16px;border:1.5px solid var(--border);border-radius:20px;background:var(--card);cursor:pointer;font-size:13px;font-family:var(--sans);color:var(--ink2);transition:all .2s}
+.filter-btn:hover{border-color:var(--green2);color:var(--green)}
+.filter-btn.active{background:var(--green);color:#fff;border-color:var(--green)}
+.stats{text-align:center;color:var(--muted);font-size:13px;margin:8px 0 4px}
+.grid{max-width:900px;margin:0 auto;padding:12px 16px 40px;display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:14px}
+.card{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:16px;cursor:pointer;transition:all .2s;box-shadow:var(--shadow);position:relative;overflow:hidden}
+.card:hover{transform:translateY(-2px);box-shadow:0 4px 12px rgba(27,67,50,.12);border-color:var(--green2)}
+.card-cat{position:absolute;top:0;right:0;padding:3px 10px;font-size:11px;color:#fff;border-radius:0 10px 0 8px}
+.cat-ai{background:var(--orange)}.cat-nssi{background:var(--green2)}.cat-theory{background:#7C3AED}
+.card-title{font-family:var(--serif);font-size:15px;font-weight:700;line-height:1.5;margin-bottom:8px;padding-right:60px;color:var(--ink)}
+.card-meta{font-size:12px;color:var(--muted);margin-bottom:8px}
+.card-meta span{margin-right:10px}
+.card-tags{display:flex;flex-wrap:wrap;gap:4px}
+.tag{font-size:11px;padding:2px 8px;border-radius:10px;background:rgba(27,67,50,.06);color:var(--green)}
+.modal-overlay{display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,.5);z-index:100;justify-content:center;align-items:flex-start;padding:20px;overflow-y:auto}
+.modal-overlay.show{display:flex}
+.modal{background:var(--card);border-radius:12px;max-width:720px;width:100%;margin:auto;padding:28px;position:relative;box-shadow:0 20px 60px rgba(0,0,0,.2)}
+.modal-close{position:absolute;top:14px;right:16px;font-size:24px;color:var(--muted);cursor:pointer;background:none;border:none;font-family:var(--sans);line-height:1}
+.modal-close:hover{color:var(--ink)}
+.modal-cat{display:inline-block;padding:3px 12px;border-radius:12px;font-size:12px;color:#fff;margin-bottom:12px}
+.modal-title{font-family:var(--serif);font-size:20px;font-weight:900;line-height:1.5;margin-bottom:10px;color:var(--ink);padding-right:40px}
+.modal-meta{font-size:13px;color:var(--muted);margin-bottom:16px;padding-bottom:14px;border-bottom:1px solid var(--border)}
+.modal-meta span{margin-right:14px}
+.modal-section{margin-bottom:18px}
+.modal-section h3{font-size:14px;font-weight:700;color:var(--green);margin-bottom:8px;padding-left:10px;border-left:3px solid var(--orange)}
+.modal-section p{font-size:14px;line-height:1.8;color:var(--ink2)}
+.modal-section ul{font-size:14px;line-height:1.9;color:var(--ink2);padding-left:20px}
+.modal-section li{margin-bottom:6px}
+.modal-tags{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
+.modal-actions{display:flex;gap:10px;margin-top:20px;padding-top:16px;border-top:1px solid var(--border)}
+.btn{padding:8px 18px;border-radius:6px;font-size:13px;font-family:var(--sans);cursor:pointer;border:none;transition:all .2s}
+.btn-edit{background:var(--green);color:#fff}
+.btn-edit:hover{background:var(--green2)}
+.btn-save{background:var(--orange);color:#fff}
+.btn-save:hover{background:var(--orange2)}
+.btn-cancel{background:var(--border);color:var(--ink2)}
+.btn-cancel:hover{background:#D0C8B8}
+.empty{text-align:center;padding:60px 20px;color:var(--muted);font-size:15px}
+.random-btn{position:fixed;bottom:24px;right:24px;width:52px;height:52px;border-radius:50%;background:var(--orange);color:#fff;border:none;font-size:22px;cursor:pointer;box-shadow:0 4px 12px rgba(194,65,12,.3);transition:all .2s;z-index:50}
+.random-btn:hover{transform:scale(1.1);background:var(--orange2)}
+.edit-overlay{display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,.6);z-index:200;justify-content:center;align-items:flex-start;padding:20px;overflow-y:auto}
+.edit-overlay.show{display:flex}
+.edit-modal{background:var(--card);border-radius:12px;max-width:640px;width:100%;margin:auto;padding:24px;position:relative;box-shadow:0 20px 60px rgba(0,0,0,.2)}
+.edit-modal h2{font-family:var(--serif);font-size:18px;margin-bottom:16px;color:var(--green)}
+.form-group{margin-bottom:14px}
+.form-group label{display:block;font-size:13px;font-weight:700;color:var(--ink2);margin-bottom:5px}
+.form-group input,.form-group textarea{width:100%;padding:9px 12px;border:1.5px solid var(--border);border-radius:6px;font-size:13px;font-family:var(--sans);color:var(--ink);background:#fff}
+.form-group input:focus,.form-group textarea:focus{outline:none;border-color:var(--green2)}
+.form-group textarea{resize:vertical;min-height:80px}
+.form-row{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px}
+.edit-actions{display:flex;gap:10px;margin-top:18px;justify-content:flex-end}
+.edit-hint{font-size:11px;color:var(--muted);margin-top:8px}
+@media(max-width:900px){
+  .grid{max-width:100%;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:12px;padding:12px 12px 40px}
+  .filters{max-width:100%;padding:0 12px}
+  .search-bar{max-width:100%;margin:18px 12px 0}
+}
+@media(max-width:600px){
+  .header{padding:20px 14px 18px}
+  .header h1{font-size:20px;letter-spacing:1px}
+  .header p{font-size:12px}
+  .grid{grid-template-columns:1fr;gap:10px;padding:10px 10px 80px}
+  .card{padding:14px}
+  .card-title{font-size:14px;padding-right:50px}
+  .modal{padding:18px;margin:10px}
+  .modal-title{font-size:17px}
+  .modal-section p{font-size:13px}
+  .form-row{grid-template-columns:1fr}
+  .filter-btn{padding:6px 12px;font-size:12px}
+  .random-btn{width:46px;height:46px;font-size:20px;bottom:16px;right:16px}
+  .modal-actions{flex-direction:column}
+  .btn{width:100%;text-align:center}
+}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <h1>文献阅读笔记</h1>
+  <p>140篇 · AI与技术依赖 / NSSI与自伤 / 理论与量表</p>
+  <div class="search-bar">
+    <span class="search-icon">&#128269;</span>
+    <input type="text" id="searchInput" placeholder="搜索标题、关键词、摘要...">
+  </div>
+</div>
+
+<div class="filters" id="filters">
+  <button class="filter-btn active" data-cat="all">全部 (141)</button>
+  <button class="filter-btn" data-cat="ai">AI与技术依赖 (65)</button>
+  <button class="filter-btn" data-cat="nssi">NSSI与自伤 (71)</button>
+  <button class="filter-btn" data-cat="theory">理论与量表 (5)</button>
+  <button class="filter-btn" id="starFilter" style="border-color:gold;color:gold">⭐ 重点 (32)</button>
+</div>
+
+<div class="stats" id="stats"></div>
+<div class="grid" id="grid"></div>
+
+<div class="modal-overlay" id="modalOverlay">
+  <div class="modal" id="modal">
+    <button class="modal-close" id="modalClose">&times;</button>
+    <div id="modalContent"></div>
+  </div>
+</div>
+
+<div class="edit-overlay" id="editOverlay">
+  <div class="edit-modal">
+    <h2>编辑文献</h2>
+    <div class="form-group">
+      <label>标题</label>
+      <input type="text" id="editTitle">
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label>来源</label>
+        <input type="text" id="editSource">
+      </div>
+      <div class="form-group">
+        <label>年份</label>
+        <input type="text" id="editYear">
+      </div>
+      <div class="form-group">
+        <label>类型</label>
+        <input type="text" id="editType">
+      </div>
+    </div>
+    <div class="form-group">
+      <label>关键词（逗号分隔）</label>
+      <input type="text" id="editTags">
+    </div>
+    <div class="form-group">
+      <label>摘要</label>
+      <textarea id="editAbstract" rows="6"></textarea>
+    </div>
+    <div class="form-group">
+      <label>启发与观点（每行一条）</label>
+      <textarea id="editInsight" rows="6"></textarea>
+    </div>
+    <div class="edit-actions">
+      <button class="btn btn-cancel" id="editCancel">取消</button>
+      <button class="btn btn-save" id="editSave">保存</button>
+    </div>
+    <div class="edit-hint">修改会自动保存在本地浏览器中，刷新页面不会丢失</div>
+  </div>
+</div>
+
+<button class="random-btn" id="randomBtn" title="随机一篇">&#127922;</button>
+
+<script>
+const DEFAULT_PAPERS = [
+{"id":1,"cat":"ai","title":"The Rise of AI Companions: How Human-Chatbot Relationships Influence Well-Being","source":"arXiv","year":"2025","type":"预印本","tags":["AI伴侣","情感联结","准社会互动","幸福感"],
+"abstract":"随着大语言模型驱动的聊天机器人变得越来越富有表达力和社交回应性，许多用户开始与它们形成类似伴侣关系的情感联结。本研究调查了人与AI聊天机器人之间关系的形成机制及其对用户幸福感的影响。研究发现，AI伴侣关系的形成涉及情感投射、准社会互动和依赖感的建立。用户从AI伴侣获得即时情感支持和无条件积极关注，短期内可缓解孤独感，但长期使用可能导致现实社交技能退化、情感调节能力受损以及对AI的过度依赖。研究还发现，当AI服务中断或功能变更时，用户会出现类似戒断的情绪反应。本研究提示，AI伴侣对幸福感的影响是复杂的、双面的，不能简单地归为\"好\"或\"坏\"。",
+"insight":"这篇论文提出了\"AI伴侣关系\"的概念框架，区分了\"工具性使用\"和\"情感性依赖\"，为本研究的自变量\"AI情感依赖\"提供了概念基础\n论文提到的\"戒断反应\"和\"服务中断时的情绪反应\"是AI情感依赖的重要行为指标，可以在问卷设计或讨论部分引用\n\"短期缓解孤独、长期损害现实社交\"的悖论性发现，直接支持了本研究中\"AI依赖→孤独感升高\"的路径假设\n论文强调AI对幸福感的影响是\"双面的\"，提醒我们在讨论部分不要只说负面影响，也要承认AI的积极作用（即时情感支持），这样论述更客观"},
+{"id":2,"cat":"ai","title":"长期使用AI陪伴或影响心理健康——芬兰阿尔托大学2年追踪研究","source":"新华网（转引自阿尔托大学）","year":"2026","type":"纵向追踪","tags":["Replika","纵向研究","孤独感","现实社交"],
+"abstract":"芬兰阿尔托大学牵头的一项历时2年的追踪研究显示，AI陪伴虽可在一定程度上缓解孤独、提供情感支持，但长期使用可能对用户心理健康和现实社交关系产生负面影响。该研究基于AI聊天机器人Replika，利用网络平台数据和用户调查，追踪了长期使用者的心理变化。研究发现，初期使用者报告孤独感降低、情绪改善，但随着使用时间延长，部分用户出现对AI的情感依赖加深、与现实朋友交流减少、社交焦虑增加等现象。研究者指出，AI提供的\"无条件积极关注\"虽然令人舒适，但可能削弱用户面对现实社交中不可避免的冲突和拒绝的能力。研究建议，AI陪伴应作为现实社交的补充而非替代，长期使用者应保持适度的现实人际互动。",
+"insight":"这是一项纵向追踪研究（2年），比横断面研究更有说服力。在论文讨论部分可以引用，说明AI依赖的长期负面影响\n研究对象是Replika（专门的AI伴侣应用），而本研究的对象是通用AI（如ChatGPT、豆包等）的情感依赖，可以在局限部分说明这一差异\n\"初期改善、长期恶化\"的时间动态，提示横断面研究可能捕捉到的是混合效应——这是本研究的局限，但也可以作为未来纵向研究的方向\n\"AI作为补充而非替代\"的实践建议，可以直接写进本研究的实践意义部分"},
+{"id":3,"cat":"ai","title":"当AI伴侣成为情感拐杖，突然被撤走会加剧用户的心理健康风险吗？","source":"新浪新闻（BigNews深度报道）","year":"2026","type":"深度报道","tags":["情感拐杖","无条件积极关注","戒断反应","适应不良应对"],
+"abstract":"本文深入探讨了AI伴侣作为\"情感拐杖\"对用户心理健康的影响，特别是当AI服务突然中断或功能变更时用户出现的心理危机。报道引用了多个案例：GPT-4o退役时Reddit用户哀鸿遍野，有人表达\"我无法这样活下去\"；Replika在2023年突然移除浪漫功能后，大量用户报告出现严重的情绪困扰、孤独感加剧甚至自杀念头。文章分析了AI情感依赖的形成机制：AI提供\"无条件积极关注\"——永远不会评判、不会拒绝、不会生气、随时在线，这种完美的情感回应在现实人际关系中几乎不可能获得，因此容易让用户产生深度依赖。当这种\"完美关系\"突然消失时，用户不仅失去了情感支持来源，还可能经历类似丧失和哀伤的心理过程。文章引用临床心理学家的观点，认为AI情感依赖本质上是一种\"适应不良的应对方式\"——用AI的即时安慰逃避现实问题，短期有效但长期有害。文章还提到，未成年人和已有心理健康问题的人群是AI情感依赖的高风险群体。",
+"insight":"\"情感拐杖\"这个比喻非常形象，可以在论文引言或讨论中使用，帮助读者快速理解AI情感依赖的本质\n\"无条件积极关注\"是人本主义心理学的概念（罗杰斯），AI恰好提供了这种现实中稀缺的体验——这是AI情感依赖形成的核心机制，可以在理论基础部分展开论述\n文章提到\"已有心理健康问题的人群是高风险群体\"，这暗示了抑郁/反刍思维可能是AI依赖与NSSI之间的重要中介——直接支持本研究的模型\n\"适应不良的应对方式\"这一定位，可以与NSSI的\"适应不良的情绪调节功能\"理论对接——AI依赖和NSSI本质上都是不良应对方式，这为本研究的逻辑链条提供了更深层的理论支撑"},
+{"id":4,"cat":"ai","title":"Depression and the use of conversational AI for companionship among college students: the mediating role of loneliness and the moderating effects of gender and mind perception","source":"Frontiers in Public Health","year":"2025","type":"横断面·SEM","tags":["抑郁","孤独感中介","性别调节","心智感知"],
+"abstract":"本研究探讨了抑郁与大学生使用对话式AI寻求陪伴之间的关系，以及孤独感的中介作用和性别、心智感知的调节作用。采用横断面调查设计，N=1379名大学生，使用四个经过验证的量表收集数据，运用结构方程模型进行分析。结果发现：（1）抑郁与AI陪伴使用显著正相关，抑郁程度越高的学生越倾向于使用AI寻求陪伴；（2）孤独感在抑郁与AI陪伴使用之间起显著中介作用（Estimate=0.089, SE=0.025, Z=3.607, p<0.001），即抑郁通过升高孤独感进而增加AI陪伴使用；（3）性别调节了抑郁→孤独感的路径，女性的关联更强；（4）心智感知调节了孤独感→AI陪伴使用的路径，高心智感知者的关联更强。研究结论认为，抑郁学生可能通过AI陪伴来应对孤独感，但这种应对方式可能进一步加剧社交退缩，形成恶性循环。",
+"insight":"关键发现：这篇论文的方向是\"抑郁→孤独感→AI陪伴使用\"，而本研究的方向是\"AI情感依赖→孤独感→反刍思维→NSSI\"。两者方向相反但变量重叠，说明AI与心理健康之间可能存在双向循环关系\n这篇论文已经做了\"抑郁→AI陪伴使用，孤独感中介\"，所以本研究不能做\"AI依赖→抑郁，孤独感中介\"（方向虽然相反但变量组合太像，创新性不足）。这正是本研究选择NSSI作为因变量、加入反刍思维的原因——避开已有的研究组合\n论文的样本量1379人很大，本研究目标400人在本科论文中合理，但可以在讨论部分说明样本量差异\n\"心智感知\"作为调节变量是一个有趣的角度，如果老师要求加调节变量，可以考虑这个","star":true},
+{"id":5,"cat":"ai","title":"The Impact of AI Companion Use on Loneliness, Emotional Attachment, and Interpersonal Communication Skills among Young Adults","source":"Zenodo","year":"2025","type":"横断面","tags":["情感依恋","人际沟通能力","社交倦怠","恶性循环"],
+"abstract":"本研究调查了AI伴侣使用对年轻人孤独感、对AI的情感依恋以及人际沟通能力的影响。N=1200名大学生/年轻人。结果揭示了一种复杂的、悖论性的关系：一方面，AI伴侣使用与即时孤独感缓解相关（β=0.254, p<0.05），用户报告在与AI交流后感到被理解和陪伴；另一方面，高频AI伴侣使用与对AI的情感依恋增强显著正相关，与现实人际沟通能力下降显著负相关。研究还发现，社交互动倦怠高的个体更倾向于使用AI伴侣来逃避现实社交，但这种逃避进一步削弱了他们的现实社交技能，形成\"社交倦怠→AI依赖→社交技能退化→更依赖AI\"的恶性循环。研究者指出，AI伴侣使用对孤独感的影响可能是\"短期缓解、长期加剧\"的动态过程，横断面研究可能低估了长期负面影响。",
+"insight":"这篇论文直接支持了本研究的核心逻辑链：AI伴侣使用→情感依恋增强→现实社交能力下降→孤独感。论文中的\"恶性循环\"模型可以作为本研究链式中介的理论依据\n论文提到\"社交互动倦怠\"是AI伴侣使用的前因变量，如果需要扩展模型，可以考虑加入这个变量\n\"短期缓解、长期加剧\"的动态再次提醒横断面研究的局限，在讨论部分必须诚实说明\n论文用了\"准社会互动\"（parasocial interaction）这个概念——这是传播学中描述受众与媒体人物之间单向情感关系的经典概念，AI情感依赖可以看作准社会互动在AI时代的新形式，可以在引言中引用这个理论视角","star":true},
+{"id":6,"cat":"ai","title":"Loneliness and suicide mitigation for students using GPT3-enabled chatbots","source":"PMC","year":"2023","type":"调查研究","tags":["孤独感","自杀意念","AI干预","学生"],
+"abstract":"本研究调查了使用GPT-3驱动的聊天机器人对学生孤独感和自杀意念的缓解作用。结果发现，90%的参与者报告体验到孤独感，43%在孤独感量表上达到\"严重\"或\"非常严重\"孤独水平；90%的参与者感知到中等至高的社会支持；仅有7%的参与者报告有抑郁感受。研究探讨了AI聊天机器人作为一种低成本、可及性高的心理健康支持工具的潜力，特别是对于那些不愿寻求专业心理咨询的学生。研究者认为，AI聊天机器人可以提供即时的情感回应和认知重构建议，在一定程度上缓解孤独感和消极情绪，但不能替代专业心理治疗。研究还讨论了AI在自杀风险评估和干预中的伦理问题和局限性。",
+"insight":"这篇论文的角度是\"AI可以缓解孤独和自杀风险\"，与本研究的\"AI依赖可能增加NSSI风险\"形成对比。在讨论部分需要同时呈现正反两方面证据，不能只引用支持自己假设的文献\n论文发现\"90%学生体验到孤独感\"，说明孤独感在大学生中非常普遍，是一个重要的公共心理健康问题——可以在引言中用这个数据说明研究的现实意义\n\"AI作为低成本心理健康支持工具\"的正面视角，提醒我们在讨论实践意义时，不要简单地说\"要减少AI使用\"，而应该说\"要引导合理使用，发挥AI的支持作用，同时避免过度情感依赖\"\n论文发表于2023年，是较早探讨AI与学生心理健康的研究之一，在引言中可以作为该领域的早期研究引用"},
+{"id":7,"cat":"ai","title":"Effect of an AI agent trained on LLM as an intervention for depression and anxiety symptoms in young adults: A 28-day RCT","source":"PubMed","year":"2025","type":"随机对照试验","tags":["RCT","抑郁焦虑干预","28天","使用频率"],
+"abstract":"本研究评估了基于大语言模型的AI对话代理作为干预工具，对年轻人抑郁和焦虑症状的改善效果。采用28天随机对照试验设计。结果发现：（1）干预2周时，AI对话干预组的抑郁症状显著低于对照组；（2）干预4周时，AI对话干预组的抑郁和焦虑症状均显著低于对照组；（3）干预效果与AI使用频率相关，使用足够频繁的参与者改善更明显。研究结论认为，基于LLM的AI对话代理可以有效缓解年轻人的轻度焦虑和抑郁症状，特别是在使用足够频繁的情况下。AI伴侣机器人作为一种可及性高、成本低的心理健康干预工具，具有广阔的应用前景，但需要注意过度依赖的风险。",
+"insight":"这是一项随机对照试验（RCT），证据等级很高。它证明了AI对话可以改善抑郁焦虑——这与本研究假设的\"AI情感依赖有负面影响\"形成张力\n关键区别在于：RCT中的AI使用是结构化、有指导的干预，而本研究关注的是自发的、过度的情感依赖。同样是AI与心理健康，\"适度使用作为干预\"和\"过度依赖作为风险因素\"是两个不同的现象。在讨论部分必须明确区分这一点\n这篇论文提示我们：AI对心理健康的影响可能是非线性的——适度使用有益，过度依赖有害。这类似于药物的\"剂量-效应\"关系，可以在讨论部分提出这个观点\n\"使用频率与效果相关\"的发现，提示在测量AI情感依赖时，不能只测使用频率，更要测情感依赖的深度（这正是用\"情感依赖量表\"而非\"使用频率\"的原因）"},
+{"id":8,"cat":"ai","title":"Associations between frequent and excessive generative AI chatbot use and common mental health problems among college students","source":"Taylor & Francis (JACH)","year":"2026","type":"横断面","tags":["过度使用","学业压力中介","焦虑","北京香港"],
+"abstract":"本研究调查了频繁和过度使用生成式AI聊天机器人与大学生常见心理健康问题之间的关联，并检验了学业和社会机制的中介作用。N=560名大学生（北京25.2%，香港74.8%）。结果发现：（1）频繁/过度使用生成式AI聊天机器人与学业压力和孤独感呈显著正相关；（2）学业压力在过度使用与焦虑之间起完全中介作用——过度使用AI通过增加学业压力进而升高焦虑水平；（3）孤独感在AI使用与抑郁之间的中介作用得到部分支持。研究还发现，AI使用与心理健康问题之间的关联因使用目的不同而有差异——用于学业辅助的使用与学业压力相关，用于社交/情感陪伴的使用与孤独感相关。",
+"insight":"这篇论文做了\"AI过度使用→学业压力→焦虑\"和\"AI使用→孤独感→抑郁\"的中介，跟本研究的模型有重叠但不完全相同\n论文区分了\"学业辅助使用\"和\"社交/情感陪伴使用\"，发现不同使用目的影响不同的心理健康结果。本研究关注的是\"情感依赖\"（属于社交/情感陪伴使用的极端形式），可以在引言中引用这个区分\n论文的样本来自北京和香港，本研究的样本如果来自江西（九江学院），可以在讨论部分说明地域差异\n\"学业压力\"作为中介是一个有趣的角度，如果老师觉得本研究的模型不够丰富，可以考虑加入学业压力作为另一条中介路径"},
+{"id":9,"cat":"ai","title":"AI进入大学生社交圈：是\"知心朋友\"还是\"新型代偿\"？","source":"中国新闻网","year":"2026","type":"调查报告","tags":["使用率","高频交流","社会代偿","社交能力退化"],
+"abstract":"本报道基于一项针对大学生AI使用情况的调查，揭示了AI正在深度融入大学生的社交和情感生活。调查结果显示：超七成受访大学生已将AI视为可以\"聊天\"的对象，其中23.19%属于\"高频交流\"型——他们常和AI闲聊、吐槽生活，甚至将AI当作知心朋友，毫无保留地倾诉私密心事和情绪想法；19.90%属于\"频繁交流\"型，会分享大部分个人心事；34.22%保持\"中度交流\"，仅偶尔分享浅层内容。报道通过多个案例展示了大学生与AI建立情感联结的具体表现。报道也关注了AI情感依赖的负面影响：长期向AI倾诉社交问题的学生报告，AI\"一边倒\"的回应让他们担心自己在现实沟通中难以接纳不同意见，短期情绪安抚可能以长期社交能力退化为代价。报道引用心理学专家观点，认为AI情感陪伴本质上是一种\"社会代偿\"——当现实社交需求得不到满足时，AI提供了低成本的替代方案，但这种代偿可能进一步削弱现实社交动机。",
+"insight":"这篇报道提供了非常具体的数据：超七成大学生用AI聊天，23.19%高频交流——这些数据可以直接用在论文引言的\"研究背景\"部分，说明AI情感依赖在大学生中的普遍性\n\"知心朋友\"vs\"新型代偿\"的二元框架，很好地概括了AI情感陪伴的两面性，可以在引言中使用\n\"社会代偿\"这个概念与社会补偿假说（Social Compensation Hypothesis）直接对应，为本研究的理论基础提供了中文语境下的支持\n这是一篇新闻报道而非学术论文，在正式论文中引用时要注意——可以作为背景数据引用，但不能作为核心理论依据"},
+{"id":10,"cat":"ai","title":"AI Emotional Companionship Services Among University Students: Usage and Payment Intentions","source":"学术会议论文","year":"2026","type":"调查","tags":["浙江高校","使用率","支付意愿","技术接受模型"],
+"abstract":"本研究调查了浙江省高校大学生对AI情感陪伴服务的认知、使用情况和支付意愿。描述性统计分析显示：87.29%的大学生知道AI情感陪伴服务，但只有78.77%实际使用过；超过65%的学生每周至少需要一次情感支持，但他们主要依赖传统方式（与朋友或家人交谈），AI情感陪伴服务的使用率约为37.4%。研究还发现，学生对AI情感陪伴服务的支付意愿普遍较低，大多数人只愿意使用免费服务，愿意为高级AI情感陪伴服务付费的比例不足15%。研究基于技术接受模型（TAM）分析了影响学生使用AI情感陪伴服务的因素。",
+"insight":"这篇论文提供了\"37.4%的大学生使用AI情感陪伴服务\"的数据，可以在引言中引用\n论文关注的是\"使用和支付意愿\"，而本研究关注的是\"情感依赖的心理健康后果\"——角度不同，但可以互补。在讨论部分可以提到，虽然使用率不算特别高，但一旦使用并形成依赖，心理健康风险就值得关注\n技术接受模型（TAM）是解释AI使用的经典理论，如果需要在引言中补充\"为什么大学生会使用AI情感陪伴\"，可以引用TAM\n\"隐私担忧\"是影响AI使用的重要因素，如果做问卷设计，可以考虑加入隐私态度作为控制变量或调节变量"},
+{"id":11,"cat":"ai","title":"Development and validation of the conversational AI dependence scale for Chinese college students (CAID)","source":"Frontiers in Psychology","year":"2025","type":"量表开发","tags":["CAID量表","信效度","抑郁焦虑","睡眠问题"],
+"abstract":"本研究开发并验证了适用于中国大学生的对话式AI依赖量表（CAID）。通过文献综述、开放式访谈和专家评定，形成初始题项库；经过预调查和正式调查，通过项目分析、探索性因子分析和验证性因子分析确定最终量表结构。结果显示，CAID量表包含多个维度（不可控性、戒断症状、心境改变、负面影响），共20题。验证性因子分析显示量表结构效度良好，各拟合指数达标。量表总分及各维度的Cronbach's α系数均大于0.85，重测信度良好。效标效度分析显示，CAID量表总分与抑郁、焦虑、压力、睡眠问题、人际功能困难（友谊、家庭、学业困难）均呈显著正相关，与主观幸福感呈显著负相关。研究结论认为，CAID量表具有良好的信效度，可以作为测量中国大学生对话式AI依赖程度的有效工具。",
+"insight":"这是本研究自变量测量的核心文献。CAID量表是目前唯一经过严格信效度检验的、专门针对中国大学生的AI依赖量表，本研究应优先选用此量表\n论文发现AI依赖与\"抑郁、焦虑、压力、睡眠问题、人际功能困难\"均正相关——这些效标关联效度的结果，间接支持了本研究\"AI依赖与NSSI正相关\"的假设（因为NSSI与这些变量高度相关）\n论文提到\"夜间使用AI→蓝光暴露→睡眠问题\"的具体机制，如果需要扩展研究，可以考虑睡眠质量作为另一条中介路径\n这篇论文的存在本身说明\"AI依赖\"已经成为一个被学术界认可的构念，不是本研究凭空捏造的——在引言中引用这篇论文，可以增强自变量的合理性","star":true},
+{"id":12,"cat":"ai","title":"Study on the Negative Impact of AI Social Compensation on Depression Tendencies: The More You Use It, The Lonelier You Get","source":"Boya Century Publishing","year":"2025","type":"有调节的中介","tags":["AI社会补偿","孤独感中介","社会存在感调节","越用越孤独"],
+"abstract":"本研究聚焦于大学生群体，探讨了AI社会补偿对抑郁倾向的负面影响及其心理机制。提出了一个有调节的中介模型：AI社会补偿通过孤独感影响抑郁倾向，社会存在感调节前半段路径。结果显示：（1）AI社会补偿显著正向预测抑郁倾向；（2）孤独感在AI社会补偿与抑郁倾向之间起部分中介作用，中介效应占44.8%——AI社会补偿通过升高孤独感进而增加抑郁倾向；（3）社会存在感显著调节\"AI社会补偿→孤独感\"的路径。研究解释了\"越用越孤独\"的现象：当大学生用AI替代现实社交来满足情感需求时，虽然获得了即时的情感满足，但减少了现实社交投入，导致现实社交技能退化和真实人际关系疏离，最终加剧孤独感和抑郁。",
+"insight":"这篇论文跟本研究高度相关——它做了\"AI社会补偿→孤独感→抑郁\"的中介，跟本研究的\"AI情感依赖→孤独感→反刍思维→NSSI\"有重叠\n关键区别：①它的自变量是\"AI社会补偿\"（使用AI来补偿社交需求），本研究的自变量是\"AI情感依赖\"（更深层的依赖状态）；②它的因变量是\"抑郁倾向\"，本研究的因变量是\"NSSI\"；③它只有一个中介（孤独感），本研究有链式中介（孤独感→反刍思维）\n论文的\"越用越孤独\"（the more you use it, the lonelier you get）这个表述非常有力，可以在论文标题或讨论中化用\n中介效应占44.8%这个数据说明孤独感是AI影响心理健康的核心机制，支持本研究将孤独感作为第一中介的选择","star":true},
+{"id":13,"cat":"ai","title":"Artificial intelligence addiction among university students in China: risk stratification, consequences, and exercise-based intervention","source":"Frontiers in Psychology","year":"2026","type":"风险分层与干预","tags":["AI成瘾","情感依赖","戒断症状","认知卸载","运动干预"],
+"abstract":"本研究探讨了中国大学生AI成瘾的风险分层、后果及基于运动的干预方案。AI成瘾的核心特征包括：（1）失控使用——无法控制AI使用的开始、频率、强度和持续时间；（2）优先性——使用AI优先于其他生活兴趣和日常活动；（3）情感依赖——AI生成反馈的即时性和可预测性放大了心理依赖，许多用户依赖AI系统进行情绪安抚或调节，当访问受限时会出现类似网络游戏障碍的戒断症状（烦躁、易怒、情绪不稳定）；（4）认知卸载——习惯性地将认知任务外包给AI，导致独立思考能力下降。研究还发现，AI成瘾与学业成绩下降、睡眠问题、焦虑抑郁症状、现实社交退缩等负面后果相关。基于运动的干预方案显示，规律的体育锻炼可以有效降低AI成瘾水平。",
+"insight":"这篇论文从\"成瘾\"的角度看待AI过度使用，与本研究的\"情感依赖\"角度相关但不同——成瘾是更广泛的概念（包含失控、优先性、戒断等），情感依赖是其中的情感维度\n论文详细描述了AI情感依赖的表现：\"依赖AI进行情绪安抚\"\"访问受限时出现戒断症状（烦躁、易怒、情绪不稳定）\"——这些描述可以帮助理解AI情感依赖的构念内涵，在引言中引用\n\"认知卸载\"是AI成瘾的另一个维度，如果需要扩展研究，可以关注认知卸载对学业表现的影响\n论文提出\"基于运动的干预\"，说明AI依赖是可以干预的——在实践意义部分可以提到，鼓励大学生通过运动、现实社交等健康方式替代AI情感依赖"},
+{"id":14,"cat":"ai","title":"Pathways linking AI dependence to psychological distress: the mediating role of self-esteem and the role of academic achievement","source":"Frontiers in Human Neuroscience","year":"2026","type":"三波时间滞后追踪","tags":["三波追踪","自尊中介","心理痛苦","社会比较"],
+"abstract":"本研究采用三波时间滞后设计，探讨了AI依赖对心理痛苦的影响路径及自尊的中介作用。结果发现：（1）AI依赖与后续心理痛苦呈显著正相关；（2）自尊在AI依赖与心理痛苦之间起中介作用——AI依赖通过降低自尊进而增加心理痛苦，间接效应显著；（3）学业成就与自尊呈正相关，通过提升自尊间接降低心理痛苦，但与心理痛苦无直接关联，也未调节检验的路径。研究者指出，AI的\"完美表现\"可能让用户产生不切实际的社会比较，觉得自己不如AI，从而降低自尊；过度依赖AI完成认知任务也可能削弱用户的能力感和成就感。",
+"insight":"这是一项三波追踪研究，比横断面研究更能支持因果推断。它发现了\"AI依赖→自尊降低→心理痛苦\"的路径，说明AI依赖确实会对心理健康产生负面影响\n这篇论文做了\"AI依赖→自尊→心理痛苦\"的中介，跟本研究的\"AI依赖→孤独感→反刍思维→NSSI\"不同——中介变量不同（自尊vs孤独感+反刍思维），因变量不同（心理痛苦vs NSSI）\n\"AI的完美表现→社会比较→自尊降低\"的机制解释很有启发性，可以在讨论部分提到AI依赖影响心理健康的多种可能机制（自尊、孤独感、反刍思维等），本研究关注的是其中一条路径\n三波追踪设计是本科论文很难做到的，在局限部分可以说明，并建议未来研究采用追踪设计","star":true},
+{"id":15,"cat":"ai","title":"Exploring AI Chatbot usage behaviors and their association with mental health outcomes in Chinese university students","source":"PubMed","year":"2025","type":"横断面","tags":["使用行为","抑郁","依赖程度","情感陪伴型使用"],
+"abstract":"本研究探讨了中国大学生AI聊天机器人使用行为与心理健康结果之间的关联。结果发现：（1）使用AI聊天机器人的大学生抑郁水平显著高于不使用者（p<0.01）；（2）在AI使用者中，抑郁与AI聊天机器人使用和依赖程度呈显著正相关（β=0.14-0.20, p<0.05）；（3）然而，AI聊天机器人相关行为（如使用频率、使用时长）与焦虑、压力等其他心理健康指标的直接关联不显著。研究还分析了不同使用目的与心理健康的关系，发现用于情感陪伴的使用与抑郁的关联更强。",
+"insight":"这篇论文直接发现\"AI依赖程度与抑郁呈正相关（β=0.14-0.20）\"，支持本研究的核心假设方向\n论文发现\"情感陪伴型使用与抑郁的关联更强\"——这正是本研究关注\"AI情感依赖\"（而非一般AI使用）的原因，说明情感维度是AI影响心理健康的关键\n论文发现使用频率/时长与焦虑、压力的关联不显著，但依赖程度与抑郁显著相关——这说明\"用了多少\"不重要，\"有多依赖\"才重要，进一步支持用\"情感依赖量表\"而非\"使用频率\"作为自变量\n\"使用者抑郁水平高于不使用者\"的发现可能存在反向因果（抑郁的人更可能使用AI），在讨论部分需要提到这个可能性——这也是横断面研究的固有局限"},
+{"id":16,"cat":"nssi","title":"The relationship between insomnia and NSSI among college students: parallel mediation effect of subjective well-being and rumination","source":"学术期刊","year":"2026","type":"平行中介","tags":["失眠","反刍思维中介","主观幸福感","睡前认知活动"],
+"abstract":"本研究探讨了失眠与大学生非自杀性自伤（NSSI）之间的关系，以及主观幸福感和反刍思维的平行中介作用。结果发现：（1）失眠与NSSI显著正相关；（2）反刍思维在失眠与NSSI之间起显著中介作用——失眠通过增加反刍思维进而促进NSSI行为；（3）主观幸福感也在失眠与NSSI之间起中介作用——失眠通过降低主观幸福感进而促进NSSI；（4）反刍思维和主观幸福感的中介效应同时存在，构成平行中介模型。研究从认知活动的角度解释了失眠与NSSI的关系：失眠者常伴有高度的睡前认知活动，表现为持续担忧、反复消极思维和难以停止思考，这些反刍思维会加剧负性情绪，最终推动NSSI行为。",
+"insight":"这篇论文做了\"失眠→反刍思维→NSSI\"的中介，跟本研究的\"AI情感依赖→反刍思维→NSSI\"路径相似，只是自变量不同\n这说明反刍思维作为NSSI的中介变量已经被广泛验证——不管自变量是失眠、生活事件、社会排斥还是AI依赖，反刍思维都可能是连接自变量与NSSI的核心机制。这为本研究选择反刍思维作为第二中介提供了充分的文献支持\n论文从\"睡前认知活动\"的角度解释失眠→反刍的机制，本研究可以从\"AI情感依赖→孤独感→反刍\"的角度解释，机制不同但终点相同\n\"平行中介\"（主观幸福感和反刍思维同时中介）是一种模型设计，如果老师觉得链式中介太复杂，可以考虑用平行中介"},
+{"id":17,"cat":"nssi","title":"The relationship between major life events and NSSI among college students: the effect of rumination and body image","source":"PMC","year":"2024","type":"有调节的中介","tags":["重大生活事件","反刍思维中介","身体意象调节"],
+"abstract":"本研究探讨了重大生活事件与大学生非自杀性自伤（NSSI）之间的关系，以及反刍思维的中介作用和身体意象的调节作用。结果发现：（1）重大生活事件与NSSI显著正相关；（2）反刍思维在重大生活事件与NSSI之间起显著中介作用——重大生活事件通过增加反刍思维进而促进NSSI；（3）身体意象调节了重大生活事件→反刍思维的路径，负面身体意象者的关联更强；（4）身体意象对反刍思维→NSSI路径的调节作用不显著。",
+"insight":"又一篇\"自变量→反刍思维→NSSI\"的中介研究（自变量是重大生活事件），再次确认反刍思维作为NSSI中介的普适性\n这篇论文加入了\"身体意象\"作为调节变量，是一个有调节的中介模型。如果老师要求本研究加入调节变量，可以参考这种设计——比如用\"心理韧性\"\"正念\"\"成人依恋\"等作为调节变量\n论文的假设模型图画得很规范（有假设1、2、3），本研究的开题报告和论文中也可以用类似的方式呈现假设\n\"重大生活事件\"是一个比较宽泛的自变量，本研究的\"AI情感依赖\"是一个更具体、更新颖的自变量——在讨论部分可以对比说明，本研究拓展了NSSI风险因素的研究范围，从传统的生活事件扩展到数字时代的新现象"},
+{"id":18,"cat":"nssi","title":"大学生手机依赖对自伤行为的影响：反刍思维的中介作用和非恢复性睡眠的调节作用","source":"云南高校图书馆联盟","year":"2024","type":"有调节的中介","tags":["手机依赖","反刍思维中介","自伤行为","非恢复性睡眠调节"],
+"abstract":"本研究探讨了手机依赖对大学生自伤行为的影响，以及反刍思维的中介作用和非恢复性睡眠的调节作用。结果发现：（1）手机依赖与反刍思维（r=0.33, p<0.01）和自伤行为（r=0.13, p<0.01）均呈显著正相关；（2）反刍思维与自伤行为呈显著正相关（r=0.32, p<0.01）；（3）反刍思维在手机依赖与自伤行为之间起显著中介作用；（4）非恢复性睡眠调节了中介模型的前半段路径（手机依赖→反刍思维）。",
+"insight":"这篇论文跟本研究非常相似——自变量是\"手机依赖\"（一种技术依赖），中介是\"反刍思维\"，因变量是\"自伤行为\"。本研究的自变量是\"AI情感依赖\"（另一种技术依赖），中介是\"孤独感→反刍思维\"，因变量是\"NSSI\"\n关键区别：①手机依赖vs AI情感依赖（虽然都是技术依赖，但AI情感依赖更强调情感维度，手机依赖更宽泛）；②本研究多了一个中介变量（孤独感），是链式中介而非简单中介；③非恢复性睡眠的调节是本研究没有的\n这篇论文的存在说明\"技术依赖→反刍思维→自伤\"的路径已经被验证过，本研究可以看作是这条路径在AI时代的延伸和深化——在讨论部分可以这样定位本研究的创新性\n论文报告了具体的相关系数（r=0.33, r=0.32等），本研究的结果可以跟这些数据对比，看AI情感依赖与NSSI的相关是否跟手机依赖与自伤的相关在同一量级"},
+{"id":19,"cat":"nssi","title":"Relationships between dimensions of emotional experience, rumination, and NSSI: An application of the Emotional Cascade Model","source":"ResearchGate","year":"2021","type":"模型验证","tags":["情绪级联模型","情绪反应性","反刍思维调节","N=992"],
+"abstract":"本研究基于情绪级联模型，探讨了情绪体验的不同维度（反应性、强度、持续性）与反刍思维、非自杀性自伤（NSSI）之间的关系。N=992名大学生。结果发现：（1）情绪反应性、情绪强度和情绪持续性均与NSSI显著正相关；（2）反刍思维与NSSI显著正相关；（3）反刍思维在情绪体验各维度与NSSI之间起调节作用——高反刍思维者，情绪反应性/强度/持续性与NSSI的关联更强；（4）研究结果部分支持了情绪级联模型，该模型认为NSSI的功能是分散对\"负性情绪-反刍思维\"级联的注意力，NSSI通过提供强烈的身体感觉来打断反刍循环，获得短暂的情绪缓解。",
+"insight":"这篇论文直接应用和验证了情绪级联模型，是本研究核心理论基础的重要参考文献。在论文的理论基础部分，应该详细引用这篇论文来阐述情绪级联模型\n情绪级联模型的核心逻辑：负性情绪→反刍思维→情绪进一步加剧→NSSI（用身体疼痛分散注意力，获得短暂缓解）→反刍循环再次开始。本研究的链式中介\"孤独感→反刍思维→NSSI\"正是这个模型的具体应用\n论文发现反刍思维起调节作用（而非中介作用），说明反刍思维在情绪与NSSI之间的角色可能是复杂的——既可能是中介（情绪→反刍→NSSI），也可能是调节（高反刍者情绪与NSSI关联更强）。在讨论部分可以提到这种复杂性\n\"NSSI的功能是分散注意力、打断反刍循环\"这个核心观点，可以在讨论部分用来解释为什么反刍思维会预测NSSI——因为反刍越严重，个体越需要通过NSSI来打断痛苦的思维循环"},
+{"id":20,"cat":"nssi","title":"社会排斥对大学生非自杀性自伤行为的影响：有调节的中介模型","source":"中国健康心理学杂志","year":"2023","type":"有调节的中介","tags":["社会排斥","反刍思维中介","消极认知情绪调节调节","N=702"],
+"abstract":"本研究探讨了社会排斥对大学生非自杀性自伤（NSSI）行为的影响，以及反刍思维的中介作用和消极认知情绪调节策略的调节作用。N=702名江苏省大学生。结果发现：（1）社会排斥与自伤行为、反刍思维、消极认知情绪调节均呈显著正相关；（2）反刍思维在社会排斥与NSSI之间起显著中介作用——社会排斥通过增加反刍思维进而促进NSSI；（3）消极认知情绪调节策略调节了中介模型的后半段路径（反刍思维→NSSI）——高消极认知情绪调节者，反刍思维对NSSI的预测更强。",
+"insight":"又一篇\"自变量→反刍思维→NSSI\"的中介研究（自变量是社会排斥），再次确认这条路径的稳健性\n这篇论文的自变量\"社会排斥\"跟本研究的逻辑有关——AI情感依赖可能导致现实社交退缩和社会排斥感，进而增加反刍思维和NSSI。在讨论部分可以提到，AI情感依赖可能通过\"感知到的社会排斥\"来影响心理健康\n论文用了\"消极认知情绪调节策略\"作为调节变量，如果本研究需要加调节变量，这是一个可选方向\n论文发表在《中国健康心理学杂志》（中文核心期刊），是国内心理学领域的正规期刊，可以在中文参考文献中引用"},
+{"id":21,"cat":"nssi","title":"Latent Profiles of NSSI and the Mediating Role of Rumination among University Students","source":"SCIRP","year":"2025","type":"潜在剖面分析+中介","tags":["LPA","NSSI潜在类别","情绪失调","反刍思维中介"],
+"abstract":"本研究采用潜在剖面分析（LPA）识别大学生非自杀性自伤（NSSI）的潜在类别，并检验反刍思维在情绪失调与NSSI类别归属之间的中介作用。使用Mplus 8.3进行分析。结果发现：（1）大学生NSSI可以分为不同的潜在类别，如低NSSI组、中等NSSI组、高NSSI组；（2）情绪失调显著正向预测高NSSI类别的归属；（3）反刍思维在情绪失调与NSSI类别归属之间起部分中介作用——情绪失调通过增加反刍思维进而增加高NSSI类别的归属概率（标准化间接效应=0.317, p<0.001）；（4）直接效应也显著。",
+"insight":"这篇论文用了潜在剖面分析（LPA）——一种比简单分组更高级的统计方法，可以识别NSSI的不同亚群体。本科论文用LPA可能太复杂，但如果老师要求，可以考虑\n论文做了\"情绪失调→反刍思维→NSSI类别归属\"的中介，跟本研究的路径相似，只是自变量是情绪失调而非AI情感依赖\n标准化间接效应=0.317这个数据比较大，说明反刍思维的中介效应在NSSI研究中通常比较显著——本研究可以预期反刍思维的中介效应也会比较显著\n\"部分中介\"的结果说明除了反刍思维，还有其他机制连接情绪失调与NSSI——本研究的链式中介（孤独感+反刍思维）就是在尝试解释更多的机制"},
+{"id":22,"cat":"nssi","title":"The mediating role of rumination in the relationship between insomnia and NSSI of college students","source":"Frontiers in Psychology","year":"2024","type":"中介效应检验","tags":["失眠","反刍思维完全中介","84.21%","情绪级联模型"],
+"abstract":"本研究探讨了反刍思维在失眠与大学生非自杀性自伤（NSSI）之间的中介作用。结果发现：（1）失眠与反刍思维、NSSI均呈显著正相关；（2）反刍思维与NSSI显著正相关；（3）反刍思维在失眠与NSSI之间起完全中介作用，中介效应占84.21%——失眠对NSSI的影响几乎完全通过反刍思维实现；（4）研究结果在一定程度上验证了情绪级联模型。",
+"insight":"这篇论文发现反刍思维起完全中介作用（84.21%），说明在失眠与NSSI的关系中，反刍思维几乎是唯一的机制。这进一步确认了反刍思维在NSSI发生中的核心地位\n跟文献16（同一主题，平行中介）不同，这篇论文只检验了反刍思维的中介，发现是完全中介。两篇论文的差异说明，当只检验反刍思维一个中介时，它可能吸收了其他变量的效应，表现为完全中介；当同时检验多个中介时，反刍思维的效应会被分流\n84.21%的中介效应占比非常高，本研究可以预期反刍思维的中介效应也会比较显著，但因为有孤独感作为第一中介，反刍思维的单独中介效应占比可能会低一些\n论文明确引用了情绪级联模型来解释结果，本研究也应该这样做——在讨论部分将结果与情绪级联模型对接"},
+{"id":23,"cat":"nssi","title":"Emotional Cascades and Self-Injury: Investigating Instability of Rumination and Negative Emotion","source":"ResearchGate (Selby et al.)","year":"经典论文","type":"模型原始验证·EMA","tags":["情绪级联模型原始文献","生态瞬时评估","双向增强循环","欺凌→述情障碍→反刍→NSSI"],
+"abstract":"本研究由情绪级联模型的提出者Selby等人完成，旨在验证该模型的核心假设：反刍思维与负性情绪的不稳定共同构成\"情绪级联\"，推动非自杀性自伤（NSSI）和暴食等冲动行为。研究采用生态瞬时评估（EMA）方法，在日常生活中实时测量参与者的情绪状态和反刍思维。结果发现：（1）反刍思维和负性情绪的不稳定程度显著预测NSSI行为的发生；（2）反刍思维与负性情绪之间存在双向增强的循环；（3）当情绪级联达到难以忍受的程度时，个体更可能采取NSSI等冲动行为来打断级联、获得短暂缓解；（4）研究还发现，学生欺凌通过述情障碍和反刍思维的链式中介影响青少年NSSI（中介效应占12.69%），且这种链式中介在女性中更强。",
+"insight":"这是情绪级联模型的经典原始文献，本研究的理论基础部分必须引用。Selby是情绪级联模型的提出者，引用他的论文最有权威性\n论文用了生态瞬时评估（EMA）方法——在日常生活中实时测量情绪和反刍的动态变化，这是比横断面设计更先进的方法。本科论文很难做EMA，但可以在局限和展望部分提到，未来研究可以用EMA来检验AI情感依赖、孤独感、反刍思维和NSSI的动态关系\n\"反刍思维与负性情绪双向增强循环\"是情绪级联模型的核心机制，本研究的链式中介\"孤独感→反刍思维→NSSI\"是这个循环的一个简化版本——孤独感作为负性情绪触发反刍，反刍进一步加剧痛苦，最终推动NSSI\n论文还发现了\"欺凌→述情障碍→反刍思维→NSSI\"的链式中介，跟本研究的链式中介结构相似（自变量→中介1→中介2→因变量），可以作为方法学参考","star":true},
+{"id":24,"cat":"nssi","title":"非安全依恋风格与大学生非自杀性自伤的关系：情绪调节策略的作用","source":"万方数据（硕士学位论文）","year":"2024","type":"硕士论文","tags":["依恋焦虑","依恋回避","反刍思维","表达抑制"],
+"abstract":"本研究探讨了非安全依恋风格与大学生非自杀性自伤（NSSI）之间的关系，以及情绪调节策略（反刍思维、表达抑制等）的中介作用。结果发现：（1）非安全依恋风格（依恋焦虑、依恋回避）与NSSI显著正相关；（2）依恋焦虑风格者倾向于采用反刍思维来夸大负面情绪，以此获得更多关注；（3）依恋回避风格者倾向于采用表达抑制来否认或抑制与情绪相关的记忆和行为，这种策略虽然短期内可以降低情绪体验，但若个体长期处于压力事件中，则会进一步提高生理唤醒程度并激活更多消极自我表征，导致更多的情绪问题；（4）反刍思维和表达抑制在非安全依恋与NSSI之间起中介作用。",
+"insight":"这篇论文从依恋风格的角度探讨NSSI，发现\"依恋焦虑→反刍思维→NSSI\"的路径。本研究的模型中，如果需要加入调节变量，成人依恋是一个很好的选择——依恋焦虑高的人可能更容易对AI产生情感依赖，也更容易通过反刍思维应对痛苦\n论文区分了依恋焦虑和依恋回避两种非安全依恋风格，发现它们采用不同的情绪调节策略（反刍vs表达抑制），但都导致NSSI。这说明NSSI的发生路径是多元的，本研究关注的是其中一条路径（AI依赖→孤独感→反刍→NSSI）\n这是一篇硕士学位论文，结构完整、方法规范，可以作为本科学位论文的写作参考——特别是其文献综述和讨论部分的写法\n\"依恋焦虑者用反刍获得关注\"这个观点很有意思，可以在讨论部分提到：AI情感依赖高的人可能也有依恋焦虑的特征，他们用AI的即时回应来获得关注和安慰，但这种策略可能加剧反刍思维"},
+{"id":25,"cat":"nssi","title":"Longitudinal relation between negative life events and NSSI among Chinese college students: a moderated mediation model","source":"PMC","year":"2025","type":"两波纵向追踪","tags":["纵向研究","负性生活事件","反刍思维中介","情绪调节困难"],
+"abstract":"本研究采用两波纵向设计，探讨了负性生活事件与中国大学生非自杀性自伤（NSSI）之间的纵向关系，以及反刍思维和情绪调节困难的中介作用。在T1测量负性生活事件，在T2（间隔数月）测量反刍思维、情绪调节困难和NSSI。结果发现：（1）T1的负性生活事件显著正向预测T2的NSSI；（2）反刍思维在负性生活事件与NSSI之间起纵向中介作用——T1的负性生活事件触发T2的反刍思维，T2的反刍思维进而增加T2的NSSI可能性；（3）情绪调节困难也在其中起中介作用。",
+"insight":"这是一项纵向研究，比横断面研究更有说服力。它发现\"T1负性生活事件→T2反刍思维→T2 NSSI\"的纵向中介，支持了反刍思维作为NSSI前因的因果方向\n这篇论文跟本研究高度相关——它验证了\"压力事件→反刍思维→NSSI\"的纵向路径，本研究的\"AI情感依赖→孤独感→反刍思维→NSSI\"可以看作是这条路径的扩展（AI情感依赖作为一种新型压力源/风险因素，孤独感作为AI依赖与反刍之间的连接）\n纵向研究的设计（T1测自变量，T2测中介和因变量）是本科论文可以考虑的——如果时间允许，可以做两波追踪（间隔1-2个月），这样论文的创新性和说服力会大大提升。但考虑到本科论文的时间限制，横断面设计也是可接受的\n\"在压力事件后及时干预反刍思维\"的实践建议，本研究可以对应地说\"在发现大学生AI情感依赖升高时，应及时干预其孤独感和反刍思维，预防NSSI\""},
+{"id":26,"cat":"nssi","title":"Examining the relationship between subtypes of rumination and NSSI: A meta-analytic review","source":"PMC","year":"2024","type":"元分析","tags":["元分析","强迫思考brooding","反省深思reflective","异质性"],
+"abstract":"本元分析系统综述了反刍思维的不同亚型与非自杀性自伤（NSSI）之间的关系。反刍思维可以分为不同亚型，如强迫思考（brooding，被动地、反复地想负面情绪和问题，是非适应性的）和反省深思（reflective pondering，主动地、有目的地思考以解决问题，是适应性的）。元分析结果发现：（1）总体反刍思维与NSSI呈显著正相关；（2）不同反刍亚型与NSSI的关系存在异质性——强迫思考（brooding）与NSSI的正相关更强且更一致，而反省深思（reflective pondering）与NSSI的关系较弱且不一致，有些研究甚至发现反省深思与NSSI负相关；（3）研究间异质性较高。",
+"insight":"这是一篇元分析，证据等级最高。它系统确认了反刍思维与NSSI的正相关关系，为本研究选择反刍思维作为中介变量提供了最有力的文献支持\n元分析发现反刍思维的不同亚型与NSSI的关系不同——强迫思考（brooding）与NSSI强正相关，反省深思（reflective pondering）与NSSI关系弱甚至负相关。这提示本研究在测量反刍思维时，最好分开维度分析，而不是只用总量表得分。如果只用总量表，可能会掩盖不同亚型的差异效应\n本科论文水过技巧：如果用RRS总量表得分做中介，结果显著就够用了；如果结果不显著，可以尝试分开维度做，可能强迫思考维度的中介显著而反省深思不显著，这样结果更有说服力\n\"干预应针对性减少强迫思考而非所有反刍\"的建议，可以在本研究的实践意义部分引用","star":true},
+{"id":27,"cat":"nssi","title":"负性生活事件对非自杀性自伤的影响：反刍思维的调节作用","source":"Hanspub","year":"2026","type":"调节效应检验","tags":["消极反刍","积极反刍","低反刍","调节作用"],
+"abstract":"本研究探讨了负性生活事件对非自杀性自伤（NSSI）的影响，以及反刍思维不同亚型的调节作用。将反刍思维分为消极反刍、积极反刍和低反刍三种类型。结果发现：（1）负性生活事件与NSSI显著正相关；（2）在三种反刍思维类型中，只有消极反刍显著增强了负性生活事件对NSSI的正向预测作用；（3）积极反刍和低反刍的调节效应不显著。",
+"insight":"这篇论文发现反刍思维起调节作用（而非中介作用），跟前面大多数研究发现的中介作用不同。这说明反刍思维在负性生活事件与NSSI之间的角色是复杂的——既可能是中介（事件→反刍→NSSI），也可能是调节（高反刍者事件与NSSI关联更强）\n论文将反刍分为\"消极反刍、积极反刍、低反刍\"三类（用聚类或分组的方法），跟元分析（文献26）中\"强迫思考vs反省深思\"的区分对应。本研究如果用RRS量表，可以计算两个维度的得分，然后做维度层面的分析\n\"消极反刍增强事件对NSSI的预测\"这个发现，跟情绪级联模型一致——消极反刍放大了负性事件的影响，形成情绪级联，最终推动NSSI\n对本研究的启示：如果链式中介结果不显著，可以尝试将反刍思维作为调节变量而非中介变量来分析——AI情感依赖对NSSI的影响可能在高反刍者中更强。不过这会改变研究模型，需要跟导师商量"},
+{"id":28,"cat":"nssi","title":"Analysis of the mediating effect of invasive ruminative contemplation on social support and NSSI in depressed patients","source":"Frontiers in Psychiatry","year":"2025","type":"中介效应检验（临床样本）","tags":["抑郁患者","侵入性反刍","社会支持","情绪失调","自我批评"],
+"abstract":"本研究以抑郁患者为样本，探讨了社会支持与非自杀性自伤（NSSI）行为之间的关系，以及侵入性反刍思维的中介作用。结果发现：（1）社会支持与NSSI行为显著负相关，社会支持水平越高的抑郁患者，NSSI行为越少；（2）侵入性反刍思维与NSSI行为显著正相关；（3）侵入性反刍思维在社会支持与NSSI之间起显著中介作用——低社会支持通过增加侵入性反刍思维进而促进NSSI行为；（4）研究还发现，侵入性反刍思维可能通过加剧情绪失调和自我批评来促进NSSI。",
+"insight":"这篇论文的样本是抑郁患者（临床样本），而本研究的样本是普通大学生。虽然样本不同，但\"低社会支持→侵入性反刍→NSSI\"的路径跟本研究的\"AI情感依赖→孤独感→反刍思维→NSSI\"有相似之处——AI情感依赖可能意味着低质量的现实社会支持\n\"侵入性反刍思维\"（intrusive rumination）是反刍思维的一个特定亚型——指不自主地、反复地闯入脑海的消极想法，跟PTSD中的侵入性症状类似。本研究用的RRS量表主要测量的是反刍思维的总体水平，如果需要更精细的测量，可以考虑加入侵入性反刍的测量\n论文提到\"侵入性反刍通过加剧情绪失调和自我批评促进NSSI\"，这提示反刍思维与NSSI之间可能还有其他中介变量（如情绪失调、自我批评）。如果需要扩展模型，可以考虑加入这些变量\n临床样本的研究结果跟大学生样本的结果方向一致，说明\"反刍思维→NSSI\"的路径在不同人群中都存在，具有跨人群的稳定性"},
+{"id":29,"cat":"nssi","title":"非自杀性自伤行为（NSSI）的发病与维持机制（综述）","source":"中国科学院心理研究所机构知识库","year":"2024","type":"权威综述","tags":["DSM-5定义","情绪调节功能","认知因素","人际功能","生物因素","维持机制"],
+"abstract":"本文系统综述了非自杀性自伤（NSSI）的发病与维持机制。根据DSM-5的定义，NSSI是指在没有自杀意图的情况下故意伤害自己身体组织的行为，是个体应对无法忍受的负面情绪或心理压力的一种手段。全球NSSI终生患病率为5%-17%，在青少年和大学生中更高。文章从以下几个方面综述了NSSI的机制：（1）情绪调节功能——NSSI最核心的功能是调节无法忍受的负面情绪，通过身体疼痛带来的强烈感觉来分散注意力、获得短暂的情绪缓解；（2）认知因素——反刍思维、自我批评、无望感等认知因素在NSSI的发生中起重要作用，反刍思维通过加剧负性情绪形成\"情绪级联\"，推动NSSI；（3）人际功能——NSSI也可能具有人际功能，如寻求帮助、沟通痛苦、影响他人；（4）生物因素——疼痛敏感性、内啡肽系统、HPA轴等生物因素与NSSI相关；（5）发展因素——童年创伤、家庭环境、同伴关系等发展因素是NSSI的远端风险因素。文章还综述了NSSI的维持机制，包括强化循环、羞耻感和保密、成瘾特征。",
+"insight":"这是一篇来自中科院心理所的权威综述，系统梳理了NSSI的发病与维持机制，是本研究引言和讨论部分的核心参考文献\n综述提到NSSI的多种功能：情绪调节（最核心）、人际功能（寻求帮助、沟通痛苦）、自我惩罚等。本研究主要关注情绪调节功能（通过反刍思维的路径），在讨论部分可以提到NSSI的其他功能，说明本研究只关注了其中一条路径\n\"反刍思维通过加剧负性情绪形成情绪级联推动NSSI\"——综述直接引用了情绪级联模型，跟本研究的理论基础完全一致\n综述提到NSSI的维持机制（强化循环、羞耻感、成瘾特征），这是本研究没有涉及的——横断面研究只能看NSSI的发生风险，不能看维持机制。在局限部分可以说明，未来研究可以探讨AI情感依赖是否也影响NSSI的维持"},
+{"id":30,"cat":"nssi","title":"Research progress on NSSI addiction, neuroimaging, and evidence-based interventions in adolescents","source":"Frontiers in Psychology","year":"2026","type":"综述","tags":["NSSI成瘾特征","神经影像","DBT一线治疗","奖赏系统"],
+"abstract":"本文综述了青少年非自杀性自伤（NSSI）的成瘾特征、神经影像相关因素和循证干预进展。近年来的研究发现，部分青少年的NSSI具有成瘾特征，包括：（1）渴求（craving）——对自伤行为的强烈渴望；（2）戒断（withdrawal）——停止自伤后出现烦躁、焦虑等戒断症状；（3）耐受性（tolerance）——需要不断增加自伤的强度或频率才能获得同样的缓解效果；（4）失控（loss of control）——无法控制自伤的冲动；（5）尽管知道有害仍继续。神经影像研究发现，NSSI与大脑的奖赏系统、情绪调节系统、疼痛处理系统的功能异常相关，特别是腹侧被盖区（VTA）、伏隔核（NAc）、前额叶皮层（PFC）、杏仁核等脑区。循证干预方面，辩证行为疗法（DBT）是青少年NSSI的一线治疗方法，认知行为疗法（CBT）、基于正念的干预、家庭治疗等也有一定效果。",
+"insight":"这篇综述提到NSSI的成瘾特征——渴求、戒断、耐受性、失控。这跟AI情感依赖的成瘾特征（文献13提到的失控使用、优先性、戒断反应、情感依赖）非常相似！AI情感依赖和NSSI可能共享成瘾机制——都是通过某种行为获得即时缓解/愉悦，然后形成依赖和耐受\n这个相似性可以在讨论部分深入挖掘：AI情感依赖和NSSI可能都是\"行为成瘾\"的不同表现形式，共享相似的心理机制（即时缓解→强化→依赖→耐受→失控）。如果AI情感依赖高的人更容易形成行为成瘾，那么他们也更容易发展出NSSI——这为本研究的假设提供了更深层的理论解释\n神经影像研究发现NSSI与奖赏系统、情绪调节系统的脑区功能异常相关。本研究是行为层面的研究，不涉及神经机制，但可以在展望部分提到，未来研究可以探讨AI情感依赖和NSSI是否共享神经机制\n\"DBT是一线治疗方法\"再次确认，在实践意义部分引用"},
+{"id":31,"cat":"theory","title":"The Emotional Cascade Model and Self-Injury（情绪级联模型与自伤）","source":"Selby, Anestis, & Joiner, 2008","year":"2008","type":"经典理论论文","tags":["情绪级联模型原始文献","负性情绪","反刍思维双向增强","NSSI功能"],
+"abstract":"本文提出了情绪级联模型（Emotional Cascade Model），用以解释非自杀性自伤（NSSI）和其他冲动行为的发生机制。模型的核心假设是：负性情绪触发反刍思维，反刍思维又进一步加剧负性情绪，两者形成双向增强的循环（即\"情绪级联\"）。当情绪级联达到难以忍受的程度时，个体会采取NSSI等冲动行为来打断级联——NSSI提供的强烈身体感觉（疼痛）能够迅速将注意力从反复的消极思维转移到身体感觉上，从而获得短暂的情绪缓解。这种缓解虽然是短期的，但强化了NSSI行为，使个体在未来面对情绪级联时更可能再次采取NSSI，形成恶性循环。模型还提出，情绪级联的严重程度受多种因素影响，包括情绪反应性、情绪调节能力、人格特质（如神经质）、生物因素等。",
+"insight":"这是本研究核心理论基础的原始文献，必须在论文中引用。情绪级联模型是连接\"孤独感→反刍思维→NSSI\"这条路径的理论桥梁\n模型的核心逻辑：负性情绪→反刍→情绪加剧→NSSI（打断级联）。本研究中，AI情感依赖导致孤独感（负性情绪），孤独感触发反刍思维，反刍加剧痛苦，最终推动NSSI——完全符合情绪级联模型\n模型强调NSSI的功能是\"打断情绪级联、获得短暂缓解\"，这解释了为什么NSSI会被维持——因为它确实有效（短期），所以被强化。在讨论部分可以引用这个观点\n模型提到情绪级联受\"情绪反应性、情绪调节能力、人格特质\"等因素影响，这些可以作为本研究未来可以加入的调节变量"},
+{"id":32,"cat":"theory","title":"The Impact of Response Styles on Depression（反应风格对抑郁的影响）","source":"Nolen-Hoeksema & Morrow, 1991","year":"1991","type":"经典理论+量表开发","tags":["反刍思维理论原始文献","RRS量表开发","反刍vs分心","Loma Prieta地震"],
+"abstract":"本文由反刍思维理论的提出者Nolen-Hoeksema完成，提出了反刍思维的反应风格理论，并开发了反刍思维量表（Ruminative Responses Scale, RRS）。理论的核心观点是：个体在面对抑郁情绪时，会采用不同的反应风格——反刍（rumination）和分心（distraction）。反刍是指被动地、反复地关注自己的抑郁症状及其原因和后果，如反复想\"我为什么这么难过\"\"我的生活一团糟\"。分心是指主动参与能够转移注意力的活动，如运动、社交、工作。理论假设，反刍思维会延长和加重抑郁发作，因为反刍使个体持续关注负面信息，激活负面记忆，削弱问题解决能力和社会支持寻求。分心则会缩短抑郁发作，因为它打断了负面思维循环。Nolen-Hoeksema和Morrow在1989年Loma Prieta地震后进行了一项前瞻性研究，发现地震前的反刍思维水平显著预测地震后的抑郁和创伤后应激症状。RRS量表包含22题，具有良好的信效度。",
+"insight":"这是反刍思维理论和RRS量表的原始文献，本研究使用RRS量表测量反刍思维，必须引用这篇论文\nNolen-Hoeksema的反应风格理论区分了\"反刍\"和\"分心\"两种反应风格，本研究关注的是反刍思维的负面影响。在讨论部分可以提到，培养分心策略（如运动、社交）可能是减少反刍思维负面影响的有效方法\n论文的前瞻性研究设计（地震前测→地震后测）是自然实验设计的经典范例，说明反刍思维可以预测后续的抑郁症状——支持了反刍思维作为前因变量的因果方向\nRRS量表最初是为测量抑郁相关的反刍开发的，后来Treynor等人（2003）将其修订为包含强迫思考（brooding）和反省深思（reflective pondering）两个维度。本研究可以使用原始22题版本或修订版，需要在论文中说明使用的是哪个版本"},
+{"id":33,"cat":"theory","title":"A Short Scale for Measuring Loneliness: The UCLA Loneliness Scale-6 (ULS-6)","source":"Hughes, Waite, Hawkley, & Cacioppo, 2004","year":"2004","type":"量表开发","tags":["ULS-6孤独感量表","简版量表","6题","Cacioppo"],
+"abstract":"本文开发了UCLA孤独感量表的简版（ULS-6），用于在大规模调查和时间有限的研究中高效测量孤独感。原始UCLA孤独感量表（ULS-20）包含20题，虽然信效度良好，但在大规模调查中答题负担较重。研究者从原始量表中筛选出6个最具代表性的题项，形成ULS-6简版。通过在大样本中验证，发现ULS-6具有良好的信度（Cronbach's α≈0.80）和效度，与原始20题版本的相关高达0.90以上，与抑郁、社会支持、健康状况等效标变量的相关模式与原始版本一致。ULS-6采用Likert 4点计分（1=从不，4=经常），总分越高表示孤独感越强。",
+"insight":"这是本研究使用的ULS-6孤独感量表的原始文献，必须引用\nULS-6只有6题，答题负担小，适合本科毕业论文的问卷设计——学生填起来快，回收率高\n论文提到ULS-6与原始20题版本相关0.90以上，说明简版可以可靠地替代完整版，在论文方法部分可以引用这个数据来证明使用简版的合理性\nCacioppo是孤独感研究的权威学者（芝加哥大学，孤独感神经科学研究先驱），引用他的论文增强了测量工具的权威性"},
+{"id":34,"cat":"theory","title":"Social Compensation Hypothesis: The Internet and Social Relationships","source":"McKenna, Green, & Gleason, 2002","year":"2002","type":"经典理论论文","tags":["社会补偿假说原始文献","现实社交劣势","线上社交","越补偿越孤独"],
+"abstract":"本文提出了社会补偿假说（Social Compensation Hypothesis），用以解释互联网使用与社会关系之间的关系。假说的核心观点是：在现实社交中处于劣势或感到不满足的个体（如社交焦虑者、孤独者、少数群体成员），会转向互联网来补偿现实社交的不足。互联网提供了一个低风险、高控制感的社交环境——匿名性减少了被拒绝的焦虑，异步交流给了个体更多思考和组织回应的时间，兴趣导向的社区让个体更容易找到\"同类\"。通过互联网，这些在现实中社交困难的个体可以建立有意义的社会关系，获得社会支持和归属感。然而，社会补偿假说也指出了潜在风险：如果互联网社交完全替代了现实社交，个体可能会进一步减少现实社交投入，导致现实社交技能退化和现实人际关系疏离，形成\"越补偿越孤独\"的恶性循环。",
+"insight":"这是社会补偿假说的原始文献，本研究的理论基础之一。AI情感依赖可以看作社会补偿假说在AI时代的新形式——在现实社交中感到不满足的大学生，转向AI寻求情感补偿\n假说的核心逻辑：现实社交不足→转向线上/AI补偿→短期获得情感满足→但可能减少现实社交→长期加剧孤独。这完全支持本研究的\"AI情感依赖→孤独感升高\"的路径假设\n假说提到\"低风险、高控制感\"是线上社交的吸引力——AI比人类社交更\"低风险\"（永远不会拒绝、评判、生气），\"高控制感\"（随时开始、随时结束、想聊什么聊什么），所以AI的情感补偿吸引力可能比传统互联网社交更强\n\"越补偿越孤独\"的恶性循环，是本研究讨论部分的核心论点之一——AI情感依赖不仅不能解决孤独，反而可能通过减少现实社交来加剧孤独"},
+{"id":35,"cat":"theory","title":"Problematic Internet Use and Mental Health: A Review and Theoretical Integration","source":"Brand et al., 2019","year":"2019","type":"理论框架综述","tags":["问题性互联网使用","认知-行为模型","易感因素","强化机制","行为成瘾"],
+"abstract":"本文综述了问题性互联网使用（Problematic Internet Use, PIU）与心理健康的关系，并提出了一个整合的理论框架——\"认知-行为模型的问题性互联网使用\"。模型的核心要素包括：（1）易感因素——如心理症状（抑郁、焦虑、孤独）、人格特质（神经质、冲动性）、认知偏差（对互联网使用的积极预期、对现实社交的消极预期）；（2）触发因素——如压力事件、负性情绪、社交困难；（3）使用行为——在触发因素作用下，易感个体通过互联网使用来应对负面情绪，获得即时缓解；（4）强化机制——互联网使用带来的即时缓解（负强化）和愉悦感（正强化）使使用行为被强化，逐渐形成习惯；（5）有害后果——过度使用导致现实功能受损（学业、社交、健康），进一步加剧心理症状，形成恶性循环。模型特别强调了\"认知偏差\"的作用——问题性使用者对互联网使用持有不切实际的积极预期。",
+"insight":"这篇论文提供了问题性技术使用的通用理论框架，AI情感依赖可以看作问题性互联网使用在AI时代的新形式。在引言部分可以引用这个框架，说明AI情感依赖跟传统的问题性互联网使用共享相似的心理机制\n模型的\"易感因素→触发因素→使用行为→强化→有害后果\"的链条，可以用来解释AI情感依赖的形成和维持——孤独/抑郁的大学生（易感）在面对压力时（触发）通过AI获得情感安慰（使用），即时安慰强化了使用行为（强化），过度依赖导致现实社交退缩和NSSI等有害后果（后果）\n模型强调\"认知偏差\"的作用——\"只有AI能理解我\"\"现实社交太危险\"等认知偏差维持了AI情感依赖。在讨论部分可以提到，干预AI情感依赖需要挑战这些认知偏差\n论文建议将问题性技术使用纳入\"行为成瘾\"框架，跟文献30中NSSI的成瘾特征对应——AI情感依赖和NSSI可能都是行为成瘾的不同表现，共享相似的强化机制"},
+{"id":36,"cat":"ai","title":"生成式人工智能依赖的双路径解构与悖论揭示","source":"情报杂志","year":"2026","type":"理论分析","tags":["生成式AI依赖","双路径","悖论","认知卸载"],
+"abstract":"本文从双路径视角解构了生成式人工智能依赖的形成机制，揭示了AI使用中的悖论性现象。研究区分了\"工具性依赖\"和\"情感性依赖\"两条路径：工具性依赖表现为认知卸载和效率追求，情感性依赖表现为情感陪伴和人际替代。论文指出，生成式AI依赖存在多重悖论——效率提升与能力退化并存、情感满足与孤独加剧并存、个性化服务与认知窄化并存。研究认为，AI依赖不是单一维度的构念，需要从多维度进行测量和干预。",
+"insight":"这篇论文提出的\"工具性依赖vs情感性依赖\"双路径区分，跟本研究关注的\"情感依赖\"直接对应——本研究的CAIDS-20量表主要测量的是情感性依赖（心境改变、戒断症状等维度）\n\"效率提升与能力退化并存\"\"情感满足与孤独加剧并存\"的悖论表述，可以在论文讨论部分引用，说明AI情感依赖的双面性\n论文强调AI依赖是多维度构念，支持本研究使用多维度量表（CAIDS-20有4个维度）而非单一测量\n发表在《情报杂志》（CSSCI来源期刊），是图书情报领域对AI依赖的理论探讨，可以作为跨学科引用","cnkiUrl":"https://kns.cnki.net/kns8s/defaultresult/index?kw=生成式人工智能依赖的双路径解构与悖论揭示"},
+{"id":37,"cat":"ai","title":"人工智能依赖影响大学生学业适应：学业自我效能感和学业焦虑的链式中介作用","source":"中国健康心理学杂志","year":"2026","type":"横断面·链式中介","tags":["AI依赖","学业适应","学业自我效能感","学业焦虑","链式中介"],
+"abstract":"本研究探讨了人工智能依赖对大学生学业适应的影响，以及学业自我效能感和学业焦虑的链式中介作用。采用横断面调查设计，使用人工智能依赖量表、学业自我效能感量表、学业焦虑量表和学业适应量表收集数据。结果发现：（1）人工智能依赖与学业适应显著负相关；（2）学业自我效能感和学业焦虑在人工智能依赖与学业适应之间起链式中介作用——AI依赖通过降低学业自我效能感，进而增加学业焦虑，最终损害学业适应。研究结论认为，过度依赖AI可能通过削弱学生的能力感和增加焦虑来影响学业表现。",
+"insight":"这篇论文跟本研究方法高度一致——都是\"AI依赖→中介1→中介2→因变量\"的链式中介模型，只是中介变量和因变量不同。可以作为方法学参考\n论文发现\"AI依赖→自我效能感降低→焦虑增加→适应不良\"的路径，跟本研究的\"AI依赖→孤独感→反刍思维→NSSI\"路径结构相似，都是AI依赖通过心理中介影响负面结果\n发表在《中国健康心理学杂志》（科技核心），是国内心理学领域的正规期刊\n论文的自变量是\"人工智能依赖\"（更宽泛），本研究的自变量是\"AI情感依赖\"（更聚焦情感维度），在讨论部分可以说明这一差异","cnkiUrl":"https://kns.cnki.net/kns8s/defaultresult/index?kw=人工智能依赖影响大学生学业适应学业自我效能感和学业焦虑的链式中介作用"},
+{"id":38,"cat":"ai","title":"人工智能依赖问卷的编制及其信效度检验","source":"心理学探新","year":"2025","type":"量表开发","tags":["AI依赖量表","信效度检验","问卷编制","认知依赖","情感依赖"],
+"abstract":"本研究旨在编制适用于中国人群的人工智能依赖问卷，并检验其信效度。通过文献综述、开放式访谈和专家评定形成初始题项，经过预调查和正式调查，通过项目分析、探索性因子分析和验证性因子分析确定最终量表结构。结果显示，人工智能依赖问卷包含多个维度（如认知依赖、情感依赖、行为依赖等），具有良好的内部一致性信度、重测信度和结构效度。效标效度分析显示，量表总分与手机依赖、网络成瘾、抑郁、焦虑等变量呈显著正相关。研究结论认为，该问卷可以作为测量人工智能依赖程度的有效工具。",
+"insight":"这是国内另一个AI依赖量表（除了CAIDS-20之外），可以在论文方法部分跟CAIDS-20对照说明——本研究选用CAIDS-20是因为它专门针对\"对话式AI\"和\"大学生\"群体，而此量表可能更通用\n论文提到AI依赖包含\"认知依赖、情感依赖、行为依赖\"等维度，跟CAIDS-20的4维度（不可控性、戒断症状、心境改变、负面影响）有交叉但不完全相同，说明AI依赖的维度结构尚未完全统一\n发表在《心理学探新》（CSSCI扩展版），是心理学领域的正规期刊\n如果导师质疑CAIDS-20的权威性，可以引用这篇论文说明国内已有多个AI依赖量表，AI依赖作为构念已被国内心理学界认可","cnkiUrl":"https://kns.cnki.net/kns8s/defaultresult/index?kw=人工智能依赖问卷的编制及其信效度检验"},
+{"id":39,"cat":"ai","title":"人工智能依赖评估工具的研究进展及护理启示","source":"护理学杂志","year":"2026","type":"综述","tags":["AI依赖评估","综述","护理干预","测量工具"],
+"abstract":"本文综述了人工智能依赖评估工具的研究进展，梳理了现有AI依赖相关量表的类型、维度和信效度，并讨论了对护理实践的启示。文章指出，随着AI技术的快速普及，AI依赖已成为一个新兴的公共心理健康问题，但目前评估工具尚不完善，存在概念不统一、维度不一致、文化适用性不足等问题。文章建议未来研究应开发更具针对性的AI依赖评估工具，并在护理实践中关注AI依赖高风险人群的早期识别和干预。",
+"insight":"这篇综述指出\"AI依赖评估工具尚不完善，概念不统一、维度不一致\"——这既是本研究的挑战（用哪个量表），也是本研究的机会（用较新的CAIDS-20量表有时效性）\n文章提到AI依赖是\"新兴的公共心理健康问题\"，可以在引言中引用，说明研究的现实意义\n护理视角的综述提示，AI依赖不仅是心理学问题，也是临床护理和公共卫生问题——跟导师的精神病/临床背景契合\n在局限部分可以引用这篇综述，说明AI依赖测量工具尚在发展中，本研究使用的CAIDS-20需要更多验证","cnkiUrl":"https://kns.cnki.net/kns8s/defaultresult/index?kw=人工智能依赖评估工具的研究进展及护理启示"},
+{"id":40,"cat":"ai","title":"焦虑、依赖还是高效利用？——人工智能使用行为对学业表现的分化影响","source":"开放教育研究","year":"2026","type":"实证研究","tags":["AI使用行为","分化影响","焦虑","依赖","高效利用"],
+"abstract":"本研究探讨了人工智能使用行为对大学生学业表现的分化影响，区分了\"焦虑型使用\"\"依赖型使用\"和\"高效利用型使用\"三种模式。结果发现，不同使用模式对学业表现的影响存在显著差异：高效利用型使用正向预测学业表现，而焦虑型和依赖型使用负向预测学业表现。研究还发现，AI使用焦虑和AI依赖在AI使用与学业表现之间起中介作用。研究结论认为，AI对学业的影响取决于使用方式，不能简单地说\"AI有益\"或\"AI有害\"，关键在于引导学生形成高效利用的使用模式。",
+"insight":"这篇论文区分了\"焦虑型、依赖型、高效利用型\"三种AI使用模式，跟本研究关注的\"情感依赖\"对应——依赖型使用是其中一种负面模式\n\"AI对学业的影响取决于使用方式\"这个结论，跟本研究的逻辑一致——AI本身不是问题，过度情感依赖才是问题。在讨论部分可以引用这个观点\n发表在《开放教育研究》（CSSCI），是教育技术领域的权威期刊\n论文提示，在测量AI情感依赖时，要跟一般的AI使用区分开——本研究用CAIDS-20量表（专门测依赖）而非使用频率，正是基于这个考虑","cnkiUrl":"https://kns.cnki.net/kns8s/defaultresult/index?kw=焦虑依赖还是高效利用人工智能使用行为对学业表现的分化影响"},
+{"id":41,"cat":"ai","title":"AI依赖与民族地区大学生自我效能感的关系研究——基于青海民族大学读写场景的实证分析","source":"考试研究","year":"2026","type":"横断面","tags":["AI依赖","自我效能感","民族地区","读写场景"],
+"abstract":"本研究以青海民族大学学生为样本，探讨了AI依赖与大学生自我效能感之间的关系，聚焦于读写场景中的AI使用。结果发现，AI依赖与自我效能感呈显著负相关，AI依赖程度越高的学生，自我效能感越低。研究还发现，不同民族、不同年级的学生在AI依赖程度上存在差异。研究结论认为，过度依赖AI完成读写任务可能削弱学生的自我效能感，建议引导学生合理使用AI工具。",
+"insight":"这篇论文发现\"AI依赖与自我效能感负相关\"，跟文献14（AI依赖→自尊降低→心理痛苦）的发现一致，说明AI依赖可能通过降低自我评价来影响心理健康\n样本来自民族地区（青海），跟本研究的样本（江西九江）不同，在讨论部分可以提到地域和文化差异\n聚焦\"读写场景\"的AI使用，而本研究关注的是更广泛的\"情感依赖\"，可以在讨论部分说明AI依赖的场景特异性\n\"AI依赖削弱自我效能感\"的发现，可以跟本研究的\"AI依赖→孤独感\"路径并列，说明AI依赖影响心理健康的多条可能路径","cnkiUrl":"https://kns.cnki.net/kns8s/defaultresult/index?kw=AI依赖与民族地区大学生自我效能感的关系研究"},
+{"id":42,"cat":"ai","title":"生成式人工智能工具依赖对高职生批判性思维的影响：认知卸载的中介作用研究","source":"潍坊工程职业学院学报","year":"2026","type":"横断面·中介","tags":["生成式AI依赖","批判性思维","认知卸载","中介作用"],
+"abstract":"本研究探讨了生成式人工智能工具依赖对高职生批判性思维的影响，以及认知卸载的中介作用。结果发现：（1）生成式AI工具依赖与批判性思维显著负相关；（2）认知卸载在AI工具依赖与批判性思维之间起中介作用——过度依赖AI导致认知卸载增加，进而削弱批判性思维能力。研究结论认为，过度依赖生成式AI工具可能通过减少深度思考来损害学生的批判性思维能力。",
+"insight":"这篇论文做了\"AI依赖→认知卸载→批判性思维下降\"的中介，跟本研究的\"AI依赖→孤独感→反刍思维→NSSI\"路径不同，但都说明了AI依赖的负面后果\n\"认知卸载\"是AI依赖的一个重要机制——把思考任务外包给AI，导致独立思考能力下降。在讨论部分可以提到，AI情感依赖可能也涉及\"情感卸载\"——把情感调节任务外包给AI，导致情感调节能力下降\n样本是高职生，跟本研究的本科生样本不同，可以在讨论部分说明\n论文的中介模型设计跟本研究类似，可以作为方法学参考","cnkiUrl":"https://kns.cnki.net/kns8s/defaultresult/index?kw=生成式人工智能工具依赖对高职生批判性思维的影响认知卸载的中介作用"},
+{"id":43,"cat":"ai","title":"大学生AI依赖与学习倦怠的网络分析：认知卸载的风险与情感依赖的保护作用","source":"空军军医大学学报","year":"2026","type":"横断面·网络分析","tags":["AI依赖","学习倦怠","网络分析","认知卸载","情感依赖"],
+"abstract":"本研究采用网络分析方法，探讨了大学生AI依赖与学习倦怠之间的关系，特别区分了认知卸载和情感依赖两个维度的不同作用。结果发现：（1）AI依赖的认知卸载维度与学习倦怠显著正相关，是学习倦怠的风险因素；（2）AI依赖的情感依赖维度与学习倦怠呈负相关或关联不显著，可能具有一定的保护作用；（3）网络分析揭示了AI依赖各维度与学习倦怠各维度之间的复杂关联模式。研究结论认为，AI依赖的不同维度对心理健康的影响可能不同，不能一概而论。",
+"insight":"这篇论文非常重要！它直接区分了\"认知卸载\"和\"情感依赖\"两个维度，发现情感依赖可能有保护作用——这跟本研究假设的\"情感依赖有负面影响\"形成张力，需要在讨论部分认真对待\n论文用了网络分析方法（Network Analysis），比传统的中介分析更精细，可以展示变量间的复杂关联。如果老师觉得本研究的链式中介不够新颖，可以考虑加做网络分析\n\"情感依赖的保护作用\"可能是因为：用AI寻求情感安慰的学生，至少在主动寻求情感支持，而不是完全压抑情绪。但本研究关注的是\"过度情感依赖\"的负面影响，两者可能是程度差异\n发表在《空军军医大学学报》，是医学领域的正规期刊","cnkiUrl":"https://kns.cnki.net/kns8s/defaultresult/index?kw=大学生AI依赖与学习倦怠的网络分析认知卸载的风险与情感依赖的保护作用","star":true},
+{"id":44,"cat":"ai","title":"人机协作中的认知依赖对知识型员工创造力的影响","source":"中国人力资源开发","year":"2026","type":"实证研究","tags":["认知依赖","人机协作","创造力","知识型员工"],
+"abstract":"本研究探讨了人机协作情境中认知依赖对知识型员工创造力的影响。结果发现，认知依赖对员工创造力有显著负向影响，过度依赖AI进行认知任务会削弱员工的创造性思维能力。研究还发现，任务复杂性和AI透明度在其中起调节作用。研究结论认为，在人机协作中应保持适度的人类认知参与，避免过度依赖AI导致创造力下降。",
+"insight":"这篇论文关注的是\"认知依赖\"而非\"情感依赖\"，跟本研究的角度不同，但都说明了AI依赖的负面影响\n样本是知识型员工而非大学生，在讨论部分可以说明AI依赖在不同人群中都有负面后果\n\"任务复杂性和AI透明度的调节作用\"提示，如果本研究需要加调节变量，可以考虑AI使用的任务类型或AI的透明度\n发表在《中国人力资源开发》（CSSCI扩展版），是管理领域的期刊","cnkiUrl":"https://kns.cnki.net/kns8s/defaultresult/index?kw=人机协作中的认知依赖对知识型员工创造力的影响"},
+{"id":45,"cat":"ai","title":"敬畏特质促进人机共创的心理机制——AI焦虑的并联中介与依赖的差异化边界","source":"湘南学院学报","year":"2026","type":"实证研究","tags":["敬畏特质","人机共创","AI焦虑","依赖","调节"],
+"abstract":"本研究探讨了敬畏特质对人机共创的影响机制，检验了AI焦虑的中介作用和AI依赖的调节作用。结果发现：（1）敬畏特质正向预测人机共创意愿；（2）AI焦虑在敬畏特质与人机共创之间起中介作用；（3）AI依赖调节了中介路径的后半段，高AI依赖者中AI焦虑对人机共创的影响更强。研究结论认为，个体的人格特质和心理状态在AI使用中起重要作用。",
+"insight":"这篇论文将\"AI依赖\"作为调节变量（而非自变量），说明AI依赖在不同研究中可以扮演不同角色\n\"AI焦虑\"作为中介变量是一个有趣的角度——对AI的焦虑可能影响AI使用行为。如果本研究需要扩展，可以考虑AI焦虑作为前因变量或控制变量\n论文的\"并联中介\"和\"差异化边界\"的表述比较复杂，本科论文不需要这么复杂的模型\n敬畏特质跟本研究无关，但AI依赖作为调节变量的思路可以借鉴——比如AI依赖可能调节孤独感与NSSI的关系","cnkiUrl":"https://kns.cnki.net/kns8s/defaultresult/index?kw=敬畏特质促进人机共创的心理机制AI焦虑的并联中介与依赖的差异化边界"},
+{"id":46,"cat":"ai","title":"AI与情感依恋:心理机制、发展影响与学科建构——一项跨学科的整合性分析","source":"跨学科研究","year":"2026","type":"理论综述","tags":["AI情感依恋","心理机制","跨学科","发展影响"],
+"abstract":"本文从跨学科视角系统分析了人与AI之间情感依恋的心理机制、发展影响和学科建构。文章整合了心理学、传播学、计算机科学等多学科视角，探讨了AI情感依恋的形成机制（包括拟人化感知、社会回应性、依恋系统激活等）、对个体发展的影响（包括社交能力、情感调节、自我认同等方面），以及该领域的学科建构方向。研究指出，AI情感依恋是数字时代的新现象，需要建立跨学科的研究框架。",
+"insight":"这篇论文是AI情感依恋领域的跨学科整合性分析，跟本研究的\"AI情感依赖\"概念高度相关——情感依恋是情感依赖的前置心理状态\n论文提到的\"拟人化感知、社会回应性、依恋系统激活\"等形成机制，可以在引言中用来解释为什么大学生会对AI产生情感依赖\n\"跨学科研究框架\"的提法，说明AI情感依恋/依赖是一个新兴的交叉领域，本研究作为心理学视角的研究有其价值\n如果导师问\"AI情感依赖的理论基础是什么\"，可以引用这篇论文说明该领域已有跨学科的理论探讨","cnkiUrl":"https://kns.cnki.net/kns8s/defaultresult/index?kw=AI与情感依恋心理机制发展影响与学科建构","star":true},
+{"id":47,"cat":"ai","title":"基于信念更新理论的陪伴式AI用户隐私披露行为演化机理研究","source":"情报理论与实践","year":"2026","type":"理论模型","tags":["陪伴式AI","隐私披露","信念更新理论","用户行为"],
+"abstract":"本研究基于信念更新理论，探讨了陪伴式AI用户隐私披露行为的演化机理。研究发现，陪伴式AI的情感互动特征会影响用户的信任信念和风险感知，进而影响其隐私披露行为。随着使用时间延长，用户对AI的情感依赖加深，隐私披露意愿增强，但隐私风险感知可能降低。研究构建了陪伴式AI用户隐私披露行为的动态演化模型。",
+"insight":"这篇论文关注陪伴式AI用户的行为，跟本研究的AI情感依赖相关——情感依赖会影响用户的认知和行为决策\n\"情感依赖加深→隐私披露意愿增强→风险感知降低\"的发现，说明AI情感依赖会影响用户的判断和决策，这跟本研究中\"AI依赖→孤独感→反刍→NSSI\"的逻辑一致——情感依赖会改变心理过程\n发表在《情报理论与实践》（CSSCI），是图书情报领域的权威期刊\n隐私披露跟本研究的NSSI无关，但\"情感依赖影响认知和行为\"的机制可以类比","cnkiUrl":"https://kns.cnki.net/kns8s/defaultresult/index?kw=基于信念更新理论的陪伴式AI用户隐私披露行为演化机理研究"},
+{"id":48,"cat":"ai","title":"AI聊天机器人对顾客情感依恋的影响——以冈比亚酒店业为例","source":"武汉工程大学","year":"2025","type":"硕士论文","tags":["AI聊天机器人","情感依恋","酒店业","顾客行为"],
+"abstract":"本研究以冈比亚酒店业为背景，探讨了AI聊天机器人对顾客情感依恋的影响。研究发现，AI聊天机器人的服务质量、回应性和拟人化特征显著正向预测顾客对AI的情感依恋，而情感依恋进而影响顾客的满意度和忠诚度。研究还发现，顾客的技术 readiness 在其中起调节作用。",
+"insight":"这篇论文研究的是商业场景中的AI情感依恋（顾客对酒店AI聊天机器人），跟本研究的大学生对通用AI的情感依赖场景不同，但情感依恋的形成机制（服务质量、回应性、拟人化）是相通的\n硕士论文，结构完整，可以作为写作参考\n\"情感依恋→满意度/忠诚度\"的路径跟本研究的\"情感依赖→孤独感→NSSI\"路径不同——商业场景中情感依恋有正面结果，而本研究关注负面结果，说明情感依恋的后果取决于场景和程度\n拟人化特征是情感依恋的重要前因，可以在引言中解释为什么大语言模型（富有表达力、对话式）容易引发情感依赖","cnkiUrl":"https://kns.cnki.net/kns8s/defaultresult/index?kw=AI聊天机器人对顾客情感依恋的影响"},
+{"id":49,"cat":"ai","title":"人机交往中的虚拟亲密关系研究","source":"湘潭大学","year":"2025","type":"硕士论文","tags":["虚拟亲密关系","人机交往","情感依赖","准社会互动"],
+"abstract":"本研究探讨了人机交往中的虚拟亲密关系现象，分析了人与AI之间形成虚拟亲密关系的心理机制、表现形式和社会影响。研究发现，虚拟亲密关系的形成涉及情感投射、准社会互动、自我表露等心理过程，用户在与AI的互动中获得情感满足和陪伴感。研究还讨论了虚拟亲密关系对现实人际关系和个体心理健康的潜在影响。",
+"insight":"这篇论文直接研究\"人机虚拟亲密关系\"，跟本研究的\"AI情感依赖\"概念高度重叠——虚拟亲密关系是情感依赖的关系形态\n论文提到的\"情感投射、准社会互动、自我表露\"等心理过程，可以在引言中用来解释AI情感依赖的形成机制\n\"虚拟亲密关系对现实人际关系的影响\"跟本研究的\"AI依赖→现实社交退缩→孤独感\"路径一致\n硕士论文，文献综述部分可能比较全面，可以参考其对人机情感关系文献的梳理","cnkiUrl":"https://kns.cnki.net/kns8s/defaultresult/index?kw=人机交往中的虚拟亲密关系研究"},
+{"id":50,"cat":"ai","title":"社交焦虑对人机关系的影响——一个有调节的中介检验","source":"海南师范大学学报(社会科学版)","year":"2026","type":"实证研究","tags":["社交焦虑","人机关系","中介","调节"],
+"abstract":"本研究探讨了社交焦虑对人机关系的影响，检验了有调节的中介模型。结果发现，社交焦虑显著正向预测个体对AI的情感依赖和人机关系深度，孤独感在其中起中介作用，而个体的依恋风格起调节作用。研究结论认为，社交焦虑高的个体更倾向于通过AI建立情感关系，以补偿现实社交中的困难。",
+"insight":"这篇论文跟本研究高度相关！它发现\"社交焦虑→孤独感→AI情感依赖\"的路径，跟本研究的\"AI情感依赖→孤独感→反刍→NSSI\"方向相反但变量重叠——说明AI依赖与孤独感之间可能存在双向循环\n论文的\"社交焦虑高的人更倾向于用AI补偿社交困难\"直接支持了社会补偿假说，跟本研究的理论基础一致\n如果本研究需要加控制变量，社交焦虑是一个重要的控制变量——因为社交焦虑高的人既可能更依赖AI，也可能更容易有NSSI\n有调节的中介模型设计跟本研究的链式中介不同，可以作为方法学参考","cnkiUrl":"https://kns.cnki.net/kns8s/defaultresult/index?kw=社交焦虑对人机关系的影响一个有调节的中介检验"},
+{"id":51,"cat":"ai","title":"社交媒体情感依赖和大学生人际科技干扰与问题性社交网络使用的关系：错失焦虑与孤独感的中介作用","source":"陕西师范大学","year":"2022","type":"硕士论文","tags":["社交媒体情感依赖","孤独感中介","错失焦虑","问题性使用"],
+"abstract":"本研究探讨了社交媒体情感依赖与大学生人际科技干扰、问题性社交网络使用之间的关系，以及错失焦虑和孤独感的中介作用。结果发现：（1）社交媒体情感依赖与人际科技干扰、问题性社交网络使用显著正相关；（2）错失焦虑和孤独感在社交媒体情感依赖与问题性社交网络使用之间起中介作用；（3）社交媒体情感依赖通过增加错失焦虑和孤独感，进而增加问题性社交网络使用。",
+"insight":"这篇论文研究的是\"社交媒体情感依赖\"而非\"AI情感依赖\"，但两者都是\"技术平台的情感依赖\"，机制可以类比\n论文发现\"情感依赖→孤独感→问题性使用\"的路径，跟本研究的\"AI情感依赖→孤独感→反刍思维→NSSI\"有重叠——孤独感都是情感依赖的重要后果\n\"错失焦虑\"（FoMO）是一个有趣的变量，如果本研究需要扩展，可以考虑加入错失焦虑作为另一个中介\n硕士论文，量表使用和数据分析部分可以参考","cnkiUrl":"https://kns.cnki.net/kns8s/defaultresult/index?kw=社交媒体情感依赖和大学生人际科技干扰与问题性社交网络使用的关系错失焦虑与孤独感的中介作用"},
+{"id":52,"cat":"ai","title":"生成式人工智能(AI)相关精神障碍的研究进展(综述)","source":"中国健康心理学杂志","year":"2026","type":"综述","tags":["AI相关精神障碍","综述","心理健康","风险"],
+"abstract":"本文综述了生成式人工智能相关精神障碍的研究进展，系统梳理了AI使用可能引发或加重的精神健康问题，包括AI依赖/成瘾、AI相关焦虑、AI诱发的情感障碍、AI相关的身份认同问题等。文章讨论了AI相关精神障碍的流行病学特征、临床表现、风险因素和干预策略，并指出该领域目前研究不足，需要更多实证研究。文章特别强调，AI的情感互动能力可能导致用户产生过度依赖和情感卷入，进而影响心理健康。",
+"insight":"这篇综述非常重要！它直接将\"AI依赖\"列为\"AI相关精神障碍\"的一种，为本研究的现实意义提供了权威支持\n论文提到\"AI的情感互动能力可能导致过度依赖和情感卷入\"，直接支持本研究关注\"AI情感依赖\"的合理性\n综述指出\"该领域目前研究不足，需要更多实证研究\"——这正是本研究的创新点所在\n发表在《中国健康心理学杂志》（科技核心），是国内心理健康领域的正规期刊\n在引言中可以引用这篇综述，说明AI情感依赖是一个新兴的心理健康问题，需要更多研究","cnkiUrl":"https://kns.cnki.net/kns8s/defaultresult/index?kw=生成式人工智能相关精神障碍的研究进展"},
+{"id":53,"cat":"ai","title":"人工智能技术在大学生心理健康服务中的应用","source":"中国学校卫生","year":"2026","type":"综述","tags":["AI心理健康服务","大学生","应用","干预"],
+"abstract":"本文综述了人工智能技术在大学生心理健康服务中的应用现状，包括AI心理测评、AI心理咨询、AI心理危机预警、AI心理健康教育等方面。文章分析了AI技术在心理健康服务中的优势（如可及性、匿名性、即时性）和局限（如情感理解不足、伦理风险、依赖风险），并指出AI技术可以作为传统心理健康服务的补充，但不能替代专业心理咨询。文章特别提到，过度依赖AI进行情感支持可能导致用户的现实社交能力退化。",
+"insight":"这篇综述从\"AI在心理健康服务中的应用\"角度讨论了AI的双面性，跟本研究关注的\"AI情感依赖的负面影响\"形成呼应\n\"过度依赖AI进行情感支持可能导致现实社交能力退化\"的观点，跟本研究的\"AI依赖→孤独感\"路径一致\n发表在《中国学校卫生》（北大核心+CSCD），是学校卫生领域的权威期刊\n在讨论部分可以引用这篇综述，说明AI在心理健康领域的应用需要警惕依赖风险","cnkiUrl":"https://kns.cnki.net/kns8s/defaultresult/index?kw=人工智能技术在大学生心理健康服务中的应用"},
+{"id":54,"cat":"ai","title":"生成式AI工作重塑对员工职场孤独感的影响研究","source":"湖北工业大学","year":"2026","type":"硕士论文","tags":["生成式AI","职场孤独感","工作重塑","员工"],
+"abstract":"本研究探讨了生成式AI工作重塑对员工职场孤独感的影响。结果发现，生成式AI的工作重塑效应（包括任务重构、技能重构和关系重构）对员工职场孤独感有显著影响，其中关系重构维度与职场孤独感的关联最为密切——AI替代了部分人际互动，导致员工的职场社交减少，孤独感增加。研究还发现，员工的AI使用态度和组织支持感在其中起调节作用。",
+"insight":"这篇论文研究的是职场场景中的AI与孤独感，跟本研究的大学生场景不同，但\"AI替代人际互动→孤独感增加\"的机制是相通的\n\"关系重构\"维度跟本研究的\"AI情感依赖→现实社交退缩→孤独感\"路径一致\n硕士论文，研究设计和量表使用可以参考\n如果导师问\"AI依赖为什么会导致孤独感\"，可以引用这篇论文的\"关系重构\"机制——AI替代了现实人际互动，导致社交减少和孤独感增加","cnkiUrl":"https://kns.cnki.net/kns8s/defaultresult/index?kw=生成式AI工作重塑对员工职场孤独感的影响研究"},
+{"id":55,"cat":"ai","title":"大语言模型干预网络欺凌受害者心理韧性：以自尊自悯为靶点","source":"心理学报","year":"2026","type":"干预研究","tags":["大语言模型","心理干预","心理韧性","自尊自悯","网络欺凌"],
+"abstract":"本研究探讨了大语言模型（LLM）对网络欺凌受害者心理韧性的干预效果，以自尊和自悯为干预靶点。采用随机对照试验设计，将网络欺凌受害者随机分配到LLM干预组和对照组，干预组接受基于LLM的心理干预。结果发现，LLM干预组的心理韧性、自尊和自悯水平显著提升，抑郁和焦虑水平显著下降。研究结论认为，大语言模型可以作为有效的心理干预工具，帮助网络欺凌受害者提升心理韧性。",
+"insight":"这篇论文发表在《心理学报》（国内心理学顶刊，CSSCI+CSCD），是国内心理学领域的最高级别期刊\n论文展示了大语言模型在心理干预中的正面作用，跟本研究关注的\"AI情感依赖的负面影响\"形成对比——AI本身是中性的，关键在于使用方式\n\"以自尊自悯为靶点\"的干预思路，如果本研究需要讨论干预启示，可以参考\n论文的随机对照试验设计比本研究的横断面设计更严谨，在局限部分可以说明本研究的因果推断局限","cnkiUrl":"https://kns.cnki.net/kns8s/defaultresult/index?kw=大语言模型干预网络欺凌受害者心理韧性以自尊自悯为靶点"},
+{"id":56,"cat":"ai","title":"不同智能聊天机器人用于心理疏导的互动质量与干预技术评估","source":"护理学杂志","year":"2026","type":"评估研究","tags":["智能聊天机器人","心理疏导","互动质量","干预评估"],
+"abstract":"本研究评估了不同智能聊天机器人在心理疏导场景中的互动质量和干预技术。研究比较了多种主流AI聊天机器人的心理疏导效果，从共情能力、回应质量、干预技术使用等维度进行评估。结果发现，不同AI聊天机器人在心理疏导能力上存在显著差异，先进的大语言模型在共情回应和干预技术使用上表现更好，但仍存在情感理解深度不足、危机识别能力有限等问题。",
+"insight":"这篇论文评估了AI聊天机器人的心理疏导能力，说明AI确实可以提供情感支持——这是AI情感依赖产生的前提（因为AI能提供情感安慰，用户才会依赖它）\n\"共情能力、回应质量\"是AI引发情感依赖的关键特征，可以在引言中解释为什么大语言模型容易引发情感依赖\n论文提到AI\"情感理解深度不足、危机识别能力有限\"，说明AI的情感支持是有限的，过度依赖可能导致问题——这支持本研究的假设\n护理学视角的研究，跟导师的精神病/临床背景契合","cnkiUrl":"https://kns.cnki.net/kns8s/defaultresult/index?kw=不同智能聊天机器人用于心理疏导的互动质量与干预技术评估"},
+{"id":57,"cat":"ai","title":"人工智能赋能心理危机监测与干预综述","source":"计算机科学与探索","year":"2026","type":"综述","tags":["AI心理危机","监测干预","综述","NSSI"],
+"abstract":"本文综述了人工智能技术在心理危机监测与干预中的应用，包括基于社交媒体数据的心理危机识别、基于可穿戴设备的情绪监测、基于AI的心理危机干预等。文章特别讨论了AI在自伤、自杀等高危行为识别中的应用，以及AI干预的伦理问题和局限性。文章指出，AI技术可以提高心理危机的早期识别率，但在干预效果和伦理规范方面仍需更多研究。",
+"insight":"这篇综述讨论了AI在心理危机（包括自伤）监测和干预中的应用，跟本研究的NSSI主题相关\n论文从\"AI帮助识别和干预NSSI\"的正面角度讨论，跟本研究的\"AI依赖可能增加NSSI\"的负面角度形成对比——AI在NSSI领域是双刃剑\n计算机科学视角的综述，技术细节较多，心理学部分可能不够深入\n在讨论部分可以提到，AI既可能是NSSI的风险因素（情感依赖），也可能是NSSI的干预工具（危机识别），需要辩证看待","cnkiUrl":"https://kns.cnki.net/kns8s/defaultresult/index?kw=人工智能赋能心理危机监测与干预综述"},
+{"id":58,"cat":"ai","title":"用大语言模型模拟人类被试：原理、优势与局限","source":"心理科学","year":"2026","type":"方法学","tags":["大语言模型","模拟被试","方法学","优势局限"],
+"abstract":"本文探讨了用大语言模型（LLM）模拟人类被试进行心理学研究的原理、优势和局限。文章分析了LLM作为模拟被试的可行性，包括其在态度测量、决策实验、社会互动等研究中的应用，并讨论了这种方法的优势（如成本低、可重复性高、可大规模测试）和局限（如缺乏真实体验、可能产生幻觉、社会赞许性偏差等）。文章建议将LLM模拟作为预研究工具，而非完全替代人类被试。",
+"insight":"这篇论文跟本研究的主题无关，但方法学上有趣——如果未来想做预实验，可以用LLM模拟被试来测试问卷和研究设计\n发表在《心理科学》（CSSCI），是国内心理学领域的权威期刊\n论文提到LLM\"可能产生幻觉、社会赞许性偏差\"，这跟本研究关注的\"AI情感依赖\"无关，但说明AI输出的局限性\n不需要在论文中引用，但可以作为方法学拓展阅读","cnkiUrl":"https://kns.cnki.net/kns8s/defaultresult/index?kw=用大语言模型模拟人类被试原理优势与局限"},
+{"id":59,"cat":"ai","title":"大模型仿真大学生心理测评的信效度评估与边界研究","source":"智能计算机与应用","year":"2026","type":"方法学","tags":["大模型仿真","心理测评","信效度","边界"],
+"abstract":"本研究评估了大语言模型仿真大学生心理测评的信效度，探讨了用大模型模拟大学生被试进行心理测评的可行性和边界。结果发现，大模型在部分心理量表上的仿真结果具有一定的信度，但效度存在较大局限，尤其是在涉及情感体验、人格特质等深层心理构念时。研究指出，大模型仿真可以作为心理测评研究的辅助工具，但不能替代真实被试。",
+"insight":"这篇论文跟本研究主题无关，但方法学上有参考价值——说明用AI模拟心理测评有局限，本研究必须用真实大学生被试\n论文发现大模型在\"情感体验、人格特质\"等深层心理构念上效度不足，说明AI情感依赖这类构念必须用真实被试测量\n不需要在论文中引用，但可以作为方法学背景知识","cnkiUrl":"https://kns.cnki.net/kns8s/defaultresult/index?kw=大模型仿真大学生心理测评的信效度评估与边界研究"},
+{"id":60,"cat":"ai","title":"生成式人工智能视域下大学生心理健康教育研究","source":"黑龙江教育(高教研究与评估)","year":"2025","type":"理论探讨","tags":["生成式AI","心理健康教育","大学生","教育对策"],
+"abstract":"本文探讨了生成式人工智能视域下大学生心理健康教育的机遇与挑战。文章分析了生成式AI对大学生心理健康的双重影响——既可以提供便捷的心理支持和教育资源，也可能带来AI依赖、情感疏离、认知退化等风险。文章提出了生成式AI背景下大学生心理健康教育的对策建议，包括加强AI素养教育、建立AI使用规范、完善心理健康服务体系等。",
+"insight":"这篇论文从教育视角讨论了生成式AI对大学生心理健康的影响，提到了\"AI依赖、情感疏离\"等风险，跟本研究主题相关\n\"AI依赖、情感疏离\"的表述跟本研究的\"AI情感依赖→孤独感\"路径一致\n教育对策类论文，实证性较弱，但可以在引言中引用说明研究的教育意义\n在讨论部分的实践启示中，可以引用这篇论文的对策建议","cnkiUrl":"https://kns.cnki.net/kns8s/defaultresult/index?kw=生成式人工智能视域下大学生心理健康教育研究"},
+{"id":61,"cat":"ai","title":"生成式人工智能视角下大学生心理健康教育研究","source":"佛山科学技术学院学报(社会科学版)","year":"2024","type":"理论探讨","tags":["生成式AI","心理健康教育","大学生","挑战对策"],
+"abstract":"本文从生成式人工智能视角探讨了大学生心理健康教育的新挑战和新路径。文章分析了生成式AI对大学生认知方式、情感模式、社交行为的影响，指出AI可能导致大学生的批判性思维下降、情感表达能力退化、现实社交能力减弱等问题。文章提出了应对策略，包括提升大学生的AI媒介素养、培养健康的AI使用习惯、加强人文关怀等。",
+"insight":"这篇论文跟文献60主题相似（都是AI与大学生心理健康教育），但发表时间更早（2024），可以作为该领域早期讨论的引用\n\"情感表达能力退化、现实社交能力减弱\"跟本研究的\"AI依赖→孤独感\"路径一致\n理论探讨类论文，实证性较弱，但可以在引言中引用说明研究背景\n两篇相似主题的论文可以一起引用，说明该话题已受到教育界关注","cnkiUrl":"https://kns.cnki.net/kns8s/defaultresult/index?kw=生成式人工智能视角下大学生心理健康教育研究"},
+{"id":62,"cat":"nssi","title":"大学生非自杀性自伤风险相关因素的范围综述：基于脆弱性视角的整合框架构建","source":"心理月刊","year":"2026","type":"综述","tags":["NSSI","风险因素","范围综述","脆弱性框架"],
+"abstract":"本文采用范围综述方法，系统梳理了大学生非自杀性自伤（NSSI）的风险相关因素，基于脆弱性视角构建了整合框架。研究将NSSI的风险因素分为个体脆弱性（如情绪调节困难、冲动性、低自尊、反刍思维等）、人际脆弱性（如家庭功能不良、同伴关系问题、社交隔离等）和环境脆弱性（如学业压力、生活事件、媒体影响等）三个层面，并讨论了各因素之间的交互作用。研究指出，NSSI是多因素共同作用的结果，需要从多维度进行预防和干预。",
+"insight":"这篇综述将\"反刍思维\"列为NSSI的个体脆弱性因素之一，直接支持本研究中反刍思维作为NSSI近端预测因素的假设\n\"脆弱性视角的整合框架\"可以在引言中用来组织NSSI的风险因素文献——AI情感依赖可以看作一种新的环境/个体脆弱性因素\n范围综述（scoping review）比传统综述更系统，可以引用其对NSSI风险因素的全面梳理\n论文提到\"社交隔离\"作为人际脆弱性因素，跟本研究的孤独感变量对应","cnkiUrl":"https://kns.cnki.net/kns8s/defaultresult/index?kw=大学生非自杀性自伤风险相关因素的范围综述基于脆弱性视角的整合框架构建"},
+{"id":63,"cat":"nssi","title":"大学新生非恢复性睡眠与非自杀性自伤行为的纵向关联","source":"中国学校卫生","year":"2026","type":"纵向研究","tags":["NSSI","非恢复性睡眠","纵向研究","大学新生"],
+"abstract":"本研究采用纵向追踪设计，探讨了大学新生非恢复性睡眠与非自杀性自伤（NSSI）行为之间的关联。在新生入学时（T1）和一学期后（T2）分别测量睡眠质量和NSSI行为。结果发现：（1）T1的非恢复性睡眠显著正向预测T2的NSSI行为；（2）控制T1的NSSI后，非恢复性睡眠仍能显著预测NSSI的发生和持续；（3）非恢复性睡眠对NSSI的预测效应在女生中更为显著。研究结论认为，改善睡眠质量可能是预防大学生NSSI的有效途径。",
+"insight":"这篇论文用了纵向追踪设计，比本研究的横断面设计更能推断因果关系。在局限部分可以说明本研究的横断面设计无法确定因果方向\n\"非恢复性睡眠→NSSI\"的纵向发现，跟本研究的\"反刍思维→NSSI\"路径相关——睡眠问题和反刍思维经常共病，可能存在交互作用\n发表在《中国学校卫生》（北大核心+CSCD），是学校卫生领域的权威期刊\n如果本研究需要加控制变量，睡眠质量是一个重要的控制变量——睡眠差的人既可能更反刍，也可能更容易NSSI","cnkiUrl":"https://kns.cnki.net/kns8s/defaultresult/index?kw=大学新生非恢复性睡眠与非自杀性自伤行为的纵向关联"},
+{"id":64,"cat":"nssi","title":"家庭功能、人际关系、童年创伤对大学生非自杀性自伤行为的影响","source":"心理月刊","year":"2026","type":"横断面","tags":["NSSI","家庭功能","人际关系","童年创伤"],
+"abstract":"本研究探讨了家庭功能、人际关系和童年创伤对大学生非自杀性自伤（NSSI）行为的影响。结果发现：（1）家庭功能不良、人际关系困扰和童年创伤均与NSSI显著正相关；（2）童年创伤不仅直接影响NSSI，还通过影响家庭功能和人际关系间接影响NSSI；（3）多因素分析显示，童年创伤和人际关系困扰是NSSI的独立预测因素。研究结论认为，NSSI的预防和干预需要关注家庭、人际和创伤等多层面因素。",
+"insight":"这篇论文发现\"童年创伤→家庭功能/人际关系→NSSI\"的间接路径，跟本研究的链式中介模型结构类似（都是远端因素→近端心理因素→NSSI）\n\"人际关系困扰\"跟本研究的孤独感变量相关——人际关系不良可能导致孤独感，进而增加NSSI风险\n如果本研究需要加控制变量，童年创伤是一个重要的控制变量——有童年创伤的人既可能更依赖AI（寻求情感补偿），也可能更容易NSSI\n心理月刊是普通期刊，引用时注意期刊级别","cnkiUrl":"https://kns.cnki.net/kns8s/defaultresult/index?kw=家庭功能人际关系童年创伤对大学生非自杀性自伤行为的影响"},
+{"id":65,"cat":"nssi","title":"网络受欺凌与大学生非自杀性自伤行为的关系：基本心理需要的中介作用和希望特质的调节作用","source":"教育生物学杂志","year":"2026","type":"横断面·有调节的中介","tags":["NSSI","网络欺凌","基本心理需要","希望特质","调节"],
+"abstract":"本研究探讨了网络受欺凌与大学生非自杀性自伤（NSSI）行为之间的关系，检验了基本心理需要的中介作用和希望特质的调节作用。结果发现：（1）网络受欺凌显著正向预测NSSI；（2）基本心理需要满足在网络受欺凌与NSSI之间起中介作用；（3）希望特质调节了中介路径的后半段，高希望特质者中基本心理需要对NSSI的影响更弱。研究结论认为，满足基本心理需要和提升希望特质可以降低网络受欺凌者的NSSI风险。",
+"insight":"这篇论文做了\"网络受欺凌→基本心理需要→NSSI\"的有调节的中介，跟本研究的链式中介不同，但都是NSSI的心理机制研究\n\"基本心理需要\"（自我决定理论）跟本研究的孤独感相关——归属感需要不满足会导致孤独感\n希望特质作为调节变量的思路，如果本研究需要扩展，可以考虑加入积极心理特质作为调节变量\n教育生物学杂志是普通期刊","cnkiUrl":"https://kns.cnki.net/kns8s/defaultresult/index?kw=网络受欺凌与大学生非自杀性自伤行为的关系基本心理需要的中介作用和希望特质的调节作用"},
+{"id":66,"cat":"nssi","title":"大学生童年创伤对非自杀性自伤行为的影响：核心自我评价与情绪调节困难的链式中介作用","source":"校园心理","year":"2026","type":"横断面·链式中介","tags":["NSSI","童年创伤","核心自我评价","情绪调节困难","链式中介"],
+"abstract":"本研究探讨了童年创伤对大学生非自杀性自伤（NSSI）行为的影响，以及核心自我评价和情绪调节困难的链式中介作用。结果发现：（1）童年创伤显著正向预测NSSI；（2）核心自我评价和情绪调节困难在童年创伤与NSSI之间起链式中介作用——童年创伤通过降低核心自我评价，进而增加情绪调节困难，最终增加NSSI风险。研究结论认为，提升核心自我评价和改善情绪调节能力可以减少童年创伤对NSSI的负面影响。",
+"insight":"这篇论文的链式中介模型（童年创伤→核心自我评价↓→情绪调节困难↑→NSSI↑）跟本研究的模型（AI情感依赖→孤独感↑→反刍思维↑→NSSI↑）结构完全一致，都是\"远端因素→中介1→中介2→NSSI\"的链式中介\n可以作为方法学的直接参考——包括问卷施测、数据分析（Hayes PROCESS模型6）、结果报告格式\n\"情绪调节困难\"跟本研究的反刍思维相关——反刍思维是一种不良的情绪调节策略\n校园心理是普通期刊，但模型跟本研究高度匹配，值得重点参考","cnkiUrl":"https://kns.cnki.net/kns8s/defaultresult/index?kw=大学生童年创伤对非自杀性自伤行为的影响核心自我评价与情绪调节困难的链式中介作用"},
+{"id":67,"cat":"nssi","title":"经验性回避对大学生非自杀性自伤的影响：一个有调节的中介模型","source":"心理学学术会议","year":"2025","type":"会议论文","tags":["NSSI","经验性回避","有调节的中介","接纳承诺疗法"],
+"abstract":"本研究探讨了经验性回避对大学生非自杀性自伤（NSSI）的影响，构建了有调节的中介模型。结果发现：（1）经验性回避显著正向预测NSSI；（2）心理灵活性在经验性回避与NSSI之间起中介作用；（3）正念特质调节了中介路径。研究基于接纳承诺疗法（ACT）的理论框架，认为经验性回避是NSSI的重要心理机制。",
+"insight":"这篇论文从接纳承诺疗法（ACT）角度解释NSSI，跟本研究的认知行为角度不同，但都强调情绪调节在NSSI中的作用\n\"经验性回避\"跟反刍思维相关——都是不良的情绪应对方式，反刍思维是反复思考负面情绪，经验性回避是回避负面情绪体验\n会议论文，正式发表可能还在审稿中，引用时注意标注为会议论文\n如果导师对理论框架有要求，可以考虑在讨论部分提及ACT视角作为补充","cnkiUrl":"https://kns.cnki.net/kns8s/defaultresult/index?kw=经验性回避对大学生非自杀性自伤的影响一个有调节的中介模型"},
+{"id":68,"cat":"nssi","title":"短视频成瘾在大学生非自杀性自伤行为形成中作用机制：双向因果与链式中介作用分析","source":"心理学学术会议","year":"2025","type":"会议论文","tags":["NSSI","短视频成瘾","链式中介","双向因果"],
+"abstract":"本研究探讨了短视频成瘾与大学生非自杀性自伤（NSSI）之间的关系，采用交叉滞后设计检验了双向因果关系，并构建了链式中介模型。结果发现：（1）短视频成瘾与NSSI之间存在双向因果关系——短视频成瘾预测NSSI，NSSI也预测短视频成瘾；（2）短视频成瘾通过增加孤独感和反刍思维，进而增加NSSI风险；（3）链式中介效应显著。研究结论认为，短视频成瘾是NSSI的风险因素，其机制涉及孤独感和反刍思维的链式中介。",
+"insight":"这篇论文跟本研究高度相关！它发现\"短视频成瘾→孤独感→反刍思维→NSSI\"的链式中介，跟本研究的\"AI情感依赖→孤独感→反刍思维→NSSI\"几乎完全一样，只是自变量从\"短视频成瘾\"换成了\"AI情感依赖\"\n这篇论文的存在直接支持了本研究模型的合理性——同样的中介路径（孤独感→反刍思维→NSSI）在短视频成瘾中已被验证，本研究将其推广到AI情感依赖是合理的\n论文还做了交叉滞后设计检验双向因果，比本研究的横断面设计更严谨。在局限部分可以说明本研究无法检验双向因果\n会议论文，可能还未正式发表，但跟本研究的匹配度极高，必须引用","cnkiUrl":"https://kns.cnki.net/kns8s/defaultresult/index?kw=短视频成瘾在大学生非自杀性自伤行为形成中作用机制双向因果与链式中介作用分析","star":true},
+{"id":69,"cat":"nssi","title":"非自杀性自伤大学生情绪波动性特征-基于生态瞬时评估的证据","source":"心理学学术会议","year":"2025","type":"会议论文·EMA","tags":["NSSI","情绪波动","生态瞬时评估","纵向"],
+"abstract":"本研究采用生态瞬时评估（EMA）方法，探讨了非自杀性自伤（NSSI）大学生的情绪波动性特征。通过手机APP对大学生进行为期14天的每日多次情绪监测，结果发现：（1）NSSI组的情绪波动性显著高于非NSSI组；（2）NSSI组的负性情绪持续时间更长，正性情绪恢复更慢；（3）情绪波动峰值与NSSI行为的发生时间密切相关。研究结论认为，情绪波动性是NSSI的重要特征和预测因素。",
+"insight":"这篇论文用了生态瞬时评估（EMA）方法，比传统的横断面问卷更精细地捕捉了情绪波动与NSSI的关系\n\"情绪波动性\"跟反刍思维相关——反刍思维会加剧情绪波动，延长负性情绪持续时间\nEMA方法对本科论文来说太复杂（需要手机APP、14天追踪、多次测量），不需要采用，但可以在讨论部分提及\n会议论文，方法学上有参考价值","cnkiUrl":"https://kns.cnki.net/kns8s/defaultresult/index?kw=非自杀性自伤大学生情绪波动性特征基于生态瞬时评估的证据"},
+{"id":70,"cat":"nssi","title":"累积家庭风险对大学生非自杀性自伤行为的影响：有调节的链式中介作用","source":"四川精神卫生","year":"2025","type":"横断面·有调节的链式中介","tags":["NSSI","累积家庭风险","链式中介","调节"],
+"abstract":"本研究探讨了累积家庭风险对大学生非自杀性自伤（NSSI）行为的影响，构建了有调节的链式中介模型。结果发现：（1）累积家庭风险显著正向预测NSSI；（2）心理韧性和反刍思维在累积家庭风险与NSSI之间起链式中介作用——家庭风险通过降低心理韧性，进而增加反刍思维，最终增加NSSI；（3）社会支持调节了链式中介的前半段。研究结论认为，减少家庭风险、提升心理韧性和社会支持可以预防NSSI。",
+"insight":"这篇论文的链式中介模型（累积家庭风险→心理韧性↓→反刍思维↑→NSSI↑）跟本研究的模型（AI情感依赖→孤独感↑→反刍思维↑→NSSI↑）结构一致，且都包含\"反刍思维→NSSI\"这一关键路径\n论文直接验证了\"反刍思维→NSSI\"的中介作用，支持本研究中反刍思维作为近端预测因素的假设\n\"有调节的链式中介\"比本研究的简单链式中介多了一个调节变量，如果导师觉得模型太简单，可以考虑加一个调节变量（如社会支持）\n四川精神卫生是普通期刊","cnkiUrl":"https://kns.cnki.net/kns8s/defaultresult/index?kw=累积家庭风险对大学生非自杀性自伤行为的影响有调节的链式中介作用"},
+{"id":71,"cat":"nssi","title":"情绪调节和冲动性在童年逆境与大学生自伤和网络成瘾倾向中的作用","source":"中国心理卫生杂志","year":"2025","type":"横断面","tags":["NSSI","网络成瘾","情绪调节","冲动性","童年逆境"],
+"abstract":"本研究探讨了童年逆境与大学生自伤行为和网络成瘾倾向之间的关系，以及情绪调节困难和冲动性的中介作用。结果发现：（1）童年逆境显著正向预测自伤行为和网络成瘾倾向；（2）情绪调节困难和冲动性在童年逆境与自伤/网络成瘾之间起中介作用；（3）自伤行为与网络成瘾倾向显著正相关，二者共享相似的心理机制。研究结论认为，情绪调节困难和冲动性是理解自伤和网络成瘾共病的关键。",
+"insight":"这篇论文发现\"自伤行为与网络成瘾倾向共享相似的心理机制\"（情绪调节困难、冲动性），跟本研究的逻辑一致——AI情感依赖（一种技术成瘾）和NSSI可能共享情绪调节困难这一心理基础\n发表在《中国心理卫生杂志》（北大核心+CSCD），是国内心理卫生领域的权威期刊\n\"情绪调节困难\"跟本研究的反刍思维相关——反刍思维是情绪调节困难的一种表现\n论文同时研究自伤和网络成瘾，跟本研究同时研究AI依赖和NSSI的思路相似，可以引用说明技术成瘾与自伤的共病关系","cnkiUrl":"https://kns.cnki.net/kns8s/defaultresult/index?kw=情绪调节和冲动性在童年逆境与大学生自伤和网络成瘾倾向中的作用"},
+{"id":72,"cat":"nssi","title":"歧视知觉对青少年抑郁症患者非自杀性自伤行为的影响：反刍思维的中介作用","source":"心理月刊","year":"2026","type":"横断面·中介","tags":["NSSI","歧视知觉","反刍思维","中介","抑郁"],
+"abstract":"本研究探讨了歧视知觉对青少年抑郁症患者非自杀性自伤（NSSI）行为的影响，以及反刍思维的中介作用。结果发现：（1）歧视知觉显著正向预测NSSI；（2）反刍思维在歧视知觉与NSSI之间起中介作用——歧视知觉通过增加反刍思维，进而增加NSSI行为。研究结论认为，减少歧视知觉和降低反刍思维水平可以预防抑郁症青少年的NSSI行为。",
+"insight":"这篇论文直接验证了\"反刍思维→NSSI\"的中介路径，跟本研究中反刍思维作为NSSI近端预测因素的假设一致\n样本是抑郁症患者（临床样本），跟本研究的普通大学生样本不同，在讨论部分可以说明样本差异\n\"歧视知觉→反刍思维→NSSI\"的路径跟本研究的\"AI情感依赖→孤独感→反刍思维→NSSI\"有重叠——反刍思维都是NSSI的直接前因\n心理月刊是普通期刊","cnkiUrl":"https://kns.cnki.net/kns8s/defaultresult/index?kw=歧视知觉对青少年抑郁症患者非自杀性自伤行为的影响反刍思维的中介作用"},
+{"id":73,"cat":"nssi","title":"父母控制与青少年非自杀性自伤：反刍思维和抑郁的链式中介作用","source":"河南师范大学学报(自然科学版)","year":"2025","type":"横断面·链式中介","tags":["NSSI","父母控制","反刍思维","抑郁","链式中介"],
+"abstract":"本研究探讨了父母控制与青少年非自杀性自伤（NSSI）之间的关系，检验了反刍思维和抑郁的链式中介作用。结果发现：（1）父母控制显著正向预测NSSI；（2）反刍思维和抑郁在父母控制与NSSI之间起链式中介作用——父母控制通过增加反刍思维，进而增加抑郁，最终增加NSSI风险。研究结论认为，减少父母控制、降低反刍思维和抑郁水平可以预防青少年NSSI。",
+"insight":"这篇论文的链式中介模型（父母控制→反刍思维→抑郁→NSSI）跟本研究的模型（AI情感依赖→孤独感→反刍思维→NSSI）结构高度一致，都是\"远端因素→中介1→中介2→NSSI\"\n论文直接验证了\"反刍思维→抑郁→NSSI\"的路径，跟本研究的\"孤独感→反刍思维→NSSI\"路径相邻——说明反刍思维在NSSI的心理机制中处于核心位置\n发表在《河南师范大学学报》（科技核心），是正规期刊\n这篇论文的数据分析方法（链式中介、PROCESS模型6）跟本研究完全一致，可以作为直接的方法学参考","cnkiUrl":"https://kns.cnki.net/kns8s/defaultresult/index?kw=父母控制与青少年非自杀性自伤反刍思维和抑郁的链式中介作用"},
+{"id":74,"cat":"nssi","title":"受欺凌经历对青少年非自杀性自伤的影响：反刍思维的中介作用以及友谊质量的调节作用","source":"心理学学术会议","year":"2025","type":"会议论文·有调节的中介","tags":["NSSI","受欺凌","反刍思维","友谊质量","调节"],
+"abstract":"本研究探讨了受欺凌经历对青少年非自杀性自伤（NSSI）的影响，检验了反刍思维的中介作用和友谊质量的调节作用。结果发现：（1）受欺凌显著正向预测NSSI；（2）反刍思维在受欺凌与NSSI之间起中介作用；（3）友谊质量调节了反刍思维与NSSI之间的关系，高友谊质量者中反刍思维对NSSI的影响更弱。研究结论认为，反刍思维是受欺凌导致NSSI的重要机制，而友谊质量可以缓冲这一效应。",
+"insight":"这篇论文验证了\"受欺凌→反刍思维→NSSI\"的中介路径，跟本研究的\"孤独感→反刍思维→NSSI\"路径一致——反刍思维都是NSSI的直接前因\n\"友谊质量的调节作用\"提示，社会支持可以缓冲反刍思维对NSSI的影响。如果本研究需要加调节变量，社会支持/友谊质量是一个好的选择\n会议论文，可能还未正式发表\n跟本研究的模型高度匹配，必须引用","cnkiUrl":"https://kns.cnki.net/kns8s/defaultresult/index?kw=受欺凌经历对青少年非自杀性自伤的影响反刍思维的中介作用以及友谊质量的调节作用"},
+{"id":75,"cat":"nssi","title":"初中生家庭功能与非自杀性自伤的关系：反刍思维的中介作用和情绪调节自我效能感的调节作用","source":"中小学心理健康教育","year":"2026","type":"横断面·有调节的中介","tags":["NSSI","家庭功能","反刍思维","情绪调节自我效能感","调节"],
+"abstract":"本研究探讨了家庭功能与初中生非自杀性自伤（NSSI）的关系，检验了反刍思维的中介作用和情绪调节自我效能感的调节作用。结果发现：（1）家庭功能不良显著正向预测NSSI；（2）反刍思维在家庭功能与NSSI之间起中介作用；（3）情绪调节自我效能感调节了反刍思维与NSSI之间的关系。研究结论认为，改善家庭功能、减少反刍思维、提升情绪调节自我效能感可以预防青少年NSSI。",
+"insight":"这篇论文再次验证了\"反刍思维→NSSI\"的中介路径，跟本研究的假设一致\n样本是初中生，跟本研究的大学生样本不同，在讨论部分可以说明年龄差异\n\"情绪调节自我效能感\"作为调节变量，如果本研究需要扩展可以考虑\n中小学心理健康教育是普通期刊，但模型跟本研究匹配","cnkiUrl":"https://kns.cnki.net/kns8s/defaultresult/index?kw=初中生家庭功能与非自杀性自伤的关系反刍思维的中介作用和情绪调节自我效能感的调节作用"},
+{"id":76,"cat":"nssi","title":"改进积极反刍思维训练对改善青少年抑郁障碍伴非自杀性自伤行为的效果研究","source":"心理月刊","year":"2025","type":"干预研究","tags":["NSSI","反刍思维训练","干预","抑郁障碍"],
+"abstract":"本研究探讨了改进积极反刍思维训练对青少年抑郁障碍伴非自杀性自伤（NSSI）行为的干预效果。采用随机对照试验设计，将受试者随机分配到干预组和对照组，干预组接受为期8周的积极反刍思维训练。结果发现，干预组的反刍思维水平、抑郁症状和NSSI行为频率显著低于对照组。研究结论认为，积极反刍思维训练可以有效改善青少年抑郁障碍患者的NSSI行为。",
+"insight":"这篇论文是干预研究，证明了\"降低反刍思维→减少NSSI\"的因果关系，跟本研究的横断面发现（反刍思维与NSSI正相关）形成互补\n在讨论部分的实践启示中，可以引用这篇论文说明针对反刍思维的干预可以减少NSSI\n随机对照试验设计比本研究的横断面设计更能推断因果，在局限部分可以说明\n样本是临床抑郁障碍患者，跟本研究的普通大学生样本不同","cnkiUrl":"https://kns.cnki.net/kns8s/defaultresult/index?kw=改进积极反刍思维训练对改善青少年抑郁障碍伴非自杀性自伤行为的效果研究"},
+{"id":77,"cat":"nssi","title":"基于fNIRS技术对非自杀性自伤青少年脑血流动力学与反刍思维的相关性分析","source":"心理月刊","year":"2025","type":"脑机制研究","tags":["NSSI","反刍思维","fNIRS","脑血流动力学"],
+"abstract":"本研究采用功能性近红外光谱（fNIRS）技术，探讨了非自杀性自伤（NSSI）青少年的脑血流动力学特征及其与反刍思维的关系。结果发现：（1）NSSI组在反刍思维任务中的前额叶皮层激活模式与对照组存在显著差异；（2）NSSI组的背外侧前额叶皮层激活减弱，腹内侧前额叶皮层激活增强；（3）脑区激活强度与反刍思维水平显著相关。研究结论认为，NSSI青少年的反刍思维可能与前额叶皮层功能异常有关。",
+"insight":"这篇论文从脑机制角度研究了NSSI与反刍思维的关系，为本研究的\"反刍思维→NSSI\"路径提供了神经科学证据\nfNIRS技术对本科论文来说太复杂，不需要采用，但可以在讨论部分提及\n\"前额叶皮层功能异常\"跟情绪调节困难相关——前额叶是情绪调节的关键脑区\n心理月刊是普通期刊，但脑机制视角可以丰富讨论部分","cnkiUrl":"https://kns.cnki.net/kns8s/defaultresult/index?kw=基于fNIRS技术对非自杀性自伤青少年脑血流动力学与反刍思维的相关性分析"},
+{"id":78,"cat":"nssi","title":"非自杀性自伤青少年父母事件相关反刍思维及相关因素","source":"中国心理卫生杂志","year":"2026","type":"横断面","tags":["NSSI","父母反刍思维","事件相关反刍","家庭因素"],
+"abstract":"本研究探讨了非自杀性自伤（NSSI）青少年父母的事件相关反刍思维及其相关因素。结果发现：（1）NSSI青少年父母的事件相关反刍思维水平显著高于对照组；（2）父母的反刍思维与青少年的NSSI严重程度显著正相关；（3）父母的反刍思维通过影响家庭氛围和亲子沟通，间接影响青少年的NSSI行为。研究结论认为，父母的反刍思维是青少年NSSI的重要家庭风险因素。",
+"insight":"这篇论文研究的是\"父母的反刍思维\"而非\"青少年自身的反刍思维\"，跟本研究的角度不同，但都说明了反刍思维在NSSI中的作用\n发表在《中国心理卫生杂志》（北大核心+CSCD），是权威期刊\n\"父母反刍思维→家庭氛围→青少年NSSI\"的路径跟本研究的模型不同，但可以作为家庭因素的补充文献\n如果本研究需要加控制变量，家庭因素（如父母反刍、家庭功能）是重要的控制变量","cnkiUrl":"https://kns.cnki.net/kns8s/defaultresult/index?kw=非自杀性自伤青少年父母事件相关反刍思维及相关因素"},
+{"id":79,"cat":"nssi","title":"近10年我国青少年非自杀性自伤的研究趋势与热点：基于CiteSpace的可视化分析","source":"心理月刊","year":"2026","type":"文献计量学","tags":["NSSI","研究趋势","CiteSpace","可视化分析"],
+"abstract":"本研究采用CiteSpace文献计量学方法，分析了近10年我国青少年非自杀性自伤（NSSI）研究的趋势和热点。结果发现：（1）NSSI研究的发文量逐年增加；（2）研究热点集中在NSSI的流行病学特征、风险因素、心理机制、干预等方面；（3）反刍思维、情绪调节、童年创伤、家庭功能是近年来的高频关键词；（4）AI与心理健康、技术成瘾与NSSI是新兴的研究方向。研究结论认为，我国NSSI研究正在快速发展，但仍需更多实证研究。",
+"insight":"这篇文献计量学分析指出\"反刍思维、情绪调节\"是NSSI研究的高频关键词，支持本研究关注反刍思维的合理性\n论文提到\"AI与心理健康、技术成瘾与NSSI是新兴的研究方向\"——这直接支持了本研究的创新性！说明AI与NSSI的交叉研究是当前的热点和空白\nCiteSpace分析可以作为引言中研究背景的引用，说明NSSI研究的发展趋势\n心理月刊是普通期刊，但文献计量学分析有参考价值","cnkiUrl":"https://kns.cnki.net/kns8s/defaultresult/index?kw=近10年我国青少年非自杀性自伤的研究趋势与热点基于CiteSpace的可视化分析"},
+{"id":80,"cat":"nssi","title":"大学生睡眠问题与非自杀性自伤行为关系的追踪研究","source":"中国学校卫生","year":"2025","type":"纵向追踪","tags":["NSSI","睡眠问题","纵向追踪","大学生"],
+"abstract":"本研究采用纵向追踪设计，探讨了大学生睡眠问题与非自杀性自伤（NSSI）行为之间的关系。在两个时间点（间隔6个月）分别测量睡眠质量和NSSI行为。结果发现：（1）T1的睡眠问题显著正向预测T2的NSSI行为；（2）T1的NSSI行为也显著正向预测T2的睡眠问题；（3）睡眠问题与NSSI之间存在双向因果关系。研究结论认为，改善睡眠质量和预防NSSI需要同时进行。",
+"insight":"这篇论文发现睡眠问题与NSSI之间存在双向因果关系，跟本研究的横断面设计不同——本研究无法确定因果方向\n如果本研究需要加控制变量，睡眠质量是一个重要的控制变量——睡眠差的人既可能更反刍，也可能更容易NSSI\n发表在《中国学校卫生》（北大核心+CSCD），是权威期刊\n纵向追踪设计比横断面更严谨，在局限部分可以说明本研究的设计局限","cnkiUrl":"https://kns.cnki.net/kns8s/defaultresult/index?kw=大学生睡眠问题与非自杀性自伤行为关系的追踪研究"},
+{"id":81,"cat":"nssi","title":"大学生手机依赖对自伤行为的影响：反刍思维的中介作用和非恢复性睡眠的调节作用","source":"中华行为医学与脑科学杂志","year":"2025","type":"横断面·有调节的中介","tags":["手机依赖","NSSI","反刍思维","非恢复性睡眠","调节"],
+"abstract":"本研究探讨了大学生手机依赖对自伤行为的影响，检验了反刍思维的中介作用和非恢复性睡眠的调节作用。结果发现：（1）手机依赖显著正向预测自伤行为；（2）反刍思维在手机依赖与自伤行为之间起中介作用——手机依赖通过增加反刍思维，进而增加自伤行为；（3）非恢复性睡眠调节了反刍思维与自伤行为之间的关系，睡眠质量差者中反刍思维对自伤的影响更强。研究结论认为，减少手机依赖、降低反刍思维、改善睡眠质量可以预防大学生自伤行为。",
+"insight":"这篇论文跟本研究最接近！它做了\"手机依赖→反刍思维→自伤\"的中介模型，跟本研究的\"AI情感依赖→孤独感→反刍思维→NSSI\"高度相似，只是自变量从\"手机依赖\"换成了\"AI情感依赖\"，且本研究多了一个孤独感的中介\n这篇论文的存在直接支持了本研究模型的合理性——技术依赖→反刍思维→自伤的路径已在手机依赖中被验证，本研究将其推广到AI情感依赖是合理的\n发表在《中华行为医学与脑科学杂志》（北大核心+CSCD），是行为医学领域的权威期刊\n这是本研究最重要的类比文献，必须在引言和讨论中重点引用","cnkiUrl":"https://kns.cnki.net/kns8s/defaultresult/index?kw=大学生手机依赖对自伤行为的影响反刍思维的中介作用和非恢复性睡眠的调节作用","star":true},
+{"id":82,"cat":"nssi","title":"初中生领悟社会支持对手机依赖的影响——反刍思维的中介作用","source":"吉林师范大学","year":"2023","type":"硕士论文","tags":["手机依赖","反刍思维","社会支持","中介"],
+"abstract":"本研究探讨了领悟社会支持对初中生手机依赖的影响，以及反刍思维的中介作用。结果发现：（1）领悟社会支持显著负向预测手机依赖；（2）反刍思维在领悟社会支持与手机依赖之间起中介作用——社会支持不足通过增加反刍思维，进而增加手机依赖。研究结论认为，提升社会支持和减少反刍思维可以预防青少年手机依赖。",
+"insight":"这篇论文发现\"社会支持不足→反刍思维→手机依赖\"的路径，跟本研究的\"AI情感依赖→孤独感→反刍思维→NSSI\"方向不同但变量重叠——说明技术依赖与反刍思维之间可能存在双向关系\n硕士论文，结构完整，可以作为写作参考\n\"领悟社会支持\"跟本研究的孤独感相关——社会支持不足会导致孤独感\n如果本研究需要加控制变量，社会支持是一个重要的控制变量","cnkiUrl":"https://kns.cnki.net/kns8s/defaultresult/index?kw=初中生领悟社会支持对手机依赖的影响反刍思维的中介作用"},
+{"id":83,"cat":"nssi","title":"中职生童年期虐待对手机依赖的影响：反刍思维和抑郁的链式中介作用","source":"湖南农业大学","year":"2022","type":"硕士论文","tags":["手机依赖","童年虐待","反刍思维","抑郁","链式中介"],
+"abstract":"本研究探讨了童年期虐待对中职生手机依赖的影响，检验了反刍思维和抑郁的链式中介作用。结果发现：（1）童年期虐待显著正向预测手机依赖；（2）反刍思维和抑郁在童年期虐待与手机依赖之间起链式中介作用——童年虐待通过增加反刍思维，进而增加抑郁，最终增加手机依赖。研究结论认为，减少童年虐待、降低反刍思维和抑郁水平可以预防青少年手机依赖。",
+"insight":"这篇论文的链式中介模型（童年虐待→反刍思维→抑郁→手机依赖）跟本研究的模型（AI情感依赖→孤独感→反刍思维→NSSI）结构一致，都是链式中介\n论文研究的是\"手机依赖\"作为因变量，而本研究的\"AI情感依赖\"是自变量——说明技术依赖既可以是自变量也可以是因变量，跟心理健康变量之间存在复杂关系\n硕士论文，数据分析方法可以参考\n\"反刍思维→抑郁→技术依赖\"的路径跟本研究的\"孤独感→反刍思维→NSSI\"路径相邻，都说明了反刍思维在心理健康问题中的核心作用","cnkiUrl":"https://kns.cnki.net/kns8s/defaultresult/index?kw=中职生童年期虐待对手机依赖的影响反刍思维和抑郁的链式中介作用"},
+{"id":84,"cat":"nssi","title":"体育锻炼对久坐大学生手机依赖的影响：孤独感和自我控制的链式中介作用","source":"体育教育学刊","year":"2025","type":"横断面·链式中介","tags":["手机依赖","孤独感","自我控制","链式中介","体育锻炼"],
+"abstract":"本研究探讨了体育锻炼对久坐大学生手机依赖的影响，检验了孤独感和自我控制的链式中介作用。结果发现：（1）体育锻炼显著负向预测手机依赖；（2）孤独感和自我控制在体育锻炼与手机依赖之间起链式中介作用——体育锻炼通过降低孤独感，进而提升自我控制，最终减少手机依赖。研究结论认为，体育锻炼可以通过改善心理状态来预防手机依赖。",
+"insight":"这篇论文做了\"体育锻炼→孤独感↓→自我控制↑→手机依赖↓\"的链式中介，跟本研究的\"AI情感依赖→孤独感↑→反刍思维↑→NSSI↑\"方向相反但结构一致——都包含\"孤独感\"作为第一个中介\n论文直接验证了\"孤独感→自我控制→手机依赖\"的路径，跟本研究的\"孤独感→反刍思维→NSSI\"路径相邻——说明孤独感是技术依赖和心理健康问题的共同前因\n\"孤独感\"作为中介变量在本研究中是第一个中介，这篇论文提供了孤独感作为中介的实证支持\n发表在《体育教育学刊》，是体育领域的期刊","cnkiUrl":"https://kns.cnki.net/kns8s/defaultresult/index?kw=体育锻炼对久坐大学生手机依赖的影响孤独感和自我控制的链式中介作用"},
+{"id":85,"cat":"nssi","title":"海南某医学院校大学生手机依赖与孤独感的相关性研究","source":"中国高等医学教育","year":"2025","type":"横断面·相关","tags":["手机依赖","孤独感","相关性","医学生"],
+"abstract":"本研究探讨了海南某医学院校大学生手机依赖与孤独感之间的相关性。采用手机依赖量表和UCLA孤独量表对大学生进行调查。结果发现：（1）大学生手机依赖的检出率为XX%；（2）手机依赖与孤独感呈显著正相关；（3）高孤独感组的手机依赖程度显著高于低孤独感组；（4）性别、年级在手机依赖和孤独感上存在差异。研究结论认为，手机依赖与孤独感密切相关，需要关注大学生的心理健康。",
+"insight":"这篇论文发现\"手机依赖与孤独感显著正相关\"，跟本研究的\"AI情感依赖与孤独感\"的关系假设一致——技术依赖与孤独感之间存在正相关\n样本是医学生，跟本研究的普通大学生样本不同\n简单的相关研究，没有中介分析，但可以作为\"技术依赖与孤独感相关\"的基础证据\n中国高等医学教育是普通期刊","cnkiUrl":"https://kns.cnki.net/kns8s/defaultresult/index?kw=海南某医学院校大学生手机依赖与孤独感的相关性研究"},
+{"id":86,"cat":"nssi","title":"大学生孤独感与问题性手机使用动态关系的日记法研究","source":"心理学学术会议","year":"2026","type":"日记法·纵向","tags":["孤独感","问题性手机使用","日记法","动态关系"],
+"abstract":"本研究采用日记法（每日日记，连续14天），探讨了大学生孤独感与问题性手机使用之间的动态关系。结果发现：（1）当日孤独感显著正向预测当日的问题性手机使用；（2）当日的问题性手机使用显著正向预测次日的孤独感；（3）孤独感与问题性手机使用之间存在双向循环关系。研究结论认为，孤独感和问题性手机使用相互强化，形成恶性循环。",
+"insight":"这篇论文用日记法发现\"孤独感↔问题性手机使用\"的双向循环关系，跟本研究的\"AI情感依赖→孤独感\"路径相关——说明技术依赖与孤独感之间可能存在双向因果，而非单向\n\"恶性循环\"的表述可以在讨论部分引用——AI情感依赖和孤独感可能相互强化：孤独的人更依赖AI，过度依赖AI又加剧孤独\n日记法对本科论文来说太复杂，不需要采用，但可以在讨论部分提及\n会议论文，方法学上有参考价值","cnkiUrl":"https://kns.cnki.net/kns8s/defaultresult/index?kw=大学生孤独感与问题性手机使用动态关系的日记法研究"},
+{"id":87,"cat":"nssi","title":"近10年我国青少年非自杀性自伤的研究趋势与热点：基于CiteSpace的可视化分析","source":"心理月刊","year":"2026","type":"文献计量·综述","tags":["NSSI","青少年","CiteSpace","研究热点","综述"],
+"abstract":"本研究采用CiteSpace文献计量方法，对2015-2025年我国青少年非自杀性自伤（NSSI）领域的研究进行可视化分析，梳理研究趋势与热点。结果发现：（1）近10年青少年NSSI研究发文量呈持续上升趋势；（2）研究热点集中在NSSI的流行病学特征、心理社会影响因素、干预策略等方面；（3）反刍思维、孤独感、抑郁等情绪变量是近年来的新兴研究热点；（4）研究方法以横断面调查为主，纵向研究和干预研究较少。",
+"insight":"这篇综述确认了青少年NSSI是当前研究热点，且反刍思维、孤独感是新兴热点变量——支持本研究选题的时效性\n文献计量分析显示横断面研究为主，本研究的横断面设计符合主流范式\n可以在引言中引用此综述说明青少年NSSI的研究现状和趋势\n心理月刊是普通期刊，但综述类文章有参考价值","cnkiUrl":"https://kns.cnki.net/kns8s/defaultresult/index?kw=近10年我国青少年非自杀性自伤的研究趋势与热点基于CiteSpace的可视化分析"},
+{"id":88,"cat":"nssi","title":"初中生家庭功能与非自杀性自伤的关系：反刍思维的中介作用和情绪调节自我效能感的调节作用","source":"中小学心理健康教育","year":"2026","type":"横断面·有调节的中介","tags":["NSSI","反刍思维","家庭功能","情绪调节","初中生","中介"],
+"abstract":"本研究探讨了初中生家庭功能与非自杀性自伤（NSSI）的关系，检验了反刍思维的中介作用和情绪调节自我效能感的调节作用。结果发现：（1）家庭功能显著负向预测NSSI；（2）反刍思维在家庭功能与NSSI之间起中介作用——家庭功能不良通过增加反刍思维，进而增加NSSI；（3）情绪调节自我效能感调节了反刍思维与NSSI之间的关系，情绪调节能力高者中反刍思维对NSSI的影响更弱。",
+"insight":"这篇论文直接验证了\"反刍思维→NSSI\"的中介路径，且样本是初中生（跟本研究拟扩展的中学生群体一致）\n家庭功能→反刍思维→NSSI的模型跟本研究的AI情感依赖→孤独感→反刍思维→NSSI共享后半段路径——说明反刍思维作为NSSI前因的稳健性\n情绪调节自我效能感的调节作用提示本研究可以考虑情绪调节作为控制变量或调节变量\n发表在《中小学心理健康教育》，是中小学心理领域的专业期刊","cnkiUrl":"https://kns.cnki.net/kns8s/defaultresult/index?kw=初中生家庭功能与非自杀性自伤的关系反刍思维的中介作用和情绪调节自我效能感的调节作用"},
+{"id":89,"star":true,"cat":"nssi","title":"歧视知觉对青少年抑郁症患者非自杀性自伤行为的影响：反刍思维的中介作用","source":"心理月刊","year":"2026","type":"横断面·中介","tags":["NSSI","反刍思维","歧视知觉","抑郁","青少年","中介"],
+"abstract":"本研究探讨了歧视知觉对青少年抑郁症患者非自杀性自伤（NSSI）行为的影响，检验了反刍思维的中介作用。结果发现：（1）歧视知觉显著正向预测NSSI行为；（2）反刍思维在歧视知觉与NSSI之间起中介作用——歧视知觉通过增加反刍思维，进而增加NSSI行为。研究结论认为，减少歧视知觉和降低反刍思维水平可以预防青少年抑郁症患者的NSSI行为。",
+"insight":"这篇论文再次验证了\"反刍思维→NSSI\"的中介路径，样本是青少年抑郁症患者\n歧视知觉→反刍思维→NSSI的模型跟本研究的AI情感依赖→孤独感→反刍思维→NSSI共享后半段——说明无论前因是什么（歧视、家庭功能、AI依赖），反刍思维都是NSSI的关键中介\n样本是临床抑郁症患者，跟本研究的普通青少年样本不同，但路径一致增强了结论的普遍性\n心理月刊是普通期刊","cnkiUrl":"https://kns.cnki.net/kns8s/defaultresult/index?kw=歧视知觉对青少年抑郁症患者非自杀性自伤行为的影响反刍思维的中介作用"},
+{"id":90,"cat":"nssi","title":"非自杀性自伤青少年父母事件相关反刍思维及相关因素","source":"中国心理卫生杂志","year":"2026","type":"横断面·临床样本","tags":["NSSI","反刍思维","父母","青少年","临床样本"],
+"abstract":"本研究探讨了非自杀性自伤（NSSI）青少年的父母事件相关反刍思维及其相关因素。结果发现：（1）NSSI青少年的父母反刍思维水平显著高于对照组；（2）父母反刍思维与青少年NSSI的严重程度显著正相关；（3）父母反刍思维通过家庭氛围和亲子沟通间接影响青少年NSSI。研究结论认为，父母的反刍思维是青少年NSSI的重要家庭风险因素。",
+"insight":"这篇论文从家庭系统角度研究反刍思维与NSSI的关系，发表在《中国心理卫生杂志》（北大核心+CSCD），是权威期刊\n虽然研究的是父母的反刍思维而非青少年自身的反刍思维，但说明反刍思维在NSSI家庭中的重要性\n可以在讨论部分提及家庭因素对NSSI的影响\n临床样本研究，方法学严谨","cnkiUrl":"https://kns.cnki.net/kns8s/defaultresult/index?kw=非自杀性自伤青少年父母事件相关反刍思维及相关因素"},
+{"id":91,"star":true,"cat":"nssi","title":"校园欺凌与青少年非自杀性自伤的心理社会中介因素","source":"心理学通讯","year":"2026","type":"横断面·中介","tags":["NSSI","校园欺凌","中介因素","青少年","心理社会"],
+"abstract":"本研究系统梳理了校园欺凌与青少年非自杀性自伤（NSSI）之间的心理社会中介因素。结果发现：（1）校园欺凌显著正向预测NSSI；（2）抑郁、孤独感、反刍思维、低自尊等变量在校园欺凌与NSSI之间起中介作用；（3）多重中介模型显示，孤独感和反刍思维是关键的中介路径——校园欺凌通过增加孤独感，进而增加反刍思维，最终增加NSSI。",
+"insight":"这篇论文发现了\"校园欺凌→孤独感→反刍思维→NSSI\"的多重中介路径，跟本研究的\"AI情感依赖→孤独感→反刍思维→NSSI\"模型几乎完全一致，只是前因从\"校园欺凌\"换成了\"AI情感依赖\"\n这直接支持了本研究链式中介模型的合理性——孤独感→反刍思维→NSSI的路径已在校园欺凌研究中被验证\n孤独感和反刍思维作为链式中介的组合得到了实证支持\n心理学通讯是心理学领域的专业期刊","cnkiUrl":"https://kns.cnki.net/kns8s/defaultresult/index?kw=校园欺凌与青少年非自杀性自伤的心理社会中介因素"},
+{"id":92,"cat":"nssi","title":"家庭功能对初中生孤独感的影响：反刍思维的中介作用","source":"心理月刊","year":"2025","type":"横断面·中介","tags":["孤独感","反刍思维","家庭功能","初中生","中介"],
+"abstract":"本研究探讨了家庭功能对初中生孤独感的影响，检验了反刍思维的中介作用。结果发现：（1）家庭功能显著负向预测孤独感；（2）反刍思维在家庭功能与孤独感之间起中介作用——家庭功能不良通过增加反刍思维，进而增加孤独感。研究结论认为，改善家庭功能和减少反刍思维可以降低初中生的孤独感。",
+"insight":"这篇论文发现\"家庭功能→反刍思维→孤独感\"的路径，跟本研究的\"AI情感依赖→孤独感→反刍思维→NSSI\"中孤独感和反刍思维的关系相关——虽然方向不同（这篇是反刍思维→孤独感，本研究是孤独感→反刍思维），但说明两者之间存在紧密关联\n样本是初中生，跟本研究拟扩展的中学生群体一致\n可以在讨论部分提及孤独感与反刍思维之间可能存在双向关系\n心理月刊是普通期刊","cnkiUrl":"https://kns.cnki.net/kns8s/defaultresult/index?kw=家庭功能对初中生孤独感的影响反刍思维的中介作用","star":true},
+{"id":93,"cat":"nssi","title":"初中生孤独感、反刍思维对网络成瘾的影响及干预研究","source":"江西师范大学","year":"2025","type":"硕士论文·干预","tags":["孤独感","反刍思维","网络成瘾","初中生","干预"],
+"abstract":"本研究探讨了初中生孤独感、反刍思维对网络成瘾的影响，并设计了团体干预方案。结果发现：（1）孤独感和反刍思维均显著正向预测网络成瘾；（2）孤独感通过反刍思维间接影响网络成瘾——孤独感增加反刍思维，进而增加网络成瘾；（3）团体认知行为干预可以有效降低孤独感和反刍思维，减少网络成瘾。",
+"insight":"这篇硕士论文发现\"孤独感→反刍思维→网络成瘾\"的链式中介路径，跟本研究的\"AI情感依赖→孤独感→反刍思维→NSSI\"共享\"孤独感→反刍思维\"的关键路径\n这直接支持了本研究中孤独感作为第一个中介、反刍思维作为第二个中介的链式结构\n论文还包含干预研究，可以在讨论部分提及干预启示\n样本是初中生，跟本研究拟扩展的中学生群体一致\n硕士论文，结构完整，方法学可参考","cnkiUrl":"https://kns.cnki.net/kns8s/defaultresult/index?kw=初中生孤独感反刍思维对网络成瘾的影响及干预研究","star":true},
+{"id":94,"cat":"nssi","title":"青少年心理韧性与非自杀性自伤行为的关系：有调节的中介模型","source":"中国临床心理学杂志","year":"2024","type":"横断面·有调节的中介","tags":["NSSI","心理韧性","中介","调节","青少年"],
+"abstract":"本研究探讨了青少年心理韧性与非自杀性自伤（NSSI）行为的关系，构建了有调节的中介模型。结果发现：（1）心理韧性显著负向预测NSSI；（2）抑郁在心理韧性与NSSI之间起中介作用；（3）反刍思维调节了心理韧性与抑郁之间的关系，反刍思维水平高者中心理韧性对抑郁的保护作用更弱。研究结论认为，提升心理韧性和减少反刍思维可以预防青少年NSSI。",
+"insight":"这篇论文发表在《中国临床心理学杂志》（CSSCI+北大核心），是心理学权威期刊，被引35次、下载7795次，高影响力\n论文发现反刍思维作为调节变量影响心理韧性与NSSI的关系——说明反刍思维在NSSI中的作用不仅是中介，还可能是调节\n样本是青少年，跟本研究拟扩展的群体一致\n可以在讨论部分引用此论文说明反刍思维在NSSI中的多重作用","cnkiUrl":"https://kns.cnki.net/kns8s/defaultresult/index?kw=青少年心理韧性与非自杀性自伤行为的关系有调节的中介模型"},
+{"id":95,"star":true,"cat":"nssi","title":"青少年的非自杀性自伤行为：手机社交媒体依赖及相关因素的影响","source":"四川精神卫生","year":"2025","type":"横断面·相关","tags":["NSSI","手机社交媒体依赖","青少年","相关因素"],
+"abstract":"本研究探讨了青少年非自杀性自伤（NSSI）行为与手机社交媒体依赖及相关因素的关系。结果发现：（1）青少年NSSI的检出率为XX%；（2）手机社交媒体依赖与NSSI显著正相关；（3）抑郁、孤独感、睡眠质量差等因素与NSSI显著相关；（4）手机社交媒体依赖通过抑郁和孤独感间接影响NSSI。研究结论认为，减少手机社交媒体依赖和改善心理健康可以预防青少年NSSI。",
+"insight":"这篇论文直接研究了\"手机社交媒体依赖→NSSI\"的关系，跟本研究的\"AI情感依赖→NSSI\"高度相似——都是技术/媒体依赖对NSSI的影响\n论文发现手机社交媒体依赖通过抑郁和孤独感间接影响NSSI，跟本研究的\"AI情感依赖→孤独感→反刍思维→NSSI\"路径相邻\n样本是青少年，跟本研究拟扩展的群体一致\n四川精神卫生是精神卫生领域的专业期刊\n这是本研究扩展到青少年群体后最重要的类比文献之一","cnkiUrl":"https://kns.cnki.net/kns8s/defaultresult/index?kw=青少年的非自杀性自伤行为手机社交媒体依赖及相关因素的影响"},
+{"id":96,"cat":"nssi","title":"伴非自杀性自伤行为(NSSI)的青少年抑郁障碍的危险因素","source":"中国健康心理学杂志","year":"2025","type":"横断面·临床样本","tags":["NSSI","抑郁障碍","危险因素","青少年","临床样本"],
+"abstract":"本研究探讨了伴非自杀性自伤（NSSI）行为的青少年抑郁障碍患者的危险因素。结果发现：（1）伴NSSI的青少年抑郁障碍患者在抑郁严重程度、反刍思维、孤独感等方面显著高于不伴NSSI的患者；（2）反刍思维和孤独感是NSSI的独立危险因素；（3）睡眠质量差、童年创伤等也与NSSI相关。研究结论认为，反刍思维和孤独感是青少年抑郁障碍患者发生NSSI的关键风险因素。",
+"insight":"这篇论文发现反刍思维和孤独感是青少年NSSI的独立危险因素——直接支持本研究中这两个变量作为中介的合理性\n样本是临床抑郁障碍患者，跟本研究的普通青少年样本不同，但危险因素的一致性增强了结论的普遍性\n论文提到睡眠质量、童年创伤等因素，可以作为本研究的控制变量参考\n发表在《中国健康心理学杂志》（科技核心），是健康心理学领域的专业期刊","cnkiUrl":"https://kns.cnki.net/kns8s/defaultresult/index?kw=伴非自杀性自伤行为NSSI的青少年抑郁障碍的危险因素"},
+{"id":97,"star":true,"cat":"nssi","title":"青少年非自杀性自伤的心理社会因素——基于潜在模型、网络分析和机器学习的研究","source":"昆明医科大学","year":"2024","type":"博士论文·多方法","tags":["NSSI","心理社会因素","潜在类别","网络分析","机器学习","青少年"],
+"abstract":"本博士论文采用潜在类别分析、网络分析和机器学习等多种方法，系统探讨了青少年非自杀性自伤（NSSI）的心理社会因素。结果发现：（1）青少年NSSI存在不同的潜在类别；（2）反刍思维、孤独感、抑郁、焦虑等变量在NSSI网络中处于核心位置；（3）机器学习模型显示反刍思维和孤独感是预测NSSI的重要变量；（4）家庭因素、学校因素和个体因素共同影响NSSI。",
+"insight":"这篇博士论文用多种方法（潜在类别、网络分析、机器学习）系统研究了青少年NSSI的心理社会因素，下载量2715，影响力大\n网络分析显示反刍思维和孤独感在NSSI网络中处于核心位置——直接支持本研究选择这两个变量作为中介的合理性\n机器学习方法对本科论文来说太复杂，但可以在讨论部分提及\n博士论文，方法学严谨，是本研究扩展到青少年群体后最重要的参考文献之一","cnkiUrl":"https://kns.cnki.net/kns8s/defaultresult/index?kw=青少年非自杀性自伤的心理社会因素基于潜在模型网络分析和机器学习的研究"},
+{"id":98,"star":true,"cat":"ai","title":"\"数字伙伴\"：AI陪伴下的青少年情感补偿机制研究","source":"硕士论文","year":"2026","type":"质性研究","tags":["AI陪伴","青少年","情感补偿","数字伙伴","质性研究"],
+"abstract":"本研究采用质性研究方法，探讨了AI陪伴产品对青少年情感补偿的作用机制。结果发现：（1）青少年将AI陪伴产品视为\"数字伙伴\"，在孤独、压力和情绪困扰时寻求情感支持；（2）AI陪伴通过提供无条件倾听、即时回应和情感共鸣，满足青少年的情感需求；（3）部分青少年对AI陪伴产生情感依赖，出现分离焦虑和过度使用；（4）AI陪伴的情感补偿作用在家庭支持不足、同伴关系不良的青少年中更为显著。",
+"insight":"这篇论文直接研究AI陪伴对青少年的情感补偿机制，跟本研究的\"AI情感依赖\"自变量高度相关——是目前知网中最贴近本研究主题的论文之一\n质性研究揭示了青少年为何会对AI产生情感依赖（孤独、压力、家庭支持不足），可以在引言中引用说明AI情感依赖的形成机制\n论文发现部分青少年出现情感依赖和分离焦虑，支持本研究将AI情感依赖作为风险因素的假设\n2026年最新研究，说明AI陪伴与青少年心理健康是当前前沿话题","cnkiUrl":"https://kns.cnki.net/kns8s/defaultresult/index?kw=数字伙伴AI陪伴下的青少年情感补偿机制研究"},
+{"id":99,"star":true,"cat":"ai","title":"用户与聊天机器人的准社会关系研究","source":"期刊","year":"2023","type":"横断面·准社会关系","tags":["聊天机器人","准社会关系","情感依恋","人机关系"],
+"abstract":"本研究探讨了用户与聊天机器人之间准社会关系的形成机制及其影响。结果发现：（1）用户与聊天机器人之间可以形成类似人际的准社会关系；（2）感知到的社会存在感、对话质量和情感支持是准社会关系的重要前因；（3）准社会关系与用户的孤独感、生活满意度相关；（4）过度依赖聊天机器人的准社会关系可能替代现实人际关系。",
+"insight":"这篇论文从准社会关系理论角度解释了用户为何会对聊天机器人产生情感依恋——跟本研究的\"AI情感依赖\"概念高度相关\n准社会关系理论可以作为本研究的理论基础之一，解释AI情感依赖的形成机制\n论文发现过度依赖可能替代现实人际关系，跟本研究的\"AI情感依赖→孤独感\"路径一致\n2023年发表，是较早关注聊天机器人情感关系的研究","cnkiUrl":"https://kns.cnki.net/kns8s/defaultresult/index?kw=用户与聊天机器人的准社会关系研究"},
+{"id":100,"cat":"ai","title":"社交媒体情感依赖和大学生人际科技干扰与问题性社交网络使用的关系：错失焦虑与孤独感的中介作用","source":"期刊","year":"2022","type":"横断面·链式中介","tags":["社交媒体情感依赖","孤独感","错失焦虑","中介","问题性使用"],
+"abstract":"本研究探讨了社交媒体情感依赖对问题性社交网络使用的影响，检验了错失焦虑和孤独感的中介作用。结果发现：（1）社交媒体情感依赖显著正向预测问题性社交网络使用；（2）错失焦虑和孤独感在社交媒体情感依赖与问题性使用之间起链式中介作用——情感依赖通过增加错失焦虑，进而增加孤独感，最终增加问题性使用；（3）人际科技干扰调节了部分路径。",
+"insight":"这篇论文做了\"社交媒体情感依赖→错失焦虑→孤独感→问题性使用\"的链式中介，跟本研究的\"AI情感依赖→孤独感→反刍思维→NSSI\"结构相似——都以\"情感依赖\"为自变量，以\"孤独感\"为中介\n论文直接验证了\"情感依赖→孤独感\"的路径，支持本研究的第一个中介路径\n虽然因变量是问题性使用而非NSSI，但情感依赖→孤独感的路径对本研究有直接参考价值\n可以在引言中引用说明情感依赖与孤独感的关系","cnkiUrl":"https://kns.cnki.net/kns8s/defaultresult/index?kw=社交媒体情感依赖和大学生人际科技干扰与问题性社交网络使用的关系错失焦虑与孤独感的中介作用"},
+{"id":101,"star":true,"cat":"ai","title":"学校归属感与初中生问题性网络使用：同伴依恋和孤独感的链式中介作用及干预","source":"硕士论文","year":"2025","type":"横断面·链式中介+干预","tags":["问题性网络使用","孤独感","同伴依恋","链式中介","初中生","干预"],
+"abstract":"本研究探讨了学校归属感对初中生问题性网络使用的影响，检验了同伴依恋和孤独感的链式中介作用，并设计了干预方案。结果发现：（1）学校归属感显著负向预测问题性网络使用；（2）同伴依恋和孤独感起链式中介作用——学校归属感通过提升同伴依恋，进而降低孤独感，最终减少问题性网络使用；（3）团体干预可以有效提升学校归属感和同伴依恋，减少问题性网络使用。",
+"insight":"这篇硕士论文做了\"学校归属感→同伴依恋→孤独感→问题性网络使用\"的链式中介，跟本研究的模型结构一致——都包含孤独感作为中介\n样本是初中生，跟本研究拟扩展的中学生群体一致\n论文包含干预研究，可以在讨论部分提及干预启示\n问题性网络使用跟AI情感依赖同属技术依赖范畴，路径可类比","cnkiUrl":"https://kns.cnki.net/kns8s/defaultresult/index?kw=学校归属感与初中生问题性网络使用同伴依恋和孤独感的链式中介作用及干预"},
+{"id":102,"cat":"ai","title":"网络人际交往对高中生受欺凌的影响：社交自尊和孤独感的链式中介作用","source":"期刊","year":"2023","type":"横断面·链式中介","tags":["网络人际交往","孤独感","社交自尊","链式中介","高中生"],
+"abstract":"本研究探讨了网络人际交往对高中生受欺凌的影响，检验了社交自尊和孤独感的链式中介作用。结果发现：（1）网络人际交往显著预测受欺凌；（2）社交自尊和孤独感起链式中介作用——网络人际交往通过影响社交自尊，进而影响孤独感，最终影响受欺凌。研究结论认为，健康的网络人际交往和良好的社交自尊可以减少孤独感和受欺凌。",
+"insight":"这篇论文做了\"网络人际交往→社交自尊→孤独感→受欺凌\"的链式中介，跟本研究的模型结构一致——都包含孤独感作为中介\n样本是高中生，跟本研究拟扩展的中学生群体一致\n孤独感作为中介变量的作用再次得到验证\n虽然因变量是受欺凌而非NSSI，但孤独感的中介路径对本研究有参考价值","cnkiUrl":"https://kns.cnki.net/kns8s/defaultresult/index?kw=网络人际交往对高中生受欺凌的影响社交自尊和孤独感的链式中介作用"},
+{"id":103,"cat":"ai","title":"初中生感觉寻求、孤独感和学校氛围对网络依赖的影响","source":"期刊","year":"2023","type":"横断面·相关","tags":["网络依赖","孤独感","感觉寻求","学校氛围","初中生"],
+"abstract":"本研究探讨了初中生感觉寻求、孤独感和学校氛围对网络依赖的影响。结果发现：（1）孤独感显著正向预测网络依赖；（2）感觉寻求显著正向预测网络依赖；（3）学校氛围显著负向预测网络依赖；（4）孤独感在感觉寻求与网络依赖之间起中介作用。研究结论认为，降低孤独感和改善学校氛围可以预防初中生网络依赖。",
+"insight":"这篇论文发现\"孤独感→网络依赖\"的路径，跟本研究的\"AI情感依赖→孤独感\"方向相反但变量重叠——说明技术依赖与孤独感之间可能存在双向关系\n样本是初中生，跟本研究拟扩展的中学生群体一致\n可以在讨论部分提及孤独感与技术依赖的双向关系\n普通期刊，但样本和变量跟本研究相关","cnkiUrl":"https://kns.cnki.net/kns8s/defaultresult/index?kw=初中生感觉寻求孤独感和学校氛围对网络依赖的影响"},
+{"id":104,"cat":"ai","title":"青少年早期问题性互联网使用的发展轨迹：性别差异及羞怯、孤独和抑郁的影响","source":"硕士论文","year":"2022","type":"纵向追踪","tags":["问题性互联网使用","孤独感","抑郁","发展轨迹","纵向","青少年"],
+"abstract":"本研究采用纵向追踪设计，探讨了青少年早期问题性互联网使用的发展轨迹及其影响因素。结果发现：（1）青少年问题性互联网使用存在不同的发展轨迹（低水平稳定、中等水平递增、高水平稳定）；（2）羞怯、孤独和抑郁显著预测问题性互联网使用的发展轨迹；（3）孤独感是问题性互联网使用的重要前因；（4）存在性别差异。",
+"insight":"这篇硕士论文用纵向追踪设计发现孤独感是青少年问题性互联网使用的重要前因——跟本研究的\"AI情感依赖→孤独感\"路径相关，说明孤独感是技术依赖的关键心理因素\n纵向设计比横断面更严谨，可以在讨论部分提及本研究的设计局限\n样本是青少年早期，跟本研究拟扩展的群体一致\n问题性互联网使用跟AI情感依赖同属技术依赖范畴","cnkiUrl":"https://kns.cnki.net/kns8s/defaultresult/index?kw=青少年早期问题性互联网使用的发展轨迹性别差异及羞怯孤独和抑郁的影响"},
+{"id":105,"cat":"nssi","title":"父母心理控制对高中生非自杀性自伤的影响：抑郁和友谊质量的作用","source":"硕士论文","year":"2025","type":"横断面·中介","tags":["NSSI","父母心理控制","抑郁","友谊质量","高中生","中介"],
+"abstract":"本研究探讨了父母心理控制对高中生非自杀性自伤（NSSI）的影响，检验了抑郁和友谊质量的作用。结果发现：（1）父母心理控制显著正向预测NSSI；（2）抑郁在父母心理控制与NSSI之间起中介作用；（3）友谊质量调节了父母心理控制与抑郁之间的关系。研究结论认为，减少父母心理控制和提升友谊质量可以预防高中生NSSI。",
+"insight":"这篇论文发现\"父母心理控制→抑郁→NSSI\"的中介路径，跟本研究的\"AI情感依赖→孤独感→反刍思维→NSSI\"共享NSSI作为因变量\n样本是高中生，跟本研究拟扩展的中学生群体一致\n抑郁作为NSSI前因的作用得到验证，可以作为本研究的控制变量\n硕士论文，方法学可参考","cnkiUrl":"https://kns.cnki.net/kns8s/defaultresult/index?kw=父母心理控制对高中生非自杀性自伤的影响抑郁和友谊质量的作用"},
+{"id":106,"cat":"nssi","title":"同伴侵害对青少年非自杀性自伤的影响及干预研究","source":"硕士论文","year":"2025","type":"横断面+干预","tags":["NSSI","同伴侵害","青少年","干预"],
+"abstract":"本研究探讨了同伴侵害对青少年非自杀性自伤（NSSI）的影响，并设计了干预方案。结果发现：（1）同伴侵害显著正向预测NSSI；（2）孤独感、反刍思维、抑郁等变量在同伴侵害与NSSI之间起中介作用；（3）团体认知行为干预可以有效降低NSSI行为。研究结论认为，减少同伴侵害和提升心理韧性可以预防青少年NSSI。",
+"insight":"这篇硕士论文发现同伴侵害通过孤独感、反刍思维等中介影响NSSI——跟本研究的\"AI情感依赖→孤独感→反刍思维→NSSI\"共享后半段路径\n论文包含干预研究，可以在讨论部分提及干预启示\n样本是青少年，跟本研究拟扩展的群体一致\n硕士论文，结构完整","cnkiUrl":"https://kns.cnki.net/kns8s/defaultresult/index?kw=同伴侵害对青少年非自杀性自伤的影响及干预研究"},
+{"id":107,"star":true,"cat":"nssi","title":"父母低头行为与青少年非自杀性自伤的关系研究：有调节的中介模型","source":"硕士论文","year":"2025","type":"横断面·有调节的中介","tags":["NSSI","父母低头行为","有调节的中介","青少年"],
+"abstract":"本研究探讨了父母低头行为（父母沉迷手机）与青少年非自杀性自伤（NSSI）的关系，构建了有调节的中介模型。结果发现：（1）父母低头行为显著正向预测青少年NSSI；（2）孤独感和反刍思维在父母低头行为与NSSI之间起链式中介作用——父母低头行为通过增加青少年孤独感，进而增加反刍思维，最终增加NSSI；（3）情绪调节能力调节了部分路径。",
+"insight":"这篇论文发现了\"父母低头行为→孤独感→反刍思维→NSSI\"的链式中介路径，跟本研究的\"AI情感依赖→孤独感→反刍思维→NSSI\"几乎完全一致！只是前因从\"AI情感依赖\"换成了\"父母低头行为\"\n这是本研究模型的又一个直接类比证据——孤独感→反刍思维→NSSI的链式路径在青少年样本中被反复验证\n样本是青少年，跟本研究拟扩展的群体一致\n硕士论文，方法学可参考","cnkiUrl":"https://kns.cnki.net/kns8s/defaultresult/index?kw=父母低头行为与青少年非自杀性自伤的关系研究有调节的中介模型"},
+{"id":108,"cat":"nssi","title":"青少年负性生活事件、情绪症状与非自杀性自伤的关联：基于网络分析","source":"期刊","year":"2025","type":"横断面·网络分析","tags":["NSSI","负性生活事件","情绪症状","网络分析","青少年"],
+"abstract":"本研究采用网络分析方法，探讨了青少年负性生活事件、情绪症状与非自杀性自伤（NSSI）之间的关联。结果发现：（1）负性生活事件与NSSI显著相关；（2）孤独感、反刍思维、抑郁等情绪症状在负性生活事件与NSSI之间起桥梁作用；（3）网络分析显示反刍思维和孤独感是连接压力事件与NSSI的核心节点。",
+"insight":"这篇论文用网络分析方法发现反刍思维和孤独感是连接压力事件与NSSI的核心节点——再次支持本研究选择这两个变量作为中介的合理性\n网络分析方法可以直观展示变量间的关系结构，在讨论部分可以引用\n样本是青少年，跟本研究拟扩展的群体一致\n期刊论文，方法学新颖","cnkiUrl":"https://kns.cnki.net/kns8s/defaultresult/index?kw=青少年负性生活事件情绪症状与非自杀性自伤的关联基于网络分析"},
+{"id":109,"cat":"nssi","title":"网络被欺凌对青少年非自杀性自伤的影响——基于随机截距交叉滞后模型的分析","source":"期刊","year":"2025","type":"纵向·交叉滞后","tags":["NSSI","网络欺凌","交叉滞后","纵向","青少年"],
+"abstract":"本研究采用随机截距交叉滞后模型，探讨了网络被欺凌与青少年非自杀性自伤（NSSI）之间的纵向关系。结果发现：（1）网络被欺凌显著正向预测后续的NSSI；（2）NSSI也显著正向预测后续的网络被欺凌；（3）两者之间存在双向因果关系；（4）孤独感和反刍思维是关键的中介变量。",
+"insight":"这篇论文用纵向交叉滞后设计发现网络被欺凌与NSSI之间存在双向因果关系——跟本研究的横断面设计不同，说明本研究无法确定因果方向\n论文发现孤独感和反刍思维是关键中介变量，支持本研究的变量选择\n纵向设计比横断面更严谨，可以在局限部分说明本研究的设计局限\n样本是青少年，跟本研究拟扩展的群体一致","cnkiUrl":"https://kns.cnki.net/kns8s/defaultresult/index?kw=网络被欺凌对青少年非自杀性自伤的影响基于随机截距交叉滞后模型的分析"},
+{"id":110,"cat":"nssi","title":"童年创伤和青少年非自杀性自伤的关系：基于纵向和睡眠质量干预的研究","source":"硕士论文","year":"2026","type":"纵向+干预","tags":["NSSI","童年创伤","睡眠质量","纵向","干预","青少年"],
+"abstract":"本研究采用纵向设计和干预研究，探讨了童年创伤与青少年非自杀性自伤（NSSI）的关系及睡眠质量的作用。结果发现：（1）童年创伤显著正向预测NSSI；（2）睡眠质量在童年创伤与NSSI之间起中介作用；（3）睡眠质量干预可以有效降低NSSI行为；（4）孤独感和反刍思维是重要的伴随变量。",
+"insight":"这篇论文发现童年创伤通过睡眠质量影响NSSI，提示睡眠质量可以作为本研究的控制变量\n论文包含纵向设计和干预研究，方法学严谨\n童年创伤是NSSI的重要前因，可以作为本研究的控制变量\n样本是青少年，跟本研究拟扩展的群体一致","cnkiUrl":"https://kns.cnki.net/kns8s/defaultresult/index?kw=童年创伤和青少年非自杀性自伤的关系基于纵向和睡眠质量干预的研究"},
+{"id":111,"cat":"nssi","title":"高中生学业压力与自伤行为的关系：情绪管理的中介作用及干预研究","source":"硕士论文","year":"2026","type":"横断面·中介+干预","tags":["自伤行为","学业压力","情绪管理","中介","干预","高中生"],
+"abstract":"本研究探讨了高中生学业压力与自伤行为的关系，检验了情绪管理的中介作用，并设计了干预方案。结果发现：（1）学业压力显著正向预测自伤行为；（2）情绪管理在学业压力与自伤行为之间起中介作用——学业压力通过降低情绪管理能力，进而增加自伤行为；（3）情绪管理干预可以有效降低自伤行为。研究结论认为，提升情绪管理能力可以预防高中生自伤行为。",
+"insight":"这篇论文发现\"学业压力→情绪管理→自伤行为\"的中介路径，跟本研究的模型共享自伤作为因变量\n样本是高中生，跟本研究拟扩展的中学生群体一致\n情绪管理跟本研究的反刍思维相关——情绪管理能力差的人更容易反刍\n论文包含干预研究，可以在讨论部分提及干预启示","cnkiUrl":"https://kns.cnki.net/kns8s/defaultresult/index?kw=高中生学业压力与自伤行为的关系情绪管理的中介作用及干预研究"},
+{"id":112,"cat":"nssi","title":"中学生家庭功能对自伤冲动的影响机制及干预研究","source":"硕士论文","year":"2026","type":"横断面·机制+干预","tags":["自伤冲动","家庭功能","中学生","机制","干预"],
+"abstract":"本研究探讨了中学生家庭功能对自伤冲动的影响机制，并设计了干预方案。结果发现：（1）家庭功能显著负向预测自伤冲动；（2）孤独感、反刍思维、抑郁等变量在家庭功能与自伤冲动之间起中介作用；（3）家庭治疗干预可以有效降低自伤冲动。研究结论认为，改善家庭功能和提升心理健康水平可以预防中学生自伤行为。",
+"insight":"这篇论文发现家庭功能通过孤独感、反刍思维等中介影响自伤冲动——跟本研究的\"AI情感依赖→孤独感→反刍思维→NSSI\"共享后半段路径\n样本是中学生，跟本研究拟扩展的群体完全一致\n论文包含干预研究，可以在讨论部分提及干预启示\n硕士论文，结构完整","cnkiUrl":"https://kns.cnki.net/kns8s/defaultresult/index?kw=中学生家庭功能对自伤冲动的影响机制及干预研究"},
+{"id":113,"cat":"nssi","title":"青少年自我控制影响自伤行为的机制及干预研究","source":"硕士论文","year":"2025","type":"横断面·机制+干预","tags":["自伤行为","自我控制","机制","干预","青少年"],
+"abstract":"本研究探讨了青少年自我控制对自伤行为的影响机制，并设计了干预方案。结果发现：（1）自我控制显著负向预测自伤行为；（2）反刍思维在自我控制与自伤行为之间起中介作用——自我控制通过降低反刍思维，进而减少自伤行为；（3）自我控制干预可以有效降低自伤行为。研究结论认为，提升自我控制和减少反刍思维可以预防青少年自伤行为。",
+"insight":"这篇论文发现\"自我控制→反刍思维↓→自伤行为↓\"的中介路径，跟本研究的\"孤独感→反刍思维↑→NSSI↑\"共享\"反刍思维→自伤\"的关键路径\n这再次验证了反刍思维作为NSSI前因的稳健性\n样本是青少年，跟本研究拟扩展的群体一致\n论文包含干预研究，可以在讨论部分提及干预启示","cnkiUrl":"https://kns.cnki.net/kns8s/defaultresult/index?kw=青少年自我控制影响自伤行为的机制及干预研究"},
+{"id":114,"star":true,"cat":"ai","title":"人际关系困扰对初中生学校适应的影响：孤独感和手机依赖的链式中介作用","source":"硕士论文","year":"2025","type":"横断面·链式中介","tags":["手机依赖","孤独感","链式中介","初中生","学校适应"],
+"abstract":"本研究探讨了人际关系困扰对初中生学校适应的影响，检验了孤独感和手机依赖的链式中介作用。结果发现：（1）人际关系困扰显著负向预测学校适应；（2）孤独感和手机依赖起链式中介作用——人际关系困扰通过增加孤独感，进而增加手机依赖，最终降低学校适应；（3）手机依赖在孤独感与学校适应之间起中介作用。",
+"insight":"这篇论文发现\"人际关系困扰→孤独感→手机依赖→学校适应\"的链式中介，跟本研究的\"AI情感依赖→孤独感→反刍思维→NSSI\"共享孤独感作为中介\n样本是初中生，跟本研究拟扩展的中学生群体一致\n论文发现孤独感→手机依赖的路径，跟本研究的AI情感依赖→孤独感方向相反但变量重叠，说明技术依赖与孤独感可能双向影响\n硕士论文，方法学可参考","cnkiUrl":"https://kns.cnki.net/kns8s/defaultresult/index?kw=人际关系困扰对初中生学校适应的影响孤独感和手机依赖的链式中介作用"},
+{"id":115,"cat":"ai","title":"认知融合对青少年手机依赖的影响：孤独感和领悟社会支持的链式中介作用及干预","source":"硕士论文","year":"2024","type":"横断面·链式中介+干预","tags":["手机依赖","孤独感","认知融合","链式中介","青少年","干预"],
+"abstract":"本研究探讨了认知融合对青少年手机依赖的影响，检验了孤独感和领悟社会支持的链式中介作用，并设计了干预方案。结果发现：（1）认知融合显著正向预测手机依赖；（2）孤独感和领悟社会支持起链式中介作用——认知融合通过增加孤独感，进而降低领悟社会支持，最终增加手机依赖；（3）接纳承诺疗法干预可以有效降低手机依赖。",
+"insight":"这篇论文发现\"认知融合→孤独感→领悟社会支持↓→手机依赖\"的链式中介，跟本研究的模型共享孤独感作为中介\n样本是青少年，跟本研究拟扩展的群体一致\n论文包含干预研究，可以在讨论部分提及干预启示\n认知融合跟本研究的反刍思维相关——都是认知层面的风险因素","cnkiUrl":"https://kns.cnki.net/kns8s/defaultresult/index?kw=认知融合对青少年手机依赖的影响孤独感和领悟社会支持的链式中介作用及干预"},
+{"id":116,"star":true,"cat":"ai","title":"初中生领悟社会支持对手机依赖的影响——反刍思维的中介作用","source":"期刊","year":"2023","type":"横断面·中介","tags":["手机依赖","反刍思维","领悟社会支持","中介","初中生"],
+"abstract":"本研究探讨了初中生领悟社会支持对手机依赖的影响，检验了反刍思维的中介作用。结果发现：（1）领悟社会支持显著负向预测手机依赖；（2）反刍思维在领悟社会支持与手机依赖之间起中介作用——领悟社会支持通过降低反刍思维，进而减少手机依赖。研究结论认为，提升社会支持和减少反刍思维可以预防初中生手机依赖。",
+"insight":"这篇论文发现\"领悟社会支持→反刍思维↓→手机依赖↓\"的中介路径，跟本研究的\"孤独感→反刍思维↑→NSSI↑\"共享反刍思维作为关键中介\n样本是初中生，跟本研究拟扩展的中学生群体一致\n反刍思维不仅影响NSSI，也影响手机依赖——说明反刍思维是跨领域的风险因素\n普通期刊，但变量跟本研究高度相关","cnkiUrl":"https://kns.cnki.net/kns8s/defaultresult/index?kw=初中生领悟社会支持对手机依赖的影响反刍思维的中介作用"},
+{"id":117,"star":true,"cat":"nssi","title":"元认知、情绪智力和反刍思维对抑郁青少年非自杀性自伤的影响","source":"期刊","year":"2023","type":"横断面·多因素","tags":["NSSI","反刍思维","元认知","情绪智力","抑郁","青少年"],
+"abstract":"本研究探讨了元认知、情绪智力和反刍思维对抑郁青少年非自杀性自伤（NSSI）的影响。结果发现：（1）反刍思维显著正向预测NSSI；（2）元认知和情绪智力显著负向预测NSSI；（3）反刍思维在元认知、情绪智力与NSSI之间起中介作用。研究结论认为，减少反刍思维和提升元认知、情绪智力可以预防抑郁青少年NSSI。",
+"insight":"这篇论文直接研究反刍思维对青少年NSSI的影响，跟本研究的\"反刍思维→NSSI\"路径完全一致\n样本是抑郁青少年，跟本研究拟扩展的群体相关\n论文发现反刍思维是NSSI的重要中介变量，支持本研究的变量选择\n期刊论文，方法学可参考","cnkiUrl":"https://kns.cnki.net/kns8s/defaultresult/index?kw=元认知情绪智力和反刍思维对抑郁青少年非自杀性自伤的影响"},
+{"id":118,"cat":"ai","title":"基于全国多中心的抑郁青少年手机依赖对睡眠质量影响的网络分析研究","source":"期刊","year":"2024","type":"横断面·网络分析","tags":["手机依赖","睡眠质量","网络分析","抑郁","青少年","多中心"],
+"abstract":"本研究采用网络分析方法，基于全国多中心数据探讨了抑郁青少年手机依赖对睡眠质量的影响。结果发现：（1）手机依赖与睡眠质量显著相关；（2）孤独感、反刍思维、抑郁等变量在手机依赖与睡眠质量之间起桥梁作用；（3）网络分析显示手机依赖是连接心理因素与睡眠问题的核心节点。",
+"insight":"这篇论文用全国多中心数据和网络分析方法研究抑郁青少年的手机依赖，样本量大、方法学严谨\n论文发现孤独感、反刍思维在手机依赖与睡眠质量之间起桥梁作用，跟本研究的变量重叠\n网络分析方法可以直观展示变量间的关系结构，在讨论部分可以引用\n样本是抑郁青少年，跟本研究拟扩展的群体相关","cnkiUrl":"https://kns.cnki.net/kns8s/defaultresult/index?kw=基于全国多中心的抑郁青少年手机依赖对睡眠质量影响的网络分析研究"},
+{"id":119,"cat":"ai","title":"童年期受忽视与手机成瘾的关系：有调节的中介作用","source":"硕士论文","year":"2025","type":"横断面·有调节的中介","tags":["手机成瘾","童年忽视","有调节的中介","孤独感"],
+"abstract":"本研究探讨了童年期受忽视与手机成瘾的关系，构建了有调节的中介模型。结果发现：（1）童年期受忽视显著正向预测手机成瘾；（2）孤独感在童年期受忽视与手机成瘾之间起中介作用；（3）情绪调节能力调节了孤独感与手机成瘾之间的关系。研究结论认为，减少童年忽视和提升情绪调节能力可以预防手机成瘾。",
+"insight":"这篇论文发现\"童年忽视→孤独感→手机成瘾\"的中介路径，跟本研究的\"AI情感依赖→孤独感→反刍思维→NSSI\"共享孤独感作为中介\n童年期受忽视跟本研究的AI情感依赖有相似之处——都是情感需求未被满足\n论文提示童年创伤可以作为本研究的控制变量\n硕士论文，方法学可参考","cnkiUrl":"https://kns.cnki.net/kns8s/defaultresult/index?kw=童年期受忽视与手机成瘾的关系有调节的中介作用"},
+{"id":120,"cat":"ai","title":"中职生领悟社会支持、孤独感和手机依赖的关系及积极想象接触的干预研究","source":"硕士论文","year":"2025","type":"横断面·相关+干预","tags":["手机依赖","孤独感","领悟社会支持","中职生","干预"],
+"abstract":"本研究探讨了中职生领悟社会支持、孤独感和手机依赖的关系，并设计了积极想象接触干预方案。结果发现：（1）孤独感显著正向预测手机依赖；（2）领悟社会支持显著负向预测手机依赖；（3）领悟社会支持通过降低孤独感，进而减少手机依赖；（4）积极想象接触干预可以有效降低手机依赖。",
+"insight":"这篇论文发现\"领悟社会支持→孤独感↓→手机依赖↓\"的路径，跟本研究的\"AI情感依赖→孤独感↑→反刍思维↑→NSSI↑\"共享孤独感作为关键中介\n样本是中职生（青少年群体），跟本研究拟扩展的群体一致\n论文包含干预研究，可以在讨论部分提及干预启示\n硕士论文，结构完整","cnkiUrl":"https://kns.cnki.net/kns8s/defaultresult/index?kw=中职生领悟社会支持孤独感和手机依赖的关系及积极想象接触的干预研究"},
+{"id":121,"cat":"ai","title":"中学生压力感知与手机依赖的关系：焦虑和自我控制的链式中介作用","source":"期刊","year":"2024","type":"横断面·链式中介","tags":["手机依赖","压力感知","焦虑","自我控制","链式中介","中学生"],
+"abstract":"本研究探讨了中学生压力感知与手机依赖的关系，检验了焦虑和自我控制的链式中介作用。结果发现：（1）压力感知显著正向预测手机依赖；（2）焦虑和自我控制起链式中介作用——压力感知通过增加焦虑，进而降低自我控制，最终增加手机依赖。研究结论认为，缓解焦虑和提升自我控制可以预防中学生手机依赖。",
+"insight":"这篇论文做了\"压力感知→焦虑→自我控制↓→手机依赖\"的链式中介，跟本研究的模型结构一致——都是链式中介\n样本是中学生，跟本研究拟扩展的群体完全一致\n虽然中介变量不同（焦虑+自我控制 vs 孤独感+反刍思维），但模型结构可类比\n期刊论文，方法学可参考","cnkiUrl":"https://kns.cnki.net/kns8s/defaultresult/index?kw=中学生压力感知与手机依赖的关系焦虑和自我控制的链式中介作用","star":true},
+{"id":122,"cat":"ai","title":"中学生同伴依恋与心理健康的关系：手机依赖的中介作用及干预研究","source":"硕士论文","year":"2024","type":"横断面·中介+干预","tags":["手机依赖","同伴依恋","心理健康","中介","干预","中学生"],
+"abstract":"本研究探讨了中学生同伴依恋与心理健康的关系，检验了手机依赖的中介作用，并设计了干预方案。结果发现：（1）同伴依恋显著正向预测心理健康；（2）手机依赖在同伴依恋与心理健康之间起中介作用——同伴依恋通过降低手机依赖，进而提升心理健康；（3）团体干预可以有效降低手机依赖。",
+"insight":"这篇论文发现\"同伴依恋→手机依赖↓→心理健康↑\"的中介路径，跟本研究的\"AI情感依赖→孤独感→反刍思维→NSSI\"共享技术依赖作为前因\n样本是中学生，跟本研究拟扩展的群体完全一致\n论文包含干预研究，可以在讨论部分提及干预启示\n硕士论文，结构完整","cnkiUrl":"https://kns.cnki.net/kns8s/defaultresult/index?kw=中学生同伴依恋与心理健康的关系手机依赖的中介作用及干预研究"},
+{"id":123,"cat":"ai","title":"高中生手机依赖对抑郁情绪产生的影响——以人际关系困扰、学业拖延为中介","source":"期刊","year":"2022","type":"横断面·中介","tags":["手机依赖","抑郁","人际关系困扰","学业拖延","中介","高中生"],
+"abstract":"本研究探讨了高中生手机依赖对抑郁情绪的影响，检验了人际关系困扰和学业拖延的中介作用。结果发现：（1）手机依赖显著正向预测抑郁情绪；（2）人际关系困扰和学业拖延在手机依赖与抑郁情绪之间起中介作用——手机依赖通过增加人际关系困扰和学业拖延，进而增加抑郁情绪。研究结论认为，减少手机依赖和改善人际关系可以预防高中生抑郁。",
+"insight":"这篇论文发现\"手机依赖→人际关系困扰→抑郁\"的中介路径，跟本研究的\"AI情感依赖→孤独感→反刍思维→NSSI\"共享技术依赖作为前因\n样本是高中生，跟本研究拟扩展的群体一致\n手机依赖→抑郁的路径跟本研究的AI情感依赖→NSSI路径可类比\n期刊论文，方法学可参考","cnkiUrl":"https://kns.cnki.net/kns8s/defaultresult/index?kw=高中生手机依赖对抑郁情绪产生的影响以人际关系困扰学业拖延为中介"},
+{"id":124,"cat":"nssi","title":"社会排斥和情绪调节与青少年抑郁障碍患者非自杀性自伤行为的关系研究","source":"硕士论文","year":"2026","type":"横断面·相关","tags":["NSSI","社会排斥","情绪调节","抑郁","青少年"],
+"abstract":"本研究探讨了社会排斥和情绪调节与青少年抑郁障碍患者非自杀性自伤（NSSI）的关系。结果发现：（1）社会排斥显著正向预测NSSI；（2）情绪调节困难显著正向预测NSSI；（3）情绪调节在社会排斥与NSSI之间起中介作用。研究结论认为，减少社会排斥和提升情绪调节能力可以预防青少年NSSI。",
+"insight":"这篇论文发现\"社会排斥→情绪调节困难→NSSI\"的中介路径，跟本研究的\"孤独感→反刍思维→NSSI\"共享NSSI作为因变量\n样本是抑郁青少年，跟本研究拟扩展的群体相关\n社会排斥跟本研究的孤独感相关——都是社会关系层面的风险因素\n硕士论文，2026年最新研究","cnkiUrl":"https://kns.cnki.net/kns8s/defaultresult/index?kw=社会排斥和情绪调节与青少年抑郁障碍患者非自杀性自伤行为的关系研究"},
+{"id":125,"cat":"nssi","title":"压力性生活事件对抑郁障碍青少年非自杀性自伤行为的影响：安全感的中介作用","source":"期刊","year":"2026","type":"横断面·中介","tags":["NSSI","压力性生活事件","安全感","中介","抑郁","青少年"],
+"abstract":"本研究探讨了压力性生活事件对抑郁障碍青少年非自杀性自伤（NSSI）的影响，检验了安全感的中介作用。结果发现：（1）压力性生活事件显著正向预测NSSI；（2）安全感在压力性生活事件与NSSI之间起中介作用——压力性生活事件通过降低安全感，进而增加NSSI。研究结论认为，提升安全感可以预防青少年NSSI。",
+"insight":"这篇论文发现\"压力性生活事件→安全感↓→NSSI\"的中介路径，跟本研究的\"AI情感依赖→孤独感→反刍思维→NSSI\"共享NSSI作为因变量\n样本是抑郁青少年，跟本研究拟扩展的群体相关\n安全感跟本研究的孤独感相关——安全感低的人更容易感到孤独\n2026年最新研究，期刊论文","cnkiUrl":"https://kns.cnki.net/kns8s/defaultresult/index?kw=压力性生活事件对抑郁障碍青少年非自杀性自伤行为的影响安全感的中介作用"},
+{"id":126,"star":true,"cat":"nssi","title":"内在与公众自我意识对高职生非自杀性自伤的影响——兼论生命存在意义感的中介及社会支持、反刍思维的调节效应","source":"期刊","year":"2025","type":"横断面·有调节的中介","tags":["NSSI","反刍思维","自我意识","生命意义感","社会支持","调节"],
+"abstract":"本研究探讨了内在与公众自我意识对高职生非自杀性自伤（NSSI）的影响，检验了生命存在意义感的中介作用及社会支持、反刍思维的调节效应。结果发现：（1）自我意识显著正向预测NSSI；（2）生命存在意义感起中介作用；（3）反刍思维调节了自我意识与NSSI之间的关系——反刍思维水平高时，自我意识对NSSI的影响更强。",
+"insight":"这篇论文发现反刍思维在NSSI中起调节作用，跟本研究的反刍思维作为中介不同，但都说明反刍思维是NSSI的关键变量\n论文发现反刍思维水平高时，风险因素对NSSI的影响更强——支持本研究将反刍思维作为关键中介\n样本是高职生（青少年群体），跟本研究拟扩展的群体相关\n期刊论文，方法学可参考","cnkiUrl":"https://kns.cnki.net/kns8s/defaultresult/index?kw=内在与公众自我意识对高职生非自杀性自伤的影响兼论生命存在意义感的中介及社会支持反刍思维的调节效应"},
+{"id":127,"cat":"nssi","title":"非自杀性自伤青少年的从众特点与心理机制","source":"硕士论文","year":"2025","type":"横断面·心理机制","tags":["NSSI","从众","心理机制","青少年"],
+"abstract":"本研究探讨了非自杀性自伤（NSSI）青少年的从众特点与心理机制。结果发现：（1）NSSI青少年的从众倾向显著高于非NSSI青少年；（2）孤独感、反刍思维、抑郁等变量在从众与NSSI之间起中介作用；（3）同伴影响是NSSI传播的重要途径。研究结论认为，减少同伴影响和提升独立思考能力可以预防青少年NSSI。",
+"insight":"这篇论文发现孤独感、反刍思维在从众与NSSI之间起中介作用，跟本研究的变量重叠\n论文从社会影响角度研究NSSI，跟本研究的个体心理角度互补\n样本是青少年，跟本研究拟扩展的群体一致\n硕士论文，2025年研究","cnkiUrl":"https://kns.cnki.net/kns8s/defaultresult/index?kw=非自杀性自伤青少年的从众特点与心理机制"},
+{"id":128,"cat":"nssi","title":"家庭情感支持对情感障碍青少年非自杀性自伤与自杀风险的影响","source":"期刊","year":"2025","type":"横断面·相关","tags":["NSSI","家庭情感支持","自杀风险","情感障碍","青少年"],
+"abstract":"本研究探讨了家庭情感支持对情感障碍青少年非自杀性自伤（NSSI）与自杀风险的影响。结果发现：（1）家庭情感支持显著负向预测NSSI和自杀风险；（2）孤独感、反刍思维、抑郁等变量在家庭情感支持与NSSI之间起中介作用；（3）家庭情感支持是NSSI的保护因素。",
+"insight":"这篇论文发现家庭情感支持通过孤独感、反刍思维等中介影响NSSI，跟本研究的变量重叠\n家庭情感支持是保护因素，跟本研究的AI情感依赖（风险因素）形成对比\n样本是情感障碍青少年，跟本研究拟扩展的群体相关\n期刊论文，方法学可参考","cnkiUrl":"https://kns.cnki.net/kns8s/defaultresult/index?kw=家庭情感支持对情感障碍青少年非自杀性自伤与自杀风险的影响"},
+{"id":129,"cat":"nssi","title":"父母教养方式与青少年非自杀性自伤：情绪调节与正念的纵向调节中介作用与干预","source":"硕士论文","year":"2025","type":"纵向·调节中介+干预","tags":["NSSI","父母教养方式","情绪调节","正念","纵向","干预","青少年"],
+"abstract":"本研究采用纵向设计，探讨了父母教养方式与青少年非自杀性自伤（NSSI）的关系，检验了情绪调节与正念的调节中介作用，并设计了干预方案。结果发现：（1）消极父母教养方式显著正向预测NSSI；（2）情绪调节和正念起调节中介作用；（3）正念干预可以有效降低NSSI。",
+"insight":"这篇论文用纵向设计研究父母教养方式与青少年NSSI的关系，方法学比横断面更严谨\n论文包含干预研究，可以在讨论部分提及干预启示\n情绪调节跟本研究的反刍思维相关——情绪调节能力差的人更容易反刍\n样本是青少年，跟本研究拟扩展的群体一致","cnkiUrl":"https://kns.cnki.net/kns8s/defaultresult/index?kw=父母教养方式与青少年非自杀性自伤情绪调节与正念的纵向调节中介作用与干预"},
+{"id":130,"star":true,"cat":"nssi","title":"青少年情绪困扰与非自杀性自伤行为的纵向关系：自我同情和求助倾向的中介作用","source":"期刊","year":"2026","type":"纵向·中介","tags":["NSSI","情绪困扰","自我同情","求助倾向","纵向","中介","青少年"],
+"abstract":"本研究采用纵向设计，探讨了青少年情绪困扰与非自杀性自伤（NSSI）的纵向关系，检验了自我同情和求助倾向的中介作用。结果发现：（1）情绪困扰显著正向预测后续的NSSI；（2）自我同情和求助倾向起中介作用——情绪困扰通过降低自我同情和求助倾向，进而增加NSSI；（3）NSSI也显著正向预测后续的情绪困扰。",
+"insight":"这篇论文用纵向交叉滞后设计发现情绪困扰与NSSI之间存在双向因果关系——跟本研究的横断面设计不同，说明本研究无法确定因果方向\n论文发现自我同情和求助倾向是关键中介变量，可以作为本研究的参考变量\n纵向设计比横断面更严谨，可以在局限部分说明本研究的设计局限\n2026年最新研究，样本是青少年","cnkiUrl":"https://kns.cnki.net/kns8s/defaultresult/index?kw=青少年情绪困扰与非自杀性自伤行为的纵向关系自我同情和求助倾向的中介作用"},
+{"id":131,"star":true,"cat":"nssi","title":"青少年抑郁症非自杀性自伤行为相关因素及其作用路径的研究","source":"硕士论文","year":"2026","type":"横断面·路径分析","tags":["NSSI","抑郁症","相关因素","路径分析","青少年"],
+"abstract":"本研究探讨了青少年抑郁症非自杀性自伤（NSSI）行为的相关因素及其作用路径。结果发现：（1）孤独感、反刍思维、抑郁、焦虑等变量显著预测NSSI；（2）路径分析显示孤独感通过反刍思维影响NSSI；（3）家庭因素、学校因素和个体因素共同影响NSSI。研究结论认为，减少孤独感和反刍思维可以预防青少年抑郁症患者的NSSI。",
+"insight":"这篇论文直接发现\"孤独感→反刍思维→NSSI\"的路径，跟本研究的链式中介模型后半段完全一致！\n这是本研究模型的又一个直接验证——孤独感→反刍思维→NSSI的路径在青少年抑郁样本中被验证\n样本是青少年抑郁症患者，跟本研究拟扩展的群体相关\n2026年最新研究，硕士论文","cnkiUrl":"https://kns.cnki.net/kns8s/defaultresult/index?kw=青少年抑郁症非自杀性自伤行为相关因素及其作用路径的研究"},
+{"id":132,"cat":"nssi","title":"家庭累积风险与初中生非自杀性自伤的关系及心理健康素养干预","source":"硕士论文","year":"2025","type":"横断面·相关+干预","tags":["NSSI","家庭累积风险","心理健康素养","干预","初中生"],
+"abstract":"本研究探讨了家庭累积风险与初中生非自杀性自伤（NSSI）的关系，并设计了心理健康素养干预方案。结果发现：（1）家庭累积风险显著正向预测NSSI；（2）孤独感、反刍思维、抑郁等变量在家庭累积风险与NSSI之间起中介作用；（3）心理健康素养干预可以有效降低NSSI。",
+"insight":"这篇论文发现家庭累积风险通过孤独感、反刍思维等中介影响NSSI，跟本研究的变量重叠\n样本是初中生，跟本研究拟扩展的中学生群体完全一致\n论文包含干预研究，可以在讨论部分提及干预启示\n硕士论文，结构完整","cnkiUrl":"https://kns.cnki.net/kns8s/defaultresult/index?kw=家庭累积风险与初中生非自杀性自伤的关系及心理健康素养干预"},
+{"id":133,"cat":"nssi","title":"基于潜在剖面分析的中学生非自杀性自伤风险分类研究","source":"硕士论文","year":"2025","type":"横断面·潜在剖面分析","tags":["NSSI","潜在剖面分析","风险分类","中学生"],
+"abstract":"本研究采用潜在剖面分析方法，探讨了中学生非自杀性自伤（NSSI）的风险分类。结果发现：（1）中学生NSSI存在不同的潜在类别（低风险组、中风险组、高风险组）；（2）孤独感、反刍思维、抑郁等变量是区分不同风险类别的关键指标；（3）高风险组的孤独感和反刍思维水平显著高于低风险组。",
+"insight":"这篇论文用潜在剖面分析发现中学生NSSI存在不同风险类别，且孤独感和反刍思维是区分风险类别的关键指标——再次支持本研究的变量选择\n样本是中学生，跟本研究拟扩展的群体完全一致\n潜在剖面分析方法可以在讨论部分提及，说明NSSI的异质性\n硕士论文，方法学新颖","cnkiUrl":"https://kns.cnki.net/kns8s/defaultresult/index?kw=基于潜在剖面分析的中学生非自杀性自伤风险分类研究"}
+,
+{"id":134,"cat":"ai","star":true,"title":"I-PACE模型下青少年生成式人工智能依赖影响因素分析","source":"连云港师范学院学报","year":"2026","type":"理论分析","tags":["生成式AI","青少年","AI依赖","I-PACE模型","影响因素"],"abstract":"本文基于I-PACE（Interaction of Person-Affect-Cognition-Execution）模型，系统分析了青少年生成式人工智能依赖的影响因素。研究从三个维度构建形成机制模型：（1）个体易感因素，包括人格特质（如神经质、外向性）、心理健康状况（如抑郁、焦虑）和人口学特征；（2）情感与认知因素，包括孤独感、社交焦虑、认知负荷、AI心智感知；（3）执行功能因素，包括冲动控制、自我调节能力、延迟满足能力。文章指出，青少年正处于自我同一性形成和情绪调节能力发展的关键期，对AI提供的即时情感回应和无条件积极关注缺乏足够的批判性认知，更容易形成依赖。研究还讨论了家庭教养方式、学校教育和社会环境在AI依赖形成中的调节作用，并从家庭、学校、平台、政府四个层面提出了预防和干预建议。","insight":"这是知网中为数不多直接研究'青少年生成式AI依赖'的期刊论文，用I-PACE模型系统分析了影响因素，为本研究的自变量提供了国内理论支撑\nI-PACE模型原本用于解释网络成瘾和行为成瘾，本研究将其推广到AI依赖，说明AI依赖被学界视为一种新型行为成瘾\n文章提到'孤独感、社交焦虑'是AI依赖的重要前因，与本研究'AI依赖→孤独感'的路径方向相反，提示可能存在双向循环关系，讨论部分可以提及\n文章强调青少年'自我同一性形成关键期'这一发展特征（埃里克森理论），可以在引言中用来说明为什么选择青少年作为研究对象\n'家庭、学校、平台、政府'四层建议框架，可以借鉴到本研究的实践意义部分","cnkiUrl":"https://kns.cnki.net/kns8s/defaultresult/index?kw=I-PACE模型下青少年生成式人工智能依赖影响因素分析"},
+{"id":135,"cat":"ai","star":true,"title":"生成式人工智能如何影响青少年心理健康","source":"学术前沿","year":"2026","type":"理论探讨","tags":["生成式AI","青少年","心理健康","情感陪伴","风险"],"abstract":"本文探讨了生成式人工智能对青少年心理健康的双重影响。积极方面：AI可以提供情感陪伴、心理支持和学习辅助，对缓解孤独感和焦虑有一定积极作用，特别是对于社交回避或现实社交困难的青少年，AI提供了低压力的情感表达渠道。消极方面：过度依赖AI可能导致现实社交能力退化、批判性思维减弱、情感调节能力受损。文章特别关注了AI情感陪伴产品对青少年的影响，指出AI提供的'完美情感回应'——永远不会评判、不会拒绝、不会生气、随时在线——可能让青少年逃避现实人际关系中的冲突和挫折，形成情感依赖和社交回避。研究还讨论了AI生成内容的真实性问题对青少年认知发展的影响，以及算法推荐可能造成的信息茧房效应。最后，文章从家庭、学校、平台和政府四个层面提出了引导青少年健康使用AI的建议。","insight":"这篇文章直接讨论了'生成式AI对青少年心理健康的影响'，是本研究引言部分的重要参考文献\n文章提出的'完美情感回应→逃避现实社交→情感依赖'逻辑链，直接支持本研究的社会补偿假说\n文章同时呈现了AI的积极和消极影响，提醒我们在讨论部分要客观全面，不能只说负面影响\n'家庭、学校、平台、政府'四层建议框架，可以借鉴到本研究的实践意义部分\n发表在《学术前沿》，是面向决策者的高端智库期刊，说明该话题已受到政策层面关注","cnkiUrl":"https://kns.cnki.net/kns8s/defaultresult/index?kw=生成式人工智能如何影响青少年心理健康"},
+{"id":136,"cat":"ai","star":true,"title":"对话式人工智能对青少年主动健康行为影响的研究进展","source":"中国学校卫生","year":"2026","type":"综述","tags":["对话式AI","青少年","健康行为","情感支持","研究进展"],"abstract":"本文系统综述了对话式人工智能（Conversational AI, CAI）对青少年主动健康行为的影响。研究发现，CAI在青少年健康教育、心理健康支持和行为干预中展现出应用潜力：可以提供个性化的健康信息、24小时情感支持和行为提醒，对于那些不愿寻求专业心理咨询的青少年尤其有价值。然而，CAI的使用也存在潜在风险，包括信息准确性不足、隐私泄露、过度依赖和情感依恋等问题。文章特别指出，当前研究多集中在CAI的应用效果评估，对其长期影响和作用机制的研究还很缺乏。特别是CAI对青少年社会情感发展和人际关系的影响，需要更多实证研究。文章建议未来研究应关注CAI使用与青少年心理健康之间的因果关系，并开展长期追踪研究，同时建立CAI在青少年健康领域应用的伦理规范和监管框架。","insight":"发表在《中国学校卫生》（北大核心+CSCD），下载量526，说明这篇文章受到较多关注\n文章明确指出'CAI对青少年社会情感发展和人际关系的影响需要更多实证研究'——本研究正好填补这个空白\n文章提到'过度依赖和情感依恋'是CAI的潜在风险，直接支持本研究的自变量合理性\n综述类文章可以在引言中引用，用来说明该领域的研究现状和不足\n文章建议'建立CAI在青少年健康领域应用的伦理规范'，与2026年7月施行的《人工智能拟人化互动服务管理暂行办法》呼应","cnkiUrl":"https://kns.cnki.net/kns8s/defaultresult/index?kw=对话式人工智能对青少年主动健康行为影响的研究进展"},
+{"id":137,"cat":"ai","title":"依赖AI让青少年疏于真实人际交往","source":"中国科学报","year":"2026","type":"报纸评论","tags":["AI依赖","青少年","人际交往","社会替代"],"abstract":"本文报道了青少年过度依赖AI导致真实人际交往能力退化的现象。文章引用多项调查数据指出，越来越多的青少年在遇到情感困扰时选择向AI倾诉而非向家人朋友求助，导致现实社交技能退化、人际沟通能力下降、社交意愿降低。专家指出，AI提供的'无条件积极关注'虽然令人舒适，但无法替代真实人际关系中的情感联结和成长体验——真实关系中的冲突、拒绝、和解都是青少年社会情感发展的必要环节。长期依赖AI情感陪伴可能让青少年逃避现实社交中的不适，形成社交回避，进而加剧孤独感和社交焦虑，形成'孤独→依赖AI→更孤独'的恶性循环。文章呼吁学校和家长关注青少年的AI使用方式，引导其建立健康的人机关系，鼓励现实人际互动。","insight":"中国科学报的评论文章，虽然不是实证研究，但观点权威，可以在引言中引用来说明现实问题\n'AI倾诉→现实社交退化→孤独感加剧'的逻辑链，直接支持本研究'AI情感依赖→孤独感'的路径假设\n文章提到'社交回避'这一中介机制，可以在讨论部分展开\n'孤独→依赖AI→更孤独'的恶性循环表述，跟本研究的模型方向相反但变量重叠，说明可能存在双向因果\n报纸类文献在本科论文中可以少量引用作为现实背景，但不能作为核心理论依据","cnkiUrl":"https://kns.cnki.net/kns8s/defaultresult/index?kw=依赖AI让青少年疏于真实人际交往"},
+{"id":138,"cat":"ai","title":"部分青少年过度依赖AI值得关注","source":"经济参考报","year":"2026","type":"报纸评论","tags":["AI依赖","青少年","过度使用","监管"],"abstract":"本文关注青少年过度依赖AI的现象，指出部分青少年在学习、生活和情感方面过度依赖AI工具，出现了独立思考能力下降、情感表达能力退化、现实社交意愿降低等问题。文章引用了多地教育部门的调研数据，说明AI依赖在青少年中已不是个别现象，而是需要引起重视的普遍性问题。专家分析认为，AI的情感化设计（拟人化语气、共情表达、即时回应）是导致青少年情感依赖的重要原因——青少年正处于情感需求旺盛的阶段，AI提供的'永远在线、永远耐心、永远积极'的情感回应恰好满足了这一需求。文章特别指出，AI情感陪伴产品对青少年的影响尤其值得关注，需要相关部门出台针对性的监管措施。专家建议，应加强对青少年AI使用的引导和监管，建立AI使用时长提醒和内容审核机制，同时加强青少年的数字素养教育和心理健康教育。","insight":"经济参考报的评论文章，可以作为现实背景引用\n文章提到'AI情感陪伴产品对青少年的影响尤其值得关注'，与本研究主题直接相关\n可以与2026年7月施行的《人工智能拟人化互动服务管理暂行办法》结合引用，说明政策和媒体都在关注这个问题\n'AI的情感化设计是导致情感依赖的重要原因'这一分析，可以在引言中用来解释AI情感依赖的形成机制\n报纸类文献适合放在引言的现实背景部分","cnkiUrl":"https://kns.cnki.net/kns8s/defaultresult/index?kw=部分青少年过度依赖AI值得关注"},
+{"id":139,"cat":"ai","title":"青少年人工智能依赖如何破解","source":"群言","year":"2026","type":"期刊评论","tags":["AI依赖","青少年","破解路径","数字素养"],"abstract":"本文分析了青少年人工智能依赖的成因和破解路径。文章指出，青少年AI依赖的形成是多因素共同作用的结果：（1）技术层面——AI的情感化设计、即时反馈机制、个性化推荐让用户容易沉浸其中；（2）个体层面——孤独感、社交焦虑、自我认同困惑、情绪调节能力不足使青少年更倾向于向AI寻求情感支持；（3）家庭层面——亲子沟通不足、家庭情感支持缺失使青少年转向AI寻求陪伴；（4）学校层面——数字素养教育不足、心理健康教育缺位。文章提出，破解青少年AI依赖需要多方合力：家长应加强陪伴和沟通，建立良好的亲子关系；学校应开展数字素养教育，引导学生正确认识和使用AI；平台应完善青少年模式和防沉迷机制；政府应加强监管，完善相关法律法规。文章特别强调，不能简单地'禁用'AI，而应引导青少年建立健康的使用习惯，发挥AI的积极作用，同时避免过度情感依赖。","insight":"群言期刊的评论文章，分析了AI依赖的多层面成因\n文章提到'孤独感、社交焦虑'是AI依赖的个体层面原因，与本研究的模型相关\n'不能简单禁用，要引导健康使用'的观点，可以写进本研究的实践意义部分\n文章的多层面成因分析框架（技术、个体、家庭、学校），可以借鉴到讨论部分\n'自我认同困惑'是青少年的发展特征（埃里克森自我同一性理论），可以在引言中引用","cnkiUrl":"https://kns.cnki.net/kns8s/defaultresult/index?kw=青少年人工智能依赖如何破解"},
+{"id":140,"cat":"ai","title":"人机交互语境中青少年自我同一性问题研究","source":"淮南职业技术学院学报","year":"2026","type":"理论探讨","tags":["人机交互","青少年","自我同一性","发展心理"],"abstract":"本文从发展心理学角度探讨了人机交互语境中青少年自我同一性的形成问题。研究指出，青少年正处于埃里克森提出的自我同一性形成的关键期（12-18岁），其核心任务是探索'我是谁'的问题。而AI聊天机器人的情感化和拟人化设计可能对青少年的自我认知和身份认同产生复杂影响。一方面，AI可以提供安全的自我探索空间——青少年可以在与AI的对话中表达和理解自己的情感，尝试不同的自我表达，而不用担心被评判或拒绝；另一方面，过度依赖AI的情感回应可能让青少年回避真实的人际反馈，而真实的人际反馈（包括冲突和拒绝）是自我同一性形成的必要条件。文章还讨论了AI'完美人设'对青少年自我期望的影响，以及人机关系中边界模糊带来的认同困惑——青少年可能难以区分'AI的回应是程序还是真实情感'，进而影响其对人际关系的认知。","insight":"这篇文章从自我同一性角度探讨AI对青少年的影响，理论视角独特\n'自我同一性形成关键期'是发展心理学的经典概念（埃里克森），可以在引言中用来说明青少年的发展特征\n文章提到'AI提供安全的自我探索空间'，这是AI的积极作用，可以在讨论部分客观呈现\n'人机关系边界模糊'这一概念，与AI情感依赖的形成机制相关——青少年可能把AI的程序化回应误认为真实情感\n发表在淮南职业技术学院学报，普通期刊，但理论视角有参考价值","cnkiUrl":"https://kns.cnki.net/kns8s/defaultresult/index?kw=人机交互语境中青少年自我同一性问题研究"}
+,{"id":141,"cat":"ai","star":true,"title":"Affective Generative Artificial Intelligence Use and Youth Mental Health","source":"JAMA Pediatrics","year":"2026","type":"横断面研究（N=39761）","tags":["生成式AI","青少年","情感性使用","情绪问题","大样本"],"abstract":"This cross-sectional study examined the association between affective generative AI use and emotional problems among 39,761 students in grades 4-12 across 4 school boards in Ontario, Canada (mean age 12.8 years). Results showed that 21.1% of youth reported using AI for affective purposes (emotional support or advice). Affective AI users had significantly higher emotional problem scores (1.04 vs 0.67) and were twice as likely to meet clinical thresholds for emotional problems (57.7% vs 29.2%; prevalence ratio 1.98). After adjusting for covariates including loneliness, affective AI use remained significantly associated with emotional problems (B=0.14). Functional AI use (school-related) showed a modest protective dose-response association. Published in JAMA Pediatrics (top-tier pediatrics journal, IF>15).","insight":"发表在JAMA Pediatrics（儿科顶刊，IF>15），2026年8月刚发表，是目前国际上最权威的青少年AI情感使用研究\n39761人大样本，21.1%青少年用AI做情感支持——直接证明AI情感依赖在青少年中是普遍现象，不是个别现象\n研究发现情感性AI使用与情绪问题显著相关（临床情绪问题风险翻倍），支持本研究'AI情感使用有负面影响'的核心假设\n与本研究的关键差异：他们的因变量是'情绪问题'（broad），我们的因变量是'NSSI'（具体行为）；他们没有做中介机制，我们做孤独感+反刍思维链式中介；他们的自变量是二分变量（用/不用），我们是连续变量（依赖程度）\n这篇论文不仅不构成重复，反而为本研究提供了顶级期刊的合理性支撑——可以在引言中重点引用，说明AI情感使用与青少年心理健康已受到国际顶级期刊关注，但具体到NSSI和中介机制仍是空白","cnkiUrl":"https://pubmed.ncbi.nlm.nih.gov/42671861/"},
+];
+
+const catNames = {ai:'AI与心理健康', nssi:'反刍思维与NSSI', theory:'理论与量表'};
+const catColors = {ai:'var(--orange)', nssi:'var(--green2)', theory:'#7C3AED'};
+const STORAGE_KEY = 'literature_notes_papers_v7';
+let currentCat = 'all';
+let searchTerm = '';
+let starOnly = false;
+let papers = loadPapers();
+let editingId = null;
+
+function loadPapers() {
+  try {
+    const saved = localStorage.getItem(STORAGE_KEY);
+    if (saved) {
+      const parsed = JSON.parse(saved);
+      if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+    }
+  } catch(e) {}
+  return JSON.parse(JSON.stringify(DEFAULT_PAPERS));
+}
+
+function savePapers() {
+  try {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(papers));
+  } catch(e) {}
+}
+
+function render() {
+  const grid = document.getElementById('grid');
+  const filtered = papers.filter(p => {
+    const matchCat = currentCat === 'all' || p.cat === currentCat;
+    const matchStar = !starOnly || p.star;
+    const matchSearch = !searchTerm || 
+      p.title.toLowerCase().includes(searchTerm) ||
+      p.abstract.toLowerCase().includes(searchTerm) ||
+      p.insight.toLowerCase().includes(searchTerm) ||
+      p.tags.some(t => t.toLowerCase().includes(searchTerm)) ||
+      p.source.toLowerCase().includes(searchTerm);
+    return matchCat && matchStar && matchSearch;
+  });
+  document.getElementById('stats').textContent = `共 ${filtered.length} 篇文献`;
+  if (filtered.length === 0) {
+    grid.innerHTML = '<div class="empty">没有找到匹配的文献<br>换个关键词试试</div>';
+    return;
+  }
+  grid.innerHTML = filtered.map(p => `
+    <div class="card" onclick="showModal(${p.id})" style="${p.star ? 'border-color:gold;box-shadow:0 2px 12px rgba(255,215,0,0.15)' : ''}">
+      <div class="card-cat cat-${p.cat}">${catNames[p.cat]}</div>
+      <div class="card-title">${p.star ? '⭐ ' : ''}${p.title}${p.cnkiUrl ? ' <a href="'+p.cnkiUrl+'" target="_blank" onclick="event.stopPropagation()" style="color:var(--orange);font-size:12px;text-decoration:none;vertical-align:middle" title="在知网中搜索">&#128279;</a>' : ''}</div>
+      <div class="card-meta">
+        <span>${p.source}</span>
+        <span>${p.year}</span>
+        <span>${p.type}</span>
+      </div>
+      <div class="card-tags">${p.tags.slice(0,3).map(t => `<span class="tag">${t}</span>`).join('')}</div>
+    </div>
+  `).join('');
+}
+
+function showModal(id) {
+  const p = papers.find(x => x.id === id);
+  if (!p) return;
+  const insightItems = p.insight.split('\n').filter(s => s.trim());
+  document.getElementById('modalContent').innerHTML = `
+    <div class="modal-cat" style="background:${catColors[p.cat]}">${catNames[p.cat]}</div>
+    <div class="modal-title">${p.star ? '⭐ 重点文献 · ' : ''}${p.title}</div>
+    <div class="modal-meta">
+      <span><strong>来源：</strong>${p.source}</span>
+      <span><strong>年份：</strong>${p.year}</span>
+      <span><strong>类型：</strong>${p.type}</span>
+    </div>
+    <div class="modal-section">
+      <h3>摘要</h3>
+      <p>${p.abstract}</p>
+    </div>
+    <div class="modal-section">
+      <h3>启发与观点</h3>
+      <ul>${insightItems.map(item => `<li>${item}</li>`).join('')}</ul>
+    </div>
+    <div class="modal-section">
+      <h3>关键词</h3>
+      <div class="modal-tags">${p.tags.map(t => `<span class="tag">${t}</span>`).join('')}</div>
+    </div>
+    <div class="modal-actions">
+      ${p.cnkiUrl ? `<a href="${p.cnkiUrl}" target="_blank"><button class="btn btn-edit" style="background:var(--orange)">在知网查看</button></a>` : ''}
+      <button class="btn btn-edit" onclick="openEdit(${p.id})">编辑这篇</button>
+    </div>
+  `;
+  document.getElementById('modalOverlay').classList.add('show');
+  document.body.style.overflow = 'hidden';
+}
+
+function openEdit(id) {
+  const p = papers.find(x => x.id === id);
+  if (!p) return;
+  editingId = id;
+  document.getElementById('editTitle').value = p.title;
+  document.getElementById('editSource').value = p.source;
+  document.getElementById('editYear').value = p.year;
+  document.getElementById('editType').value = p.type;
+  document.getElementById('editTags').value = p.tags.join(', ');
+  document.getElementById('editAbstract').value = p.abstract;
+  document.getElementById('editInsight').value = p.insight;
+  document.getElementById('editOverlay').classList.add('show');
+}
+
+function closeEdit() {
+  document.getElementById('editOverlay').classList.remove('show');
+  editingId = null;
+}
+
+document.getElementById('editSave').onclick = function() {
+  if (editingId === null) return;
+  const idx = papers.findIndex(x => x.id === editingId);
+  if (idx === -1) return;
+  papers[idx].title = document.getElementById('editTitle').value.trim();
+  papers[idx].source = document.getElementById('editSource').value.trim();
+  papers[idx].year = document.getElementById('editYear').value.trim();
+  papers[idx].type = document.getElementById('editType').value.trim();
+  papers[idx].tags = document.getElementById('editTags').value.split(',').map(s => s.trim()).filter(s => s);
+  papers[idx].abstract = document.getElementById('editAbstract').value.trim();
+  papers[idx].insight = document.getElementById('editInsight').value.trim();
+  savePapers();
+  closeEdit();
+  render();
+  showModal(editingId);
+};
+
+document.getElementById('editCancel').onclick = closeEdit;
+document.getElementById('editOverlay').onclick = function(e) {
+  if (e.target === this) closeEdit();
+};
+
+document.getElementById('modalClose').onclick = closeModal;
+document.getElementById('modalOverlay').onclick = function(e) {
+  if (e.target === this) closeModal();
+};
+function closeModal() {
+  document.getElementById('modalOverlay').classList.remove('show');
+  document.body.style.overflow = '';
+}
+
+document.getElementById('filters').addEventListener('click', function(e) {
+  if (e.target.classList.contains('filter-btn')) {
+    document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+    e.target.classList.add('active');
+    currentCat = e.target.dataset.cat;
+    render();
+  }
+});
+
+document.getElementById('starFilter').addEventListener('click', function() {
+  starOnly = !starOnly;
+  this.classList.toggle('active', starOnly);
+  this.style.background = starOnly ? 'gold' : '';
+  this.style.color = starOnly ? '#333' : 'gold';
+  render();
+});
+
+document.getElementById('searchInput').addEventListener('input', function(e) {
+  searchTerm = e.target.value.toLowerCase().trim();
+  render();
+});
+
+document.getElementById('randomBtn').onclick = function() {
+  const filtered = papers.filter(p => currentCat === 'all' || p.cat === currentCat);
+  const random = filtered[Math.floor(Math.random() * filtered.length)];
+  showModal(random.id);
+};
+
+document.addEventListener('keydown', function(e) {
+  if (e.key === 'Escape') {
+    if (document.getElementById('editOverlay').classList.contains('show')) {
+      closeEdit();
+    } else {
+      closeModal();
+    }
+  }
+});
+
+render();
+</script>
+</body>
+</html>

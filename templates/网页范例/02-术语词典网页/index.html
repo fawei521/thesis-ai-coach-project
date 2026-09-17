@@ -1,0 +1,1537 @@
+<!DOCTYPE html>
+<!-- ===== 【范例，请勿直接使用】 由 thesis-ai-coach-project 随包分发（templates/网页范例/），内容版权与真实性归原作者。===== -->
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>心理学论文写作黑话词典</title>
+<meta name="theme-color" content="#1B4332">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="心理词典">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="application-name" content="心理学论文黑话词典">
+<meta name="description" content="179个心理学论文写作核心术语，涵盖研究设计、心理统计、实验心理学312考点、测量信效度、前沿范式与热门构念">
+<link rel="stylesheet" href="https://miaoda.feishu.cn/fonts/css2?family=Noto+Serif+SC:wght@400;600;700;900&family=Noto+Sans+SC:wght@300;400;500;700&display=swap">
+<style>
+/* ===== 设计 Token ===== */
+:root {
+  --bg-paper: #F5F1E8;
+  --bg-card: #FFFFFF;
+  --ink-primary: #1A1A1A;
+  --ink-secondary: #555555;
+  --ink-muted: #888888;
+  --accent-green: #1B4332;
+  --accent-green-light: #2D6A4F;
+  --accent-orange: #C2410C;
+  --accent-orange-light: #EA580C;
+  --border-soft: #E0D8C8;
+  --border-card: #DDD5C5;
+  --highlight: #FEF3C7;
+  --shadow-card: 0 1px 3px rgba(27,67,50,0.08), 0 1px 2px rgba(27,67,50,0.06);
+  --shadow-card-hover: 0 4px 12px rgba(27,67,50,0.12), 0 2px 4px rgba(27,67,50,0.08);
+  --font-serif: 'Noto Serif SC', 'Songti SC', 'SimSun', serif;
+  --font-sans: 'Noto Sans SC', 'PingFang SC', 'Microsoft YaHei', sans-serif;
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+  font-family: var(--font-sans);
+  background: var(--bg-paper);
+  color: var(--ink-primary);
+  line-height: 1.6;
+  min-height: 100vh;
+}
+
+/* ===== 顶部 Header ===== */
+.header {
+  background: var(--accent-green);
+  color: #fff;
+  padding: 32px 24px 28px;
+  position: relative;
+  overflow: hidden;
+}
+.header::before {
+  content: '';
+  position: absolute;
+  top: -50%;
+  right: -10%;
+  width: 400px;
+  height: 400px;
+  background: radial-gradient(circle, rgba(255,255,255,0.06) 0%, transparent 70%);
+  pointer-events: none;
+}
+.header-inner {
+  max-width: 1200px;
+  margin: 0 auto;
+  position: relative;
+  z-index: 1;
+}
+.header h1 {
+  font-family: var(--font-serif);
+  font-size: 28px;
+  font-weight: 700;
+  letter-spacing: 1px;
+  margin-bottom: 6px;
+}
+.header .subtitle {
+  font-size: 14px;
+  opacity: 0.75;
+  font-weight: 300;
+  margin-bottom: 20px;
+}
+.search-box {
+  position: relative;
+  max-width: 600px;
+}
+.search-box input {
+  width: 100%;
+  padding: 14px 18px 14px 48px;
+  border: none;
+  border-radius: 8px;
+  font-size: 15px;
+  font-family: var(--font-sans);
+  background: rgba(255,255,255,0.95);
+  color: var(--ink-primary);
+  outline: none;
+  transition: box-shadow 0.2s;
+}
+.search-box input:focus {
+  box-shadow: 0 0 0 3px rgba(255,255,255,0.3);
+}
+.search-box input::placeholder { color: var(--ink-muted); }
+.search-icon {
+  position: absolute;
+  left: 16px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 20px;
+  height: 20px;
+  opacity: 0.5;
+}
+.search-clear {
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 4px 8px;
+  font-size: 18px;
+  color: var(--ink-muted);
+  display: none;
+}
+.search-clear.visible { display: block; }
+
+/* ===== 工具栏 ===== */
+.toolbar {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 16px 24px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+.result-count {
+  font-size: 14px;
+  color: var(--ink-secondary);
+}
+.result-count strong {
+  color: var(--accent-orange);
+  font-weight: 600;
+}
+.toolbar-actions {
+  display: flex;
+  gap: 8px;
+}
+.btn {
+  padding: 8px 16px;
+  border: 1px solid var(--border-soft);
+  border-radius: 6px;
+  background: var(--bg-card);
+  color: var(--ink-secondary);
+  font-size: 13px;
+  font-family: var(--font-sans);
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.btn:hover {
+  border-color: var(--accent-green-light);
+  color: var(--accent-green);
+}
+.btn-primary {
+  background: var(--accent-green);
+  color: #fff;
+  border-color: var(--accent-green);
+}
+.btn-primary:hover {
+  background: var(--accent-green-light);
+  color: #fff;
+}
+
+/* ===== 主体布局 ===== */
+.main-layout {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 24px 48px;
+  display: grid;
+  grid-template-columns: 220px 1fr;
+  gap: 28px;
+  align-items: start;
+}
+
+/* ===== 侧边栏分类 ===== */
+.sidebar {
+  position: sticky;
+  top: 20px;
+  background: var(--bg-card);
+  border: 1px solid var(--border-card);
+  border-radius: 10px;
+  padding: 16px 0;
+  box-shadow: var(--shadow-card);
+}
+.sidebar-title {
+  font-family: var(--font-serif);
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--accent-green);
+  padding: 0 16px 12px;
+  border-bottom: 1px solid var(--border-soft);
+  margin-bottom: 8px;
+}
+.cat-list { list-style: none; }
+.cat-item {
+  padding: 10px 16px;
+  cursor: pointer;
+  font-size: 14px;
+  color: var(--ink-secondary);
+  transition: all 0.15s;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-left: 3px solid transparent;
+}
+.cat-item:hover {
+  background: var(--bg-paper);
+  color: var(--ink-primary);
+}
+.cat-item.active {
+  background: rgba(27,67,50,0.06);
+  color: var(--accent-green);
+  font-weight: 500;
+  border-left-color: var(--accent-orange);
+}
+.cat-count {
+  font-size: 12px;
+  background: var(--bg-paper);
+  padding: 2px 8px;
+  border-radius: 10px;
+  color: var(--ink-muted);
+}
+.cat-item.active .cat-count {
+  background: var(--accent-orange);
+  color: #fff;
+}
+
+/* ===== 词条卡片网格 ===== */
+.cards-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 16px;
+}
+.term-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border-card);
+  border-radius: 10px;
+  padding: 18px 18px 16px;
+  cursor: pointer;
+  transition: all 0.2s;
+  position: relative;
+  box-shadow: var(--shadow-card);
+  overflow: hidden;
+}
+.term-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 4px;
+  height: 100%;
+  background: var(--cat-color, var(--accent-green));
+}
+.term-card:hover {
+  box-shadow: var(--shadow-card-hover);
+  transform: translateY(-2px);
+  border-color: var(--cat-color, var(--accent-green-light));
+}
+.term-cat-tag {
+  display: inline-block;
+  font-size: 11px;
+  padding: 2px 8px;
+  border-radius: 4px;
+  background: var(--cat-color-bg, rgba(27,67,50,0.08));
+  color: var(--cat-color, var(--accent-green));
+  font-weight: 500;
+  margin-bottom: 10px;
+}
+.term-name {
+  font-family: var(--font-serif);
+  font-size: 17px;
+  font-weight: 600;
+  color: var(--ink-primary);
+  margin-bottom: 4px;
+  line-height: 1.4;
+}
+.term-name-en {
+  font-size: 12px;
+  color: var(--ink-muted);
+  font-family: 'Noto Sans SC', sans-serif;
+  font-weight: 400;
+  margin-bottom: 10px;
+}
+.term-def-short {
+  font-size: 13.5px;
+  color: var(--ink-secondary);
+  line-height: 1.6;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+mark {
+  background: var(--highlight);
+  color: var(--ink-primary);
+  padding: 0 2px;
+  border-radius: 2px;
+}
+
+/* ===== 空状态 ===== */
+.empty-state {
+  text-align: center;
+  padding: 60px 20px;
+  color: var(--ink-muted);
+}
+.empty-state-icon {
+  width: 56px;
+  height: 56px;
+  margin: 0 auto 16px;
+  opacity: 0.3;
+}
+.empty-state p {
+  font-size: 15px;
+  margin-bottom: 8px;
+}
+.empty-state .hint {
+  font-size: 13px;
+  color: var(--ink-muted);
+}
+
+/* ===== 详情模态框 ===== */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(26,26,26,0.5);
+  z-index: 1000;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  backdrop-filter: blur(2px);
+}
+.modal-overlay.visible { display: flex; }
+.modal {
+  background: var(--bg-card);
+  border-radius: 14px;
+  max-width: 640px;
+  width: 100%;
+  max-height: 85vh;
+  overflow-y: auto;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.2);
+  animation: modalIn 0.25s ease;
+}
+@keyframes modalIn {
+  from { opacity: 0; transform: translateY(20px) scale(0.98); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+.modal-header {
+  padding: 24px 28px 16px;
+  border-bottom: 1px solid var(--border-soft);
+  position: relative;
+  background: linear-gradient(135deg, rgba(27,67,50,0.03) 0%, transparent 100%);
+}
+.modal-close {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  background: none;
+  border: none;
+  font-size: 24px;
+  cursor: pointer;
+  color: var(--ink-muted);
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.15s;
+}
+.modal-close:hover {
+  background: var(--bg-paper);
+  color: var(--ink-primary);
+}
+.modal-cat-tag {
+  display: inline-block;
+  font-size: 12px;
+  padding: 3px 10px;
+  border-radius: 4px;
+  background: var(--cat-color-bg, rgba(27,67,50,0.08));
+  color: var(--cat-color, var(--accent-green));
+  font-weight: 500;
+  margin-bottom: 10px;
+}
+.modal-term-name {
+  font-family: var(--font-serif);
+  font-size: 24px;
+  font-weight: 700;
+  color: var(--ink-primary);
+  margin-bottom: 4px;
+}
+.modal-term-en {
+  font-size: 14px;
+  color: var(--ink-muted);
+  font-weight: 400;
+}
+.modal-body {
+  padding: 20px 28px 28px;
+}
+.modal-section {
+  margin-bottom: 20px;
+}
+.modal-section:last-child { margin-bottom: 0; }
+.modal-section-title {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--accent-green);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 8px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.modal-section-title::before {
+  content: '';
+  width: 3px;
+  height: 14px;
+  background: var(--accent-orange);
+  border-radius: 2px;
+}
+.modal-section-content {
+  font-size: 14.5px;
+  color: var(--ink-primary);
+  line-height: 1.75;
+}
+.modal-section-content.example-box {
+  background: var(--bg-paper);
+  border-left: 3px solid var(--accent-orange);
+  padding: 12px 16px;
+  border-radius: 0 6px 6px 0;
+  font-size: 14px;
+}
+.related-terms {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.related-tag {
+  padding: 5px 12px;
+  background: var(--bg-paper);
+  border: 1px solid var(--border-soft);
+  border-radius: 16px;
+  font-size: 13px;
+  color: var(--ink-secondary);
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.related-tag:hover {
+  background: var(--accent-green);
+  color: #fff;
+  border-color: var(--accent-green);
+}
+
+/* ===== 移动端汉堡按钮 ===== */
+.menu-toggle {
+  display: none;
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+  background: var(--accent-green);
+  color: #fff;
+  border: none;
+  cursor: pointer;
+  box-shadow: 0 4px 16px rgba(27,67,50,0.3);
+  z-index: 100;
+  font-size: 20px;
+  align-items: center;
+  justify-content: center;
+}
+.sidebar-overlay {
+  display: none;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0,0,0,0.4);
+  z-index: 99;
+}
+
+/* ===== 响应式 ===== */
+@media (max-width: 900px) {
+  .main-layout {
+    grid-template-columns: 1fr;
+  }
+  .sidebar {
+    position: fixed;
+    top: 0;
+    left: -280px;
+    width: 260px;
+    height: 100vh;
+    border-radius: 0;
+    z-index: 101;
+    transition: left 0.3s ease;
+    overflow-y: auto;
+  }
+  .sidebar.open { left: 0; }
+  .sidebar-overlay.visible { display: block; }
+  .menu-toggle { display: flex; }
+  .header h1 { font-size: 22px; }
+}
+@media (max-width: 600px) {
+  .header { padding: 24px 16px 20px; }
+  .header h1 { font-size: 20px; }
+  .toolbar { padding: 12px 16px; }
+  .main-layout { padding: 0 16px 80px; }
+  .cards-grid { grid-template-columns: 1fr; }
+  .modal { max-height: 90vh; }
+  .modal-header, .modal-body { padding-left: 20px; padding-right: 20px; }
+}
+
+/* ===== 管理模式样式 ===== */
+.btn-manage {
+  background: var(--accent-orange);
+  color: #fff;
+  border-color: var(--accent-orange);
+}
+.btn-manage:hover { background: #EA580C; border-color: #EA580C; color: #fff; }
+.btn-manage.active {
+  background: #9A3412;
+  border-color: #9A3412;
+}
+.manage-banner {
+  display: none;
+  background: linear-gradient(135deg, #C2410C, #EA580C);
+  color: #fff;
+  padding: 10px 24px;
+  font-size: 13.5px;
+  text-align: center;
+}
+.manage-banner.visible { display: block; }
+.manage-banner strong { font-weight: 600; }
+.card-actions {
+  display: none;
+  gap: 6px;
+  margin-top: 12px;
+  padding-top: 10px;
+  border-top: 1px dashed var(--border-soft);
+}
+.manage-mode .card-actions { display: flex; }
+.card-btn {
+  flex: 1;
+  padding: 6px 8px;
+  border: 1px solid var(--border-soft);
+  border-radius: 5px;
+  background: var(--bg-paper);
+  color: var(--ink-secondary);
+  font-size: 12px;
+  font-family: var(--font-sans);
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.card-btn:hover { background: var(--accent-green); color: #fff; border-color: var(--accent-green); }
+.card-btn.del:hover { background: #BE123C; border-color: #BE123C; }
+.add-card {
+  background: transparent;
+  border: 2px dashed var(--border-card);
+  border-radius: 10px;
+  min-height: 120px;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  color: var(--ink-muted);
+  font-size: 15px;
+  transition: all 0.2s;
+}
+.manage-mode .add-card { display: flex; }
+.add-card:hover {
+  border-color: var(--accent-orange);
+  color: var(--accent-orange);
+  background: rgba(194,65,12,0.03);
+}
+.add-card-icon { font-size: 28px; margin-right: 8px; }
+
+/* 编辑表单 */
+.form-group { margin-bottom: 14px; }
+.form-label {
+  display: block;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--accent-green);
+  margin-bottom: 5px;
+}
+.form-label .req { color: #BE123C; }
+.form-input, .form-textarea, .form-select {
+  width: 100%;
+  padding: 9px 12px;
+  border: 1px solid var(--border-soft);
+  border-radius: 6px;
+  font-size: 14px;
+  font-family: var(--font-sans);
+  color: var(--ink-primary);
+  background: var(--bg-card);
+  outline: none;
+  transition: border-color 0.15s;
+}
+.form-input:focus, .form-textarea:focus, .form-select:focus {
+  border-color: var(--accent-green-light);
+  box-shadow: 0 0 0 2px rgba(45,106,79,0.1);
+}
+.form-textarea { resize: vertical; min-height: 70px; line-height: 1.6; }
+.form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.form-hint { font-size: 11.5px; color: var(--ink-muted); margin-top: 3px; }
+.form-actions {
+  display: flex;
+  gap: 10px;
+  margin-top: 20px;
+  padding-top: 16px;
+  border-top: 1px solid var(--border-soft);
+}
+.form-actions .btn { flex: 1; padding: 10px; font-size: 14px; }
+.btn-danger {
+  background: #BE123C;
+  color: #fff;
+  border-color: #BE123C;
+}
+.btn-danger:hover { background: #9F1239; border-color: #9F1239; color: #fff; }
+
+/* 数据管理下拉 */
+.data-menu {
+  position: relative;
+}
+.data-dropdown {
+  display: none;
+  position: absolute;
+  top: 100%;
+  right: 0;
+  margin-top: 6px;
+  background: var(--bg-card);
+  border: 1px solid var(--border-card);
+  border-radius: 8px;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.12);
+  min-width: 160px;
+  z-index: 50;
+  overflow: hidden;
+}
+.data-dropdown.visible { display: block; }
+.data-dropdown button {
+  display: block;
+  width: 100%;
+  padding: 10px 16px;
+  border: none;
+  background: none;
+  text-align: left;
+  font-size: 13.5px;
+  font-family: var(--font-sans);
+  color: var(--ink-secondary);
+  cursor: pointer;
+  transition: all 0.12s;
+}
+.data-dropdown button:hover { background: var(--bg-paper); color: var(--accent-green); }
+.data-dropdown button.danger:hover { color: #BE123C; }
+</style>
+</head>
+<body>
+
+<!-- ===== 顶部 ===== -->
+<header class="header">
+  <div class="header-inner">
+    <h1>心理学论文写作黑话词典</h1>
+    <p class="subtitle">从「完全不懂」到「能跟导师对线」—— 70+ 核心术语，人话解释，即查即用</p>
+    <div class="search-box">
+      <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+      <input type="text" id="searchInput" placeholder="搜索术语、定义、示例…  比如「中介」「p值」「SEM」" autocomplete="off">
+      <button class="search-clear" id="searchClear">&times;</button>
+    </div>
+  </div>
+</header>
+
+<!-- 管理模式横幅 -->
+<div class="manage-banner" id="manageBanner">
+  <strong>管理模式已开启</strong> — 可以新增、编辑、删除词条，修改自动保存到本地浏览器
+</div>
+
+<!-- ===== 工具栏 ===== -->
+<div class="toolbar">
+  <div class="result-count">共 <strong id="totalCount">0</strong> 个词条 · 当前显示 <strong id="visibleCount">0</strong> 个</div>
+  <div class="toolbar-actions">
+    <button class="btn" id="randomBtn">随机一词</button>
+    <button class="btn btn-primary" id="resetBtn">重置筛选</button>
+    <button class="btn btn-manage" id="manageBtn">管理词条</button>
+    <div class="data-menu">
+      <button class="btn" id="dataBtn">数据 ▾</button>
+      <div class="data-dropdown" id="dataDropdown">
+        <button id="exportBtn">导出全部词条 (JSON)</button>
+        <button id="importBtn">导入词条 (JSON)</button>
+        <button id="resetDataBtn" class="danger">恢复默认词条</button>
+      </div>
+    </div>
+    <input type="file" id="importFile" accept=".json" style="display:none">
+  </div>
+</div>
+
+<!-- ===== 主体 ===== -->
+<div class="main-layout">
+  <!-- 侧边栏 -->
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-title">分类导航</div>
+    <ul class="cat-list" id="catList"></ul>
+  </aside>
+  <div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+  <!-- 词条卡片 -->
+  <main>
+    <div class="cards-grid" id="cardsGrid"></div>
+    <div class="empty-state" id="emptyState" style="display:none;">
+      <svg class="empty-state-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line><line x1="8" y1="11" x2="14" y2="11"></line></svg>
+      <p>没有找到匹配的词条</p>
+      <p class="hint">试试换个关键词，或者点击「重置筛选」查看全部</p>
+    </div>
+  </main>
+</div>
+
+<!-- 移动端菜单按钮 -->
+<button class="menu-toggle" id="menuToggle">&#9776;</button>
+
+<!-- ===== 详情模态框 ===== -->
+<div class="modal-overlay" id="modalOverlay">
+  <div class="modal" id="modal">
+    <div class="modal-header">
+      <button class="modal-close" id="modalClose">&times;</button>
+      <span class="modal-cat-tag" id="modalCatTag"></span>
+      <div class="modal-term-name" id="modalTermName"></div>
+      <div class="modal-term-en" id="modalTermEn"></div>
+    </div>
+    <div class="modal-body" id="modalBody"></div>
+  </div>
+</div>
+
+<!-- ===== 词条编辑模态框 ===== -->
+<div class="modal-overlay" id="editModalOverlay">
+  <div class="modal" id="editModal">
+    <div class="modal-header">
+      <button class="modal-close" id="editModalClose">&times;</button>
+      <span class="modal-cat-tag" style="background:rgba(194,65,12,0.1);color:var(--accent-orange)" id="editModalTitle">新增词条</span>
+      <div class="modal-term-name" id="editModalTermName" style="font-size:16px;margin-top:6px;"></div>
+    </div>
+    <div class="modal-body">
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">词条名称 <span class="req">*</span></label>
+          <input type="text" class="form-input" id="editName" placeholder="如：心理韧性">
+        </div>
+        <div class="form-group">
+          <label class="form-label">英文名称</label>
+          <input type="text" class="form-input" id="editEn" placeholder="如：Resilience">
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">分类 <span class="req">*</span></label>
+        <select class="form-select" id="editCat"></select>
+      </div>
+      <div class="form-group">
+        <label class="form-label">定义 <span class="req">*</span></label>
+        <textarea class="form-textarea" id="editDef" placeholder="用通俗的话解释这个术语是什么…"></textarea>
+      </div>
+      <div class="form-group">
+        <label class="form-label">示例 / 用法</label>
+        <textarea class="form-textarea" id="editExample" placeholder="举一个论文中的实际用法例子…" style="min-height:90px;"></textarea>
+      </div>
+      <div class="form-group">
+        <label class="form-label">相关术语</label>
+        <input type="text" class="form-input" id="editRelated" placeholder="用中文逗号分隔，如：心理资本, 社会支持, 正念">
+        <div class="form-hint">填写已存在的词条名称，点击后可跳转</div>
+      </div>
+      <div class="form-actions">
+        <button class="btn" id="editCancelBtn">取消</button>
+        <button class="btn btn-danger" id="editDeleteBtn" style="display:none">删除此词条</button>
+        <button class="btn btn-primary" id="editSaveBtn">保存</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+// ===== 全局错误捕获（调试用） =====
+window.addEventListener('error', function(e) {
+  var errDiv = document.createElement('div');
+  errDiv.style.cssText = 'position:fixed;top:0;left:0;right:0;background:#fef2f2;color:#991b1b;padding:12px 16px;font-size:14px;z-index:99999;border-bottom:2px solid #dc2626;';
+  errDiv.innerHTML = '<strong>JS运行错误：</strong>' + e.message + '<br><span style="font-size:12px;opacity:0.7;">行号: ' + e.lineno + ' | 文件名: ' + (e.filename||'').split('/').pop() + '</span><br><span style="font-size:12px;">如果看到此提示，请截图发给助手排查</span>';
+  document.body.appendChild(errDiv);
+});
+// ===== PWA 初始化（添加到主屏幕支持）=====
+(function initPWA() {
+  function makeIcon(size) {
+    var c = document.createElement('canvas');
+    c.width = c.height = size;
+    var ctx = c.getContext('2d');
+    // 深绿背景
+    ctx.fillStyle = '#1B4332';
+    ctx.fillRect(0, 0, size, size);
+    // 米白书本矩形
+    var bw = size * 0.56, bh = size * 0.44;
+    var bx = (size - bw) / 2, by = (size - bh) / 2;
+    ctx.fillStyle = '#F5F1E8';
+    ctx.fillRect(bx, by, bw, bh);
+    // 书脊线
+    ctx.strokeStyle = '#1B4332';
+    ctx.lineWidth = size * 0.02;
+    ctx.beginPath();
+    ctx.moveTo(size / 2, by);
+    ctx.lineTo(size / 2, by + bh);
+    ctx.stroke();
+    // 文字"典"
+    ctx.fillStyle = '#1B4332';
+    ctx.font = 'bold ' + (size * 0.22) + 'px serif';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText('典', size / 2, size / 2 + size * 0.02);
+    return c.toDataURL('image/png');
+  }
+  var icon192 = makeIcon(192);
+  var icon512 = makeIcon(512);
+  // iOS 图标
+  var appleIcon = document.createElement('link');
+  appleIcon.rel = 'apple-touch-icon';
+  appleIcon.href = icon192;
+  document.head.appendChild(appleIcon);
+  // 动态 manifest
+  var manifest = {
+    name: '心理学论文写作黑话词典',
+    short_name: '心理词典',
+    description: '179个心理学论文核心术语，312考点全覆盖',
+    start_url: '.',
+    scope: '.',
+    display: 'standalone',
+    orientation: 'portrait',
+    background_color: '#F5F1E8',
+    theme_color: '#1B4332',
+    lang: 'zh-CN',
+    icons: [
+      { src: icon192, sizes: '192x192', type: 'image/png', purpose: 'any maskable' },
+      { src: icon512, sizes: '512x512', type: 'image/png', purpose: 'any maskable' }
+    ]
+  };
+  var manifestBlob = new Blob([JSON.stringify(manifest)], { type: 'application/json' });
+  var manifestURL = URL.createObjectURL(manifestBlob);
+  var manifestLink = document.createElement('link');
+  manifestLink.rel = 'manifest';
+  manifestLink.href = manifestURL;
+  document.head.appendChild(manifestLink);
+  // 注册 Service Worker（仅HTTP/HTTPS环境下生效）
+  if ('serviceWorker' in navigator && location.protocol !== 'file:') {
+    window.addEventListener('load', function() {
+      navigator.serviceWorker.register('./service-worker.js').catch(function() {});
+    });
+  }
+})();
+// ===== 词条数据 =====
+const categories = [
+  { id: 'all', name: '全部词条', color: '#1B4332', bg: 'rgba(27,67,50,0.08)' },
+  { id: 'basic', name: '基础概念', color: '#1B4332', bg: 'rgba(27,67,50,0.08)' },
+  { id: 'design', name: '研究设计', color: '#0369A1', bg: 'rgba(3,105,161,0.08)' },
+  { id: 'measure', name: '测量与量表', color: '#7C3AED', bg: 'rgba(124,58,237,0.08)' },
+  { id: 'stats', name: '统计方法', color: '#C2410C', bg: 'rgba(194,65,12,0.08)' },
+  { id: 'ethics', name: '学术规范', color: '#BE123C', bg: 'rgba(190,18,60,0.08)' },
+  { id: 'writing', name: '论文写作', color: '#4D7C0F', bg: 'rgba(77,124,15,0.08)' },
+  { id: 'paradigm', name: '研究范式与前沿方法', color: '#0E7490', bg: 'rgba(14,116,144,0.08)' },
+  { id: 'construct', name: '心理学热门构念', color: '#9333EA', bg: 'rgba(147,51,234,0.08)' }
+];
+
+const DEFAULT_TERMS = [
+{"id":1,"cat":"basic","name":"变量","en":"Variable","def":"你研究的任何东西，它在不同人身上有不同的值。比如\"抑郁程度\"\"AI使用时长\"\"年龄\"都是变量。","example":"\"本研究的自变量是AI情感依赖，因变量是抑郁程度。\"——意思就是看AI情感依赖的变化会不会引起抑郁程度的变化。","related":["自变量","因变量","中介变量","调节变量"]},
+{"id":2,"cat":"basic","name":"自变量","en":"Independent Variable (IV)","def":"你认为是\"原因\"的那个变量。是研究者主动操纵或选择的、用来预测其他变量的变量。","example":"在\"AI情感依赖对抑郁的影响\"研究中，AI情感依赖就是自变量——你假设它是导致抑郁变化的原因。","related":["变量","因变量","中介变量"]},
+{"id":3,"cat":"basic","name":"因变量","en":"Dependent Variable (DV)","def":"你认为是\"结果\"的那个变量。它的值被认为\"依赖于\"自变量的变化，所以叫因变量。","example":"在\"反刍思维对睡眠质量的影响\"中，睡眠质量就是因变量——你假设它的好坏取决于反刍思维的多少。","related":["变量","自变量","中介变量"]},
+{"id":4,"cat":"basic","name":"中介变量","en":"Mediator","def":"中间传话的人。自变量不是直接影响因变量，而是先影响中介变量，中介变量再影响因变量。回答的是\"为什么X会影响Y\"。","example":"\"为什么AI依赖会导致抑郁？因为AI依赖先让人更孤独（中介），孤独再导致抑郁。\"——孤独感就是中介变量。","related":["调节变量","链式中介","有调节的中介"]},
+{"id":5,"cat":"basic","name":"调节变量","en":"Moderator","def":"影响\"力度\"的变量。同样的自变量对因变量的影响，在不同人身上不一样大，调节变量就是解释这种差异的。回答的是\"X对Y的影响在什么情况下更强/更弱\"。","example":"\"AI依赖对孤独感的影响，在依恋焦虑高的人身上更强。\"——依恋焦虑就是调节变量，它改变了AI依赖→孤独感这条路径的力度。","related":["中介变量","有调节的中介"]},
+{"id":6,"cat":"basic","name":"控制变量","en":"Control Variable","def":"你知道它会影响结果，但不是你研究的重点，所以要\"控制住\"它的影响，排除它的干扰。","example":"性别、年龄、年级这些通常作为控制变量——因为它们可能影响抑郁程度，但你真正关心的是AI依赖的影响，所以要把性别年龄的效应统计上剔除。","related":["协变量","变量"]},
+{"id":7,"cat":"basic","name":"协变量","en":"Covariate","def":"跟控制变量差不多的意思，在方差分析（ANCOVA）里叫协变量。就是需要被统计控制的连续变量。","example":"在比较不同年级学生的抑郁差异时，如果把\"AI使用时长\"作为协变量，就是在剔除AI使用时长的影响后，再看年级之间的抑郁差异。","related":["控制变量","变量"]},
+{"id":8,"cat":"basic","name":"构念/建构","en":"Construct","def":"抽象的心理学概念，不能直接测量，需要用量表间接测。比如\"智力\"\"自尊\"\"自我效能感\"\"孤独感\"都是构念。","example":"\"抑郁\"是一个构念——你不能直接看到或摸到抑郁，所以你用PHQ-9量表的9道题来间接测量它，量表得分就是这个构念的操作化指标。","related":["操作定义","信度","效度"]},
+{"id":9,"cat":"basic","name":"操作定义","en":"Operational Definition","def":"你怎么具体测量一个抽象概念。把抽象的构念变成可观测、可测量的具体指标。","example":"\"孤独感\"的操作定义是\"UCLA孤独感量表（ULS-6）的得分\"——这样别人就知道你说的孤独感具体是怎么测出来的，而不是一个模糊的感觉。","related":["构念/建构","信度","效度"]},
+{"id":10,"cat":"basic","name":"效应量","en":"Effect Size","def":"效应到底有多大。p值只告诉你\"显不显著\"（是不是巧合），效应量告诉你\"重不重要\"（实际影响有多大）。","example":"常用效应量：Cohen's d（组间差异，0.2=小、0.5=中、0.8=大）；r（相关，0.1=小、0.3=中、0.5=大）；R²（自变量解释了因变量多少百分比的变异）。","related":["p值","显著性"]},
+{"id":11,"cat":"basic","name":"p值","en":"p-value","def":"你的结果是\"碰巧出现\"的概率。p<0.05的意思是：如果自变量和因变量其实没有关系，你碰巧看到这么强（或更强）关系的概率小于5%。","example":"\"AI依赖与抑郁显著正相关（r=0.32, p<0.01）\"——p<0.01说明这个相关是巧合的概率不到1%，比较可信。但注意：p值小不代表效应大，样本够大什么都能显著。","related":["显著性","效应量","置信区间"]},
+{"id":12,"cat":"basic","name":"显著性","en":"Significance","def":"统计学上的\"显著\"≠实际意义上的\"重要\"。p<0.05只是说\"不太可能是巧合\"，不代表这个发现有多重要或效应有多大。","example":"一个相关r=0.08，p<0.05——统计上显著，但效应极小（r=0.08几乎可以忽略）。所以报告结果时一定要同时报告p值和效应量，不能只说\"显著\"。","related":["p值","效应量"]},
+{"id":13,"cat":"basic","name":"置信区间","en":"Confidence Interval (CI)","def":"估计值的可能范围。比如\"中介效应=0.15，95% CI=[0.08, 0.23]\"，意思是有95%的把握真实效应在0.08到0.23之间。CI不包含0就说明显著。","example":"中介效应检验现在都报告Bootstrap 95% CI。如果CI=[0.02, 0.18]，不包含0，说明中介效应显著；如果CI=[-0.03, 0.12]，包含0，说明不显著。比老方法（Sobel检验）更准。","related":["p值","Bootstrap法","中介效应检验"]},
+{"id":14,"cat":"basic","name":"共同方法偏差","en":"Common Method Bias (CMB)","def":"因为所有数据都是用同一种方法（比如都是自陈问卷）收集的，变量之间可能产生\"虚假相关\"——不是真的有关系，而是因为都是同一个人在同一份问卷里填的。","example":"你用问卷同时测了AI依赖和抑郁，两者相关显著。但这个相关可能部分是因为\"填问卷的人当时心情就不好\"，导致所有题都往负面方向填。用Harman单因子检验，如果第一个因子解释率<40%，说明共同方法偏差不严重。","related":["Harman单因子检验","社会期望偏差"]},
+{"id":15,"cat":"basic","name":"社会期望偏差","en":"Social Desirability Bias","def":"被试倾向于按\"社会认可的方式\"回答问题，隐瞒不好的行为或想法。尤其是敏感话题（如NSSI、吸毒、作弊），报告率可能被低估。","example":"你问大学生\"你有没有过自伤行为\"，有些人可能因为羞耻或担心被评判而选择\"没有\"，导致你测到的NSSI发生率比实际低。对策：强调匿名保密、使用经过验证的量表、在讨论中说明可能的低估。","related":["共同方法偏差"]},
+{"id":16,"cat":"basic","name":"多重共线性","en":"Multicollinearity","def":"自变量之间相关太高，导致回归系数不稳定、标准误变大、结果不可靠。比如你同时把\"AI使用时长\"和\"AI依赖程度\"放进回归，如果两者相关r>0.7，就可能有共线性问题。","example":"检验方法：VIF（方差膨胀因子）。VIF<5算没问题，5-10需要警惕，>10就有严重共线性。解决方法：删掉一个自变量、把两个变量合并成一个因子、或者只保留理论上更重要的那个。","related":["回归分析","相关分析"]},
+{"id":17,"cat":"basic","name":"标准化","en":"Standardization","def":"把数据转换成均值=0、标准差=1的形式（z分数）。这样不同量纲的变量就可以直接比较系数大小了。","example":"\"AI依赖得分\"范围是22-110分，\"抑郁得分\"范围是0-27分，直接比较回归系数没意义。标准化后，β=0.30就比β=0.15的效应大，不管原来的单位是什么。做调节效应前也要先中心化/标准化。","related":["中心化","回归分析"]},
+{"id":18,"cat":"basic","name":"中心化","en":"Centering","def":"每个数减去均值，使新变量的均值=0。做调节效应（交互项）前必须对自变量和调节变量中心化，减少多重共线性。","example":"你要检验\"AI依赖×依恋焦虑\"的交互项。如果不中心化，AI依赖（均值50）和依恋焦虑（均值30）相乘后数值很大，跟原始变量高度相关，导致共线性。中心化后两者均值都是0，交互项的共线性大大降低。","related":["标准化","多重共线性","调节效应检验"]},
+{"id":19,"cat":"design","name":"横断面研究","en":"Cross-sectional Study","def":"在一个时间点收集所有数据。就像拍一张照片，只看到某个时刻的状态。只能看变量之间的相关，不能确定因果。本科论文最常见的设计。","example":"你在2026年10月发了一份问卷，同时测了AI依赖、孤独感、抑郁，然后分析它们之间的关系——这就是横断面研究。局限：你不知道是AI依赖导致了抑郁，还是抑郁的人更容易依赖AI。","related":["纵向研究","实验研究"]},
+{"id":20,"cat":"design","name":"纵向研究","en":"Longitudinal Study","def":"在多个时间点收集同一批人的数据。就像拍一段视频，能看到变化的过程。比横断面更能推断因果，但耗时长、被试容易流失。","example":"T1（10月）同时测AI依赖、孤独感和抑郁（作为基线控制），T2（12月）再测同一批人的抑郁和其他变量——如果控制了T1抑郁基线后，T1的AI依赖仍能显著预测T2的抑郁，说明AI依赖可能是抑郁变化的前因，因果推断比横断面研究更强。关键：T1必须也测因变量（抑郁）作为基线，否则无法控制初始水平的差异，也无法做交叉滞后分析。本科论文较少见，因为需要至少间隔1-3个月的两次测量。","related":["横断面研究","追踪研究"]},
+{"id":21,"cat":"design","name":"追踪研究","en":"Panel Study","def":"跟纵向研究差不多，同一批人在多个时间点测量。强调\"面板数据\"——同一组被试的多次观测。","example":"对500名大学生进行为期1年的追踪，每3个月测一次AI使用和心理健康，共4次测量。可以分析AI依赖的变化轨迹及其对心理健康的长期影响。","related":["纵向研究","横断面研究"]},
+{"id":22,"cat":"design","name":"实验研究","en":"Experimental Study","def":"研究者主动操纵自变量，把被试随机分成实验组和对照组，然后比较两组的因变量差异。能确定因果，是研究设计的\"金标准\"。","example":"你把60名大学生随机分成两组：实验组听10分钟正念音频，对照组听10分钟科普音频，然后比较两组的状态焦虑水平——这就是实验研究。因为是随机分组，两组其他特征基本一样，所以焦虑差异可以归因于音频类型。","related":["准实验研究","随机对照试验"]},
+{"id":23,"cat":"design","name":"准实验研究","en":"Quasi-experimental Study","def":"有实验组和对照组，但被试不是随机分配的——比如按自然班级分，一班做实验组，二班做对照组。因果推断比真实验弱，但比横断面强。","example":"你想做正念干预，但没法随机分配学生（因为班级是固定的），就选了一个班做正念干预，另一个平行班做对照。这就是准实验——两组可能本来就有差异（比如一个班成绩更好），需要在统计上控制。","related":["实验研究","随机对照试验"]},
+{"id":24,"cat":"design","name":"随机对照试验","en":"Randomized Controlled Trial (RCT)","def":"实验研究的黄金标准。被试完全随机分配到实验组和对照组，确保两组在所有已知和未知特征上都基本相同，这样结果差异就能干净地归因于干预。","example":"995名有心理困扰的大学生被随机分配到AI干预组、面对面团体治疗组、等待名单对照组，12周后比较三组的焦虑和抑郁变化——这就是RCT。随机分组是关键，它排除了选择偏差。","related":["实验研究","准实验研究"]},
+{"id":25,"cat":"design","name":"元分析","en":"Meta-analysis","def":"把很多研究的结果用统计方法合并起来，得出一个整体结论。不是做新的实证研究，而是对已有研究的\"研究的研究\"。","example":"关于\"正念干预对焦虑的效果\"已经有几十项研究，结果不一致——有的说有效，有的说没效。元分析就是把这些研究的效应量合并，计算出一个平均效应量，还能看哪些因素（如干预时长、人群）调节了效果。本科论文较少做。","related":["横断面研究"]},
+{"id":26,"cat":"design","name":"方便抽样","en":"Convenience Sampling","def":"找身边容易找到的人做被试，比如自己班的同学、选修课的学生、朋友圈里的人。不是随机抽样，样本代表性有限，但本科论文最常用。","example":"你在自己学校的几个班级群里发问卷链接，谁愿意填谁填——这就是方便抽样。局限：样本可能不能代表所有大学生（比如你们学校的学生可能跟其他学校不一样）。在论文的局限部分要说明。","related":["滚雪球抽样"]},
+{"id":27,"cat":"design","name":"滚雪球抽样","en":"Snowball Sampling","def":"先找几个被试，然后请他们推荐更多符合条件的人，像滚雪球一样越来越多。适合找特殊人群（比如NSSI者、AI重度使用者），因为这些人不好直接找。","example":"你想研究有NSSI经历的大学生，但直接发问卷回收率低。你先通过心理咨询中心找到几个愿意参与的学生，然后请他们推荐身边有类似经历的朋友——这样样本像雪球一样越滚越大。","related":["方便抽样"]},
+{"id":28,"cat":"measure","name":"信度","en":"Reliability","def":"量表稳不稳定、可不可靠。同一个人用同一个量表测两次，结果是不是差不多？就像一把尺子，量同一个东西两次应该得到一样的长度。","example":"最常用的是Cronbach's α系数（内部一致性信度），衡量量表里的各个题是不是在测同一个东西。α>0.7算合格，>0.8算好，>0.9算非常好。如果α只有0.5，说明量表的题乱七八糟，测的不是一个东西。","related":["效度","Cronbach's α系数","内部一致性"]},
+{"id":29,"cat":"measure","name":"效度","en":"Validity","def":"量表测的是不是你想测的东西。一把尺子量长度是有效的，但用它量重量就无效了。信度是效度的前提——不稳定的量表不可能有效，但稳定的量表不一定测对了东西。","example":"你编了一个\"AI依赖量表\"，如果它测出来的分数跟已有的\"手机依赖量表\"相关很高，而跟\"学业成绩\"相关很低，说明它有区分效度。效度有很多种：内容效度、结构效度、聚合效度、区分效度。","related":["信度","内容效度","结构效度","聚合效度","区分效度"]},
+{"id":30,"cat":"measure","name":"内部一致性","en":"Internal Consistency","def":"量表里的各个题项是不是在测同一个构念。如果一个\"抑郁量表\"里有的题测抑郁、有的题测焦虑、有的题测睡眠，那内部一致性就差。","example":"用Cronbach's α系数衡量。比如一个20题的抑郁量表，α=0.88说明这20道题内部一致性很好，都在测抑郁。如果α=0.55，说明题项之间不同步，可能混进了别的维度，需要删掉不好的题或重新考虑维度划分。","related":["信度","Cronbach's α系数"]},
+{"id":31,"cat":"measure","name":"Cronbach's α系数","en":"Cronbach's Alpha","def":"衡量量表内部一致性信度的最常用指标，取值0到1之间。是心理学论文方法部分必报的数字——你用的每个量表在你的样本里的α系数都要报告。","example":"\"本研究中，AI依赖量表的Cronbach's α=0.87，孤独感量表α=0.82，抑郁量表α=0.89，均大于0.8，说明各量表在本研究中具有良好的内部一致性信度。\"——这是论文方法部分的标准写法。","related":["信度","内部一致性","效度"]},
+{"id":32,"cat":"measure","name":"重测信度","en":"Test-Retest Reliability","def":"隔一段时间再测同一批人，两次结果的相关程度。衡量量表的时间稳定性——如果一个量表今天测和一个月后测结果差很多，说明它不稳定。","example":"你用\"AI依赖量表\"在10月测了一批学生，11月又测了同一批人，两次得分的相关r=0.78——这就是重测信度。r越高说明量表越稳定。一般r>0.7算可接受。横断面研究如果使用已有的成熟量表，通常引用原量表发表时报告的重测信度即可；如果是新开发量表、翻译量表或在新人群（如特殊群体）中使用，需要自己检验重测信度。纵向研究因为涉及多次测量，更需要关注量表的时间稳定性——如果量表本身不稳定，多次测量的变化就无法归因于真实变化。","related":["信度","内部一致性"]},
+{"id":33,"cat":"measure","name":"内容效度","en":"Content Validity","def":"量表的题项是不是覆盖了要测内容的各个方面。通常请领域专家来评判——这些题够不够全面？有没有遗漏重要方面？","example":"你编了一个\"AI情感依赖量表\"，请3位心理学教授看题项，他们一致认为题项覆盖了\"情感倾诉\"\"分离焦虑\"\"替代真实社交\"等核心方面，没有明显遗漏——说明内容效度良好。内容效度通常用专家评判，不做统计检验。","related":["效度","结构效度"]},
+{"id":34,"cat":"measure","name":"结构效度","en":"Construct Validity","def":"量表的结构是不是跟理论假设一致。用因子分析检验——你假设量表有4个维度，探索性因子分析是不是真的提取出4个因子？验证性因子分析的模型拟合是不是好？","example":"AIDep-22量表假设4个维度（情感依赖、功能依赖、认知依赖、失控感）。你用验证性因子分析（CFA）检验，模型拟合指数CFI=0.93、RMSEA=0.06，都达标——说明结构效度良好。结构效度是量表效度最核心的证据。","related":["效度","探索性因子分析","验证性因子分析"]},
+{"id":35,"cat":"measure","name":"聚合效度","en":"Convergent Validity","def":"你的量表跟测量同一概念的其他量表是不是相关很高。如果两个量表都在测\"AI依赖\"，它们的得分应该高度相关——这叫\"聚到一起了\"。","example":"你新编了一个AI依赖量表，跟已有的AIDep-22量表的相关r=0.75——相关很高，说明两个量表在测同一个东西，你的新量表有聚合效度。同时跟\"学业成绩\"的相关只有r=0.08——相关很低，说明它没有在测无关的东西（区分效度）。","related":["效度","区分效度"]},
+{"id":36,"cat":"measure","name":"区分效度","en":"Discriminant Validity","def":"你的量表跟测量不同概念的量表是不是相关很低。如果你的\"AI依赖量表\"跟\"自尊量表\"相关很高，那就有问题了——说明它可能在测自尊而不是AI依赖。","example":"检验方法：平均方差提取量（AVE）的平方根应该大于该变量与其他变量的相关系数。简单说就是：一个量表跟自己的关系（AVE开方）应该比跟别人的关系（相关系数）更强。这是结构方程模型里必报的指标。","related":["效度","聚合效度","结构效度"]},
+{"id":37,"cat":"measure","name":"Likert量表","en":"Likert Scale","def":"最常用的量表计分方式。被试对每个陈述选择同意程度，比如\"1=完全不同意，2=不同意，3=中立，4=同意，5=完全同意\"。5点和7点最常见。","example":"\"若没有AI的协助，我会感到不安\"——被试从1到5选一个数字。所有题的得分加起来（或取平均）就是量表总分。Likert量表的优点是简单、被试容易理解；缺点是可能有\"中庸偏差\"（都选中间）或\"极端偏差\"（都选两端）。","related":["反向计分","操作定义"]},
+{"id":38,"cat":"measure","name":"反向计分","en":"Reverse Scoring","def":"量表中有些题是反向表述的，计分前要先反转。比如自尊量表里\"我觉得自己有很多优点\"是正向题，但\"我觉得自己一无是处\"是反向题——选\"非常同意\"反而说明自尊低。","example":"一个5点Likert题，正向题选5得5分，但反向题选5要反转成1分。公式：反向得分 = (最高分+最低分) - 原始得分。比如5点量表就是6-原始分。如果忘了反向计分，整个量表的结果就全错了——这是新手最容易犯的错误之一。","related":["Likert量表","信度"]},
+{"id":39,"cat":"stats","name":"相关分析","en":"Correlation Analysis","def":"看两个变量是不是一起变化。r在-1到1之间：正相关=一个高另一个也高；负相关=一个高另一个就低；0=没关系。相关≠因果！","example":"\"AI依赖与抑郁显著正相关（r=0.32, p<0.01）\"——AI依赖越高的人，抑郁程度也越高。但你不能说\"AI依赖导致抑郁\"，因为也可能是抑郁的人更容易依赖AI，或者第三个变量（如孤独感）同时导致了两者。相关是所有更复杂分析的基础。","related":["回归分析","p值","效应量"]},
+{"id":40,"cat":"stats","name":"回归分析","en":"Regression Analysis","def":"用自变量来预测因变量。简单线性回归=一个自变量；多元回归=多个自变量。回归系数β告诉你自变量每变化1个单位，因变量变化多少。","example":"\"多元回归分析显示，AI依赖（β=0.21, p<0.001）和孤独感（β=0.35, p<0.001）显著正向预测抑郁，性别（β=0.08, p>0.05）预测不显著。\"——意思是控制了其他变量后，AI依赖和孤独感都能独立预测抑郁，而性别不能。R²=0.28说明这几个自变量一起解释了抑郁28%的变异。","related":["相关分析","中介效应检验","调节效应检验"]},
+{"id":41,"cat":"stats","name":"t检验","en":"t-test","def":"比较两组的均值有没有显著差异。独立样本t检验=两组不同的人（如男生vs女生）；配对样本t检验=同一组人前后测（如干预前vs干预后）。","example":"\"独立样本t检验显示，高AI依赖组的抑郁得分（M=12.3, SD=4.1）显著高于低AI依赖组（M=8.7, SD=3.5），t(398)=5.23, p<0.001, Cohen's d=0.52。\"——t值、自由度、p值、效应量都要报告。注意：t检验只能比较两组，三组及以上用ANOVA。","related":["方差分析","p值","效应量"]},
+{"id":42,"cat":"stats","name":"方差分析","en":"Analysis of Variance (ANOVA)","def":"比较三组及以上的均值有没有显著差异。单因素ANOVA=一个自变量（如大一/大二/大三/大四）；双因素ANOVA=两个自变量（如性别×年级）。","example":"\"单因素ANOVA显示，不同年级学生的AI依赖程度存在显著差异，F(3,496)=4.21, p<0.01, η²=0.025。\"——F值、自由度（组间,组内）、p值、效应量η²都要报告。ANOVA只告诉你\"组间有差异\"，具体哪两组有差异需要做事后检验（如Tukey检验）。","related":["t检验","重复测量方差分析","p值"]},
+{"id":43,"cat":"stats","name":"重复测量方差分析","en":"Repeated Measures ANOVA","def":"同一组人在多个时间点或多个条件下测量，比较不同时间/条件的均值差异。比如干预前、干预后、随访1个月，三次测量的焦虑水平有没有变化。","example":"\"重复测量方差分析显示，时间的主效应显著，F(2,118)=18.34, p<0.001, η²=0.24。事后检验显示，干预后焦虑得分显著低于干预前（p<0.001），随访1个月与干预后无显著差异（p=0.32）。\"——说明干预有效且效果维持了。","related":["方差分析","t检验"]},
+{"id":44,"cat":"stats","name":"卡方检验","en":"Chi-Square Test","def":"比较分类变量（如性别、是否NSSI、年级）之间有没有关联。比如男生和女生的NSSI发生率有没有差异？","example":"\"卡方检验显示，NSSI行为的性别差异显著，χ²(1)=6.82, p<0.01。女生NSSI发生率（22.3%）显著高于男生（15.1%）。\"——卡方检验的自由度=(行数-1)×(列数-1)，2×2表格自由度就是1。注意：卡方检验只适用于分类变量，连续变量用t检验或ANOVA。","related":["t检验","方差分析"]},
+{"id":45,"cat":"stats","name":"因子分析","en":"Factor Analysis","def":"把很多相关的题项归成几个\"因子\"（维度）。探索性因子分析（EFA）=不知道有几个因子，让数据告诉你；验证性因子分析（CFA）=假设了因子结构，检验数据跟假设匹不匹配。","example":"你编了一个20题的AI依赖量表，用EFA看看这些题能归成几个维度。结果提取出4个因子，分别对应\"情感依赖\"\"功能依赖\"\"认知依赖\"\"失控感\"——跟你的理论假设一致。然后用CFA在另一个样本里验证这个4因子结构，拟合良好——量表的结构效度就建立了。","related":["探索性因子分析","验证性因子分析","结构效度"]},
+{"id":46,"cat":"stats","name":"探索性因子分析","en":"Exploratory Factor Analysis (EFA)","def":"不知道数据背后有几个维度时用。让算法自动从题项中提取因子，看哪些题聚在一起。常用于量表开发的早期阶段。","example":"你收集了500份问卷数据，对新编的25道AI相关题目做EFA。用主成分分析提取因子，碎石图（Scree Plot）显示4个因子最合适。然后用最大方差法旋转，看每个因子包含哪些题——因子1是情感依赖（6题）、因子2是功能依赖（5题）……EFA是\"探索\"，CFA是\"验证\"。","related":["因子分析","验证性因子分析"]},
+{"id":47,"cat":"stats","name":"验证性因子分析","en":"Confirmatory Factor Analysis (CFA)","def":"已经有了理论假设的因子结构，用数据检验这个结构跟数据匹不匹配。是结构方程模型（SEM）的一部分，用AMOS或Mplus做。","example":"你假设AI依赖量表是4因子结构，用CFA在新样本（N=300）里检验。模型拟合指数：χ²/df=2.31, CFI=0.93, TLI=0.92, RMSEA=0.066, SRMR=0.052——都达标，说明4因子结构跟数据拟合良好。CFA是检验量表结构效度的标准方法。","related":["因子分析","探索性因子分析","结构方程模型","模型拟合指数"]},
+{"id":48,"cat":"stats","name":"结构方程模型","en":"Structural Equation Modeling (SEM)","def":"同时检验测量模型（量表结构）和结构模型（变量间的因果路径），能处理潜变量和复杂的中介/调节模型。用AMOS（画图操作）或Mplus（写代码）做。","example":"你想检验\"AI依赖→孤独感→社交回避→抑郁\"的链式中介，同时每个变量都是用多个题项测量的潜变量。用SEM可以同时检验：①每个潜变量跟它的题项的关系（测量模型）；②潜变量之间的路径系数（结构模型）；③中介效应的Bootstrap检验。比用SPSS一个个做回归更强大、更严谨。","related":["验证性因子分析","潜变量","模型拟合指数","中介效应检验"]},
+{"id":49,"cat":"stats","name":"潜变量","en":"Latent Variable","def":"不能直接测量的抽象概念，用多个观测指标（题项）来估计。比如\"抑郁\"是潜变量，PHQ-9的9道题是观测指标。SEM的核心优势就是能处理潜变量，减少测量误差。","example":"在SEM路径图里，潜变量用椭圆形表示，观测指标（题项）用矩形表示，椭圆指向矩形代表\"潜变量由这些题项测量\"。比如椭圆\"AI依赖\"指向5个矩形（5道题）。用潜变量做中介分析比用量表总分更准确，因为它剔除了测量误差。","related":["结构方程模型","验证性因子分析","构念/建构"]},
+{"id":50,"cat":"stats","name":"模型拟合指数","en":"Model Fit Indices","def":"SEM模型跟数据的匹配程度。必须报告一组指数，不能只报一个。常用的有χ²/df、CFI、TLI、RMSEA、SRMR，各有各的判断标准。","example":"\"模型拟合指数：χ²/df=2.15（<3，好），CFI=0.94（>0.90，可接受），TLI=0.93（>0.90，可接受），RMSEA=0.058（<0.08，可接受），SRMR=0.048（<0.08，好）。所有指数均达标，说明模型与数据拟合良好。\"——这是SEM论文结果部分的标准写法。","related":["结构方程模型","验证性因子分析"]},
+{"id":51,"cat":"stats","name":"Bootstrap法","en":"Bootstrap Method","def":"从你的样本里反复\"有放回抽样\"几千次（通常5000次），每次都算一次中介效应，得到5000个效应值，然后看它们的分布和95%置信区间。是现在中介效应检验的标准方法，比老方法（Sobel检验）更准确。","example":"中介效应检验不再用\"三步法\"了，现在都用Bootstrap。在SPSS PROCESS里勾选\"Bootstrap samples=5000\"和\"Bias-corrected confidence intervals\"，结果会报告间接效应值、标准误、95% CI。如果CI=[0.03, 0.15]不包含0，中介效应显著；如果CI=[-0.02, 0.12]包含0，不显著。","related":["中介效应检验","置信区间","有调节的中介"]},
+{"id":52,"cat":"stats","name":"中介效应检验","en":"Mediation Analysis","def":"检验自变量X是不是通过中介变量M来影响因变量Y。回答\"为什么X会影响Y\"。现在用Bootstrap法检验间接效应，不再用老的\"三步法\"。","example":"检验\"AI依赖→孤独感→抑郁\"的中介：①用SPSS PROCESS宏，Model=4（简单中介）；②X=AI依赖，M=孤独感，Y=抑郁；③Bootstrap 5000次；④结果：间接效应=0.12，95% CI=[0.06, 0.20]（不包含0，显著）；直接效应=0.18，p<0.01（仍显著）。结论：孤独感在AI依赖与抑郁之间起部分中介作用。","related":["中介变量","Bootstrap法","链式中介","有调节的中介"]},
+{"id":53,"cat":"stats","name":"调节效应检验","en":"Moderation Analysis","def":"检验调节变量W会不会改变X对Y的影响力度。回答\"X对Y的影响在什么情况下更强/更弱\"。核心是看X×W交互项是否显著。","example":"检验\"依恋焦虑调节AI依赖对孤独感的影响\"：①对AI依赖和依恋焦虑分别中心化；②构建交互项=中心化AI依赖×中心化依恋焦虑；③回归：孤独感=AI依赖+依恋焦虑+交互项；④结果：交互项β=0.15, p<0.01（显著）；⑤简单斜率分析：高依恋焦虑者（+1SD），AI依赖对孤独感的影响β=0.34, p<0.001；低依恋焦虑者（-1SD），β=0.10, p=0.12（不显著）。用PROCESS Model 1可以自动完成。","related":["调节变量","中心化","有调节的中介"]},
+{"id":54,"cat":"stats","name":"有调节的中介","en":"Moderated Mediation","def":"中介效应的大小受调节变量影响。比如\"AI依赖→孤独感→抑郁\"这个中介路径，在依恋焦虑高的人身上更强。是中介和调节的组合，现在心理学论文很流行。","example":"用SPSS PROCESS Model 58或85（取决于调节哪一段路径）。如果调节的是前半段（X→M），用Model 85。结果报告\"调节中介指数\"（Index of Moderated Mediation），如果它的Bootstrap CI不包含0，说明有调节的中介显著。然后分别报告高/低调节变量水平下的间接效应。这比单独做中介和调节更深入。","related":["中介变量","调节变量","中介效应检验","调节效应检验","Bootstrap法"]},
+{"id":55,"cat":"stats","name":"链式中介","en":"Chain Mediation / Serial Mediation","def":"多个中介变量串联起来：X→M1→M2→Y。比如\"AI依赖→孤独感→社交回避→抑郁\"。比单中介更细致，能揭示更完整的心理路径。","example":"用SPSS PROCESS Model 6（链式中介）。X=AI依赖，M1=孤独感，M2=社交回避，Y=抑郁。结果会报告三条间接路径：①X→M1→Y（0.08, CI=[0.03,0.14]）；②X→M2→Y（0.05, CI=[0.01,0.10]）；③X→M1→M2→Y（链式，0.04, CI=[0.02,0.08]）。如果链式路径的CI不包含0，说明链式中介显著。也可以用AMOS做SEM，更严谨。","related":["中介变量","中介效应检验","结构方程模型","Bootstrap法"]},
+{"id":56,"cat":"stats","name":"正态分布","en":"Normal Distribution","def":"数据呈钟形曲线，均值、中位数、众数重合，左右对称。很多统计方法（t检验、ANOVA、相关、回归）都假设数据正态分布。","example":"检验正态性的方法：①看偏度和峰度（偏度绝对值<2、峰度绝对值<7算基本正态）；②Shapiro-Wilk检验（p>0.05说明正态，但样本大时几乎都显著，所以主要看偏度峰度）；③画直方图/Q-Q图目测。如果数据严重不正态，可以做对数转换、平方根转换，或者用非参数检验（如Mann-Whitney U检验代替t检验）。","related":["偏度","峰度","t检验","方差分析"]},
+{"id":57,"cat":"stats","name":"偏度","en":"Skewness","def":"分布歪不歪。正偏（右偏）=长尾在右边，大部分人低分、少数人高分；负偏（左偏）=长尾在左边，大部分人高分、少数人低分。","example":"\"AI依赖得分的偏度=0.85（正偏），说明大部分学生AI依赖程度较低，少数学生依赖程度很高。\"偏度绝对值<2算基本正态，2-3算中度偏态，>3算严重偏态。心理学数据常常正偏（比如抑郁得分，大部分人不抑郁，少数人高分）。轻度偏态对结果影响不大，严重偏态需要转换或用非参数方法。","related":["峰度","正态分布"]},
+{"id":58,"cat":"stats","name":"峰度","en":"Kurtosis","def":"分布尖不尖、尾巴厚不厚。高峰度=又尖又厚尾（极端值多）；低峰度=扁平（值比较均匀）。正态分布的峰度=0（有些软件算出来是3，那是没减3的原始值）。","example":"\"抑郁得分的峰度=1.23，说明分布比正态分布稍尖，有较多极端值（抑郁特别严重的人）。\"峰度绝对值<7算基本正态。峰度高意味着有较多极端值，可能需要检查 outliers（异常值），考虑用稳健统计方法或剔除极端值。","related":["偏度","正态分布"]},
+{"id":59,"cat":"stats","name":"Harman单因子检验","en":"Harman's Single-Factor Test","def":"检验共同方法偏差的最常用方法。把所有量表的所有题项放在一起做未旋转的探索性因子分析，看第一个因子解释了多少方差。如果<40%，说明共同方法偏差不严重。","example":"\"Harman单因子检验结果显示，未旋转的探索性因子分析提取了12个特征根大于1的因子，第一个因子解释了23.5%的方差，小于40%的临界值，说明本研究不存在严重的共同方法偏差。\"——这是心理学问卷研究结果部分的标准写法。注意：这只是粗略检验，不是金标准。","related":["共同方法偏差","探索性因子分析"]},
+{"id":60,"cat":"ethics","name":"抄袭","en":"Plagiarism","def":"直接复制别人的文字或想法不标注来源。包括：整段复制、改写后不标注、翻译外文不标注、把别人的想法当自己的。即使改写了（paraphrase），也要标注来源。","example":"\"短视频成瘾与抑郁显著正相关\"——如果这个发现来自某篇论文，你必须标注（张三等, 2025），即使你用自己的话重新表述了。直接复制原文要加引号并标注页码。本科论文查重率一般要求<20%或<30%（看学校要求）。用自己的话重新表述+标注引用=合法；复制不标注=抄袭。","related":["查重率"]},
+{"id":61,"cat":"ethics","name":"知情同意","en":"Informed Consent","def":"被试要知道研究的目的、流程、风险、收益，自愿决定是否参与，并且可以随时退出而不会有任何惩罚。是涉及人类被试研究的伦理底线。","example":"问卷开头要写知情同意书：\"本研究旨在了解大学生AI使用与心理健康的关系，问卷匿名填写，所有数据仅用于学术研究，您可以随时退出。点击\"开始\"即表示您已了解研究内容并自愿参与。\"如果涉及敏感话题（如NSSI），还要说明可能的情绪不适，并提供心理援助资源。","related":["匿名/保密"]},
+{"id":62,"cat":"ethics","name":"匿名/保密","en":"Anonymity / Confidentiality","def":"匿名=研究者不知道被试是谁（不收集姓名、学号等可识别信息）；保密=研究者知道被试是谁但严格保密，不对外泄露。问卷研究尽量做到完全匿名。","example":"问卷不收集姓名、学号、手机号，只收集性别、年级、专业等人口学信息——这就是匿名。数据加密存储，论文中只报告群体统计结果，不出现任何可识别个人身份的信息。敏感话题（NSSI、自杀意念）尤其要强调匿名，否则被试不敢如实回答，导致社会期望偏差。","related":["知情同意","社会期望偏差"]},
+{"id":63,"cat":"ethics","name":"查重率","en":"Plagiarism Check Rate","def":"论文中跟已有文献重复的文字占比。学校用知网、维普或万方系统检测。本科论文一般要求<20%或<30%（看具体学校规定）。引用的部分会被识别，但直接复制要加引号。","example":"查重率高不代表一定抄袭——可能是引用格式不对、量表介绍跟别人写得一样、或者专业术语重复。降重方法：①用自己的话重新表述（不要只换同义词，要改写句子结构）；②正确标注引用；③量表介绍可以用自己的话概括，不要直接复制量表手册原文。注意：查重率低也不代表没有抄袭，关键是有没有正确标注来源。","related":["抄袭"]},
+{"id":64,"cat":"writing","name":"IMRAD结构","en":"IMRAD Structure","def":"心理学论文的标准结构：Introduction（引言）、Method（方法）、Results（结果）、Discussion（讨论）。加上题目、摘要、关键词、参考文献，就是一篇完整的论文。","example":"一篇标准的心理学实证论文：①题目+摘要+关键词；②引言（为什么做这个研究，假设是什么）；③方法（被试、工具、程序、数据分析方法）；④结果（描述统计、相关分析、主要分析结果）；⑤讨论（结果意味着什么，跟前人研究比怎么样，局限和未来方向）；⑥参考文献。本科毕业论文一般8000-15000字。","related":["摘要","引言","方法","结果","讨论"]},
+{"id":65,"cat":"writing","name":"摘要","en":"Abstract","def":"论文的浓缩版，200-300字（中文），包含目的、方法、结果、结论四部分。读者看完摘要就知道你做了什么、发现了什么。是论文被阅读最多的部分。","example":"模板：\"目的：探讨AI情感依赖与大学生抑郁的关系及孤独感的中介作用。方法：采用AI依赖量表、UCLA孤独感量表和PHQ-9抑郁量表对462名大学生进行问卷调查。结果：AI情感依赖与孤独感（r=0.38）、抑郁（r=0.32）均显著正相关；孤独感在AI情感依赖与抑郁之间起部分中介作用，间接效应=0.12，95% CI=[0.06,0.20]。结论：AI情感依赖不仅直接影响抑郁，还通过孤独感间接影响抑郁。\"关键词：AI情感依赖；孤独感；抑郁；大学生；中介作用","related":["IMRAD结构","引言","讨论"]},
+{"id":66,"cat":"writing","name":"引言","en":"Introduction","def":"论文的第一部分，逻辑是一个漏斗：从大背景（这个领域为什么重要）→已有研究（前人做了什么）→研究空白（还缺什么）→本研究（我要做什么、假设是什么）→研究意义。不要一上来就说细节。","example":"四段式：①大背景：AI在大学生中普及率99.2%，过度使用引发担忧；②已有研究：AI依赖与心理健康相关，孤独感是重要因素；③研究空白：但已有研究测的是整体AI依赖，没有专门聚焦\"情感依赖\"维度，且\"AI依赖→孤独感→抑郁\"的中介机制缺乏检验；④本研究：检验AI情感依赖与抑郁的关系及孤独感的中介作用。字数1500-2500字。","related":["IMRAD结构","摘要","讨论"]},
+{"id":67,"cat":"writing","name":"方法","en":"Method","def":"论文的第二部分，要写得足够详细，让别人能重复你的研究。通常包含四个小节：被试（Participants）、研究工具（Measures）、研究程序（Procedure）、数据分析方法（Data Analysis）。","example":"被试：\"采用方便抽样法，在某高校选取大学生500名，回收有效问卷462份，有效率92.4%。其中男生201人（43.5%），女生261人（56.5%）；年龄17-24岁（M=19.85, SD=1.23）。\"工具：每个量表写清楚名称、开发者、题数、维度、计分、信效度。程序：怎么发的问卷、指导语、时长。分析：用什么软件、做了哪些分析、中介用Bootstrap。","related":["IMRAD结构","结果","讨论","信度","效度"]},
+{"id":68,"cat":"writing","name":"结果","en":"Results","def":"论文的第三部分，只陈述事实，不解释、不讨论。按逻辑顺序呈现：①共同方法偏差检验；②描述性统计和相关分析；③差异检验（如有）；④主要分析（中介/调节/SEM）。先用文字概括，再用表格详细展示。","example":"\"相关分析显示，AI情感依赖与孤独感（r=0.38, p<0.01）、抑郁（r=0.32, p<0.01）均显著正相关，孤独感与抑郁显著正相关（r=0.45, p<0.01）（见表1）。中介效应检验显示，孤独感在AI情感依赖与抑郁之间起部分中介作用，间接效应=0.12，95% CI=[0.06,0.20]，直接效应=0.18，p<0.01。\"——不要在结果里写\"这说明AI依赖通过孤独感影响抑郁\"，那是讨论部分的事。","related":["IMRAD结构","讨论","中介效应检验"]},
+{"id":69,"cat":"writing","name":"讨论","en":"Discussion","def":"论文的第四部分，解释你的结果意味着什么。五段式：①主要发现总结；②与已有研究比较（一致吗？为什么？）；③理论意义；④实践意义；⑤研究局限和未来方向。这是论文最见功力的部分。","example":"\"本研究发现AI情感依赖与大学生抑郁显著正相关，孤独感起部分中介作用。这与前人关于AI依赖与心理健康的研究一致（张三等, 2025），但本研究首次专门聚焦情感依赖维度……理论上，本研究支持了I-PACE模型中情感反应在技术成瘾与心理健康间的中介作用……实践上，高校可以通过减少孤独感、增强现实社交来预防AI情感依赖的负面影响……局限：横断面设计无法确定因果，方便抽样代表性有限，自陈问卷有共同方法偏差……未来可做纵向追踪。\"","related":["IMRAD结构","结果","引言"]},
+{"id":70,"cat":"writing","name":"三线表","en":"Three-Line Table","def":"心理学论文的标准表格格式，只有三条横线：顶线（粗）、表头底线（细）、底线（粗），没有竖线。看起来简洁专业。用Word的\"边框和底纹\"设置。","example":"顶线（1.5磅）→表头（变量名、M、SD、1、2、3…）→表头底线（0.5磅）→数据行→底线（1.5磅）。表号和表题在表格上方，如\"表1 各变量的均值、标准差和相关矩阵\"。表格要能自明——读者不看正文就能看懂表格内容。注意：SPSS输出的表格不是三线表，需要自己重新排版。","related":["结果","方法"]},
+{"id":71,"cat":"paradigm","name":"内隐联想测验","en":"Implicit Association Test (IAT)","def":"测量内隐态度的经典实验范式。通过比较被试对\"目标概念+积极词\"和\"目标概念+消极词\"的分类反应时差异，推断被试对目标概念的无意识态度。反应时差异越大，内隐态度越强。","example":"测量\"AI的内隐态度\"：第一阶段，把AI相关图片和积极词归为一类（按左键），把普通物品和消极词归为一类（按右键）；第二阶段反过来，AI+消极词归左键，普通物品+积极词归右键。如果第一阶段反应时显著快于第二阶段，说明被试对AI有内隐积极态度。IAT效应量用d值表示，d>0.2算小效应，>0.6算中等，>1.0算大。用Inquisit或E-prime编程实现。","related":["点探测范式","Stroop范式","反应时"]},
+{"id":72,"cat":"paradigm","name":"点探测范式","en":"Dot Probe Paradigm","def":"测量注意偏向的经典范式。屏幕左右同时呈现两个刺激（如一个情绪面孔+一个中性面孔），消失后其中一个位置出现一个点（探测点），被试要尽快判断点的位置。如果探测点出现在情绪刺激位置时反应更快，说明对该情绪刺激有注意偏向。","example":"研究抑郁者的注意偏向：屏幕左侧呈现悲伤面孔、右侧呈现中性面孔，500ms后消失，在左侧（悲伤面孔位置）出现一个\"·\"，被试按左键。如果抑郁组在悲伤面孔位置的探测点反应时显著快于中性位置，而控制组没有差异，说明抑郁者对悲伤信息有注意偏向。注意偏向是认知理论解释抑郁维持的核心机制。注意偏向训练（ABM）就是基于这个范式发展的干预方法。","related":["Stroop范式","Go/No-Go范式","注意偏向"]},
+{"id":73,"cat":"paradigm","name":"Stroop范式","en":"Stroop Paradigm","def":"测量认知冲突和注意控制的经典范式。最经典的是颜色词Stroop：用不同颜色印刷颜色词（如红色的\"蓝\"字），被试要说出字的印刷颜色而不是字义。字义和颜色不一致时（红色的\"蓝\"）反应时更长，这就是Stroop效应。","example":"经典Stroop任务：①一致条件——红色的\"红\"字，说\"红\"（反应时快）；②不一致条件——红色的\"蓝\"字，说\"红\"（反应时慢）；③中性条件——红色的\"XXX\"，说\"红\"。不一致减一致的反应时差就是Stroop效应量，反映抑制自动阅读反应的能力。变体有情绪Stroop（用情绪词测注意偏向）、食物Stroop（测饮食障碍）等。Stroop效应越大，说明认知控制能力越弱。","related":["点探测范式","内隐联想测验","反应时"]},
+{"id":74,"cat":"paradigm","name":"Go/No-Go范式","en":"Go/No-Go Paradigm","def":"测量反应抑制和冲动性的经典范式。被试看到\"Go信号\"要尽快按键，看到\"No-Go信号\"要忍住不按键。No-Go试次的错误率（该忍没忍住）反映反应抑制能力，错误率越高冲动性越强。","example":"测量对食物的冲动性：屏幕上出现水果图片按空格键（Go），出现甜点图片不按键（No-Go）。如果被试在甜点No-Go试次上的错误率显著高于水果No-Go试次，说明对甜点有趋近冲动，抑制不住想吃的冲动。变体：情感Go/No-Go（用情绪面孔）、饮酒Go/No-Go等。Go/No-Go训练也被用于干预——反复练习对特定刺激的No-Go反应，可以降低对该刺激的冲动性。","related":["点探测范式","Stroop范式","冲动性"]},
+{"id":75,"cat":"paradigm","name":"生态瞬时评估","en":"Ecological Momentary Assessment (EMA)","def":"在真实生活环境中、多次实时收集被试的状态数据。通常用手机APP每天随机推送几次问卷，被试即时报告当前的情绪、行为、环境等。比传统回顾式问卷更准确，减少记忆偏差，能捕捉动态变化。近年非常热门。","example":"研究\"AI使用与情绪的实时关系\"：给被试装一个EMA APP，每天随机推送6次（早8点到晚10点之间），每次问：\"你刚才30分钟内用了AI吗？\"\"现在的情绪状态如何（1-7分）？\"\"现在跟谁在一起？\"连续收集14天。用多层线性模型（HLM）分析：个体内（within-person）——同一个人，用了AI的时刻情绪是否更好；个体间（between-person）——平均用AI更多的人情绪是否更好。EMA能分离这两种效应，横断面研究做不到。","related":["每日日记法","多层线性模型","交叉滞后模型"]},
+{"id":76,"cat":"paradigm","name":"每日日记法","en":"Daily Diary Method","def":"纵向研究的一种，被试每天在固定时间（通常睡前）填写日记式问卷，报告当天的经历、情绪、行为等，连续填写7-30天。比EMA更结构化（每天一次而非随机多次），被试负担更小，适合研究日常过程。","example":"研究\"反刍思维与睡眠的日常关系\"：被试连续14天，每天睡前用手机填写：①今天的反刍程度（1-5分）；②今天的压力事件；③昨晚的睡眠质量。用多层线性模型分析：前一天的反刍是否预测当天的睡眠质量（滞后效应），当天的反刍是否与当天睡眠相关（同时效应）。每日日记法能揭示变量间的日常动态关系，而横断面研究只能看到总体相关。比EMA实施简单，本科生也能做（用问卷星每天发链接即可）。","related":["生态瞬时评估","多层线性模型","纵向研究"]},
+{"id":77,"cat":"paradigm","name":"交叉滞后模型","en":"Cross-Lagged Panel Model (CLPM)","def":"纵向数据分析的经典模型，用两个时间点的同一批数据，检验变量间的因果方向。核心是比较\"T1的X预测T2的Y\"和\"T1的Y预测T2的X\"两条路径的强弱，哪条路径显著且更强，就说明哪个变量更可能是因。近年心理学论文超热门。","example":"两波数据：T1测AI依赖和抑郁，6个月后T2再测同一批人。CLPM模型：控制T1的抑郁后，T1的AI依赖是否显著预测T2的抑郁（路径a）；控制T1的AI依赖后，T1的抑郁是否显著预测T2的AI依赖（路径b）。如果路径a显著（β=0.18, p<0.01）而路径b不显著（β=0.05, p>0.05），说明更可能是AI依赖导致抑郁，而非相反。用AMOS或Mplus做，需要报告模型拟合指数。注意：CLPM混淆了个体内和个体间效应，更严谨的做法是用RI-CLPM。","related":["随机截距交叉滞后模型","纵向研究","多层线性模型"]},
+{"id":78,"cat":"paradigm","name":"随机截距交叉滞后模型","en":"Random-Intercept Cross-Lagged Panel Model (RI-CLPM)","def":"CLPM的改进版，更前沿更严谨。CLPM假设\"所有人的变化轨迹一样\"，而RI-CLPM允许每个人有自己的基线水平（随机截距），只分析个体内的波动关系。能排除\"第三变量同时影响两个变量\"的混淆，因果推断更强。近年顶刊越来越要求用RI-CLPM而非传统CLPM。","example":"还是AI依赖和抑郁的两波数据。RI-CLPM：先估计每个人的\"稳定特质\"（随机截距）——有些人本来就AI依赖高、有些人本来就抑郁高，这些稳定差异被剥离掉。然后看个体内的波动：这个人T1比平时更依赖AI，是否预测T2比平时更抑郁？如果个体内交叉滞后路径显著，说明是AI依赖的\"变化\"导致了抑郁的\"变化\"，而不是两个人群之间的差异。用Mplus或lavaan（R包）做。比CLPM多了随机截距因子，模型更复杂但结论更可靠。","related":["交叉滞后模型","纵向研究","多层线性模型"]},
+{"id":79,"cat":"paradigm","name":"多层线性模型","en":"Hierarchical Linear Model (HLM)","def":"处理嵌套数据的统计方法。数据有层级：学生嵌套在班级里、每天的测量嵌套在个体里、题目嵌套在量表里。传统回归假设观测独立，但嵌套数据违反这个假设（同一个班的学生比不同班的更像）。HLM能同时分析层1（个体内/每天）和层2（个体间/班级）的效应。也叫线性混合模型（LMM）、多水平模型（MLM）。","example":"每日日记数据：100个学生，每人填14天，共1400条数据。层1（每天）：当天的反刍程度、压力事件；层2（个体）：性别、特质焦虑。HLM分析：①层1效应——同一个人，反刍高的那天睡眠是否更差（个体内效应）；②层2效应——平均反刍更高的人，睡眠是否整体更差（个体间效应）；③跨层交互——特质焦虑是否调节\"当天反刍→当天睡眠\"的强度。用HLM软件、SPSS MIXED、R的lme4包或Mplus做。EMA和日记法数据必须用HLM分析。","related":["生态瞬时评估","每日日记法","交叉滞后模型"]},
+{"id":80,"cat":"paradigm","name":"潜在剖面分析","en":"Latent Profile Analysis (LPA)","def":"把人分成不同\"类型\"的统计方法。根据多个连续变量的得分模式，把被试分成若干个潜在类别（剖面），同一类内的人得分模式相似，不同类之间模式不同。跟聚类分析类似，但用模型估计，更严谨。近年心理学论文超热门——几乎任何研究都可以加一个LPA把人分类。","example":"研究\"大学生AI使用模式\"：收集AI使用时长、使用频率、情感依赖程度、功能依赖程度4个变量，用LPA分析能分成几类人。结果可能是：①低使用组（35%，所有维度都低）；②工具型使用组（40%，功能依赖高、情感依赖低）；③情感依赖组（15%，情感依赖高、功能依赖中等）；④高风险组（10%，所有维度都高）。然后比较这4组在抑郁、孤独感上的差异。用Mplus或R的tidyLPA包做。关键：要报告AIC、BIC、熵值、BLRT检验来决定分几类最合适。","related":["潜在类别分析","网络分析","聚类分析"]},
+{"id":81,"cat":"paradigm","name":"潜在类别分析","en":"Latent Class Analysis (LCA)","def":"跟LPA类似，也是把人分类，但LCA用的是分类变量（如性别、是否NSSI、 Likert题项的选项），而LPA用连续变量。本质上是同一类方法的不同变体。LCA更适合分析题项反应模式或分类行为模式。","example":"研究\"大学生NSSI行为模式\"：收集10种自伤行为（割伤、烫伤、撞墙、咬自己等）的\"有/无\"数据，用LCA分析能分成几类。结果可能是：①无NSSI组（75%）；②轻度多样组（15%，尝试2-3种轻度行为）；③严重单一组（7%，主要是割伤且频率高）；④严重多样组（3%，多种严重行为）。然后比较各类在抑郁、反刍上的差异。用Mplus或R的poLCA包做。LCA和LPA的选择取决于你的指标是分类还是连续。","related":["潜在剖面分析","网络分析"]},
+{"id":82,"cat":"paradigm","name":"网络分析","en":"Network Analysis","def":"近年心理学最热门的分析方法之一。把变量看作网络中的\"节点\"，变量间的偏相关看作\"边\"，可视化成一个网络图。能看到哪些变量联系最紧密、哪些变量是\"中心节点\"（连接最多其他变量）、哪些变量形成\"社区\"。跟传统\"潜变量模型\"（假设所有题项背后有一个共同因子）不同，网络分析认为变量之间是直接互相影响的，没有潜在的\"真分数\"。","example":"研究\"抑郁症状网络\"：把PHQ-9的9个症状作为节点，计算它们之间的偏相关（控制其他所有症状），画成网络图。结果可能发现：\"情绪低落\"和\"兴趣减退\"之间的边最粗（联系最强），\"睡眠问题\"是中心节点（连接最多其他症状），\"自杀意念\"在网络边缘（跟其他症状联系弱）。干预启示：针对中心节点（睡眠问题）的干预可能最有效。用R的qgraph包做。报告：边的权重、节点的中心性指标（强度、接近性、介数）、社区检测结果。","related":["潜在剖面分析","结构方程模型","探索性因子分析"]},
+{"id":83,"cat":"paradigm","name":"潜变量增长模型","en":"Latent Growth Model (LGM)","def":"纵向数据分析方法，看个体随时间的变化轨迹。用多个时间点的数据估计每个人的\"截距\"（初始水平）和\"斜率\"（变化速率），然后看哪些变量预测了初始水平和变化速率。也叫潜变量增长曲线模型（LGCM）。","example":"研究\"大学生抑郁的变化轨迹\"：4个时间点（大一上、大一下、大二上、大二下）测抑郁得分。LGM估计：①截距因子——每个人的初始抑郁水平（大一上的水平）；②斜率因子——每个人的抑郁变化速率（是上升、下降还是稳定）。然后看\"AI依赖\"是否预测截距（AI依赖高的人初始抑郁更高）和斜率（AI依赖高的人抑郁上升更快）。用AMOS或Mplus做，需要报告模型拟合指数。至少需要3个时间点才能估计斜率，4个以上更好。","related":["交叉滞后模型","多层线性模型","纵向研究"]},
+{"id":84,"cat":"paradigm","name":"眼动追踪","en":"Eye Tracking","def":"通过眼动仪记录被试的眼球运动，包括注视点位置、注视时长、眼跳轨迹、瞳孔直径等。能揭示被试\"看了什么\"\"看了多久\"\"先看什么后看什么\"，是研究注意、认知、决策的客观测量方法。比自陈问卷更客观，但设备较贵。","example":"研究\"抑郁者的注意偏向\"：用眼动仪记录被试看情绪面孔（悲伤/高兴/愤怒/中性）时的眼动。结果：抑郁者对悲伤面孔的首次注视潜伏期更短（更快注意到悲伤面孔）、总注视时长更长（更难从悲伤面孔上移开），说明抑郁者对悲伤信息有注意偏向和注意解除困难。常用指标：首次注视时间、总注视时长、注视次数、眼跳距离、瞳孔直径。用Tobii、EyeLink等眼动仪，软件用Data Viewer或自定义程序。","related":["点探测范式","事件相关电位","注意偏向"]},
+{"id":85,"cat":"paradigm","name":"事件相关电位","en":"Event-Related Potential (ERP)","def":"通过脑电（EEG）记录大脑对特定刺激的电生理反应。把多次试次的脑电信号叠加平均，提取出与刺激锁时的脑电波成分。常用成分：P300（注意/更新）、N400（语义加工）、ERN（错误监控）、N200（冲突监控）、LPP（情绪加工）。时间分辨率极高（毫秒级），但空间分辨率低。","example":"研究\"抑郁者的情绪加工\"：给被试看积极、消极、中性图片，同时记录64导脑电。分析LPP成分（图片呈现后400-800ms的正波）：抑郁者对消极图片的LPP波幅显著大于控制组，说明抑郁者对消极刺激有更深的精细加工。对积极图片的LPP波幅小于控制组，说明对积极刺激的加工减弱。用Brain Products、Neuroscan等脑电设备，分析用EEGLAB（MATLAB工具箱）。ERP实验需要大量试次（每个条件至少30-40个有效试次），被试量通常20-30人。","related":["眼动追踪","功能性近红外光谱","Stroop范式"]},
+{"id":86,"cat":"paradigm","name":"功能性近红外光谱","en":"Functional Near-Infrared Spectroscopy (fNIRS)","def":"通过近红外光测量大脑皮层的血氧变化（HbO和HbR浓度），间接反映神经活动。跟fMRI类似，但设备更便携、对运动不敏感、价格更低、被试可以坐着甚至活动。空间分辨率约1-2cm，时间分辨率约0.1秒。近年在心理学、教育学、发展心理学中越来越常用。","example":"研究\"正念干预对前额叶的影响\"：用fNIRS测量被试在做Stroop任务时背外侧前额叶（DLPFC）的激活。8周正念干预后，干预组在不一致试次中的DLPFC激活显著增强，说明正念提升了认知控制相关的脑区活动。fNIRS特别适合：①儿童/特殊人群（不能长时间躺fMRI）；②运动/行走中的脑活动；③自然情境中的测量；④超扫描（同时测两个人的脑活动，研究人际互动）。常用设备：NIRScout、Hitachi ETG-4000、Brite。分析用NIRS-SPM或MATLAB自定义脚本。","related":["事件相关电位","眼动追踪","Stroop范式"]},
+{"id":87,"cat":"paradigm","name":"简单斜率分析","en":"Simple Slopes Analysis","def":"调节效应显著后的事后检验方法。交互项显著只说明\"调节变量改变了X对Y的影响\"，但不知道具体在高/低调节变量水平下X对Y的影响是否显著。简单斜率分析就是分别计算调节变量取高值（+1SD）、均值、低值（-1SD）时，X对Y的斜率和显著性。","example":"\"依恋焦虑调节AI依赖对孤独感的影响\"，交互项显著后做简单斜率分析：①高依恋焦虑（+1SD）：AI依赖对孤独感的斜率=0.34, SE=0.06, p<0.001（显著）；②均值水平：斜率=0.22, SE=0.04, p<0.001（显著）；③低依恋焦虑（-1SD）：斜率=0.10, SE=0.06, p=0.12（不显著）。结论：AI依赖对孤独感的影响只在依恋焦虑较高的学生中显著，在低依恋焦虑学生中不显著。用SPSS PROCESS会自动输出简单斜率结果，也可以用Johnson-Neyman法找出\"调节变量取什么值时X对Y的效应刚好显著\"。","related":["调节效应检验","调节变量","有中介的调节"]},
+{"id":88,"cat":"paradigm","name":"有中介的调节","en":"Mediated Moderation","def":"调节效应通过中介变量起作用。跟\"有调节的中介\"不同：有调节的中介是\"中介效应的大小受调节\"；有中介的调节是\"调节效应本身通过一个中介来实现\"。简单说：X×W的交互项先影响M，M再影响Y。","example":"模型：AI依赖（X）×性别（W）的交互项→孤独感（M）→抑郁（Y）。意思是：AI依赖对抑郁的影响存在性别差异（调节），这个性别差异是通过孤独感（中介）实现的——具体来说，AI依赖对孤独感的影响在女生中更强，而孤独感又导致抑郁，所以最终AI依赖对抑郁的影响在女生中更强。检验方法：用SPSS PROCESS Model 8或Mplus。报告：①交互项对中介的效应是否显著；②中介对因变量的效应是否显著；③有中介的调节指数（Index of Mediated Moderation）的Bootstrap CI是否包含0。跟有调节的中介经常被混淆，要根据理论假设选对模型。","related":["有调节的中介","中介变量","调节变量","简单斜率分析"]},
+{"id":89,"cat":"construct","name":"心理韧性","en":"Resilience","def":"个体在面对逆境、创伤、压力等重大生活事件时，能够良好适应并恢复的能力。不是不会受伤，而是受伤后能弹回来。是积极心理学和心理健康领域的核心保护因素，近年研究超热门。","example":"心理韧性在童年创伤与抑郁之间起调节作用：童年创伤对抑郁的预测效应，在心理韧性高的个体中更弱（β=0.12），在心理韧性低的个体中更强（β=0.35）。意思是心理韧性像一个缓冲垫，能减轻创伤的负面影响。常用量表：Connor-Davidson心理韧性量表（CD-RISC，25题或10题版）。心理韧性可以干预提升——正念、认知行为疗法、社会支持都能增强韧性。","related":["心理资本","社会支持","正念","调节变量"]},
+{"id":90,"cat":"construct","name":"心理资本","en":"Psychological Capital (PsyCap)","def":"个体在成长和发展过程中表现出来的一种积极心理状态，包含四个维度：自我效能（有信心接受挑战并努力）、希望（对目标锲而不舍并能调整路径）、乐观（对现在和未来做积极归因）、韧性（遇到逆境能恢复和坚持）。简称HERO。组织行为学和积极心理学交叉领域的热门构念。","example":"心理资本与工作倦怠显著负相关（r=-0.42），与工作投入显著正相关（r=0.51）。心理资本在工作压力与工作倦怠之间起中介作用：工作压力→心理资本下降→工作倦怠。常用量表：心理资本问卷（PCQ-24），四个维度各6题。心理资本是可开发、可管理的状态类特质（不像人格那样稳定），可以通过干预提升——心理资本干预（PCI）包括目标设计、资源积累、克服障碍、学会反思四个环节。","related":["心理韧性","自我效能感","社会支持","中介变量"]},
+{"id":91,"cat":"construct","name":"情绪调节","en":"Emotion Regulation","def":"个体对情绪的产生、体验、表达和生理反应进行影响和调控的过程。简单说就是怎么管理自己的情绪。Gross的过程模型把情绪调节分为五个阶段：情境选择、情境修正、注意分配、认知改变、反应调节。是心理学近20年最热门的研究课题之一，几乎跟所有心理健康结果都相关。","example":"情绪调节困难在反刍思维与非自杀性自伤之间起链式中介作用：反刍→情绪调节困难→冲动性→NSSI。常用量表：情绪调节困难量表（DERS，36题，6个维度）、认知情绪调节问卷（CERQ）。两种最常研究的策略：认知重评（适应性策略，跟积极结果相关）和表达抑制（非适应性策略，跟消极结果相关）。情绪调节能力可以通过正念、CBT、DBT提升。","related":["认知重评","表达抑制","反刍思维","正念"]},
+{"id":92,"cat":"construct","name":"认知重评","en":"Cognitive Reappraisal","def":"情绪调节的一种认知策略，指通过改变对情绪诱发事件的理解和解释方式来调节情绪。比如把演讲失败重新解释为一次学习机会。是Gross情绪调节过程模型中认知改变阶段的核心策略。被广泛认为是适应性的、健康的情绪调节策略。","example":"认知重评与抑郁显著负相关（r=-0.31），与生活满意度显著正相关（r=0.28）。认知重评在正念与抑郁之间起中介作用：正念→认知重评能力提升→抑郁降低。常用量表：情绪调节问卷（ERQ）中的认知重评维度（6题）。认知重评是CBT的核心技术——帮助来访者识别和改变不合理的自动化思维。跟表达抑制对比：认知重评是提前干预（在情绪产生前改变认知），表达抑制是事后压制（情绪已经产生了再压住），前者更健康。","related":["情绪调节","表达抑制","正念"]},
+{"id":93,"cat":"construct","name":"表达抑制","en":"Expressive Suppression","def":"情绪调节的一种反应聚焦策略，指在情绪已经产生后，主动抑制情绪的外在表达（表情、言语、行为）。比如明明很生气但装作没事，明明很难过但强颜欢笑。被认为是非适应性的情绪调节策略，跟多种消极心理结果相关。","example":"表达抑制与焦虑显著正相关（r=0.25），与人际满意度显著负相关（r=-0.22）。表达抑制在成人依恋回避与亲密关系满意度之间起中介作用：依恋回避→更多使用表达抑制→关系满意度低。常用量表：情绪调节问卷（ERQ）中的表达抑制维度（4题）。为什么表达抑制不好？①压抑表达需要消耗认知资源，导致记忆下降、社交互动变差；②抑制了外在表达但内在情绪体验没变，甚至生理反应更强；③对方觉得你冷，影响关系。认知重评是治本，表达抑制是治标。","related":["情绪调节","认知重评","成人依恋"]},
+{"id":94,"cat":"construct","name":"自我决定理论","en":"Self-Determination Theory (SDT)","def":"Deci和Ryan提出的动机理论，核心观点：人有三种基本心理需要——自主感（自己做决定）、胜任感（能做好事情）、归属感（跟他人有连接）。三种需要都满足时，内部动机最强，心理健康和行为表现最好。是心理学中被引用最多的理论之一，应用于教育、组织、健康、运动等几乎所有领域。","example":"基本心理需要满足在自主支持型教学与学习投入之间起中介作用：教师自主支持→学生基本心理需要满足→学习投入增加。SDT有六个子理论：①认知评价理论（外部奖励如何影响内部动机）；②有机整合理论（动机的连续体）；③基本心理需要理论（三种需要是心理健康的必需品）；④目标内容理论；⑤关系动机理论；⑥活力理论。SDT几乎可以解释任何为什么人愿意做某事的问题，是写论文时最万能的理论框架之一。","related":["基本心理需要","自我效能感","学习投入"]},
+{"id":95,"cat":"construct","name":"基本心理需要","en":"Basic Psychological Needs","def":"自我决定理论的核心概念，指三种先天的、普遍的心理需要：①自主感——感到自己的行为是自愿的、自我选择的；②胜任感——感到自己有能力应对环境、能有效完成任务；③归属感——感到与他人有连接、被关心、被爱。三种需要的满足是心理健康和最佳功能的营养剂，就像身体需要维生素一样。","example":"基本心理需要各维度与抑郁均显著负相关：自主感r=-0.28、胜任感r=-0.35、归属感r=-0.31。基本心理需要在AI情感依赖与孤独感之间起中介作用：AI情感依赖→基本心理需要受挫→孤独感增强。常用量表：基本心理需要满足量表（BPNS，21题）。为什么AI情感依赖会出问题？因为AI虽然能提供伪归属感，但无法真正满足自主感和胜任感——长期跟AI倾诉可能反而让人在现实中更回避，基本心理需要全面受挫。","related":["自我决定理论","孤独感","心理韧性","中介变量"]},
+{"id":96,"cat":"construct","name":"社会支持","en":"Social Support","def":"个体从社会网络（家人、朋友、同事、社区）中获得的物质和心理资源。分为：①客观支持（实际得到的帮助）；②主观支持（感受到的被尊重、被理解、被支持的情感体验）；③对支持的利用度。是心理健康最经典、最稳定的保护因素之一，几乎跟所有消极结果都有负相关。","example":"社会支持在压力性生活事件与抑郁之间起调节作用：压力事件对抑郁的预测效应，在高社会支持个体中更弱（β=0.15），在低社会支持个体中更强（β=0.38）。社会支持起到了缓冲器的作用。常用量表：领悟社会支持量表（PSSS，12题）、社会支持评定量表（SSRS，肖水源版，10题）。注意：领悟社会支持（主观感受到的）比客观社会支持（实际得到的）对心理健康的预测力更强——你觉得有人支持你，比真的有人帮你更重要。","related":["心理韧性","孤独感","调节变量","中介变量"]},
+{"id":97,"cat":"construct","name":"自我效能感","en":"Self-Efficacy","def":"Bandura提出的概念，指个体对自己能否成功完成某一特定任务的信念和判断。不是我有没有能力，而是我相不相信自己能做好这件事。是社会认知理论的核心概念，对行为选择、努力程度、坚持性、情绪反应都有强大影响。","example":"学业自我效能感在学习动机与学业成绩之间起中介作用：学习动机→学业自我效能感→学业成绩。学业自我效能感与学业拖延显著负相关（r=-0.32）。常用量表：一般自我效能感量表（GSES，10题）；特定领域自我效能感量表（如学业、职业决策、运动）。四个来源：①成败经验（最有力——成功过就更自信）；②替代经验（看到跟自己类似的人成功了）；③言语劝说（别人鼓励你说你能行）；④生理和情绪状态（紧张时容易觉得自己不行）。","related":["心理资本","核心自我评价","学习投入","自我决定理论"]},
+{"id":98,"cat":"construct","name":"核心自我评价","en":"Core Self-Evaluation (CSE)","def":"Judge等人提出的概念，指个体对自己的价值、能力和控制力的最基本评价。由四个特质构成：①自尊（对自己整体价值的评价）；②一般自我效能感（对自己能力的信念）；③控制点（认为结果由自己控制还是由外部因素控制）；④神经质（情绪稳定性的反面）。是一个高阶的、稳定的人格倾向，对工作满意度、工作绩效、生活满意度、心理健康都有强预测力。","example":"核心自我评价与生活满意度显著正相关（r=0.45），与抑郁显著负相关（r=-0.38）。核心自我评价在工作压力与工作倦怠之间起调节作用：工作压力对倦怠的影响，在高CSE个体中更弱。常用量表：核心自我评价量表（CSES，12题）。CSE是评价性的（我好不好、我行不行），跟大五人格的描述性不同。高CSE的人：更乐观、更能应对压力、目标设定更高、更倾向于内部归因。","related":["自我效能感","大五人格","心理韧性","调节变量"]},
+{"id":99,"cat":"construct","name":"大五人格","en":"Big Five Personality / OCEAN","def":"人格心理学最主流的特质模型，认为人格可以用五个基本维度描述：①开放性（想象力、好奇心、对新体验的接受度）；②尽责性（自律、有条理、负责任）；③外倾性（社交、活跃、热情）；④宜人性（信任、利他、共情）；⑤神经质（焦虑、敌意、抑郁、冲动）。首字母缩写OCEAN。是人格研究的通用语言，几乎所有心理学研究都可以控制或检验大五人格的效应。","example":"大五人格各维度与AI情感依赖的相关：神经质r=0.28（情绪不稳定的人更依赖AI）、宜人性r=-0.15、尽责性r=-0.18、外倾性r=-0.12、开放性r=0.05（不显著）。常用量表：大五人格量表（BFI-44或BFI-2）、NEO-PI-R（240题）、TIPI（10题极简版，适合控制变量用）。写论文时大五人格常作为控制变量——控制了大五人格后，AI依赖对抑郁的预测仍然显著，说明AI依赖的效应不是人格差异导致的。","related":["核心自我评价","神经质","自我效能感","控制变量"]},
+{"id":100,"cat":"construct","name":"成人依恋","en":"Adult Attachment","def":"Bowlby依恋理论在成人亲密关系中的延伸。成人依恋指个体在亲密关系中形成的相对稳定的情感联结模式，源于早期亲子依恋经验。两个核心维度：①依恋焦虑（害怕被抛弃、需要反复确认被爱）；②依恋回避（不舒服亲密、情感压抑、强调独立）。两个维度交叉形成四种依恋类型：安全型、痴迷型、疏离型、恐惧型。是亲密关系研究中最核心的构念。","example":"依恋焦虑与AI情感依赖显著正相关（r=0.35）——害怕被抛弃的人更容易从AI那里寻求无条件的情感回应。依恋焦虑调节AI依赖对孤独感的影响：在高依恋焦虑者中，AI依赖对孤独感的预测更强（β=0.34）；在低依恋焦虑者中不显著（β=0.10）。常用量表：亲密关系经历量表（ECR，36题）、关系问卷（RQ，4题）。成人依恋跟几乎所有关系结果相关：关系满意度、沟通模式、冲突解决、分手概率。也跟心理健康相关：依恋焦虑跟抑郁、焦虑、情绪调节困难正相关。","related":["表达抑制","情绪调节","孤独感","调节变量"]},
+{"id":101,"cat":"construct","name":"反刍思维","en":"Rumination","def":"反复、被动地关注自己的消极情绪及其原因和后果，而不是积极解决问题。简单说就是想太多、停不下来、越想越难受。Nolen-Hoeksema的反应风格理论认为，反刍是抑郁发作和维持的核心风险因素。是临床心理学和认知心理学交叉的超热门构念。","example":"反刍思维与抑郁的相关r=0.48（中等偏强），是抑郁最强的认知预测因素之一。反刍在压力事件与抑郁之间起中介作用：压力事件→反刍→抑郁。反刍还在睡眠质量与NSSI之间起链式中介：睡眠差→反刍→经验性回避→NSSI。常用量表：反刍反应量表（RRS，22题或10题简版）。注意区分：反刍（跟抑郁相关，关注情绪和问题）vs担忧（跟焦虑相关，关注未来威胁）vs复盘（适应性的自我反思）。RRS中的反省深思维度其实是适应性的，症状反刍和强迫思考才是非适应性的。","related":["情绪调节","正念","睡眠质量","链式中介"]},
+{"id":102,"cat":"construct","name":"正念","en":"Mindfulness","def":"Kabat-Zinn定义：有意识地、不加评判地关注当下体验而产生的觉知。两个核心成分：①注意力调节（把注意力锚定在当下体验，如呼吸）；②对体验的态度（好奇、开放、接纳、不评判）。源于佛教禅修，1970年代引入西方心理学和医学，现在是心理学最热门的构念之一，跟几乎所有心理健康指标都有积极关联。","example":"正念与抑郁显著负相关（r=-0.38），与焦虑r=-0.35，与生活满意度r=0.32。正念在反刍与抑郁之间起调节作用：反刍对抑郁的预测效应，在高正念个体中更弱（β=0.18），在低正念个体中更强（β=0.42）。常用量表：正念注意觉知量表（MAAS，15题）、五因素正念量表（FFMQ，39题）。干预：正念减压疗法（MBSR，8周课程）、正念认知疗法（MBCT，防抑郁复发）、辩证行为疗法（DBT）、接纳承诺疗法（ACT）都以正念为核心。本科论文可以做简短正念干预（5-10分钟音频）的实验研究。","related":["反刍思维","情绪调节","认知重评","心理韧性"]},
+{"id":103,"cat":"construct","name":"问题性手机使用","en":"Problematic Smartphone Use (PSU)","def":"过度使用手机导致功能损害的行为模式，包括无法控制使用冲动、使用时间越来越长、不用就焦虑不安、影响学习工作和人际关系、明知有负面影响仍继续使用。跟手机成瘾概念接近，但学界更倾向用问题性使用因为它不暗示传统意义上的成瘾（没有明显的戒断综合征和耐受性）。是青少年和大学生心理健康研究的超热门课题。","example":"问题性手机使用与抑郁显著正相关（r=0.31），与睡眠质量r=-0.28，与学业成绩r=-0.22。问题性手机使用在错失恐惧（FOMO）与睡眠质量之间起中介作用：FOMO→问题性手机使用→睡眠差。常用量表：手机成瘾指数量表（MPAI，17题）、智能手机成瘾量表（SAS-SV，10题简版）。相关概念：网络成瘾（IAD）、社交媒体成瘾、游戏障碍（WHO已列入ICD-11）、短视频成瘾。注意区分：使用时间长不等于问题性使用——有些人用手机学习工作时间很长但没有功能损害。核心标准是功能损害和无法控制。","related":["错失恐惧","睡眠质量","反刍思维","孤独感"]},
+{"id":104,"cat":"construct","name":"错失恐惧","en":"Fear of Missing Out (FOMO)","def":"Przybylski等人定义：一种持续的担忧，担心别人在自己不在场时获得了有益的经历，渴望与他人正在做的事情保持联系。是社交媒体时代的新心理构念，2013年正式提出后迅速成为热门研究课题。核心是社交焦虑加社会比较——总是担心别人在玩而自己没参与，忍不住刷社交媒体确认。","example":"错失恐惧与问题性手机使用显著正相关（r=0.45），与社交媒体使用强度r=0.38，与睡眠质量r=-0.25，与生活满意度r=-0.22。FOMO在基本心理需要受挫与问题性手机使用之间起中介作用：归属感受挫→FOMO→过度刷手机。常用量表：错失恐惧量表（FOMOs，10题）。FOMO跟自我决定理论关系密切：归属感和胜任感受挫的人FOMO更高。FOMO高的人：更频繁查看社交媒体、睡前刷手机、开车时看手机、跟朋友在一起时也刷手机。","related":["问题性手机使用","基本心理需要","睡眠质量","孤独感"]},
+{"id":105,"cat":"construct","name":"睡眠质量","en":"Sleep Quality","def":"对睡眠的主观和客观评价，包括多个维度：睡眠时长、入睡潜伏期、睡眠效率、睡眠障碍（夜醒、早醒、噩梦）、使用睡眠药物、白天功能障碍。不是睡得久就等于睡得好——睡眠质量是多维度的。是心理健康的基础指标，跟几乎所有心理问题都相关。","example":"睡眠质量与抑郁r=-0.42（睡眠越差抑郁越高）、与焦虑r=-0.38、与反刍r=0.35、与学业成绩r=0.21。睡眠质量在反刍思维与抑郁之间起中介作用：反刍→睡眠差→抑郁。睡眠还在反刍与NSSI之间起链式中介的第一环：反刍→睡眠差→经验性回避→NSSI。常用量表：匹兹堡睡眠质量指数（PSQI，19题，7个维度，总分0-21，大于7分提示睡眠质量差）。PSQI是心理学和医学中最常用的睡眠量表。大学生睡眠问题发生率极高——约60%报告睡眠质量差，是非常好做的研究课题。","related":["反刍思维","问题性手机使用","错失恐惧","链式中介"]},
+{"id":106,"cat":"construct","name":"学业倦怠","en":"Academic Burnout","def":"学生在长期学业压力下出现的心理综合征，包含三个维度：①情绪耗竭（感到精力耗尽、疲惫不堪、不想学习）；②去个性化（对学习冷漠、疏离、消极应付）；③低成就感（感到自己学习能力下降、无法有效完成学业任务）。是工作倦怠在学生群体中的对应概念，大学生研究的超热门课题。","example":"学业倦怠与抑郁r=0.45、与焦虑r=0.38、与学习投入r=-0.52、与学业成绩r=-0.28。学业倦怠在学业压力与抑郁之间起中介作用：学业压力→学业倦怠→抑郁。心理资本在学业压力与学业倦怠之间起调节作用：压力对倦怠的影响在高心理资本学生中更弱。常用量表：学业倦怠量表（MBI-SS，15题）、大学生学习倦怠量表（连榕版，20题）。学业倦怠的前因：学业压力、学习负担、考试焦虑、缺乏自主支持；后果：抑郁、焦虑、辍学意向、学业成绩下降、问题性手机使用。","related":["学习投入","心理资本","自我决定理论","睡眠质量"]},
+{"id":107,"cat":"construct","name":"学习投入","en":"Study Engagement","def":"学生在学习活动中表现出的持续、积极、充实的心理状态，包含三个维度：①活力（学习时精力充沛、有韧性、遇到困难不放弃）；②奉献（对学习有意义感、热情、灵感、自豪、勇于挑战）；③专注（全神贯注于学习、忘记时间、沉浸其中）。是工作投入在学生群体中的对应概念，跟学业倦怠是同一枚硬币的两面但不是完全对立。","example":"学习投入与学业成绩r=0.32、与生活满意度r=0.41、与学业倦怠r=-0.52、与抑郁r=-0.35。基本心理需要满足在自主支持型教学与学习投入之间起中介作用：教师自主支持→基本心理需要满足→学习投入。常用量表：学习投入量表（UWES-S，17题或9题简版，三个维度：活力、奉献、专注）。跟学业倦怠的关系：不是简单的对立——高投入低倦怠=健康型；高投入高倦怠=挣扎型（很努力但很痛苦）；低投入低倦怠=疏离型；低投入高倦怠=崩溃型。可以用潜在剖面分析（LPA）把学生分成这几类。","related":["学业倦怠","自我决定理论","自我效能感","心理资本"]},
+{"id":108,"cat":"construct","name":"主观幸福感","en":"Subjective Well-Being (SWB)","def":"个体对自己生活质量的整体评价，包含三个成分：①积极情感（体验到愉快、满足、兴奋等积极情绪的频率）；②消极情感（体验到不愉快、焦虑、悲伤等消极情绪的频率）；③生活满意度（对自己生活整体的认知评价）。是积极心理学的核心构念，Diener是奠基人。跟心理幸福感（PWB，自我实现、个人成长、意义感）不同——SWB偏快乐论，PWB偏实现论。","example":"主观幸福感与心理韧性r=0.42、与社会支持r=0.38、与正念r=0.35、与大五人格的外倾性r=0.32、神经质r=-0.45。基本心理需要满足与SWB的三个成分均显著相关：与积极情感r=0.40、与消极情感r=-0.28、与生活满意度r=0.45。常用量表：生活满意度量表（SWLS，5题）、积极消极情感量表（PANAS，20题）。SWB的预测因素：人格（最强预测因素，神经质负向、外倾性正向）、社会关系、健康、工作学习、收入（到一定程度后边际递减）。注意：SWB有适应性——重大事件后幸福感会回到接近基线水平（享乐适应）。","related":["心理韧性","社会支持","正念","基本心理需要"]},
+{"id":109,"cat":"construct","name":"孤独感","en":"Loneliness","def":"个体对实际社交关系与期望社交关系之间差距的主观感受。不是一个人（独处，solitude），而是感到没有人真正理解我、跟我连接的痛苦体验。是客观社交数量和主观社交质量的不匹配——有些人朋友很多但仍感到孤独，有些人朋友少但不孤独。是当代社会的普遍心理问题，跟大量身心健康负面结果相关。","example":"孤独感与抑郁r=0.48、与焦虑r=0.35、与睡眠质量r=-0.32、与问题性手机使用r=0.28、与AI情感依赖r=0.38。孤独感在AI情感依赖与抑郁之间起中介作用：AI情感依赖→孤独感→抑郁。成人依恋焦虑与孤独感r=0.40，依恋回避r=0.32。常用量表：UCLA孤独感量表（ULS-20完整版或ULS-6简版）。孤独感的后果：死亡率增加26%（跟吸烟15支每天相当）、心血管疾病、认知衰退、抑郁、自杀意念、睡眠差、免疫功能下降。注意：AI聊天机器人可能暂时缓解孤独感，但长期可能加剧——因为它替代了真实社交，而真实社交才能真正满足归属感需要。","related":["社会支持","基本心理需要","成人依恋","问题性手机使用"]},
+{"id":110,"cat":"construct","name":"自我控制","en":"Self-Control","def":"个体克制冲动、欲望和习惯性反应，以追求长期目标的能力。也叫自我调节（self-regulation）、意志力（willpower）。Baumeister的自我损耗（ego depletion）理论认为自我控制是有限资源，用了就会暂时消耗（但这个理论近年有争议，元分析显示效应量很小）。是预测大量生活结果的核心构念——学业成绩、健康行为、财务状况、人际关系、犯罪率都跟自我控制相关。","example":"自我控制与学业成绩r=0.28、与问题性手机使用r=-0.32、与拖延r=-0.40、与冲动性r=-0.45、与BMI r=-0.18。自我控制在反刍与NSSI之间起调节作用：反刍对NSSI的预测效应，在高自我控制个体中更弱（β=0.12），在低自我控制个体中更强（β=0.35）。常用量表：自我控制量表（SCS，13题或19题）、简版自我控制量表（BSCS，13题）。高自我控制的人：更健康（少吃垃圾食品、多运动）、更成功（学业好、收入高）、更快乐（关系好、少后悔）。但过度自我控制也有问题——可能导致完美主义、焦虑、情感压抑。提升自我控制：执行功能训练、正念、习惯养成（减少对意志力的依赖）、环境设计（让诱惑更难获得）。","related":["冲动性","反刍思维","正念","调节变量"]},
+{"id":111,"cat":"stats","name":"算术平均数","en":"Arithmetic Mean","def":"所有数据之和除以数据个数，是最常用的集中量数。优点：反应灵敏、计算严密、简明易懂、适合进一步代数运算；缺点：易受极端值影响，数据模糊或有缺失时无法计算。312选择题高频考点。","example":"一组数据 [3,5,7,9,11]，平均数=(3+5+7+9+11)/5=7。如果加入一个极端值100，平均数变成(35+100)/6=22.5，被极端值严重拉高。所以当数据有极端值时，用中数比平均数更合适。","related":["中数","众数","方差与标准差"]},
+{"id":112,"cat":"stats","name":"中数","en":"Median","def":"按大小顺序排列的数据中位于中间位置的数值。如果数据个数为奇数，中数就是中间那个数；如果为偶数，中数是中间两个数的平均数。不受极端值影响，适合偏态分布或有极端值的数据。312高频考点。","example":"数据 [2,5,7,9,100]，中数=7（不受100这个极端值影响），而平均数=24.6（被极端值拉高）。数据 [2,5,7,9]，中数=(5+7)/2=6。当中数所在区间有重复数值时，需要用插值法精确计算（312可能考计算题）。","related":["算术平均数","众数","百分等级"]},
+{"id":113,"cat":"stats","name":"众数","en":"Mode","def":"数据中出现次数最多的数值。一组数据可能没有众数（所有值出现次数相同），也可能有多个众数（双峰/多峰分布）。不受极端值影响，适合快速估计集中趋势，但代表性差、不稳定。312选择题考点。","example":"数据 [1,2,2,3,3,3,4]，众数=3（出现3次最多）。数据 [1,2,2,3,3,4]，有两个众数2和3（双峰分布）。正态分布中平均数=中数=众数；正偏态（右偏）中众数<中数<平均数；负偏态（左偏）中平均数<中数<众数。这个关系是312高频考点。","related":["算术平均数","中数","正态分布"]},
+{"id":114,"cat":"stats","name":"方差与标准差","en":"Variance & Standard Deviation","def":"方差是每个数据与平均数之差的平方的平均数，反映数据的离散程度。总体方差用σ²（除以N），样本方差用s²（除以n-1，无偏估计）。标准差是方差的平方根，与原始数据单位相同，更直观。是最重要的差异量数。312必考点。","example":"数据 [2,4,4,4,5,5,7,9]，平均数=5。方差=[(2-5)²+(4-5)²×3+(5-5)²×2+(7-5)²+(9-5)²]/8=(9+3+0+4+16)/8=4。标准差=√4=2。样本方差（无偏）=32/7≈4.57。标准差越大，数据越分散；标准差越小，数据越集中。","related":["算术平均数","变异系数","标准分数"]},
+{"id":115,"cat":"stats","name":"变异系数","en":"Coefficient of Variation (CV)","def":"标准差与平均数的比值（CV=s/X̄×100%，即标准差除以平均数再乘100%），是一种相对差异量数，没有单位。用于比较：①不同单位的数据的离散程度；②单位相同但平均数相差很大的数据的离散程度。312选择题高频考点。","example":"比较身高和体重的离散程度：身高均值170cm，标准差5cm，CV=5/170×100%=2.94%；体重均值60kg，标准差6kg，CV=6/60×100%=10%。虽然体重的标准差（6kg）看起来比身高的标准差（5cm）大，但因为单位不同不能直接比较。用变异系数比较，体重的CV（10%）远大于身高的CV（2.94%），说明体重的相对离散程度更大。","related":["方差与标准差","算术平均数","标准分数"]},
+{"id":116,"cat":"stats","name":"标准分数","en":"Standard Score (Z-score)","def":"以标准差为单位表示一个数据在团体中相对位置的量数，公式Z=(X-X̄)/s。Z分数的平均数为0，标准差为1，无实际单位。正值表示高于平均数，负值表示低于平均数，绝对值表示离平均数有几个标准差。312必考点，常考计算和性质。","example":"某班考试平均80分，标准差10分。学生A考95分，Z=(95-80)/10=1.5，说明A的成绩比平均数高1.5个标准差。学生B考70分，Z=(70-80)/10=-1，说明B比平均数低1个标准差。Z分数的性质：①Z分数之和=0；②Z分数的平均数=0；③Z分数的标准差=1；④Z分数不改变原始分布的形状。常用于：①比较不同测验的成绩；②确定等级和录取线；③T分数、IQ等标准分数的基础（T=10Z+50，IQ=15Z+100）。","related":["方差与标准差","百分等级","正态分布"]},
+{"id":117,"cat":"stats","name":"百分等级","en":"Percentile Rank","def":"一个分数在团体中所处的相对位置，表示低于这个分数的人数占总人数的百分比。百分等级=80意味着有80%的人分数低于这个分数。百分等级越大，成绩越好。是最常用的相对量数，312选择题高频考点。","example":"某学生在1000人中考试排名第100名，百分等级=(1000-100)/1000×100%=90，说明有90%的人成绩低于他。注意：百分等级是顺序数据，不是等距数据——百分等级80到90之间的差距，不等于90到100之间的差距（因为正态分布中间密集、两端稀疏）。百分等级与百分位数的关系：百分等级是低于某分数的人数百分比，百分位数是某个百分等级对应的具体分数值。","related":["标准分数","中数"]},
+{"id":118,"cat":"stats","name":"积差相关","en":"Pearson Product-Moment Correlation","def":"皮尔逊积差相关系数r，衡量两个连续变量之间线性相关的程度和方向，取值-1到+1。适用条件：①两列变量都是连续的（等距/等比数据）；②两列变量都来自正态分布的总体；③两列变量之间是线性关系；④成对数据，样本量不宜过小（通常建议n≥30，样本量过小时相关系数估计不稳定，置信区间很宽）。312必考点。","example":"计算身高和体重的积差相关，r=0.75，说明身高和体重呈强正相关——身高越高的人体重通常也越重。r=0表示无线性相关（但可能有曲线相关）；r=1表示完全正相关；r=-1表示完全负相关。注意：相关不等于因果！r=0.75只能说明身高和体重相关，不能说身高导致体重。决定系数r²=0.5625，说明身高可以解释体重56.25%的变异。相关系数的显著性检验用t检验。","related":["等级相关","点二列相关","二列相关","Φ相关","相关分析","决定系数"]},
+{"id":119,"cat":"stats","name":"等级相关","en":"Spearman Rank Correlation","def":"斯皮尔曼等级相关系数rR，衡量两列等级变量（顺序数据）之间的相关程度。适用于：①数据是等级顺序形式（如排名）；②数据虽是连续变量但总体非正态，不能用积差相关；③样本量较小。是积差相关的替代方法，312选择题考点。","example":"10名学生的数学排名和物理排名的等级相关rR=0.82，说明数学排名和物理排名高度一致——数学好的人物理也好。计算公式（无相同等级时）：rR=1-6ΣD²/[n(n²-1)]，其中D是每对等级的差值。如果有相同等级（结），需要用修正公式或直接用积差相关公式计算等级数据的相关。等级相关的检验：n>20时用t检验，n≤20时查等级相关临界值表。","related":["积差相关","点二列相关","肯德尔和谐系数"]},
+{"id":120,"cat":"stats","name":"点二列相关","en":"Point-Biserial Correlation","def":"衡量一列连续变量和一列真正的二分变量（如男/女、对/错、及格/不及格）之间的相关程度。公式r_pb=(X̄p-X̄q)/St × √(pq)，其中p是二分变量中一类的比例，q=1-p，X̄p和X̄q分别是两类对应的连续变量均值，St是连续变量的总标准差。312高频考点，常考选择题计算。","example":"计算性别（男/女，真正二分变量）和考试成绩（连续变量）的点二列相关。男生比例p=0.4，女生q=0.6，男生平均X̄p=75，女生平均X̄q=82，总标准差St=10。r_pb=(75-82)/10×√(0.4×0.6)=-0.7×0.49=-0.343，说明性别和成绩呈低度负相关（女生成绩略高）。注意区分：点二列相关用于真正的二分变量（如性别），二列相关用于人为二分变量（如把考试成绩人为分成及格/不及格）。这是312经典易混点。","related":["积差相关","二列相关","Φ相关","相关分析"]},
+{"id":121,"cat":"stats","name":"二列相关","en":"Biserial Correlation","def":"衡量一列连续变量和一列人为二分变量之间的相关。人为二分变量指原本是连续变量，被人为分成两类（如把考试成绩60分以上算及格、以下算不及格）。公式r_b=(X̄p-X̄q)/St × (pq/y)，其中y是标准正态分布中p对应的纵线高度。312考点，重点是跟点二列相关的区分。","example":"把考试成绩（连续变量）人为分成及格/不及格（60分为界），计算它和另一个连续变量（如学习动机）的相关，就用二列相关。二列相关的取值范围可以超过±1（这是它的一个特点），而点二列相关一定在-1到+1之间。区分关键：①真正二分变量（性别、对错）→点二列相关；②人为二分变量（成绩分及格/不及格、能力分高/低）→二列相关。如果二分变量的分界点移动，二列相关系数会变化，而点二列相关不会。","related":["点二列相关","积差相关","Φ相关"]},
+{"id":122,"cat":"stats","name":"Φ相关","en":"Phi Coefficient","def":"衡量两个真正的二分变量之间的相关程度，公式Φ=(ad-bc)/√[(a+b)(c+d)(a+c)(b+d)]，其中a、b、c、d是2×2列联表的四个格的频数。Φ相关系数的平方乘以N等于卡方值（χ²=NΦ²）。312选择题考点。","example":"计算性别（男/女）和是否吸烟（是/否）的Φ相关。2×2列联表：男吸烟a=20，男不吸烟b=30，女吸烟c=5，女不吸烟d=45。Φ=(20×45-30×5)/√[(50)(50)(25)(75)]=(900-150)/√(4687500)=750/2165≈0.346。Φ相关的显著性检验等价于卡方独立性检验：χ²=NΦ²=100×0.12=12，p<0.01。注意：Φ相关只适用于2×2列联表（两个二分变量），更大的列联表用列联相关系数C。","related":["积差相关","点二列相关","卡方检验"]},
+{"id":123,"cat":"stats","name":"抽样分布","en":"Sampling Distribution","def":"样本统计量（如样本平均数、样本方差）的概率分布。是推断统计的理论基础——我们不知道总体参数，但可以通过样本统计量的分布规律来推断总体参数。312核心概念，理解了它才能理解假设检验和参数估计。","example":"从一个平均数μ=100、标准差σ=15的总体中，每次随机抽取n=25的样本，计算样本平均数。重复无数次后，这些样本平均数形成一个分布——这就是样本平均数的抽样分布。根据中心极限定理，这个抽样分布的平均数=μ=100，标准差（即标准误）=σ/√n=15/5=3，且当n足够大时呈正态分布。常见的抽样分布：正态分布（Z分布）、t分布、卡方分布、F分布，分别对应不同的统计量。","related":["中心极限定理","标准误","t分布","卡方分布","F分布"]},
+{"id":124,"cat":"stats","name":"中心极限定理","en":"Central Limit Theorem","def":"从平均数为μ、方差为σ²的总体中，随机抽取容量为n的样本，当n充分大时（通常n≥30），样本平均数X̄的抽样分布近似服从正态分布，其平均数等于总体平均数μ，方差等于总体方差除以样本量σ²/n。是推断统计的基石，312必考点。","example":"不管总体是什么分布（哪怕是偏态分布、均匀分布），只要样本量n足够大（≥30），样本平均数的抽样分布就趋近正态分布。这就是为什么我们可以用Z检验或t检验来做均值的假设检验——因为样本平均数的分布是正态的（或近似正态的）。注意：中心极限定理说的是样本平均数的分布趋近正态，不是说样本数据本身趋近正态。如果总体本身正态，不管n多小，样本平均数分布都是正态的；如果总体非正态，需要n≥30才近似正态。","related":["抽样分布","标准误","正态分布","t分布"]},
+{"id":125,"cat":"stats","name":"标准误","en":"Standard Error (SE)","def":"样本统计量抽样分布的标准差，衡量样本统计量估计总体参数的精确程度。标准误越小，说明样本统计量越稳定、估计越精确。最常用的是平均数的标准误SE=σ/√n（总体方差已知）或SE=s/√n（总体方差未知，用样本标准差代替）。312必考点。","example":"总体标准差σ=15，样本量n=25，平均数的标准误SE=15/√25=3。意思是：从这个总体中抽样，样本平均数的波动程度（标准差）是3分。如果样本量增大到n=100，SE=15/10=1.5——样本量越大，标准误越小，估计越精确。标准误和标准差的区别：①标准差描述原始数据的离散程度；②标准误描述样本统计量的离散程度（抽样误差的大小）。标准误=标准差/√n，所以标准误总是小于标准差。","related":["抽样分布","中心极限定理","方差与标准差","区间估计"]},
+{"id":126,"cat":"stats","name":"t分布","en":"t-distribution","def":"又称学生氏分布，是一种对称的钟形分布，形状随自由度df变化。t分布的平均数为0，方差大于1（比正态分布更分散、尾部更厚），自由度越小越分散，自由度越大越接近标准正态分布（df→∞时t分布=Z分布）。用于总体方差未知时的均值检验。312必考点。","example":"当总体方差σ²未知时，不能用Z检验，要用t检验，因为用样本标准差s代替σ会引入额外的误差，t分布比正态分布更分散正是为了补偿这个误差。t分布的特点：①以0为中心，左右对称；②自由度df=n-1（单样本）或df=n1+n2-2（两独立样本）；③自由度越小，t分布越平坦、尾部越厚；④自由度越大，越接近标准正态分布；⑤t分布的方差=df/(df-2)（df>2时）。查表时需要知道自由度和显著性水平（单侧/双侧）。","related":["抽样分布","标准误","t检验","卡方分布","F分布","正态分布"]},
+{"id":127,"cat":"stats","name":"卡方分布","en":"Chi-Square Distribution","def":"n个独立标准正态变量的平方和服从自由度为n的卡方分布，χ²=ΣZᵢ²。卡方分布是正偏态分布（右偏），取值≥0，形状随自由度变化，自由度越大越接近正态。用于卡方检验（计数数据的显著性检验）和方差的区间估计。312考点。","example":"卡方分布的特点：①正偏态（右偏），取值范围0到+∞；②自由度df=n；③平均数=df，方差=2df；④可加性：两个独立卡方变量之和仍服从卡方分布，自由度相加；⑤自由度越大越接近正态分布。卡方检验的应用：①配合度检验（检验观察次数与理论次数是否一致）；②独立性检验（检验两个分类变量是否有关联）；③同质性检验（检验多个总体的分布是否相同）。公式χ²=Σ[(fo-fe)²/fe]，fo是观察次数，fe是理论次数。","related":["抽样分布","卡方检验","t分布","F分布"]},
+{"id":128,"cat":"stats","name":"F分布","en":"F-distribution","def":"两个独立卡方变量除以各自自由度后的比值服从F分布，F=(χ²1/df1)/(χ²2/df2)。F分布是正偏态分布，取值≥0，有两个自由度：分子自由度df1和分母自由度df2。用于方差分析（ANOVA）和方差齐性检验。312必考点，跟方差分析紧密相关。","example":"F分布的特点：①正偏态（右偏），取值范围0到+∞；②有两个自由度：分子自由度df1（组间自由度=k-1，k是组数）和分母自由度df2（组内自由度=N-k，N是总人数）；③F值是两个方差的比值F=MS组间/MS组内；④F分布的倒数也服从F分布，但自由度交换：1/F(df1,df2)=F(df2,df1)；⑤当df1=1时，F=t²（单因素两组时，方差分析等价于t检验的平方）。方差分析中，如果F值远大于1，且大于临界值，说明组间差异显著大于组内误差，即实验处理有显著效应。","related":["抽样分布","方差分析","卡方分布","t分布","重复测量方差分析"]},
+{"id":129,"cat":"stats","name":"区间估计","en":"Interval Estimation","def":"根据样本统计量，在一定置信度下估计总体参数所在的区间。置信度（1-α）通常取95%或99%。95%置信区间的含义是：如果重复抽样100次，计算100个置信区间，大约有95个区间会包含真实的总体参数。312必考点，常考计算。","example":"样本平均数X̄=80，标准误SE=3，95%置信区间=X̄±1.96×SE=80±5.88=[74.12, 85.88]。意思是：有95%的把握认为总体平均数在74.12到85.88之间。注意：不能说总体平均数有95%的概率落在这个区间里——总体平均数是固定的常数，不是随机变量；随机的是区间本身。正确表述是这个区间有95%的概率包含总体平均数。总体方差已知时用Z值（95%对应1.96，99%对应2.58）；总体方差未知时用t值（需要查t表，跟自由度有关）。","related":["标准误","抽样分布","t分布","正态分布","p值"]},
+{"id":130,"cat":"stats","name":"虚无假设与备择假设","en":"Null & Alternative Hypothesis","def":"假设检验中的两个互斥假设。虚无假设H0（零假设）：通常假设没有差异、没有关系、处理无效，是被检验的假设。备择假设H1（研究假设）：与H0相反，假设有差异、有关系、处理有效，是研究者想要证实的假设。检验的逻辑是反证法——通过拒绝H0来间接接受H1。312必考点。","example":"检验新教学法是否比传统教学法效果好：H0: μ新=μ传统（两种教学法没有差异）；H1: μ新≠μ传统（双侧检验）或H1: μ新>μ传统（单侧检验）。假设检验的逻辑：先假设H0为真，然后计算如果H0为真，观察到当前数据（或更极端数据）的概率（p值）。如果p值很小（<α），说明H0为真这个假设不太可能，就拒绝H0，接受H1；如果p值不小（≥α），就不拒绝H0（注意：不是接受H0，而是没有足够证据拒绝H0）。","related":["Ⅰ类错误与Ⅱ类错误","统计功效","p值","显著性","t检验","方差分析"]},
+{"id":131,"cat":"stats","name":"Ⅰ类错误与Ⅱ类错误","en":"Type I & Type II Error","def":"假设检验中的两类错误。Ⅰ类错误（α错误/弃真错误）：H0实际上为真，但错误地拒绝了H0（无中生有，假阳性）。Ⅱ类错误（β错误/取伪错误）：H0实际上为假，但错误地没有拒绝H0（错失良机，假阴性）。α+β不一定等于1。312必考点，常考两者关系。","example":"检验新药是否有效：Ⅰ类错误=药其实无效，但结论说有效（α错误，可能让无效药上市）；Ⅱ类错误=药其实有效，但结论说无效（β错误，可能让好药被埋没）。两者的关系：①在其他条件不变时，α减小，β增大；α增大，β减小（此消彼长）；②增大样本量n可以同时减小α和β（因为标准误减小，分布更集中）；③α是研究者事先设定的（通常0.05或0.01），β需要根据具体情况计算；④统计功效=1-β（正确拒绝虚假H0的概率）。注意：Ⅰ类错误和Ⅱ类错误不可能同时犯——因为H0要么为真要么为假，不可能同时为真又为假。","related":["虚无假设与备择假设","统计功效","p值","显著性","标准误"]},
+{"id":132,"cat":"stats","name":"统计功效","en":"Statistical Power","def":"又称统计检验力，指当H0实际上为假时，正确拒绝H0的概率，即Power=1-β。统计功效越高，说明检验越灵敏，越能发现真实存在的效应。一般要求统计功效≥0.80（80%）。312高频考点，统考考过选择题。","example":"一种新教学法确实有效（H0为假），如果做100次研究，有80次能正确检测出它有效，统计功效就是0.80。影响统计功效的因素：①效应量——真实效应越大，功效越高；②样本量——n越大，功效越高（最常用的提高功效的方法）；③显著性水平α——α越大（如0.05比0.01），功效越高；④检验方向——单侧检验比双侧检验功效高；⑤总体方差——方差越小，功效越高。功效分析的用途：①研究前确定所需样本量（给定α、效应量、期望功效，反推n）；②研究后解释不显著的结果——如果功效低，不显著可能是因为检验不够灵敏，而不是真的没有效应。","related":["Ⅰ类错误与Ⅱ类错误","虚无假设与备择假设","效应量","标准误","p值"]},
+{"id":133,"cat":"stats","name":"独立样本t检验","en":"Independent Samples t-test","def":"检验两个独立样本的平均数差异是否显著，用于比较两组不同被试的均值（如实验组vs对照组、男生vs女生）。前提条件：①两样本独立；②两总体正态分布；③两总体方差齐性（如果方差不齐用校正t检验，即Welch t检验）。312必考点，常考计算和适用条件。","example":"比较实验组（n1=30，M1=85，SD1=8）和对照组（n2=30，M2=80，SD2=7）的成绩差异。t=(85-80)/SE，其中SE=√[(s1²/n1)+(s2²/n2)]=√[(64/30)+(49/30)]=√(3.77)=1.94，t=5/1.94=2.58，df=n1+n2-2=58，查t表，t(58,0.05双侧)=2.00，2.58>2.00，p<0.05，说明实验组成绩显著高于对照组。先做方差齐性检验（F检验）：F=s大²/s小²=64/49=1.31，不显著，说明方差齐性，可以用标准t检验；如果方差不齐，用Welch校正的t值和自由度。报告格式：t(58)=2.58, p<0.05, Cohen d=0.67。","related":["t检验","配对样本t检验","t分布","方差分析","效应量"]},
+{"id":134,"cat":"stats","name":"配对样本t检验","en":"Paired Samples t-test","def":"检验两个相关样本（配对数据）的平均数差异是否显著，用于：①同一组被试前后测（如干预前vs干预后）；②匹配被试（按年龄、性别等匹配的两组）。因为两组数据相关，计算时先算每对的差值D，再检验差值的平均数是否显著不为0。312必考点。","example":"10名学生参加正念训练，训练前焦虑得分M1=45，训练后M2=38。先算每个学生的前后差值D=前-后，然后计算差值的平均数MD=7，差值的标准差SD=3.5，标准误SE=SD/√n=3.5/√10=1.11，t=MD/SE=7/1.11=6.31，df=n-1=9，查t表t(9,0.01双侧)=3.25，6.31>3.25，p<0.01，说明正念训练显著降低了焦虑。配对t检验比独立样本t检验更灵敏（统计功效更高），因为它控制了个体差异——每个被试跟自己比，排除了两组被试本身就不一样的干扰。报告格式：t(9)=6.31, p<0.01, Cohen d=2.0。","related":["t检验","独立样本t检验","t分布","重复测量方差分析","效应量"]},
+{"id":135,"cat":"stats","name":"事后检验","en":"Post Hoc Tests","def":"方差分析（ANOVA）结果显著后，进行的两两比较检验，目的是确定具体哪两组之间存在显著差异。ANOVA的F显著只说明至少有两组之间有差异，但不知道具体是哪两组，所以需要事后检验。312高频考点，常考各种事后检验方法的比较。","example":"单因素ANOVA比较四种教学方法的成绩，F(3,76)=5.23, p<0.01，显著。但不知道是A vs B显著，还是A vs C显著，还是B vs D显著……需要做事后检验。常用事后检验方法：①LSD法（最小显著差异法）——最宽松，相当于多次t检验，不控制Ⅰ类错误，容易犯Ⅰ类错误；②Bonferroni校正——最严格，把α除以比较次数，严格控制Ⅰ类错误，但比较保守（容易犯Ⅱ类错误）；③Tukey HSD法——应用最广，专门用于各组样本量相等时的两两比较，控制了族系Ⅰ类错误；④Scheffé法——最保守，适用于各种比较（包括非两两比较，如对比），但检验力低；⑤Dunnett法——专门用于各组跟一个对照组比较。选择原则：如果是探索性研究，用Tukey；如果是验证性研究且比较次数少，用Bonferroni；如果只跟对照组比，用Dunnett。","related":["方差分析","t检验","Ⅰ类错误与Ⅱ类错误","统计功效"]},
+{"id":136,"cat":"stats","name":"一元线性回归","en":"Simple Linear Regression","def":"用一个自变量X来预测一个因变量Y的线性模型，方程Ŷ=a+bX，其中a是截距（X=0时Y的值），b是回归系数（斜率，X每变化1个单位Y变化多少）。回归分析回答预测问题，相关分析回答关系问题。312必考点，常考方程建立和检验。","example":"用学习时间（X，小时）预测考试成绩（Y，分），n=20，得到回归方程Ŷ=50+3X——截距a=50（学习0小时时预测成绩50分），斜率b=3（每多学1小时，成绩预测提高3分）。某学生学习10小时，预测成绩=50+3×10=80分。回归方程的检验：①方差分析检验整体显著性（F=MS回归/MS残差）；②t检验检验回归系数b的显著性（跟相关系数r的检验等价，因为b=r×sY/sX）。回归与相关的关系：r²=决定系数（回归能解释的Y的变异比例）；b=r×(sY/sX)；r和b的显著性检验完全等价。注意：回归可以用于预测，但不能因为回归显著就说X导致Y——回归跟相关一样，不能确定因果。","related":["回归分析","相关分析","决定系数","积差相关","方差分析"]},
+{"id":137,"cat":"stats","name":"决定系数","en":"Coefficient of Determination (R²)","def":"回归分析中，自变量（或自变量组合）能够解释因变量变异的比例，取值0到1。R²=SS回归/SS总=1-SS残差/SS总。一元线性回归中R²=r²（相关系数的平方）。R²越大，说明回归模型的拟合度越好，自变量对因变量的解释力越强。312高频考点。","example":"用学习时间预测考试成绩，r=0.70，R²=r²=0.49，说明学习时间可以解释考试成绩49%的变异，剩下51%由其他因素（智力、动机、学习方法等）解释。R²=0.49在心理学研究中算比较大的效应了（心理学研究中R²通常在0.1-0.3之间）。注意：R²会随着自变量个数的增加而增大（即使新加的自变量没有实际解释力），所以多元回归中常用调整后的R²（Adjusted R²），它对自变量个数进行了惩罚，更准确地反映模型的拟合度。效应量判断：R²=0.02为小效应，0.13为中效应，0.26为大效应（Cohen, 1988对R²的标准）。注意：0.01/0.09/0.25是f²的标准，不是R²的标准，不要混淆——f²=R²/(1-R²)。","related":["一元线性回归","回归分析","积差相关","相关分析","效应量"]},
+{"id":138,"cat":"stats","name":"非参数检验","en":"Non-parametric Tests","def":"不依赖于总体分布形态（不要求正态分布）、不涉及总体参数的统计检验方法。适用于：①数据不是等距/等比数据（而是计数/等级数据）；②总体分布严重偏离正态；③样本量很小无法检验正态性。跟参数检验（t检验、ANOVA等）相对。312考点，重点是各种非参数检验跟参数检验的对应关系。","example":"非参数检验跟参数检验的对应：①独立样本t检验 → Mann-Whitney U检验（两独立样本的非参数检验）；②配对样本t检验 → Wilcoxon符号秩检验（两相关样本）；③单因素ANOVA → Kruskal-Wallis H检验（多个独立样本）；④重复测量ANOVA → Friedman检验（多个相关样本）；⑤Pearson相关 → Spearman等级相关。非参数检验的优点：①适用范围广（不要求正态）；②对数据要求低（计数、等级数据都能用）；③计算简单。缺点：①检验力较低（不如参数检验灵敏，容易犯Ⅱ类错误）；②没有充分利用数据信息（把精确数据转换成等级时丢失了信息）。所以如果数据满足参数检验的条件（正态、方差齐），优先用参数检验。","related":["t检验","方差分析","等级相关","卡方检验","统计功效"]},
+{"id":139,"cat":"paradigm","name":"额外变量","en":"Extraneous Variable","def":"研究中除了自变量以外，所有可能影响因变量的变量。额外变量如果不加以控制，会跟自变量混淆，导致无法确定因变量的变化是由自变量引起的还是由额外变量引起的。是实验设计的核心概念，312必考点。","example":"研究教学方法（自变量）对学习成绩（因变量）的影响，额外变量包括：学生的初始能力、学习时间、教师水平、教室环境、学生动机等。如果实验组的学生本来就比控制组的学生聪明，那么最后成绩差异可能是因为初始能力（额外变量），而不是教学方法（自变量）——这就是混淆。额外变量的来源：①被试方面（个体差异、期望效应、霍桑效应）；②主试方面（期望效应/罗森塔尔效应、态度、性别）；③实验设计方面（顺序效应、练习效应、疲劳效应）；④实验环境方面（温度、光线、噪音）；⑤数据处理方面（测量工具不稳定、评分者偏差）。控制方法见额外变量控制方法词条。","related":["自变量","因变量","内部效度","额外变量控制方法"]},
+{"id":140,"cat":"paradigm","name":"额外变量控制方法","en":"Control of Extraneous Variables","def":"控制额外变量的六种主要方法：①排除法——把额外变量从实验中排除出去（如用隔音室排除噪音）；②恒定法——使额外变量在实验中保持恒定不变（如同一时间、同一主试、同一房间）；③匹配法——使实验组和控制组的被试在额外变量上相等（如按智商匹配）；④随机化法——把被试随机分配到各组（最基本、最重要的方法，能控制所有已知和未知的额外变量）；⑤抵消平衡法——通过平衡顺序来控制顺序效应（ABBA法、拉丁方设计）；⑥统计控制法——实验后用统计方法（如协方差分析ANCOVA）控制额外变量。312必考点，常考选择题。","example":"研究教学方法对成绩的影响：①排除法——在安静教室考试，排除噪音干扰；②恒定法——所有被试都在上午9点考试，同一老师监考；③匹配法——按前测成绩匹配，确保两组初始能力相当；④随机化法——把学生随机分到实验组和控制组（这是最根本的方法，因为随机分配能平衡两组在所有变量上的差异，包括研究者没想到的变量）；⑤抵消平衡法——如果是被试内设计，用ABBA顺序平衡练习效应；⑥统计控制法——如果随机分配没做好，事后用ANCOVA把初始成绩作为协变量控制掉。六种方法中，随机化法最重要、最常用；统计控制法是事后补救，不如事前控制好。","related":["额外变量","内部效度","被试间设计","被试内设计"]},
+{"id":141,"cat":"paradigm","name":"内部效度","en":"Internal Validity","def":"实验中自变量与因变量之间因果关系的明确程度，即实验结果能不能明确归因于自变量的操纵。内部效度高=能确定是自变量导致了因变量的变化，而不是其他因素（额外变量）导致的。是实验设计质量的核心指标，312必考点。","example":"研究正念训练对焦虑的影响，如果实验组和控制组不是随机分配的（比如实验组是自愿报名的，控制组是不报名的），那么两组的焦虑差异可能是因为自愿报名的人本身就更有改变动机（额外变量），而不是正念训练（自变量）——内部效度低。影响内部效度的因素：①历史（实验期间发生的外部事件）；②成熟（被试身心的自然发展变化）；③测验（前测对后测的影响）；④测量工具（测量工具不稳定或评分标准变化）；⑤统计回归（极端分数向平均数回归）；⑥被试流失（被试中途退出）；⑦选择（各组被试本身就有差异）；⑧选择与成熟的交互作用。提高内部效度的方法：随机分配、设置控制组、前测、双盲设计等。内部效度和外部效度常常是此消彼长的关系——控制越严格（内部效度高），结果越难推广（外部效度低）。","related":["外部效度","额外变量","额外变量控制方法","实验研究","准实验研究"]},
+{"id":142,"cat":"paradigm","name":"外部效度","en":"External Validity","def":"实验结果能够普遍推论到样本所在总体和其他同类现象中的程度，即实验结果的普遍代表性和适用性。外部效度高=研究结果能推广到其他人群、其他情境、其他时间。312必考点，常考跟内部效度的关系。","example":"在实验室里用大学生做注意偏向实验，发现抑郁者对悲伤面孔有注意偏向。这个结果能不能推广到：①非大学生的抑郁患者？②真实生活情境（而不是实验室）？③其他类型的刺激（而不是面孔）？如果能，外部效度高；如果只能在实验室大学生身上看到，外部效度低。影响外部效度的因素：①被试样本的代表性（大学生样本不能代表所有人）；②实验环境的人为性（实验室跟真实生活不同）；③测量工具的局限性；④测验的反作用效果（前测可能影响被试对实验处理的反应）；⑤选择偏差与实验变量的交互作用；⑥实验安排的反作用效果（霍桑效应——被试知道自己在做实验，行为可能改变）；⑦重复实验处理的干扰。内部效度和外部效度的权衡：实验室实验通常内部效度高但外部效度低；现场实验（自然情境中的实验）通常外部效度高但内部效度低。好的研究应该在两者之间取得平衡。","related":["内部效度","实验研究","准实验研究","额外变量"]},
+{"id":143,"cat":"paradigm","name":"被试间设计","en":"Between-Subjects Design","def":"又称完全随机设计、独立组设计，每个被试只接受一个自变量水平的处理（即每个被试只在一个实验组里）。不同组的被试是不同的人。优点：①被试只做一次，没有练习效应、疲劳效应、顺序效应；②实验时间短。缺点：①需要大量被试；②个体差异无法控制（两组被试本身就不一样），误差大。312必考点。","example":"研究教学方法对成绩的影响，被试间设计：把学生随机分成两组，A组用新教学法，B组用传统教学法，一学期后比较两组成绩。每个学生只在一个组里，只接受一种教学法。因为是随机分配，两组在智力、动机等额外变量上基本平衡（这就是随机化的力量）。统计方法：独立样本t检验（两组）或单因素完全随机ANOVA（三组及以上）。被试间设计的关键是随机分配——只有随机分配才能保证两组在所有额外变量上的平衡。如果不是随机分配（比如按自然班级分），那就是准实验设计，内部效度降低。跟被试内设计的选择：如果实验处理可能有长期效应（如教学方法、心理治疗），只能用被试间设计（因为被试接受了A处理后就无法再重置到接受B处理的状态了）。","related":["被试内设计","混合设计","完全随机设计","独立样本t检验","方差分析","额外变量控制方法"]},
+{"id":144,"cat":"paradigm","name":"被试内设计","en":"Within-Subjects Design","def":"又称重复测量设计、相关组设计，每个被试接受自变量所有水平的处理（即每个被试在所有实验组里都做一遍）。同一组被试既做A又做B。优点：①节省被试（需要的被试少）；②完全控制了个体差异（因为是同一批被试跟自己比），误差小、检验力高。缺点：①有顺序效应（练习效应、疲劳效应、迁移效应）；②实验时间长，被试容易疲劳或流失；③有些实验处理不可逆（如教学方法），不能用被试内设计。312必考点。","example":"研究两种字体对阅读速度的影响，被试内设计：让每个被试都阅读字体A的文章和字体B的文章，比较同一批被试在两种字体下的阅读速度。因为是同一批被试，个体差异（如阅读能力）被完全控制了。但需要平衡顺序——一半被试先A后B，另一半先B后A（ABBA或拉丁方），否则先做的那个可能因为练习而更快，或者因为疲劳而更慢。统计方法：配对样本t检验（两条件）或重复测量ANOVA（三条件及以上）。被试内设计的核心问题是顺序效应的控制——用抵消平衡法（ABBA法、拉丁方设计）。如果处理之间有不可逆的迁移效应（如学了方法A就无法再忘掉去学方法B），就不能用被试内设计，只能用被试间设计。","related":["被试间设计","混合设计","随机区组设计","配对样本t检验","重复测量方差分析","抵消平衡法","练习效应与疲劳效应"]},
+{"id":145,"cat":"paradigm","name":"混合设计","en":"Mixed Design","def":"一个实验中同时包含被试间变量和被试内变量的设计。被试间变量是每个被试只接受一个水平，被试内变量是每个被试接受所有水平。是心理学研究中最常用的复杂设计之一，结合了被试间和被试内设计的优点。312高频考点。","example":"研究教学方法（被试间：新方法vs传统方法）×测试时间（被试内：前测vs后测vs追踪）的混合设计——每个被试只在一种教学方法组里（被试间），但每个被试都要参加三次测试（被试内）。这是2×3混合设计。统计方法用混合设计方差分析（mixed ANOVA），会检验：①教学方法的主效应（被试间）；②测试时间的主效应（被试内）；③教学方法×测试时间的交互作用（关键！如果交互作用显著，说明两种教学法的效果随时间变化的模式不同——比如新教学法在追踪时进步更大，传统教学法没有进步）。混合设计的优点：①被试间变量控制了不可逆效应；②被试内变量节省被试、控制个体差异；③能检验交互作用，信息丰富。是心理学实验研究的标配设计。","related":["被试间设计","被试内设计","多因素实验设计","交互作用","主效应","重复测量方差分析","方差分析"]},
+{"id":146,"cat":"paradigm","name":"多因素实验设计","en":"Factorial Design","def":"同时操纵两个或两个以上自变量（因素）的实验设计。每个自变量有至少两个水平。用a×b×c表示，a、b、c分别是各因素的水平数。例如2×3设计=第一个因素2个水平×第二个因素3个水平=6个实验处理组合。优点：①效率高（一次实验能检验多个自变量的效应）；②能检验交互作用（这是单因素设计做不到的）；③结果更有普遍性。312必考点，综合题常考。","example":"研究教学方法（2水平：新/传统）×学生能力（2水平：高/低）对成绩的影响，这是2×2因素设计，有4个处理组合：①新方法+高能力；②新方法+低能力；③传统方法+高能力；④传统方法+低能力。可以检验：①教学方法的主效应（新方法vs传统方法，平均了能力水平）；②学生能力的主效应（高能力vs低能力，平均了教学方法）；③教学方法×能力的交互作用——这是最有价值的！比如交互作用可能显示：新方法对低能力学生帮助很大，但对高能力学生没什么效果（或者反而有负面影响）。这种因人而异的效应，单因素设计是发现不了的。交互作用的类型：①正交交互（无交互）；②次序交互（交互但不交叉，如新方法总是更好，但对低能力学生好更多）；③非次序交互（交叉交互，如新方法对低能力好，传统方法对高能力好）。","related":["主效应","交互作用","简单效应","混合设计","被试间设计","被试内设计","方差分析"]},
+{"id":147,"cat":"paradigm","name":"主效应","en":"Main Effect","def":"多因素实验设计中，一个自变量（因素）单独对因变量的效应，即忽略其他自变量，只看这个自变量不同水平之间的差异。每个自变量都有一个主效应。2×2设计有2个主效应，2×3设计也有2个主效应（主效应个数=因素个数，跟水平数无关）。312必考点。","example":"2×2设计（教学方法×学生能力）：①教学方法的主效应=新方法组的平均成绩 vs 传统方法组的平均成绩（把高能力和低能力学生的成绩平均在一起比较）；②学生能力的主效应=高能力组的平均成绩 vs 低能力组的平均成绩（把新方法和传统方法的成绩平均在一起比较）。主效应显著只说明这个自变量整体上有影响，但不能说明在所有情况下都有影响——因为可能存在交互作用。比如教学方法的主效应显著（新方法整体更好），但交互作用也显著（新方法只对低能力学生有效，对高能力学生无效）。这时候主效应的意义就有限了，需要看简单效应。注意：主效应显著不代表这个因素的每个水平之间都显著——如果是3个水平，主效应显著只说明至少有两个水平之间有差异，具体哪两组有差异需要做事后检验。","related":["交互作用","简单效应","多因素实验设计","方差分析","事后检验"]},
+{"id":148,"cat":"paradigm","name":"交互作用","en":"Interaction Effect","def":"多因素实验设计中，一个自变量对因变量的影响依赖于另一个自变量的水平，即两个自变量的效应不是简单相加的，而是相互影响的。交互作用是多因素设计的核心价值——它能揭示因人而异、因情境而异的效应。312必考点，综合题高频考点。","example":"2×2设计（教学方法×能力）：如果交互作用显著，说明新方法比传统方法好多少取决于学生能力——比如对低能力学生，新方法比传统方法高20分；对高能力学生，新方法比传统方法只高2分（甚至低2分）。这就是交互作用：教学方法的效应大小（甚至方向）随能力水平变化。交互作用的判断：①如果在一个自变量的不同水平上，另一个自变量的效应大小不同→有交互作用；②用方差分析检验交互作用的F值是否显著；③用折线图直观判断——如果两条线平行→无交互；如果两条线不平行→有交互（如果交叉了就是非次序交互，如果没交叉就是次序交互）。交互作用显著后，需要做简单效应检验（simple effects test）——分别在每个自变量的每个水平上，检验另一个自变量的效应。比如：在低能力学生中，教学方法的效应是否显著？在高能力学生中呢？","related":["主效应","简单效应","多因素实验设计","混合设计","方差分析"]},
+{"id":149,"cat":"paradigm","name":"简单效应","en":"Simple Effect","def":"交互作用显著后，在一个自变量的某一个特定水平上，检验另一个自变量的效应。简单效应检验是交互作用显著后的事后检验——它告诉你具体在哪个水平上自变量有效应、哪个水平上没有。312考点，跟交互作用紧密相关。","example":"2×2设计（教学方法×能力），交互作用显著后，做简单效应检验：①在低能力水平上，检验教学方法的效应——新方法vs传统方法是否显著？（可能显著，p<0.001）；②在高能力水平上，检验教学方法的效应——新方法vs传统方法是否显著？（可能不显著，p=0.30）。结论：新方法只对低能力学生有效，对高能力学生没有显著效果。简单效应跟主效应的区别：①主效应=平均了其他因素后，这个因素整体的效应；②简单效应=在其他因素的某一个特定水平上，这个因素的效应。交互作用显著时，主效应可能被掩盖或误导，必须看简单效应才能理解真实的效应模式。比如：新方法对低能力学生帮助很大、对高能力学生有轻微负面影响，主效应可能不显著（正负抵消了），但交互作用显著，简单效应显示两种方向相反的效应——这时候只看主效应就会得出教学方法没效果的错误结论。","related":["交互作用","主效应","多因素实验设计","方差分析","事后检验"]},
+{"id":150,"cat":"paradigm","name":"练习效应与疲劳效应","en":"Practice & Fatigue Effect","def":"被试内设计（重复测量）中的主要额外变量。练习效应：被试因为重复做实验任务而越来越熟练，成绩越来越好（跟实验处理无关）。疲劳效应：被试因为重复做实验任务而越来越疲劳，成绩越来越差（跟实验处理无关）。两者都会混淆实验处理的真实效应，必须用抵消平衡法控制。312高频考点。","example":"被试内设计研究两种字体对阅读速度的影响，如果所有被试都先读字体A再读字体B，那么B的成绩可能因为练习效应而更快（被试读第二篇时更熟练了），也可能因为疲劳效应而更慢（被试读第二篇时累了）——不管哪种，都无法确定B的成绩差异是字体导致的还是顺序导致的。控制方法：①抵消平衡法——一半被试先A后B，另一半先B后A（ABBA设计或拉丁方设计），这样练习/疲劳效应对A和B的影响就平衡了；②如果练习/疲劳效应跟实验处理有交互作用（比如A的练习效应比B大），抵消平衡也无法完全控制，这时候应该考虑用被试间设计。其他顺序效应：①系列效应/位置效应（第一个和最后一个跟中间的不同）；②迁移效应（前一个处理的效果延续到后一个处理，如学习效应、残留效应）。如果迁移效应很强且不可逆，就不能用被试内设计。","related":["被试内设计","抵消平衡法","额外变量","额外变量控制方法","重复测量方差分析"]},
+{"id":151,"cat":"paradigm","name":"抵消平衡法","en":"Counterbalancing","def":"通过平衡实验处理的呈现顺序来控制顺序效应（练习效应、疲劳效应）的方法。是被试内设计控制额外变量的主要方法。主要有：①ABBA设计——适用于自变量水平为2个时，被试按A-B-B-A的顺序接受处理；②拉丁方设计——适用于自变量水平≥3个时，每个处理在每个位置（顺序）上出现的次数相同，每个处理前面紧跟其他每个处理的次数也相同。312必考点。","example":"ABBA设计：2个处理A和B，每个被试按A→B→B→A的顺序做4次。A在第1和第4位，B在第2和第3位，练习/疲劳效应对A和B的影响平衡了。注意：ABBA设计假设练习/疲劳效应是线性的（均匀变化的），如果是非线性的（比如突然的练习效应），ABBA就不够了。拉丁方设计：3个处理A、B、C，3×3拉丁方：①A B C；②B C A；③C A B。每个处理在每个位置（第1、第2、第3）都出现一次，每个处理后面紧跟其他每个处理也各一次。被试人数应该是处理数的倍数（如3个处理用3个或6个被试，每个被试对应一行拉丁方）。抵消平衡法只能平衡跟处理无关的顺序效应，如果处理之间有差异延续效应（如A处理的效果会延续到B处理，且这种延续跟A-B顺序有关），抵消平衡就无法控制，这时候应该用被试间设计。","related":["被试内设计","练习效应与疲劳效应","额外变量控制方法","随机区组设计","重复测量方差分析"]},
+{"id":152,"cat":"paradigm","name":"准实验设计","en":"Quasi-experimental Design","def":"不能完全随机分配被试的实验设计，通常利用自然形成的群体（如自然班级、医院病房）作为实验组和控制组。介于真实验设计和非实验设计之间，内部效度比真实验低，但比非实验高；外部效度通常比真实验高（因为在自然情境中进行）。312必考点。","example":"研究新教学法的效果，但学校的班级是固定的，不能随机把学生打散重新分班，就用一班做实验组（新教学法），二班做控制组（传统教学法）——这就是准实验设计。因为不是随机分配，两组可能本来就有差异（比如一班是重点班、二班是普通班），内部效度降低。常见准实验设计类型：①时间序列设计——对一组被试进行周期性的一系列前测，然后引入实验处理，再进行一系列后测，看处理前后的趋势变化；②相等时间样本设计——同一组被试，交替接受处理和不处理；③不相等对照组设计——有实验组和控制组，但不是随机分配的，两组都做前测和后测；④交叉滞后组相关设计——在两个时间点测量两个变量，看交叉滞后相关，推断因果方向。准实验设计的优点：①外部效度高（自然情境）；②伦理上更可行（有些情况不能随机分配）；③适合研究长期效应。缺点：①内部效度低（选择偏差、历史效应等）；②统计分析更复杂。","related":["实验研究","完全随机设计","时间序列设计","内部效度","外部效度","额外变量"]},
+{"id":153,"cat":"paradigm","name":"时间序列设计","en":"Time Series Design","def":"准实验设计的一种，对一组被试（或一个被试）进行周期性的一系列前测，然后引入实验处理（干预），再进行一系列后测，通过比较处理前后的测量趋势来评估干预效果。核心是看处理前后的数据趋势是否有突变。312考点。","example":"研究某心理干预对学生焦虑的影响，在干预前连续测量4次焦虑（每周一次），然后进行4周干预，干预后再连续测量4次焦虑。如果干预前焦虑一直稳定在高位（趋势线平），干预后焦虑持续下降（趋势线明显向下倾斜），且变化点正好在干预引入的时间点，就说明干预可能有效。时间序列设计的优点：①多次前测和后测能看到变化趋势，比只有一次前测后测更有说服力；②能控制成熟、测验等额外变量（因为有多次测量的趋势做参照）；③适合评估干预效果（如政策实施、治疗方案）。缺点：①没有控制组，历史效应（干预期间发生的其他事件）可能混淆结果；②多次测量可能导致练习效应或反应性；③数据统计分析较复杂（需要用中断时间序列分析ITSA）。改进型：不相等控制组时间序列设计——加一个不接受处理的控制组，也做多次前测后测，这样能控制历史效应，内部效度更高。","related":["准实验设计","实验研究","内部效度","外部效度","重复测量方差分析"]},
+{"id":154,"cat":"paradigm","name":"反应时","en":"Reaction Time","def":"从刺激呈现到被试作出反应之间的时间间隔，又称反应潜伏期。包括：刺激引起感官兴奋→神经冲动传递→大脑加工（核心部分）→神经冲动传出到效应器→效应器反应。反应时是实验心理学中最常用的因变量之一，被称为心理学的第三维度。312必考点。","example":"屏幕上出现一个光点，被试要尽快按空格键——从光点出现到按下键的时间就是反应时，通常在200-300毫秒。反应时的研究历史：①唐德斯（Donders）1868年提出减数法，开创了反应时研究；②冯特在莱比锡实验室把反应时作为重要研究课题；③斯滕伯格（Sternberg）1969年提出加因素法，发展了反应时研究方法。反应时的种类：①简单反应时（A反应时）——单一刺激单一反应；②选择反应时（B反应时）——多个刺激对应多个反应；③辨别反应时（C反应时）——多个刺激但只对其中一个反应。反应时的影响因素：①刺激因素（刺激强度、刺激类型、刺激复杂度）；②机体因素（适应水平、准备状态、练习次数、动机、年龄、个体差异、酒精药物）；③环境因素（温度、噪音）。速度-准确性权衡是反应时研究中必须注意的问题——反应越快，错误率可能越高，需要平衡。","related":["唐德斯减数法","斯滕伯格加因素法","速度-准确性权衡","开窗实验","因变量"]},
+{"id":155,"cat":"paradigm","name":"唐德斯减数法","en":"Donders Subtractive Method","def":"唐德斯1868年提出的反应时分析方法，核心逻辑：如果一个复杂任务包含一个简单任务的所有加工阶段，再加上额外的加工阶段，那么两者的反应时之差就是额外加工阶段所需的时间。即通过相减来分离出某个特定认知加工阶段的时间。是认知心理学的经典方法，312必考点。","example":"唐德斯设计了三种反应时：①A反应时（简单反应时）——一个刺激，一个反应（如看到光就按键），包含感觉登记→刺激识别→反应选择→反应执行。实际上A反应时=基线时间（感觉+运动）；②B反应时（选择反应时）——多个刺激，每个刺激对应不同反应（如看到红光按左键、蓝光按右键），包含感觉登记→刺激识别→反应选择（选择哪个反应）→反应执行。B反应时比A反应时多了反应选择阶段，所以反应选择时间=B-A；③C反应时（辨别反应时）——多个刺激，但只对其中一个反应（如看到红光按键，蓝光不反应），包含感觉登记→刺激识别（辨别是不是目标刺激）→反应执行。C反应时比A反应时多了刺激辨别阶段，所以辨别时间=C-A。那么：辨别时间=C-A；选择时间=B-C（因为B比C多了反应选择阶段）。减数法的应用：①心理旋转实验（Shepard）——旋转角度越大反应时越长，证明心理旋转是真实的认知过程；②短时记忆信息提取实验（斯滕伯格）——后来发展为加因素法；③句子-图画匹配实验。减数法的前提假设：认知加工过程是系列加工的（一个接一个），且插入一个加工阶段不影响其他阶段的时间（纯插入假设）。","related":["反应时","斯滕伯格加因素法","开窗实验","速度-准确性权衡"]},
+{"id":156,"cat":"paradigm","name":"斯滕伯格加因素法","en":"Sternberg Additive Factors Method","def":"斯滕伯格1969年在减数法基础上发展的反应时分析方法，核心逻辑：如果两个因素的效应是相互制约的（一个因素的效应受另一个因素水平的影响，即有交互作用），那么它们作用于同一个加工阶段；如果两个因素的效应是独立的（分别影响不同的阶段，效应可以相加），那么它们作用于不同的加工阶段。通过系统操纵多个因素，分析它们的交互作用，从而揭示信息加工的各个阶段。312考点。","example":"斯滕伯格的短时记忆信息提取实验：给被试呈现1-6个数字（识记项目），然后呈现一个探测数字，让被试判断探测数字是否在识记项目中，记录反应时。操纵两个因素：①识记项目的数量（1-6个）；②探测项目的质量（清晰vs模糊，即刺激降解）。发现：①识记项目数量和探测项目质量的效应是独立的（可以相加，无交互作用）→说明它们作用于不同的加工阶段；②识记项目数量影响比较阶段（项目越多，比较次数越多，反应时越长）；③探测项目质量影响刺激编码阶段（模糊刺激编码更慢）。加因素法的逻辑跟减数法不同：减数法是通过相减分离出某个阶段的时间，加因素法是通过因素间的交互作用判断哪些因素属于同一个阶段。加因素法的前提假设：信息加工是系列加工的（阶段式），且不同阶段的加工时间可以相加。加因素法的贡献：它不需要事先知道每个阶段的具体时间，只需要通过操纵因素、分析交互作用就能推断加工阶段的数量和顺序，比减数法更灵活。","related":["反应时","唐德斯减数法","开窗实验","交互作用"]},
+{"id":157,"cat":"paradigm","name":"速度-准确性权衡","en":"Speed-Accuracy Trade-off","def":"反应时研究中的一个基本现象：被试在反应速度和反应准确性之间存在权衡——如果要求反应越快，错误率就会越高；如果要求准确性越高，反应时就会越长。因此在反应时实验中，不能只看反应时，必须同时看错误率，否则结论可能被误导。312高频考点。","example":"研究两种任务的难度，如果只看反应时，发现任务A的反应时比任务B短，可能得出任务A更简单的结论。但如果同时看错误率，发现任务A的错误率是30%，任务B的错误率是5%——这说明被试在任务A中抢速度（快速反应但经常错），在任务B中求准确（慢但准确）。任务A反应时短可能不是因为简单，而是因为被试降低了准确性标准。正确的做法：①在实验指导语中明确要求被试既快又准，平衡速度和准确性；②分析数据时同时报告反应时和错误率；③如果两组的错误率差异很大，需要用速度-准确性操作特征曲线（SAOC）来更准确地比较；④可以用信号检测论的方法，把辨别力（d-prime）和反应标准（β）分开，避免速度-准确性权衡的混淆。速度-准确性权衡是反应时实验中最常见的混淆变量之一，也是考研选择题的高频考点。","related":["反应时","唐德斯减数法","信号检测论","辨别力指数"]},
+{"id":158,"cat":"paradigm","name":"绝对阈限","en":"Absolute Threshold","def":"刚刚能引起感觉的最小刺激强度。操作性定义：有50%的实验次数能引起感觉、50%的次数不能引起感觉的那个刺激强度。是心理物理学的核心概念之一。注意：绝对阈限不是一个固定不变的值，而是一个统计量——因为感觉是连续变化的，不存在一个突然从无到有的精确点。312必考点。","example":"测量听觉绝对阈限：给被试呈现不同强度的声音，从完全听不到的强度开始，逐渐增加强度，记录被试刚刚听到的强度；再从能听到的强度开始，逐渐降低，记录刚刚听不到的强度。重复多次，取所有转折点的平均数，就是绝对阈限。比如10次测量的转折点分别是8、9、8、10、9、8、9、10、9、8分贝，平均=8.8分贝，这就是听觉绝对阈限（操作性定义：50%次数能听到的强度）。绝对阈限的意义：①它定义了感觉系统的感受性范围——低于绝对阈限的刺激我们感觉不到（但可能有阈下知觉）；②不同感觉通道的绝对阈限差异很大（如视觉的绝对阈限非常低，在晴朗黑夜能看到48公里外的烛光；听觉的绝对阈限是安静环境中6米外的手表滴答声）；③绝对阈限可以因适应、疲劳、注意、动机等因素而变化。","related":["差别阈限","极限法","平均差误法","恒定刺激法","心理物理学方法"]},
+{"id":159,"cat":"paradigm","name":"差别阈限","en":"Difference Threshold (JND)","def":"刚刚能觉察出两个刺激有差异的最小差别量，又称最小可觉差（just noticeable difference, JND）。操作性定义：有50%的实验次数能觉察出差别、50%的次数不能觉察出差别的刺激差别量。差别阈限越小，说明感受性越高（越能分辨细微差别）。312必考点。","example":"测量重量差别阈限：标准刺激是100克，比较刺激是95-105克，让被试判断比较刺激比标准刺激重、轻还是相等。结果：102克时有50%的次数被判断为比100克重，98克时有50%的次数被判断为比100克轻。那么：上差别阈限（DLu）=102-100=2克；下差别阈限（DLl）=100-98=2克；差别阈限（DL）=(DLu+DLl)/2=2克。意思是：重量变化小于2克时，人们通常觉察不到差异；变化2克或以上时，才能刚刚觉察到。差别阈限跟标准刺激的大小有关——标准刺激越大，差别阈限也越大（韦伯定律）。比如100克的差别阈限是2克，200克的差别阈限可能是4克，400克的差别阈限可能是8克——但差别阈限跟标准刺激的比值（2/100=4/200=8/400=0.02）是恒定的，这就是韦伯定律。","related":["绝对阈限","韦伯定律","极限法","平均差误法","恒定刺激法","心理物理学方法"]},
+{"id":160,"cat":"paradigm","name":"极限法","en":"Method of Limits","def":"又称最小变化法、序列探索法、最小可觉差法，是测量阈限的直接方法。特点：将刺激按递增或递减序列的方式，以间隔相等的小步变化，寻求从一种反应到另一种反应的瞬时转换点（阈限位置）。是测量感觉阈限的三种基本方法之一，312必考点。","example":"测量绝对阈限（如听觉）：①递增序列：从完全听不到的强度开始，每次增加一小步（如1分贝），直到被试报告听到了，记录这个转折点；②递减序列：从明显能听到的强度开始，每次减少一小步，直到被试报告听不到了，记录转折点；③递增和递减序列交替进行，各做若干次（如各4次，共8次）；④取所有转折点的平均数作为绝对阈限。测量差别阈限：标准刺激固定（如100克），比较刺激从明显比标准重开始递减，或从明显比标准轻开始递增，记录被试反应从重变相等、从相等变轻的转折点（递减序列），以及从轻变相等、从相等变重的转折点（递增序列）。极限法的误差：①期望误差——被试在递增序列中过早期望转折点到来（提前报告听到了），在递减序列中过早期望听不到，导致阈限偏低；②习惯误差——被试习惯于前面的反应，该转变时不转变，导致阈限偏高；③练习误差和疲劳误差。控制方法：递增和递减序列数量相等且交替排列，平衡期望/习惯误差；ABBA顺序平衡练习/疲劳误差。","related":["绝对阈限","差别阈限","平均差误法","恒定刺激法","心理物理学方法"]},
+{"id":161,"cat":"paradigm","name":"平均差误法","en":"Method of Average Error","def":"又称调整法、再造法、均等法，测量阈限的方法。特点：被试自己调整比较刺激，使之与标准刺激相等（测量差别阈限），或调整刺激使之刚刚能感觉到（测量绝对阈限）。被试反复调整多次，每次调整的结果与标准刺激（或绝对阈限）的差的平均数就是差别阈限（或绝对阈限）。312考点。","example":"测量长度差别阈限：给被试呈现一个标准线段（如10cm），旁边有一个可以调整长度的比较线段，让被试调整比较线段使之看起来跟标准线段一样长。重复20次，每次记录被试调整后的长度。20次调整的平均数可能是10.2cm（跟标准10cm有偏差），每次调整结果跟标准的差的绝对值的平均数=平均差误=差别阈限的估计值。平均差误法的特点：①被试主动操作，积极性高，不容易疲劳；②测量的是相等判断的变异性，跟极限法和恒定刺激法测量刚刚能觉察差别略有不同；③平均差误法测得的阈限跟其他方法可能不完全一致（因为方法不同），但在同一方法内可以比较不同条件的感受性。误差：①动作误差——被试调整时的动作习惯（如总是从短往长调 vs 从长往短调）导致系统偏差；②空间误差——标准刺激和比较刺激的空间位置（左右）导致偏差。控制方法：①标准刺激和比较刺激的位置左右交替（控制空间误差）；②比较刺激的初始位置有时比标准长、有时比标准短（控制动作误差）。","related":["绝对阈限","差别阈限","极限法","恒定刺激法","心理物理学方法"]},
+{"id":162,"cat":"paradigm","name":"恒定刺激法","en":"Method of Constant Stimuli","def":"又称正误法、次数法，测量阈限最准确、应用最广的方法。特点：在实验前选定5-7个固定的刺激强度（在阈限附近），每个刺激随机呈现多次（通常50-200次），记录被试在每个刺激强度下报告有感觉（或有差别）的次数，然后用统计方法（直线内插法、平均Z分数法、最小二乘法）计算阈限。312必考点，三种方法中最重要。","example":"测量绝对阈限（如重量）：①预实验确定阈限大致范围（如8-12克之间）；②选5个恒定刺激：8、9、10、11、12克；③每个刺激随机呈现100次，共500次，记录每次被试是否感觉到重量；④统计每个刺激被报告有感觉的百分比：8克=10%，9克=30%，10克=55%，11克=75%，12克=95%；⑤用直线内插法计算50%对应的刺激强度：在9克（30%）和10克（55%）之间内插，50%对应的刺激=9+(10-9)×(50-30)/(55-30)=9+1×20/25=9.8克。9.8克就是绝对阈限。测量差别阈限：标准刺激固定（如100克），选5-7个比较刺激（如96、98、100、102、104克），每个比较刺激跟标准刺激配对呈现，让被试判断重、相等、轻，统计每个比较刺激被判断为重的百分比和轻的百分比，分别内插出50%被判断为重的刺激（上阈限）和50%被判断为轻的刺激（下阈限），差别阈限=(上阈限-下阈限)/2。恒定刺激法的优点：①刺激恒定，记录准确，结果可靠；②适用范围广（可测绝对阈限、差别阈限、等值等）；③被试不知道接下来是什么刺激，减少期望误差。缺点：①需要较多的实验次数（费时）；②如果刺激范围选得不好（离阈限太远），结果不准确。","related":["绝对阈限","差别阈限","极限法","平均差误法","心理物理学方法"]},
+{"id":163,"cat":"paradigm","name":"韦伯定律","en":"Weber Law","def":"德国生理学家韦伯1834年提出，差别阈限跟标准刺激强度的比值是一个常数，公式K=ΔI/I，其中ΔI是差别阈限（JND），I是标准刺激强度，K是韦伯分数（常数）。意思是：标准刺激越大，差别阈限也越大，但两者的比值不变。是心理物理学第一个定量定律，312必考点。","example":"重量的韦伯分数K≈0.02（1/50）：标准刺激100克时，差别阈限=100×0.02=2克（需要变化2克才能刚刚觉察到）；标准刺激200克时，差别阈限=200×0.02=4克；标准刺激400克时，差别阈限=400×0.02=8克。虽然差别阈限随标准刺激增大而增大，但比值ΔI/I始终=0.02。不同感觉通道的韦伯分数不同：①重量K≈0.02（最敏感）；②响度K≈0.1；③亮度K≈0.016；④皮肤压力K≈0.14；⑤咸味K≈0.2。韦伯分数越小，说明该感觉通道的差别感受性越高（越能分辨细微差别）。韦伯定律的适用范围：只适用于中等强度的刺激——刺激太弱（接近绝对阈限）或太强时，韦伯分数会变大，定律不成立。韦伯定律的意义：①它是第一个关于心理量和物理量关系的定量定律，开创了心理物理学；②它说明感觉不是刺激的简单反映，而是跟刺激的相对变化有关；③费希纳在韦伯定律基础上发展了费希纳定律（对数定律）。","related":["差别阈限","费希纳定律","史蒂文斯幂定律","绝对阈限","心理物理学方法"]},
+{"id":164,"cat":"paradigm","name":"费希纳定律","en":"Fechner Law","def":"德国物理学家、心理物理学创始人费希纳1860年在韦伯定律基础上提出，感觉强度与刺激强度的对数成正比，公式S=K·lgI，其中S是感觉量（心理量），I是刺激强度（物理量），K是常数。意思是：刺激强度按几何级数增加时，感觉强度只按算术级数增加——感觉增长比刺激增长慢。是心理物理学的经典定律，312必考点。","example":"假设K=1，刺激强度I=10时，感觉量S=lg10=1；I=100时，S=lg100=2；I=1000时，S=lg1000=3。刺激从10增加到100（增加了90，10倍），感觉只从1增加到2（增加了1，1倍）；刺激从100增加到1000（增加了900，10倍），感觉只从2增加到3（又增加了1）。这就是对数关系——刺激成倍增加，感觉等量增加。费希纳定律的推导前提：①韦伯定律成立（差别阈限ΔI=KI）；②每个最小可觉差（JND）在主观上是相等的（即不管标准刺激多大，一个JND引起的感觉变化量都相同）。那么感觉量S就是JND的数量累加，S=K·lgI+C。费希纳定律的意义：①它把心理量和物理量的关系用数学公式表达出来，是心理物理学的基石；②它说明感觉是刺激的对数函数，解释了为什么我们对微弱刺激的变化更敏感、对强刺激的变化不敏感（如在暗室里一根蜡烛很明显，在阳光下一根蜡烛几乎感觉不到）。局限：①只适用于中等强度刺激；②每个JND主观相等的假设受到质疑（史蒂文斯用数量估计法发现心理量跟物理量是幂函数关系，不是对数关系）。","related":["韦伯定律","史蒂文斯幂定律","差别阈限","心理物理学方法"]},
+{"id":165,"cat":"paradigm","name":"史蒂文斯幂定律","en":"Stevens Power Law","def":"美国心理学家史蒂文斯1957年提出，用数量估计法研究发现，感觉强度与刺激强度的幂函数成正比，公式S=K·Iⁿ，其中S是感觉量，I是刺激强度，K是常数，n是幂指数。不同感觉通道的n不同：n>1时感觉增长比刺激快（如电击、肌肉用力）；n<1时感觉增长比刺激慢（如亮度、响度、重量，跟费希纳定律一致）；n=1时感觉跟刺激成正比（如线段长度估计）。312必考点，常考跟费希纳定律的比较。","example":"①亮度感觉n≈0.33（<1，感觉增长慢）：亮度增加10倍，感觉只增加10^0.33≈2.15倍；②电击感觉n≈3.5（>1，感觉增长快）：电击强度增加2倍，感觉增加2^3.5≈11.3倍——这解释了为什么电击稍微增强就会感到剧烈疼痛；③线段长度估计n≈1.0（=1，成正比）：线段长2倍，感觉也长2倍。史蒂文斯幂定律跟费希纳定律的区别：①费希纳定律是对数函数S=KlgI，史蒂文斯是幂函数S=KIⁿ；②费希纳定律假设所有JND主观相等，史蒂文斯用数量估计法直接让被试给感觉量赋值（不依赖JND假设）；③费希纳定律只适用于中等强度，史蒂文斯幂定律适用范围更广；④史蒂文斯幂定律能解释不同感觉通道的不同增长模式（n不同），费希纳定律只能解释感觉增长慢的情况。幂定律的意义：它是目前最被广泛接受的心理物理函数，说明心理量和物理量的关系不是单一的对数关系，而是因感觉通道而异的幂函数关系。","related":["费希纳定律","韦伯定律","差别阈限","心理物理学方法"]},
+{"id":166,"cat":"paradigm","name":"信号检测论","en":"Signal Detection Theory (SDT)","def":"1954年坦纳和斯威茨在统计决策理论基础上提出，用于研究个体在不确定情况下如何做出决策。核心观点：个体对刺激的判断（有信号还是无信号）不仅取决于感受性（辨别力），还取决于反应标准（决策偏向）。信号检测论能把感受性和反应标准分离开来，这是它跟传统心理物理学（阈限理论）最大的区别。312必考点，实验心理学综合题高频考点。","example":"在噪音背景下检测微弱信号（如雷达检测敌机、医生看X光片诊断肿瘤）：每次试验要么是信号+噪音（SN，有机票），要么是噪音 alone（N，没有机票）。被试判断有信号或无信号，结果有四种：①击中（hit）——有信号，正确报告有；②漏报（miss）——有信号，错误报告无；③虚报（false alarm）——无信号，错误报告有；④正确拒绝（correct rejection）——无信号，正确报告无。传统阈限理论把有50%报告有信号的刺激强度作为阈限，但这个阈限混淆了感受性和反应标准——一个被试可能因为很谨慎（高标准）而很少报告有（击中率低、虚报率也低），另一个被试可能因为很冒险（低标准）而经常报告有（击中率高、虚报率也高），两人的阈限不同，但感受性可能完全一样！信号检测论用辨别力指数d-prime衡量感受性（d-prime越大，感受性越高），用判断标准β（或c）衡量反应偏向，把两者分开。这是信号检测论的最大贡献。应用：①医学诊断（医生的辨别力和判断标准）；②司法目击证人辨认；③警戒任务（雷达检测、工业质检）；④记忆研究（记得/知道判断）；⑤心理咨询评估。","related":["绝对阈限","差别阈限","击中率与虚报率","辨别力指数","ROC曲线"]},
+{"id":167,"cat":"paradigm","name":"辨别力指数","en":"Sensitivity Index (d-prime)","def":"信号检测论中衡量个体感受性（辨别信号和噪音的能力）的指标，公式d-prime=Z击中-Z虚报，即击中率对应的Z分数减去虚报率对应的Z分数。d-prime越大，说明被试越能区分信号和噪音（感受性越高）；d-prime=0说明完全不能区分（跟瞎猜一样）；d-prime>0说明有辨别力。312必考点，常考计算。","example":"某被试在信号检测实验中，击中率P(hit)=0.84，虚报率P(fa)=0.16。查标准正态分布表：Z(0.84)=+1.0，Z(0.16)=-1.0。d-prime=Z击中-Z虚报=1.0-(-1.0)=2.0。d-prime=2.0说明感受性较高（能较好地区分信号和噪音）。另一个被试击中率=0.50，虚报率=0.50，Z(0.50)=0，d-prime=0-0=0，说明完全不能区分信号和噪音（跟瞎猜一样）。d-prime的特点：①d-prime不受反应标准影响——不管被试是谨慎还是冒险，只要感受性不变，d-prime就不变（这是信号检测论的核心优势）；②d-prime的大小取决于信号和噪音两个分布的距离——信号分布和噪音分布离得越远，d-prime越大；③d-prime的计算需要知道击中率和虚报率，通过查Z表（标准正态分布表）得到Z分数。判断标准β（似然比）=O击中/O虚报（O是正态曲线的纵线高度/概率密度），β>1说明标准严格（谨慎，不轻易报告有信号），β<1说明标准宽松（冒险）。ROC曲线就是在不同判断标准下，击中率和虚报率的关系曲线，曲线下面积反映d-prime的大小。","related":["信号检测论","击中率与虚报率","ROC曲线"]},
+{"id":168,"cat":"paradigm","name":"ROC曲线","en":"Receiver Operating Characteristic Curve","def":"接收者操作特性曲线，又称感受性曲线、等感受性曲线。在信号检测论中，通过改变判断标准（如改变奖惩办法、信号先定概率），得到一系列不同标准下的击中率和虚报率，以虚报率为横坐标、击中率为纵坐标作图，得到的曲线就是ROC曲线。同一条ROC曲线上的点d-prime相同（感受性相同，只是反应标准不同），所以叫等感受性曲线。312必考点。","example":"ROC曲线的特点：①曲线从左下角(0,0)到右上角(1,1)，对角线（从(0,0)到(1,1)的直线）代表d-prime=0（完全不能区分，跟瞎猜一样）；②曲线离对角线越远（越靠近左上角），说明d-prime越大（感受性越高）；③同一条曲线上的所有点d-prime相同（感受性相同），只是判断标准不同——左下角的点标准严格（击中率低、虚报率也低），右上角的点标准宽松（击中率高、虚报率也高）；④ROC曲线的曲率（曲线下面积AUC）直接反映d-prime的大小——AUC=0.5对应d-prime=0，AUC越接近1，d-prime越大。ROC曲线的意义：①它直观地展示了感受性（d-prime）和反应标准（β）的分离——同一条曲线上移动是改变标准，曲线整体移动是改变感受性；②它是评估检测系统性能的标准工具（医学诊断、雷达检测、人脸识别、信用评分等都用ROC曲线和AUC值评估性能）；③在心理学中，ROC曲线用于记忆研究（回忆/再认的感受性）、知觉研究、警戒任务等。注意：ROC曲线最初是二战中为评估雷达操作员的检测性能而发展的（Receiver Operating Characteristic就是接收者操作特征的意思），后来引入心理学。","related":["信号检测论","击中率与虚报率","辨别力指数"]},
+{"id":169,"cat":"paradigm","name":"开窗实验","en":"Open Window Experiment","def":"反应时研究的一种方法，由汉密尔顿（Hamilton）等人提出，核心思想是直接测量每个认知加工阶段的时间，而不是通过相减间接推断。被试在完成任务的过程中，每完成一个加工阶段就按一次键，从而直接得到每个阶段的耗时。跟减数法和加因素法并列，是反应时研究的三大方法之一。","example":"经典的字母转换实验：给被试呈现\"3+E\"，被试需要先看到\"3\"（表示要转换3个字母），然后看到\"E\"，在心里把E往后数3个字母得到H，然后出声报告结果。开窗实验让被试在每个阶段按键：①看到刺激时按键（编码阶段结束）；②完成转换时按键（转换阶段结束）；③报告完成时按键（反应组织阶段结束）。这样直接得到每个阶段的时间，而不需要用B-A或C-A来间接推断。开窗实验的优点是直观、直接；缺点是按键本身可能干扰认知加工，且不是所有任务都能清晰地分成可按键的阶段。","related":["反应时","唐德斯减数法","斯滕伯格加因素法","速度-准确性权衡"]},
+{"id":170,"cat":"construct","name":"冲动性","en":"Impulsivity","def":"一种人格特质，指个体倾向于在没有充分思考、不考虑后果的情况下快速做出反应，缺乏对冲动的抑制能力。包含多个维度：①运动冲动（行为上不加思考就行动）；②认知冲动（决策时不深思熟虑）；③无计划冲动（缺乏远见和计划）。是很多心理问题和行为问题的核心风险因素。","example":"冲动性与非自杀性自伤（NSSI）显著正相关（r=0.35）——高冲动性的人在情绪痛苦时更可能不假思索地伤害自己。冲动性在反刍思维与NSSI之间起中介作用：反刍→情绪调节困难→冲动性升高→NSSI。常用量表：Barratt冲动性量表（BIS-11，30题，3个维度）、UPPS-P冲动行为量表（5个维度：负性紧迫感、正性紧迫感、缺乏预谋、缺乏坚持、感觉寻求）。Go/No-Go范式和Stop-Signal任务是测量冲动性（反应抑制）的经典行为范式。高冲动性跟物质滥用、赌博、攻击行为、危险驾驶、暴饮暴食都相关。","related":["自我控制","反刍思维","Go/No-Go范式","非自杀性自伤"]},
+{"id":171,"cat":"construct","name":"注意偏向","en":"Attentional Bias","def":"个体对特定类型的刺激（如威胁性刺激、消极信息、成瘾相关线索）优先分配注意资源的倾向。表现为：①注意定向加速（更快地注意到特定刺激）；②注意解除困难（注意力一旦被特定刺激捕获就难以移开）。是认知理论解释情绪障碍维持和成瘾行为的核心机制。","example":"抑郁者对悲伤面孔有注意偏向——在点探测范式中，当探测点出现在悲伤面孔位置时反应时显著快于中性面孔位置，说明抑郁者的注意力被悲伤信息优先捕获。焦虑者对威胁性刺激（如愤怒面孔、威胁词）有注意偏向。成瘾者对成瘾相关线索（如酒瓶、注射器）有注意偏向。注意偏向的测量范式：点探测范式（最常用）、情绪Stroop范式、视觉搜索范式、眼动追踪（直接看注视轨迹）。注意偏向训练（ABM）就是基于注意偏向理论发展的干预方法——通过反复训练让被试注意积极刺激而非消极刺激，来减轻抑郁和焦虑症状。","related":["点探测范式","Stroop范式","眼动追踪","反刍思维"]},
+{"id":172,"cat":"paradigm","name":"完全随机设计","en":"Completely Randomized Design","def":"被试间设计的基本形式，将被试完全随机地分配到各个实验处理组中，每个被试只接受一个处理水平。随机分配是核心——它能平衡各组在所有已知和未知额外变量上的差异，是内部效度的重要保障。也叫独立组设计、简单随机分组设计。312实验心理学必考点。","example":"研究\"三种教学方法对成绩的影响\"：从150名学生中完全随机抽取50人分到A法组、50人到B法组、50人到C法组，一学期后比较三组成绩。因为是完全随机分配，三组在智力、动机、初始成绩等所有变量上理论上是平衡的，所以成绩差异可以归因于教学方法。统计方法：单因素完全随机方差分析（one-way ANOVA），F=MS组间/MS组内，自由度组间=k-1（k是组数），组内=N-k。如果只有两组，等价于独立样本t检验（F=t²）。完全随机设计的优点：①简单易行；②每个被试只做一次，没有顺序效应；③统计分析简单。缺点：①需要大量被试；②个体差异成为误差变异的一部分，检验力不如随机区组设计。","related":["被试间设计","随机区组设计","方差分析","独立样本t检验","额外变量控制方法"]},
+{"id":173,"cat":"paradigm","name":"随机区组设计","en":"Randomized Block Design","def":"被试内设计的一种形式，先将被试按某个额外变量（如智力、年龄、初始成绩）分成若干个区组（block），每个区组内的被试在该额外变量上同质，然后每个区组内的被试随机接受所有实验处理（即每个被试做所有条件）。目的是控制该额外变量，减少误差变异，提高检验力。312实验心理学必考点。","example":"研究\"三种字体对阅读速度的影响\"，担心智力会影响阅读速度，就先按智力测验分数把30名被试分成10个区组（每个区组3人，智力水平相近），然后每个区组内的3名被试分别随机接受三种字体条件——实际上每个被试都要读三种字体的文章（被试内），区组是为了分析时控制智力的效应。统计方法：随机区组方差分析，总变异分解为：处理效应（字体）+区组效应（智力）+误差。F处理=MS处理/MS误差。因为区组效应从误差中分离出来了，MS误差比完全随机设计小，F值更大，检验力更高。随机区组设计的关键：①区组变量必须跟因变量相关（否则分离出来没意义）；②每个区组内的被试数=处理水平数；③处理在区组内的呈现顺序要抵消平衡。","related":["被试内设计","完全随机设计","方差分析","配对样本t检验","抵消平衡法"]},
+{"id":174,"cat":"paradigm","name":"击中率与虚报率","en":"Hit Rate & False Alarm Rate","def":"信号检测论中的两个核心概率。击中率（hit rate, H）：在有信号的试次中，被试正确报告\"有信号\"的比例，H=击中数/(击中数+漏报数)。虚报率（false alarm rate, FA）：在无信号（只有噪音）的试次中，被试错误报告\"有信号\"的比例，FA=虚报数/(虚报数+正确拒绝数)。两者结合才能计算辨别力d-prime和判断标准β。312必考点。","example":"100次信号试次中，被试80次报告\"有信号\"（击中），20次报告\"无信号\"（漏报），击中率H=80/100=0.80。100次噪音试次中，被试20次报告\"有信号\"（虚报），80次报告\"无信号\"（正确拒绝），虚报率FA=20/100=0.20。查标准正态分布表：Z(H)=Z(0.80)=+0.84，Z(FA)=Z(0.20)=-0.84。辨别力d-prime=Z(H)-Z(FA)=0.84-(-0.84)=1.68。判断标准β=O(H)/O(FA)，O是正态曲线的纵线高度（概率密度），O(0.80)=0.280，O(-0.84)=0.280，β=0.280/0.280=1.0（中性标准）。四种结果的关系：击中率+漏报率=1，虚报率+正确拒绝率=1。被试越冒险（低标准），击中率和虚报率都高；被试越谨慎（高标准），两者都低——这就是为什么不能只看击中率，必须同时看虚报率。","related":["信号检测论","辨别力指数","ROC曲线","绝对阈限"]},
+{"id":175,"cat":"paradigm","name":"心理物理学方法","en":"Psychophysical Methods","def":"研究物理刺激强度与心理感觉之间关系的方法，是实验心理学最古老、最基础的研究领域。核心任务是测量感觉阈限（绝对阈限和差别阈限）和建立心理物理函数（感觉量与刺激量的关系）。三大经典方法：极限法（最小变化法）、平均差误法（调整法）、恒定刺激法（正误法）。现代方法：信号检测论（把感受性和反应标准分开）。312实验心理学核心章节。","example":"心理物理学的研究逻辑：物理刺激（如声音的分贝数、光的亮度、重量的克数）是客观可测的，但人的感觉（\"听到了吗？\"\"两个声音一样响吗？\"）是主观的。心理物理学就是要建立这两者之间的数学关系。三大经典方法比较：①极限法——刺激按递增/递减序列小步变化，直接找转折点，适合测阈限，但有期望误差和习惯误差；②平均差误法——被试自己调整比较刺激，主动性高，适合测差别阈限和等值，但有动作误差和空间误差；③恒定刺激法——刺激固定、随机呈现多次，结果最准确可靠，应用最广，但费时。三大定律：韦伯定律（差别阈限与标准刺激成正比）、费希纳定律（感觉量是刺激量的对数函数）、史蒂文斯幂定律（感觉量是刺激量的幂函数）。信号检测论是对传统阈限理论的革命——它认为不存在一个固定的阈限，判断是感受性和决策标准的结合。","related":["绝对阈限","差别阈限","极限法","平均差误法","恒定刺激法","韦伯定律","费希纳定律","史蒂文斯幂定律","信号检测论"]},
+{"id":176,"cat":"stats","name":"聚类分析","en":"Cluster Analysis","def":"一种无监督的多元统计方法，目的是把相似的个体（或变量）归为同一类，使类内差异最小、类间差异最大。跟LPA（潜在剖面分析）类似，但聚类分析是\"硬分类\"（每个个体只属于一个类），LPA是\"软分类\"（每个个体有属于每个类的概率）。常用方法：层次聚类（系统聚类）和K-means聚类（快速聚类）。","example":"研究\"大学生的学习风格类型\"：收集300名学生在学习动机、学习策略、时间管理等10个变量上的得分，用K-means聚类把学生分成3类——①高投入型（动机高、策略好、时间管理强）；②中等型（各项中等）；③低投入型（各项偏低）。然后比较三类在学业成绩上的差异。层次聚类的思路：先把每个个体各算一类，然后每次把最相似的两类合并，直到所有个体合成一类（树状图/谱系图展示）。K-means的思路：先指定K个类中心，然后迭代分配每个个体到最近的类中心，再重新计算类中心，直到收敛。聚类分析的关键问题：①分几类？（用肘部法则、轮廓系数等判断）；②用什么距离？（欧氏距离最常用）；③结果是否可解释？（不能只看统计指标，要结合理论意义）。","related":["潜在剖面分析","探索性因子分析","中介效应检验"]},
+{"id":177,"cat":"construct","name":"神经质","en":"Neuroticism","def":"大五人格（OCEAN）的核心维度之一，指个体情绪的不稳定性和对负性情绪的易感性。高神经质者更容易体验到焦虑、抑郁、愤怒、内疚等负性情绪，情绪波动大，压力应对能力差；低神经质者情绪稳定，冷静，不易焦虑。是预测心理健康问题（抑郁、焦虑、NSSI等）最强的人格变量之一。","example":"神经质与抑郁的相关系数约为r=0.40-0.50，是所有人格变量中与抑郁相关最高的。高神经质者在面对压力事件时更容易产生反刍思维，反刍又进一步加剧抑郁——神经质→反刍→抑郁是经典的中介路径。在方案A（AI情感依赖与心理健康）中，神经质是重要的控制变量——高神经质的人既更可能依赖AI寻求情感支持，也更可能有心理健康问题，如果不控制神经质，AI依赖与抑郁之间的相关可能是神经质的虚假效应。测量：大五人格量表（BFI-2）的神经质维度，或NEO-PI-R的神经质维度（包含焦虑、愤怒敌意、抑郁、自我意识、冲动性、脆弱性6个子维度）。注意：神经质不是\"神经病\"，跟精神疾病没有直接关系，它只是一个正常的人格维度，每个人都有不同程度的神经质。","related":["大五人格","反刍思维","心理韧性","自我控制"]},
+{"id":178,"cat":"stats","name":"肯德尔和谐系数","en":"Kendall Coefficient of Concordance (W)","def":"等级相关的一种，用于衡量多个（≥3个）评定者对同一组被试（或事物）评定的一致性程度，也叫肯德尔W系数。取值范围0到1，越接近1表示评定者间一致性越高。跟斯皮尔曼等级相关的区别：斯皮尔曼只适用于两列等级数据，肯德尔W适用于多列等级数据（多个评定者）。312心理统计考点。","example":"3位评委对10名选手的演讲表现排名次，想知道3位评委的评判是否一致。用肯德尔和谐系数：W=0.85，p<0.01，说明3位评委的评定一致性很高。如果W接近0，说明评委们各说各话，评定不可靠。计算公式：W=12S/[k²(n³-n)]，其中k是评定者数，n是被评对象数，S是每个被评对象的等级和Ri与平均等级和的离差平方和（S=Σ(Ri-R̄)²）。当有相同等级（结）时需要校正。显著性检验：当n>7时，用χ²检验，χ²=k(n-1)W，df=n-1。应用场景：①评分者信度（多个评委/编码者的一致性）；②多位专家对多个方案的排序一致性；③问卷中多个题项是否在测同一个维度。跟克朗巴赫α的区别：α用于连续数据的内部一致性，W用于等级/排序数据的评定者一致性。","related":["等级相关","信度","Cronbach's α系数"]},
+{"id":179,"cat":"construct","name":"非自杀性自伤","en":"Non-Suicidal Self-Injury (NSSI)","def":"在没有自杀意图的情况下，故意、直接地伤害自己身体组织的行为，如割伤、烧伤、抓伤、撞墙、干扰伤口愈合等。跟自杀行为的关键区别：没有结束生命的意图。常见功能：①情绪调节（用身体疼痛缓解情绪痛苦）；②自我惩罚；③寻求帮助/沟通；④感觉寻求（麻木时感到\"活着\"）。青少年和大学生中发生率较高（约15%-20%终生 prevalence）。","example":"反刍思维与NSSI显著正相关（r=0.30-0.40）——反复回想负面情绪和事件会加剧情绪痛苦，当痛苦无法通过其他方式缓解时，个体可能诉诸自伤来快速缓解情绪。经典中介模型：反刍思维→情绪调节困难→冲动性升高→NSSI。NSSI跟抑郁的关系：NSSI不是抑郁的症状，但两者高度共病——约50%-70%的NSSI者同时有抑郁症状。NSSI是未来自杀企图的重要风险因素（有NSSI史的人自杀企图风险高约3-5倍），但大多数NSSI者不会发展为自杀。常用量表：非自杀性自伤功能评估量表（ISAS）、 Ottawa自伤量表（OSI）。研究方法：横断面问卷调查最常见，纵向研究（追踪NSSI的起始和维持因素）更有价值，经验取样法（ESM）可以实时记录NSSI的触发因素。伦理注意：研究NSSI需要特别的伦理审查，问卷中应包含求助资源信息，访谈中如果发现高风险者需要转介。","related":["反刍思维","冲动性","心理韧性","生态瞬时评估"]},
+];
+
+// ===== 本地存储 =====
+const STORAGE_KEY = 'psych_glossary_terms_v1';
+function loadTerms() {
+  try {
+    var saved = localStorage.getItem(STORAGE_KEY);
+    if (saved) {
+      var parsed = JSON.parse(saved);
+      if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+    }
+  } catch(e) { console.warn('加载本地词条失败', e); }
+  return JSON.parse(JSON.stringify(DEFAULT_TERMS));
+}
+function saveTerms() {
+  try { localStorage.setItem(STORAGE_KEY, JSON.stringify(terms)); }
+  catch(e) { console.warn('保存词条失败', e); }
+}
+let terms = loadTerms();
+
+// ===== 状态管理 =====
+let state = {
+  activeCat: 'all',
+  searchQuery: '',
+  selectedTerm: null,
+  manageMode: false,
+  editingId: null
+};
+
+// ===== DOM 引用 =====
+const searchInput = document.getElementById('searchInput');
+const searchClear = document.getElementById('searchClear');
+const catList = document.getElementById('catList');
+const cardsGrid = document.getElementById('cardsGrid');
+const emptyState = document.getElementById('emptyState');
+const totalCount = document.getElementById('totalCount');
+const visibleCount = document.getElementById('visibleCount');
+const randomBtn = document.getElementById('randomBtn');
+const resetBtn = document.getElementById('resetBtn');
+const modalOverlay = document.getElementById('modalOverlay');
+const modalClose = document.getElementById('modalClose');
+const modalCatTag = document.getElementById('modalCatTag');
+const modalTermName = document.getElementById('modalTermName');
+const modalTermEn = document.getElementById('modalTermEn');
+const modalBody = document.getElementById('modalBody');
+const menuToggle = document.getElementById('menuToggle');
+const sidebar = document.getElementById('sidebar');
+const sidebarOverlay = document.getElementById('sidebarOverlay');
+
+// 管理模式相关
+const manageBtn = document.getElementById('manageBtn');
+const manageBanner = document.getElementById('manageBanner');
+const editModalOverlay = document.getElementById('editModalOverlay');
+const editModalClose = document.getElementById('editModalClose');
+const editModalTitle = document.getElementById('editModalTitle');
+const editModalTermName = document.getElementById('editModalTermName');
+const editName = document.getElementById('editName');
+const editEn = document.getElementById('editEn');
+const editCat = document.getElementById('editCat');
+const editDef = document.getElementById('editDef');
+const editExample = document.getElementById('editExample');
+const editRelated = document.getElementById('editRelated');
+const editSaveBtn = document.getElementById('editSaveBtn');
+const editCancelBtn = document.getElementById('editCancelBtn');
+const editDeleteBtn = document.getElementById('editDeleteBtn');
+const dataBtn = document.getElementById('dataBtn');
+const dataDropdown = document.getElementById('dataDropdown');
+const exportBtn = document.getElementById('exportBtn');
+const importBtn = document.getElementById('importBtn');
+const importFile = document.getElementById('importFile');
+const resetDataBtn = document.getElementById('resetDataBtn');
+
+// ===== 工具函数 =====
+function getCatById(id) {
+  return categories.find(c => c.id === id) || categories[0];
+}
+
+function highlightText(text, query) {
+  if (!query) return text;
+  const escaped = query.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  const regex = new RegExp(`(${escaped})`, 'gi');
+  return text.replace(regex, '<mark>$1</mark>');
+}
+
+function getFilteredTerms() {
+  let filtered = terms;
+  if (state.activeCat !== 'all') {
+    filtered = filtered.filter(t => t.cat === state.activeCat);
+  }
+  if (state.searchQuery) {
+    const q = state.searchQuery.toLowerCase();
+    filtered = filtered.filter(t =>
+      t.name.toLowerCase().includes(q) ||
+      t.en.toLowerCase().includes(q) ||
+      t.def.toLowerCase().includes(q) ||
+      t.example.toLowerCase().includes(q)
+    );
+  }
+  return filtered;
+}
+
+// ===== 渲染分类列表 =====
+function renderCatList() {
+  catList.innerHTML = '';
+  categories.forEach(cat => {
+    const count = cat.id === 'all' ? terms.length : terms.filter(t => t.cat === cat.id).length;
+    const li = document.createElement('li');
+    li.className = 'cat-item' + (state.activeCat === cat.id ? ' active' : '');
+    li.innerHTML = `<span>${cat.name}</span><span class="cat-count">${count}</span>`;
+    li.addEventListener('click', () => {
+      state.activeCat = cat.id;
+      renderCatList();
+      renderCards();
+      closeSidebar();
+    });
+    catList.appendChild(li);
+  });
+}
+
+// ===== 渲染词条卡片 =====
+function renderCards() {
+  const filtered = getFilteredTerms();
+  totalCount.textContent = terms.length;
+  visibleCount.textContent = filtered.length;
+
+  if (filtered.length === 0) {
+    cardsGrid.innerHTML = '';
+    emptyState.style.display = 'block';
+    return;
+  }
+  emptyState.style.display = 'none';
+
+  cardsGrid.innerHTML = '';
+  filtered.forEach(term => {
+    const cat = getCatById(term.cat);
+    const card = document.createElement('div');
+    card.className = 'term-card';
+    card.style.setProperty('--cat-color', cat.color);
+    card.style.setProperty('--cat-color-bg', cat.bg);
+    card.innerHTML = `
+      <span class="term-cat-tag">${cat.name}</span>
+      <div class="term-name">${highlightText(term.name, state.searchQuery)}</div>
+      <div class="term-name-en">${highlightText(term.en, state.searchQuery)}</div>
+      <div class="term-def-short">${highlightText(term.def, state.searchQuery)}</div>
+      <div class="card-actions">
+        <button class="card-btn edit-btn" data-id="${term.id}">编辑</button>
+        <button class="card-btn del" data-id="${term.id}">删除</button>
+      </div>
+    `;
+    card.addEventListener('click', () => openModal(term));
+    // 管理模式按钮事件
+    var editBtn = card.querySelector('.edit-btn');
+    var delBtn = card.querySelector('.del');
+    if (editBtn) editBtn.addEventListener('click', function(e) {
+      e.stopPropagation();
+      var t = terms.find(function(x){ return x.id === term.id; });
+      if (t) openEditModal(t);
+    });
+    if (delBtn) delBtn.addEventListener('click', function(e) {
+      e.stopPropagation();
+      if (!confirm('确定删除「' + term.name + '」？')) return;
+      terms = terms.filter(function(x){ return x.id !== term.id; });
+      saveTerms();
+      renderCatList();
+      renderCards();
+    });
+    cardsGrid.appendChild(card);
+  });
+
+  // 管理模式：新增词条卡片
+  if (state.manageMode) {
+    var addCard = document.createElement('div');
+    addCard.className = 'add-card';
+    addCard.innerHTML = '<span class="add-card-icon">+</span>新增词条';
+    addCard.addEventListener('click', function() { openEditModal(null); });
+    cardsGrid.appendChild(addCard);
+  }
+}
+
+// ===== 模态框 =====
+function openModal(term) {
+  const cat = getCatById(term.cat);
+  state.selectedTerm = term;
+
+  modalCatTag.textContent = cat.name;
+  modalCatTag.style.background = cat.bg;
+  modalCatTag.style.color = cat.color;
+  modalTermName.textContent = term.name;
+  modalTermEn.textContent = term.en;
+
+  let relatedHtml = '';
+  if (term.related && term.related.length > 0) {
+    const relatedTerms = term.related.map(rName => {
+      const found = terms.find(t => t.name === rName);
+      return found ? found : null;
+    }).filter(Boolean);
+    if (relatedTerms.length > 0) {
+      relatedHtml = `
+        <div class="modal-section">
+          <div class="modal-section-title">相关术语</div>
+          <div class="related-terms">
+            ${relatedTerms.map(rt => `<span class="related-tag" data-id="${rt.id}">${rt.name}</span>`).join('')}
+          </div>
+        </div>
+      `;
+    }
+  }
+
+  modalBody.innerHTML = `
+    <div class="modal-section">
+      <div class="modal-section-title">定义</div>
+      <div class="modal-section-content">${term.def}</div>
+    </div>
+    <div class="modal-section">
+      <div class="modal-section-title">示例 / 用法</div>
+      <div class="modal-section-content example-box">${term.example}</div>
+    </div>
+    ${relatedHtml}
+  `;
+
+  // 相关术语点击
+  modalBody.querySelectorAll('.related-tag').forEach(tag => {
+    tag.addEventListener('click', () => {
+      const id = parseInt(tag.dataset.id);
+      const rt = terms.find(t => t.id === id);
+      if (rt) openModal(rt);
+    });
+  });
+
+  modalOverlay.classList.add('visible');
+  document.body.style.overflow = 'hidden';
+}
+
+function closeModal() {
+  modalOverlay.classList.remove('visible');
+  document.body.style.overflow = '';
+  state.selectedTerm = null;
+}
+
+// ===== 侧边栏（移动端） =====
+function openSidebar() {
+  sidebar.classList.add('open');
+  sidebarOverlay.classList.add('visible');
+}
+function closeSidebar() {
+  sidebar.classList.remove('open');
+  sidebarOverlay.classList.remove('visible');
+}
+
+// ===== 事件绑定 =====
+searchInput.addEventListener('input', (e) => {
+  state.searchQuery = e.target.value.trim();
+  searchClear.classList.toggle('visible', state.searchQuery.length > 0);
+  renderCards();
+});
+
+searchClear.addEventListener('click', () => {
+  searchInput.value = '';
+  state.searchQuery = '';
+  searchClear.classList.remove('visible');
+  renderCards();
+  searchInput.focus();
+});
+
+randomBtn.addEventListener('click', () => {
+  const filtered = getFilteredTerms();
+  if (filtered.length > 0) {
+    const randomTerm = filtered[Math.floor(Math.random() * filtered.length)];
+    openModal(randomTerm);
+  }
+});
+
+resetBtn.addEventListener('click', () => {
+  state.activeCat = 'all';
+  state.searchQuery = '';
+  searchInput.value = '';
+  searchClear.classList.remove('visible');
+  renderCatList();
+  renderCards();
+});
+
+modalClose.addEventListener('click', closeModal);
+modalOverlay.addEventListener('click', (e) => {
+  if (e.target === modalOverlay) closeModal();
+});
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'Escape') {
+    if (editModalOverlay.classList.contains('visible')) closeEditModal();
+    else if (modalOverlay.classList.contains('visible')) closeModal();
+    else if (sidebar.classList.contains('open')) closeSidebar();
+  }
+});
+
+menuToggle.addEventListener('click', openSidebar);
+sidebarOverlay.addEventListener('click', closeSidebar);
+
+// ===== 管理模式 =====
+function toggleManageMode() {
+  state.manageMode = !state.manageMode;
+  manageBtn.classList.toggle('active', state.manageMode);
+  manageBanner.classList.toggle('visible', state.manageMode);
+  document.body.classList.toggle('manage-mode', state.manageMode);
+  renderCards();
+}
+
+function getNextId() {
+  var maxId = 0;
+  terms.forEach(function(t) { if (t.id > maxId) maxId = t.id; });
+  return maxId + 1;
+}
+
+function populateCatSelect() {
+  editCat.innerHTML = '';
+  categories.forEach(function(c) {
+    if (c.id === 'all') return;
+    var opt = document.createElement('option');
+    opt.value = c.id;
+    opt.textContent = c.name;
+    editCat.appendChild(opt);
+  });
+}
+
+function openEditModal(term) {
+  populateCatSelect();
+  if (term) {
+    state.editingId = term.id;
+    editModalTitle.textContent = '编辑词条';
+    editModalTermName.textContent = term.name;
+    editName.value = term.name || '';
+    editEn.value = term.en || '';
+    editCat.value = term.cat || 'basic';
+    editDef.value = term.def || '';
+    editExample.value = term.example || '';
+    editRelated.value = (term.related || []).join('，');
+    editDeleteBtn.style.display = 'block';
+  } else {
+    state.editingId = null;
+    editModalTitle.textContent = '新增词条';
+    editModalTermName.textContent = '';
+    editName.value = '';
+    editEn.value = '';
+    editCat.value = 'basic';
+    editDef.value = '';
+    editExample.value = '';
+    editRelated.value = '';
+    editDeleteBtn.style.display = 'none';
+  }
+  editModalOverlay.classList.add('visible');
+  document.body.style.overflow = 'hidden';
+}
+
+function closeEditModal() {
+  editModalOverlay.classList.remove('visible');
+  document.body.style.overflow = '';
+  state.editingId = null;
+}
+
+function saveTerm() {
+  var name = editName.value.trim();
+  var def = editDef.value.trim();
+  var cat = editCat.value;
+  if (!name) { alert('请填写词条名称'); editName.focus(); return; }
+  if (!def) { alert('请填写定义'); editDef.focus(); return; }
+  var relatedStr = editRelated.value.trim();
+  var related = relatedStr ? relatedStr.split(/[，,]/).map(function(s){return s.trim();}).filter(Boolean) : [];
+  var termData = {
+    name: name,
+    en: editEn.value.trim(),
+    cat: cat,
+    def: def,
+    example: editExample.value.trim(),
+    related: related
+  };
+  if (state.editingId) {
+    var idx = terms.findIndex(function(t){ return t.id === state.editingId; });
+    if (idx !== -1) {
+      termData.id = state.editingId;
+      terms[idx] = termData;
+    }
+  } else {
+    termData.id = getNextId();
+    terms.push(termData);
+  }
+  saveTerms();
+  renderCatList();
+  renderCards();
+  closeEditModal();
+}
+
+function deleteTerm() {
+  if (!state.editingId) return;
+  if (!confirm('确定要删除这个词条吗？此操作不可撤销。')) return;
+  terms = terms.filter(function(t){ return t.id !== state.editingId; });
+  saveTerms();
+  renderCatList();
+  renderCards();
+  closeEditModal();
+}
+
+// ===== 导入导出 =====
+function exportTerms() {
+  var data = JSON.stringify(terms, null, 2);
+  var blob = new Blob([data], {type: 'application/json'});
+  var url = URL.createObjectURL(blob);
+  var a = document.createElement('a');
+  a.href = url;
+  a.download = '心理学黑话词典词条_' + new Date().toISOString().slice(0,10) + '.json';
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+}
+
+function importTerms(file) {
+  var reader = new FileReader();
+  reader.onload = function(e) {
+    try {
+      var data = JSON.parse(e.target.result);
+      if (!Array.isArray(data)) throw new Error('格式错误');
+      var valid = data.filter(function(t) { return t.name && t.def; });
+      if (valid.length === 0) { alert('文件中没有有效的词条'); return; }
+      if (!confirm('将导入 ' + valid.length + ' 个词条，是否合并到现有词条中？\n点击"确定"合并，"取消"覆盖全部现有词条。')) {
+        terms = valid;
+      } else {
+        valid.forEach(function(t) {
+          if (!t.id) t.id = getNextId();
+          var existing = terms.findIndex(function(x){ return x.id === t.id; });
+          if (existing !== -1) terms[existing] = t;
+          else terms.push(t);
+        });
+      }
+      saveTerms();
+      renderCatList();
+      renderCards();
+      alert('导入成功，当前共 ' + terms.length + ' 个词条');
+    } catch(err) {
+      alert('导入失败：' + err.message);
+    }
+  };
+  reader.readAsText(file, 'utf-8');
+}
+
+function resetToDefault() {
+  if (!confirm('确定要恢复默认词条吗？你所有的新增和修改都会丢失！')) return;
+  localStorage.removeItem(STORAGE_KEY);
+  terms = JSON.parse(JSON.stringify(DEFAULT_TERMS));
+  renderCatList();
+  renderCards();
+  alert('已恢复默认词条（' + terms.length + '个）');
+}
+
+// ===== 事件绑定（管理模式） =====
+manageBtn.addEventListener('click', toggleManageMode);
+editModalClose.addEventListener('click', closeEditModal);
+editCancelBtn.addEventListener('click', closeEditModal);
+editSaveBtn.addEventListener('click', saveTerm);
+editDeleteBtn.addEventListener('click', deleteTerm);
+editModalOverlay.addEventListener('click', function(e) {
+  if (e.target === editModalOverlay) closeEditModal();
+});
+exportBtn.addEventListener('click', function() { dataDropdown.classList.remove('visible'); exportTerms(); });
+importBtn.addEventListener('click', function() { dataDropdown.classList.remove('visible'); importFile.click(); });
+importFile.addEventListener('change', function(e) { if (e.target.files[0]) importTerms(e.target.files[0]); e.target.value = ''; });
+resetDataBtn.addEventListener('click', function() { dataDropdown.classList.remove('visible'); resetToDefault(); });
+dataBtn.addEventListener('click', function(e) {
+  e.stopPropagation();
+  dataDropdown.classList.toggle('visible');
+});
+document.addEventListener('click', function() { dataDropdown.classList.remove('visible'); });
+
+// ===== 初始化 =====
+renderCatList();
+renderCards();
+</script>
+</body>
+</html>

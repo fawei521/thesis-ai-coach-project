@@ -113,7 +113,7 @@ try:
     check("coach5多选填空", "多选题" in cr and "scales.txt 时勿列入" in cr)
     check("coach6样本量", "sample_size.py" in cr)
     check("coach7五指标", "低变异" in cr and "注意力检查题答错" in cr)
-    menu = tx("tools/menu.py"); check("menu第8项", "【8/8】" in menu and "sample_size.py" in menu)
+    menu = tx("tools/menu.py"); check("menu第8项", "【8/9】" in menu and "sample_size.py" in menu)
     qs = tx("QUICKSTART.md"); check("QS菜单8", "8. 开题样本量" in qs)
     check("QS流程顺序", qs.find("查文献读文献") < qs.find("开题报告/开题答辩"))
     bad = []
@@ -286,15 +286,55 @@ try:
           (rpy.stderr or "")[-250:])
     # ---- v1.53.1 版本日志单文件化：CHANGELOG.md 是唯一版本历史，其余人只留指针 ----
     chg = tx("CHANGELOG.md")
-    check("CHANGELOG存在且带日期索引", "版本索引（含日期）" in chg and "v1.53.1" in chg and "_发布包" in chg)
+    check("CHANGELOG存在且带日期索引", "版本索引（含日期）" in chg and "_发布包" in chg)
     check("README指向CHANGELOG", "CHANGELOG.md" in rm)
     check("ROADMAP指向CHANGELOG", "CHANGELOG.md" in tx("ROADMAP.md"))
     check("PROJECT_PLAN指向CHANGELOG", "CHANGELOG.md" in tx("PROJECT_PLAN.md"))
     check("版本历史不再四处重复", len(tx("ROADMAP.md").splitlines()) < 60
           and len(tx("README.md").splitlines()) < 200, "roadmap=%d readme=%d" % (
               len(tx("ROADMAP.md").splitlines()), len(tx("README.md").splitlines())))
-    check("START版本号同步", "v1.53.1" in st)
+    # 版本号三处一致：从 START.md 解析当前版本，要求 CHANGELOG 与 README 都能对上
+    # （不写死版本号，避免每次发版都要改断言）
+    mver = re.search(r"版本\s*(v[\d.]+)", st)
+    cur_ver = mver.group(1) if mver else ""
+    check("版本号三处一致", bool(cur_ver) and cur_ver in chg and cur_ver in rm,
+          "解析到 START=%s, CHANGELOG命中=%s, README命中=%s" % (
+              cur_ver or "(未解析到)", cur_ver in chg, cur_ver in rm))
     check("DEVELOPMENT引用CHANGELOG", "CHANGELOG.md" in tx("DEVELOPMENT.md"))
+
+    # ---- v1.54 学生自己做网页：引导手册 + 预览器 + 三个范例 + 工作区 ----
+    wg = tx("workflows/webpage-guide.md")
+    check("网页指南含硬规矩", all(s in wg for s in ["单文件", "自包含", "不引用外部资源", "不放个人隐私", "网页不是论文成果"]))
+    check("网页指南含五类网页", all(s in wg for s in ["文献笔记网页", "数据分析结果看板", "研究流程图", "量表与问卷速查", "论文进度看板"]))
+    check("网页指南含三闸", all(s in wg for s in ["闸 1 动机闸", "闸 2 质量闸", "闸 3 留痕闸"]))
+    check("网页指南警示勿抄范例", "不要抄" in wg)
+    ex = ROOT / "templates" / "网页范例"
+    ex_pages = [ex / "01-文献笔记网页" / "index.html",
+                ex / "02-术语词典网页" / "index.html",
+                ex / "03-研究流程图" / "research-flow.html"]
+    check("三个网页范例齐备", all(p.exists() for p in ex_pages),
+          str([p.name for p in ex_pages if not p.exists()]))
+    check("范例带勿直接使用标注",
+          all("范例，请勿直接使用" in p.read_text(encoding="utf-8", errors="replace") for p in ex_pages))
+    check("范例README提示只学做法",
+          "只用来学" in tx("templates/网页范例/README.md") or
+          ("可以学的是" in tx("templates/网页范例/README.md")
+           and "只能参考代码结构与交互设计" in tx("templates/网页范例/README.md")))
+    pw = tx("tools/webpage_preview.py")
+    check("预览器只读", "SimpleHTTPRequestHandler" in pw and "do_POST" not in pw and "do_PUT" not in pw)
+    check("预览器默认只绑本机", "127.0.0.1" in pw and "--lan" in pw)
+    check("预览器防路径穿越", "normpath" in pw and "relative_to" in pw and "反斜杠" in pw)
+    check("预览器声明charset", "charset=utf-8" in pw)
+    pl = run(["tools/webpage_preview.py", "templates/网页范例", "--list"])
+    check("预览器--list可运行", pl.returncode == 0 and "index.html" in (pl.stdout or ""), (pl.stderr or "")[-200:])
+    wdir = ROOT / "我的工作区" / "04-网页"
+    check("工作区04-网页就位", wdir.is_dir() and (wdir / "把网页放这里.txt").exists())
+    check("菜单第9项", "【9/9】" in menu and "webpage_preview.py" in menu)
+    check("网页能力已登记到入口",
+          "webpage-guide.md" in st and "webpage_preview.py" in st and "webpage-guide.md" in cr)
+    check("README登记网页能力", "webpage-guide.md" in rm and "webpage_preview.py" in rm)
+    check("QUICKSTART登记第9项", "预览我做的网页" in tx("QUICKSTART.md"))
+    check("工作区说明含04-网页", "04-网页" in tx("我的工作区/先读我.md"))
 finally:
     cleanup()
 
