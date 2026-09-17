@@ -246,7 +246,7 @@ python tools/auto_stats.py 数据_量表总分.csv --scales scales.txt \
 **数据打开第2步导出的 `_量表总分.csv`，变量选各量表"总分"列。**
 
 **SPSS**：安装PROCESS宏（AI指导从processmacro.org免费下载安装），简单中介选模型4、链式选模型6
-**JASP**：简单中介用 Regression → Mediation（勾Bootstrap）；**链式中介（模型6，M1→M2有序）需在顶部模块库(+)安装官方 Process 模块后选 Model 6（JASP 18.2+），或用 SEM 模块(lavaan)**；原生 Mediation 主要支持简单/并行中介，不直接做有序链式
+**JASP**：简单中介用 Regression → Mediation（勾Bootstrap）；**链式中介（模型6，M1→M2有序）需在顶部模块库(+)安装官方 Process 模块后选 Model 6（JASP 0.18.2 及以后——官方 Process 模块自 0.18.2 起随版本发布），或用 SEM 模块(lavaan)**；原生 Mediation 主要支持简单/并行中介，不直接做有序链式
 
 复核要点：
 - Bootstrap 5000次，95%置信区间；建议同时看偏差校正(bias-corrected)CI
