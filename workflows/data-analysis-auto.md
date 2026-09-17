@@ -287,8 +287,15 @@ python tools/auto_stats.py 数据_量表总分.csv --scales scales.txt \
 
 研究模型图（标注路径系数）：
 ```
-python tools/chart_generator.py --variables "AI情感依赖,孤独感,反刍思维,NSSI" --coefs "a,b1,b2,c'" --type chain --output 模型图.png
+python tools/chart_generator.py --variables "AI情感依赖,孤独感,反刍思维,NSSI" \
+  --coefs "0.32,0.45,0.28,0.15" --type chain --output 模型图.png
 ```
+
+- `--coefs` **必须是数字**（写成 `a,b1,b2,c'` 这类字母会报错退出），且**按路径顺序**给：
+  链式 4 个依次是 **a1**（X→M1）、**d21**（M1→M2）、**b2**（M2→Y）、**c'**（直接效应）——
+  与 `_中介效应.csv` 里的路径名同名（PROCESS 模型6 口径），照着抄不会错位。
+- 还没跑出系数、想先要一张框架图：**省略 `--coefs`**，脚本自动用 0 占位；
+  系数给少了自动补齐、给多了自动截断并提示。
 
 图表规范：
 - 三线表（AI生成CSV，学生复制到Word）
