@@ -223,7 +223,9 @@ def t_power():
     print("  2 多元回归总体 R²（检验整组预测变量）")
     print("  3 多元回归 R² 增量（检验新增变量，如交互项）")
     print("  4 单因素方差分析 ANOVA（多个组）")
-    d = input("  输入 1-4，回车默认先看三档效应量速查表：").strip()
+    print("  5 独立两样本 t 检验（两组均数比较，给 Cohen's d）")
+    print("  6 配对/单样本 t 检验（前后测，给标准化差值 dz）")
+    d = input("  输入 1-6，回车默认先看三档效应量速查表：").strip()
     if d == "1":
         e = input("  相关系数 r（如 .3，回车看小/中/大三档）：").strip()
         args = ["--design", "correlation"] + (["--effect", e] if e else [])
@@ -240,6 +242,12 @@ def t_power():
         k = input("  组数（回车默认4）：").strip() or "4"
         e = input("  效应量 f（小.10/中.25/大.40，回车看三档）：").strip()
         args = ["--design", "anova", "--groups", k] + (["--effect", e] if e else [])
+    elif d == "5":
+        e = input("  效应量 Cohen's d（小.2/中.5/大.8，回车看三档）：").strip()
+        args = ["--design", "ttest-ind"] + (["--effect", e] if e else [])
+    elif d == "6":
+        e = input("  标准化差值 dz（小.2/中.5/大.8，回车看三档）：").strip()
+        args = ["--design", "ttest-paired"] + (["--effect", e] if e else [])
     else:
         args = []
     run("sample_size.py", args)

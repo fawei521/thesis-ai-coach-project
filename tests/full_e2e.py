@@ -187,6 +187,16 @@ try:
     except Exception as e:
         check("热图读取", False, str(e))
     r3 = run(["tools/sample_size.py"]); check("样本量速查", r3.returncode == 0 and ("85" in r3.stdout or "179" in r3.stdout))
+    # v1.60 样本量补 t 检验设计（t²=F 复用非中心F，黄金值对照 scipy.stats.nct）
+    ss_ind = run(["tools/sample_size.py", "--design", "ttest-ind", "--effect", "0.5"])
+    check("独立t样本量", ss_ind.returncode == 0 and "N=128" in ss_ind.stdout and "每组至少 64 人" in ss_ind.stdout)
+    ss_pair = run(["tools/sample_size.py", "--design", "ttest-paired", "--effect", "0.5"])
+    check("配对t样本量", ss_pair.returncode == 0 and "N=34" in ss_pair.stdout)
+    ss_ind3 = run(["tools/sample_size.py", "--design", "ttest-ind"])
+    check("独立t三档", ss_ind3.returncode == 0 and all(s in ss_ind3.stdout for s in ["788", "128", "52"]))
+    ss_bad = run(["tools/sample_size.py", "--design", "ttest-paired", "--effect", "0"])
+    check("t样本量坏参守卫", ss_bad.returncode == 1 and "d（配对为 dz）" in ss_bad.stdout
+          and "Traceback" not in (ss_bad.stdout or "") + (ss_bad.stderr or ""))
     # Welch ANOVA 数值回归：强异方差下锁定 F/df1/df2/p，防止分母自由度公式退回 (k^3-k)/(3D)
     # 历史缺陷：df2 被放大 k 倍、p 系统性偏小（强异方差时可翻转显著性）；基准经教科书公式＋scipy 三方核对
     try:

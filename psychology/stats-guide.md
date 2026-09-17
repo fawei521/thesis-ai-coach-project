@@ -424,6 +424,7 @@ corStability(net_case)                                    # 中心性 CS 系数
 - 相关 r：小 .10 / 中 .30 / 大 .50
 - 回归 f²：小 .02 / 中 .15 / 大 .35（f²=R²/(1−R²)；R²增量用 ΔR²/(1−R²全模型)）
 - ANOVA f：小 .10 / 中 .25 / 大 .40
+- 均数差 d/dz：小 .20 / 中 .50 / 大 .80（独立两组 d 用合并标准差；配对 dz 用差值标准差）
 
 **脚本自动完成（与 G\*Power 3.1 非中心分布等价）：** `tools/sample_size.py`
 ```bash
@@ -432,8 +433,11 @@ python tools/sample_size.py --design regression --predictors 5 --effect 0.15
 python tools/sample_size.py --design r2-change --tested 1 --total 6 --effect 0.02
 python tools/sample_size.py --design anova --groups 4
 python tools/sample_size.py --design correlation --effect 0.3
+python tools/sample_size.py --design ttest-ind --effect 0.5      # 独立两样本t，d=.5（N为两组总人数）
+python tools/sample_size.py --design ttest-paired --effect 0.5   # 配对/前后测t，dz=.5（N为配对数）
 ```
 - 相关用 Fisher z（与非中心 t 精确解约差 1–2 人）；回归/增量/ANOVA 用非中心 F 的 Poisson 混合，功效与 scipy.stats.ncf 逐位一致、最小 N 与之一致
+- t 检验在 df1=1 时 t²=F，直接复用非中心 F 引擎：独立两组（等组，λ=d²N/4，结果与 G*Power 独立 t 一致，如 d=.5 时每组 64、总 128）；配对/单样本（λ=dz²N，dz=.5 时 N=34），均经 scipy.stats.nct 逐位核对
 - 输出统计最小 N，并按 `--extra`（默认预留 15% 无效卷）给建议发放量
 
 **口径与下限（务必同时满足，取较大值）：**

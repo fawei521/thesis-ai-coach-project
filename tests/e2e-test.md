@@ -269,9 +269,11 @@ Spearman 秩相关（平均秩后 Pearson）对 scipy.stats.spearmanr 逐位一�
 - `python tools/sample_size.py --design regression --predictors 5 --effect 0.15`
 - `python tools/sample_size.py --design anova --groups 4`
 - `python tools/sample_size.py --design correlation --effect 0.3`
+- `python tools/sample_size.py --design ttest-ind --effect 0.5`
+- `python tools/sample_size.py --design ttest-paired --effect 0.5`
 
-**预期（α=.05、power=.80，Cohen 中效应）**：相关 r=.3 最小 N≈85；ANOVA 4组 f=.25 最小 N≈179（≈G*Power 180）；回归5预测 f²=.15 最小 N≈92；R²增量（全模型6、新增1、f²=.02）≈395；输出含建议发放量（默认+15%无效卷）与中介/SEM 下限提醒。
-**通过标准**：非中心 F 功效与 scipy.stats.ncf 逐位一致（差<2e-3）、最小 N 与 scipy 迭代一致（差0）；相关 Fisher z 与非中心 t 精确解约差 1–3 人并在文档标注为近似；菜单第8项可进入；不装任何第三方库可运行（纯标准库）。
+**预期（α=.05、power=.80，Cohen 中效应）**：相关 r=.3 最小 N≈85；ANOVA 4组 f=.25 最小 N≈179（≈G*Power 180）；回归5预测 f²=.15 最小 N≈92；R²增量（全模型6、新增1、f²=.02）≈395；**独立两样本 t d=.5 最小总 N=128（每组64；d=.2 总788、d=.8 总52）；配对/单样本 t dz=.5 最小 N=34（dz=.2 为199、dz=.8 为15）**；输出含建议发放量（默认+15%无效卷）与中介/SEM 下限提醒。
+**通过标准**：非中心 F 功效与 scipy.stats.ncf 逐位一致（差<2e-3）、最小 N 与 scipy 迭代一致（差0）；**t 检验借 df1=1 时 t²=F 复用非中心 F 引擎，独立/配对最小 N 与 scipy.stats.nct 逐位一致（差0，独立按等组取偶数总 N）**；相关 Fisher z 与非中心 t 精确解约差 1–3 人并在文档标注为近似；菜单第8项可进入（含 5/6 两个 t 设计）；不装任何第三方库可运行（纯标准库）。
 
 ## 测试14d：人口学频数分析
 

@@ -6,16 +6,22 @@ sample_size.py —— 心理学问卷研究样本量 / 统计功效估算（G*Po
       与 G*Power 3.1 的非中心分布算法等价，可直接在开题里写"用 G*Power 3.1
       估算，效应量取 X，α=.05，power=.80，至少需要 N=…"。
 
-支持四种最常见设计：
+支持六种最常见设计：
   1. 相关          两个变量的相关（Pearson r），Fisher z 近似
   2. regression    多元回归总体 R²（检验整个回归 / 一组预测变量）
   3. r2-change     多元回归 R² 增量（检验新增的 1 个或几个预测变量，如交互项、中介路径之外的新增变量）
   4. anova         单因素方差分析（k 个组，Cohen f）
+  5. ttest-ind     独立两样本 t（两组均数比较，等组，给 Cohen's d，N 为两组总人数）
+  6. ttest-paired  配对/单样本 t（前后测差值，给标准化差值 dz，N 为配对数）
 
 效应量基准（Cohen，务必结合本方向已发表研究 / 预实验确定，不能拍脑袋）：
   相关 r：小 .10 / 中 .30 / 大 .50
   回归 f²：小 .02 / 中 .15 / 大 .35（f²=R²/(1-R²)；R²增量用 ΔR²/(1-R²_全模型)）
   ANOVA f：小 .10 / 中 .25 / 大 .40
+  均数差 d/dz：小 .20 / 中 .50 / 大 .80（独立两组 d 用合并 SD；配对 dz 用差值 SD，通常比 d 大）
+
+  说明：t 检验样本量与 F 检验在 df1=1 时数学等价（t²=F），本工具直接复用非中心 F
+  引擎，与 G*Power 的非中心 t 结果一致；独立两组按等组搜索（总 N 为偶数）。
 
 重要提醒：
   - 功效分析给的是"统计上的最小 N"，问卷研究还要考虑：无效问卷（建议多收 10%–20%）、
@@ -32,6 +38,8 @@ sample_size.py —— 心理学问卷研究样本量 / 统计功效估算（G*Po
   python tools/sample_size.py --design r2-change --tested 1 --total 6 --effect 0.02
   python tools/sample_size.py --design anova --groups 4
   python tools/sample_size.py --design correlation --effect 0.3
+  python tools/sample_size.py --design ttest-ind --effect 0.5      # 独立两组 d=.5
+  python tools/sample_size.py --design ttest-paired --effect 0.5   # 配对/前后测 dz=.5
   python tools/sample_size.py --design regression --predictors 4 --power 0.9 --extra 0.2
 """
 import os
@@ -124,6 +132,31 @@ def min_n_correlation(r, alpha=ALPHA_DEFAULT, power=POWER_DEFAULT):
     return None
 
 
+def min_n_independent_t(d, alpha=ALPHA_DEFAULT, power=POWER_DEFAULT):
+    """独立两样本 t（等组，每组 n、总 N=2n）最小总样本量。
+    两组 t² 与 k=2 的单因素 ANOVA F 完全等价：df1=1，df2=N-2，
+    非中心参数 λ=f²N=(d²/4)·N。按每组人数 n 搜索以保证两组等大（总 N 为偶数），
+    与 G*Power「Difference between two independent means」一致。"""
+    if d <= 0:
+        return None
+    n = 2
+    while n < 20000:
+        total = 2 * n
+        if power_f(1, total - 2, (d * d / 4.0) * total, alpha) >= power:
+            return total
+        n += 1
+    return None
+
+
+def min_n_paired_t(dz, alpha=ALPHA_DEFAULT, power=POWER_DEFAULT):
+    """配对样本 t / 单样本 t 最小 N（配对设计里 N=配对数）。
+    t²=F(1,N-1)，非中心参数 λ=δ²=dz²·N，dz 用差值的标准差标准化；
+    与 G*Power「paired/one-sample t-test」一致。"""
+    if dz <= 0:
+        return None
+    return min_n_f(1, lambda N: N - 1, dz * dz, alpha, power, 3)
+
+
 def normal_cdf(x):
     return 0.5 * (1.0 + math.erf(x / math.sqrt(2.0)))
 
@@ -170,6 +203,7 @@ def effect_label(kind, e):
         "r": [(0.10, "小"), (0.30, "中"), (0.50, "大")],
         "f2": [(0.02, "小"), (0.15, "中"), (0.35, "大")],
         "f": [(0.10, "小"), (0.25, "中"), (0.40, "大")],
+        "d": [(0.20, "小"), (0.50, "中"), (0.80, "大")],
     }
     lab = "小"
     for thr, name in table[kind]:
@@ -200,6 +234,12 @@ def design_table(design, alpha, power, **kw):
         for f in (0.10, 0.25, 0.40):
             n = min_n_f(k - 1, lambda N, k=k: N - k, f * f, alpha, power, k + 3)
             out.append((effect_label("f", f), f"f={f:.2f}", n))
+    elif design == "ttest-ind":
+        for d in (0.20, 0.50, 0.80):
+            out.append((effect_label("d", d), f"d={d:.2f}", min_n_independent_t(d, alpha, power)))
+    elif design == "ttest-paired":
+        for dz in (0.20, 0.50, 0.80):
+            out.append((effect_label("d", dz), f"dz={dz:.2f}", min_n_paired_t(dz, alpha, power)))
     return out
 
 
@@ -208,6 +248,8 @@ DESIGN_NAME = {
     "regression": f"多元回归总体 R²",
     "r2-change": "多元回归 R² 增量",
     "anova": "单因素方差分析 ANOVA",
+    "ttest-ind": "独立两样本 t 检验（两组均数比较，等组，Cohen's d）",
+    "ttest-paired": "配对/单样本 t 检验（前后测差值，标准化差值 dz）",
 }
 
 
@@ -222,6 +264,10 @@ def print_report(design, alpha, power, extra, effect, **kw):
         name += "（新增检验变量 %d 个，全模型共 %d 个预测变量）" % (kw["tested"], kw["total"])
     elif design == "anova":
         name += "（组数 k=%d）" % kw["groups"]
+    elif design == "ttest-ind":
+        name += "（两组等大；N 为两组总人数）"
+    elif design == "ttest-paired":
+        name += "（N 为配对数，即前后测成对被试数）"
     print("设计：" + name)
     print("-" * 64)
     table = design_table(design, alpha, power, **kw)
@@ -248,6 +294,12 @@ def print_report(design, alpha, power, extra, effect, **kw):
             u, t = kw["tested"], kw["total"]
             nmin = min_n_f(u, lambda N, t=t: N - t - 1, effect, alpha, power, t + 4)
             note = f"f²={effect:.3f}"
+        elif design == "ttest-ind":
+            nmin = min_n_independent_t(effect, alpha, power)
+            note = f"d={effect:.3f}（总N，等组时每组 N/2）"
+        elif design == "ttest-paired":
+            nmin = min_n_paired_t(effect, alpha, power)
+            note = f"dz={effect:.3f}（N 为配对数）"
         else:
             k = kw["groups"]
             nmin = min_n_f(k - 1, lambda N, k=k: N - k, effect * effect, alpha, power, k + 3)
@@ -259,6 +311,8 @@ def print_report(design, alpha, power, extra, effect, **kw):
         rec = recommend_collect(nmin, extra)
         print(f"按你指定的 {note}：统计最小 N={nmin}；预留 {int(extra*100)}% 无效卷，"
               f"建议实际发放 ≈ {rec} 份。")
+        if design == "ttest-ind" and nmin:
+            print(f"    独立两组等组：每组至少 {nmin//2} 人（总 N={nmin}）；组间均衡，勿一组大一组小。")
         print("    若本研究还包含 Bootstrap 中介/调节/SEM，请与经验下限（中介≥200、"
               "链式中介≥300）取较大值。")
     print_practice_notes()
@@ -293,6 +347,8 @@ def print_cheatsheet(alpha, power, extra):
         ("R²增量(全模型6)", "r2-change", {"tested": 1, "total": 6}, None),
         ("ANOVA(3组)", "anova", {"groups": 3}, None),
         ("ANOVA(4组)", "anova", {"groups": 4}, None),
+        ("独立t(两组)", "ttest-ind", {}, None),
+        ("配对/单样本t", "ttest-paired", {}, None),
     ]
     for label, design, kw, _ in rows:
         t = design_table(design, alpha, power, **kw)
@@ -309,10 +365,13 @@ def print_cheatsheet(alpha, power, extra):
 def main():
     ap = argparse.ArgumentParser(
         description="心理学问卷研究样本量/功效估算（G*Power 等价，纯标准库）")
-    ap.add_argument("--design", choices=["correlation", "regression", "r2-change", "anova"],
-                    help="研究设计")
+    ap.add_argument("--design",
+                    choices=["correlation", "regression", "r2-change", "anova",
+                             "ttest-ind", "ttest-paired"],
+                    help="研究设计：correlation 相关 / regression 回归总体R² / r2-change R²增量 / "
+                         "anova 单因素方差 / ttest-ind 独立两样本t / ttest-paired 配对(单样本)t")
     ap.add_argument("--effect", type=float, default=None,
-                    help="效应量：相关给 r，回归/增量给 f²，ANOVA 给 f")
+                    help="效应量：相关给 r，回归/增量给 f²，ANOVA 给 f，t 检验给 d（配对给 dz）")
     ap.add_argument("--predictors", type=int, default=5, help="regression：预测变量数")
     ap.add_argument("--tested", type=int, default=1, help="r2-change：本次新增检验的预测变量数")
     ap.add_argument("--total", type=int, default=6, help="r2-change：全模型预测变量总数")
@@ -326,7 +385,8 @@ def main():
     # ---- 入参校验：越界参数给中文友好提示，避免 math.atanh 等抛英文 Traceback ----
     def fail(msg):
         print("错误：" + msg)
-        print("示例：相关 --effect 0.3（0<r<1）；回归/增量 --effect 0.15（f²>0）；ANOVA --effect 0.25（f>0）。")
+        print("示例：相关 --effect 0.3（0<r<1）；回归/增量 --effect 0.15（f²>0）；ANOVA --effect 0.25（f>0）；"
+              "t 检验 --effect 0.5（d/dz>0）。")
         sys.exit(1)
     if not (0 < args.alpha < 1):
         fail("显著性水平 --alpha 必须在 0 与 1 之间（通常 0.05）。")
@@ -343,6 +403,8 @@ def main():
             fail("回归效应量 f² 必须大于 0（如 0.02 小 / 0.15 中 / 0.35 大）。")
         elif args.design == "anova" and not (args.effect > 0):
             fail("ANOVA 效应量 f 必须大于 0（如 0.10 小 / 0.25 中 / 0.40 大）。")
+        elif args.design in ("ttest-ind", "ttest-paired") and not (args.effect > 0):
+            fail("t 检验效应量 d（配对为 dz）必须大于 0（.20 小 / .50 中 / .80 大）。")
         if args.design == "regression" and args.predictors < 1:
             fail("预测变量数 --predictors 至少为 1。")
         if args.design == "r2-change" and (args.tested < 1 or args.total < args.tested):
