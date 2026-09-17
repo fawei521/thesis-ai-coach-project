@@ -282,6 +282,12 @@ try:
     vca_bad_fac = run(["tools/validity_cr_ave.py", "--factor", "X=0.7,0.6", "--corr", "X,Y,0.3"])
     check("效度未知因子守卫", vca_bad_fac.returncode == 1 and "未提供载荷" in vca_bad_fac.stdout
           and "Traceback" not in (vca_bad_fac.stdout or "") + (vca_bad_fac.stderr or ""))
+    vca_neg = run(["tools/validity_cr_ave.py", "--factor", "X=0.72,-0.68,0.74"])
+    check("效度负载荷警示", vca_neg.returncode == 0 and "负载荷" in vca_neg.stdout
+          and "反向题" in vca_neg.stdout)
+    vca_nofile = run(["tools/validity_cr_ave.py", "--loadings-csv", " definitely_missing_xyz.csv"])
+    check("效度缺文件守卫", vca_nofile.returncode == 1 and vca_nofile.stdout.lstrip().startswith("✗")
+          and "Traceback" not in (vca_nofile.stdout or "") + (vca_nofile.stderr or ""))
     vca_dir = new_tmp("validity")
     vca_csv = run(["tools/validity_cr_ave.py",
                    "--factor", "学习投入=0.72,0.68,0.74,0.70",

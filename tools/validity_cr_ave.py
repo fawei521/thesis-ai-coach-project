@@ -216,6 +216,10 @@ def validate_loadings(factors):
             if not (0.0 < abs(x) < 1.0):
                 raise ValueError(
                     f"因子「{name}」出现标准化载荷 {x}，应在 (0,1)（标准化载荷绝对值不可能≥1；请检查是否误用了非标准化载荷）")
+        neg = [x for x in vals if x < 0]
+        if neg:
+            print(f"⚠ 因子「{name}」出现 {len(neg)} 个负载荷（如 {neg[0]:.3f}）。CR 公式默认各题载荷同向；"
+                  f"负载荷通常意味着反向题未先反向计分（或为错误的解），请在 CFA 前对反向题重编码后重估，否则 CR 会被低估。")
         low = [x for x in vals if abs(x) < .50]
         if low:
             print(f"⚠ 因子「{name}」有 {len(low)} 道题 |载荷|<.50（题项信度 λ²<.25），"
@@ -374,6 +378,6 @@ def main():
 if __name__ == "__main__":
     try:
         main()
-    except ValueError as e:
+    except (ValueError, OSError) as e:
         print(f"✗ {e}")
         sys.exit(1)
