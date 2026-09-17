@@ -450,8 +450,24 @@ try:
         "必须查刘俊升2013原文确认总题数"]))
     check("BSMAS六要素", all(s in sl for s in [
         "BSMAS", "Andreassen等, 2016", "显著性+心境改变", "耐受+戒断+冲突+复发", "总分6-30"]))
-    check("量表库编号到24且九大类", "### 24. 基本心理需要" in sl and "## 九、自我评价、幸福感与基本需要类" in sl
+    check("量表库编号到29且十大类", "### 28. 基本心理需要" in sl and "### 29. 睡眠质量（PSQI）" in sl
+          and "## 九、自我评价、幸福感与基本需要类" in sl and "## 十、睡眠与心身健康类" in sl
           and "## 七、负性情绪综合筛查" in sl and "## 八、压力、应对与自我调节类" in sl)
+    # ---- v1.60 量表库再扩充：5 个高频量表(PANAS/IRI-C/GQ-6/GHQ-12/PSQI)，硬事实逐条锁定（均经联网核查）----
+    check("PANAS事实", all(s in sl for s in [
+        "PANAS", "Watson, Clark & Tellegen, 1988", "20（正性10+负性10）",
+        "张卫东、刁静、Schick, 2004", "各 10-50"]))
+    check("IRIC事实", all(s in sl for s in [
+        "IRI-C", "Davis, 1980", "22（PT5＋FS5＋EC6＋PD6）",
+        "28（4 维度各 7 题）", "张凤凤、董毅等, 2010"]))
+    check("GQ6事实", all(s in sl for s in [
+        "GQ-6", "McCullough, Emmons & Tsang, 2002", "第 3、6 题反向计分", "总分 6-42"]))
+    check("GHQ12事实", all(s in sl for s in [
+        "GHQ-12", "12（6 正向＋6 负向）", "GHQ 双峰法 0-0-1-1",
+        "Likert 法 0-1-2-3", "总分 0-36", "不作临床诊断"]))
+    check("PSQI事实", all(s in sl for s in [
+        "PSQI", "Buysse 等, 1989", "刘贤臣、唐茂芹等, 1999",
+        "19 个自评＋5 个他评（仅 18 个自评条目计分）", "总分 0-21"]))
     po0 = tx("templates/paper-outline.md")
     check("大纲伦理埋点", "监护人书面知情同意" in po0 and "注意力检查题" in po0 and "Bootstrap 5000" in po0)
     check("大纲结果章完整", all(s in po0 for s in ["平行分析", "Games-Howell", "卡方", "简单斜率", "偏态"]))
