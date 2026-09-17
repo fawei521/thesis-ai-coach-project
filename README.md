@@ -106,6 +106,9 @@ thesis-ai-coach-project/
 
 ## 版本
 
+**v1.47 量表库硬事实核查纠错版**
+- 逐量表联网核查 16 个量表题数/维度/作者年份，纠正 6 处硬伤：RRQ 10→24题、AAS 17→18题、FASM 作者 Kelley 拼写与功能模型、UCLA 第3版归 Russell 1996、CD-RISC-10 简版作者、MPAI 原始 Leung 2008
+
 **v1.46 数据分析主流程走查＋JASP链式/样本量口径纠错版**
 - 逐字走查 data-analysis-auto.md；纠正"JASP原生Mediation支持链式中介"（链式需 Process 模块 Model 6 或 SEM），PROCESS 宏官网更正为 processmacro.org
 - 统一样本量口径（链式建议300、最低不低于200、预留10-20%无效卷、G*Power 为准），消除质量闸"至少>150"的偏低漂移

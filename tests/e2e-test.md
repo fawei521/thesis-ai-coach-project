@@ -590,6 +590,17 @@ python tests/test_special_columns.py`
 
 **通过标准**：data-analysis-auto 不再出现"原生支持链式中介"和 hayesprocess.com；链式中介明确引导 JASP Process 模块 Model 6 / SPSS PROCESS；样本量口径与 sample_size.py 及其他文档一致（链式建议300、最低不低于200）。
 
+---
+
+## 测试43：量表库硬事实核查纠错（v1.47）
+
+- 逐量表核对 psychology/scale-library.md 全部16个量表的题数/维度/作者年份/信度，可疑项一律联网核实（PMC/Frontiers/JASP/官方方法学文献），不凭记忆改。
+- 纠错（均为硬事实）：①RRQ（Trapnell & Campbell 1999）题数10→**24**（自我反刍12＋自我反思12，多个PMC一致），补中文版RRQ-C周仁来团队2010；②成人依恋量表AAS（Collins & Read 1990）17题→**18题**（亲近/依赖/焦虑各6题），维度"舒适+焦虑+亲密"改规范名；③FASM作者拼写 Kelly→**Kelley**（Lloyd, Kelley & Hope 1997，ISAS权威论文如此引；核实1997出处本身正确），结构厘清为12项行为（中文版10/11项）＋22功能（C-FASM有33题=11+22与10+15两版），补 Nock & Prinstein 2004/2005 功能四因子；④UCLA"R-UCLA第3版…Russell,Peplau&Cutrona 1980"版本年份混淆，改为第3版ULS-20 V3=Russell 1996（α.89-.94）、1980为V2前身，ULS-6/ULS-3合并并补Hughes 2004；⑤CD-RISC补10题简版作者 Campbell-Sills & Stein 2007（25题原版才是Connor&Davidson 2003）；⑥MPAI补原始出处 Leung 2008（黎亚军为国内修订/使用）。
+- 核对无误（不改）：PHQ-9/BDI-II/CES-D/GAD-7/STAI/BAI/RRS-22/RSES/GSES/BFI-2(60)/NEO-FFI(60)/MSPSS(12)/SSRS(10)/ECR(36)/SAS-SV(10)/IAT(20)/CERQ(36)/胡月琴27/FFMQ(39)/MAAS(15)/MLQ(10)。
+
+**通过标准**：RRQ=24题、AAS=18题、FASM作者为Kelley且1997、UCLA第3版归Russell 1996、CD-RISC-10归Campbell-Sills&Stein、MPAI标Leung 2008；旧错误串（RRQ 10题、AAS 17题、Lloyd Kelly、R-UCLA第3版1980）不再出现。
+
+
 
 
 

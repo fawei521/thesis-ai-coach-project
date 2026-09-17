@@ -359,7 +359,8 @@
 - **v1.43** ✅ 开题报告指南走查＋合规口径：proposal-guide八节与template一一对应；强化"自写脚本仅预览、不写进开题/论文，只用SPSS/JASP/PROCESS/G*Power公认软件"；量表授权邮件书面许可留存
 - **v1.44** ✅ AI使用声明如实化＋精读/工作区走查：声明"AI未参与"绝对表述改为"核心学术贡献本人独立完成"的如实口径（检索可辅助、原文亲自核实、统计本人指令操作）；走查paper-reading-guide/先读我/进度卡均准确
 - **v1.45** ✅ 新增《跟老师沟通指南》：workflows/communication-guide.md（五原则＋节奏表＋12场景话术＋礼仪＋态度解读＋红线＋决策日志留痕），coach阶段10/START/README接入；修正README量表16种/统计方法数字漂移
-- **v1.46** ✅ 数据分析主流程走查＋纠错（当前）：逐字走查data-analysis-auto；纠正JASP原生Mediation不直接做链式（需Process模块Model6/SEM）、PROCESS官网processmacro.org；统一样本量口径（链式建议300、最低≥200）
+- **v1.46** ✅ 数据分析主流程走查＋纠错：逐字走查data-analysis-auto；纠正JASP原生Mediation不直接做链式（需Process模块Model6/SEM）、PROCESS官网processmacro.org；统一样本量口径（链式建议300、最低≥200）
+- **v1.47** ✅ 量表库硬事实核查纠错（当前）：联网核查16量表题数/维度/作者年份，改6处硬伤（RRQ 24题、AAS 18题、FASM Kelley/功能模型、UCLA V3=Russell1996、CD-RISC-10作者、MPAI=Leung2008）
 - **v2.0**（远期）：本地知识库向量检索、实验/质性研究支持、多学科扩展
 - **v3.0**（远期）：网页应用、社区化
 

@@ -111,6 +111,7 @@
 - [x] AI使用声明如实化＋精读/工作区走查（v1.44：声明绝对化表述改可如实签署口径，paper-reading-guide/先读我/进度卡走查通过）
 - [x] 新增《跟老师沟通指南》补全程短板（v1.45：12场景话术＋节奏＋礼仪＋态度解读＋留痕，coach阶段10/START/README接入，修数字漂移）
 - [x] 数据分析主流程走查＋JASP链式/样本量纠错（v1.46：链式中介改引导JASP Process模块Model6/SEM，PROCESS官网processmacro.org，样本量口径统一链式建议300）
+- [x] 量表库硬事实核查纠错（v1.47：RRQ 24题、AAS 18题、FASM Kelley/功能模型、UCLA V3=Russell1996、CD-RISC-10简版作者、MPAI=Leung2008，其余20+量表核对无误）
 - [ ] 知网检索流程针对更多学校适配（学校路径配置文件）
 - [ ] 增加Excel版自动统计（给完全不装Python的同学）
 - [ ] 进度看板HTML（优先级低，对话与脚本已能覆盖）
