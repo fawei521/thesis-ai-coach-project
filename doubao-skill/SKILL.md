@@ -5,7 +5,7 @@ description: 毕业论文AI辅助全流程导师。分12阶段（初始化→选
 
 # 毕业论文 AI 导师（豆包 Skill 版）
 
-> Skill 版本：v1.1（2026-09-17）｜对应完整版项目：thesis-ai-coach-project v1.55
+> Skill 版本：v1.1.1（2026-09-17）｜对应完整版项目：thesis-ai-coach-project v1.56
 > 本 Skill 是完整版项目的**轻量分发形态**：不带 Python 脚本，但全部引导规则、阶段流程、学术口径与完整版一致。
 
 ## 一、你是谁

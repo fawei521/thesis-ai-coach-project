@@ -254,10 +254,13 @@ try:
     check("降级与闭环回归测试0", gd.returncode == 0, ((gd.stdout or "")[-600:]) + ((gd.stderr or "")[-200:]))
 
     # ---- v1.53.1 工程化：编码守卫 + auto_stats 拆包 ----
-    guard_files = ([p.name for p in (ROOT / "tools").glob("*.py")]
-                   + [p.name for p in (ROOT / "tests").glob("*.py")])
-    no_guard = [n for n in guard_files if "输出编码守卫" not in (ROOT / ("tools" if n in
-                [q.name for q in (ROOT / "tools").glob("*.py")] else "tests") / n).read_text(encoding="utf-8")]
+    # 覆盖 tools/、tests/ 与 doubao-skill/（轻量版自带 validate.py 也必须有守卫；
+    # 此前只扫前两个目录，validate.py 的守卫存在与否没有回归保护）
+    guard_paths = (sorted((ROOT / "tools").glob("*.py"))
+                   + sorted((ROOT / "tests").glob("*.py"))
+                   + sorted((ROOT / "doubao-skill").glob("*.py")))
+    no_guard = [str(p.relative_to(ROOT)) for p in guard_paths
+                if "输出编码守卫" not in p.read_text(encoding="utf-8")]
     check("全部脚本有编码守卫", not no_guard, str(no_guard))
     # 管道运行不得因 GBK 崩溃：默认编码下跑一致性自检，退出码必须为 0
     env_min = {k: v for k, v in os.environ.items() if k not in ("PYTHONIOENCODING", "PYTHONUTF8")}
@@ -388,7 +391,7 @@ try:
     check("v156鼓励P0不包装与奖赏", "P0 不包装" in eg and "里程碑" in eg and "挫折时刻协议" in eg)
     check("v156鼓励禁夸天赋", "禁止夸天赋" in eg and "每轮至多一次肯定" in eg)
     check("v156鼓励四人格措辞", all(s in eg for s in ("专业导师（默认）", "霸道总裁（可选）", "知心姐姐（可选）", "小奶狗（可选）")))
-    check("v156行为自测用例与声明", "T1" in bt and "T30" in bt and "测试计划" in bt and "不是" in bt)
+    check("v156行为自测用例与声明", "T1 " in bt and "T32" in bt and "测试计划" in bt and "不是" in bt)
     check("v156coach人格鼓励正交", "人格只管" in cr and "鼓励档" in cr and "core/encouragement-guide.md" in cr)
     check("v156coach旧鼓励表述移除", "不给无意义鼓励" not in cr)
     check("v156coach卡壳临时降档", "临时降一档" in cr)
@@ -402,7 +405,12 @@ try:
           and "关闭鼓励" in rm and "关闭鼓励" in tx("QUICKSTART.md"))
     check("v156鼓励与Skill口径一致",
           "鼓励精简一点" in eg and "鼓励精简一点" in skm and "反馈三段式" in skp and "P0/P1/P2" in skp)
-    check("v156自测用例编号连续", all(("T%d" % i) in bt for i in (1, 15, 22, 30)))
+    # 注意：不能用 `"T1" in bt` 这类子串判断（"T1" 会匹配上 T10–T19），
+    # 必须真正抽出编号再验连续性，否则删掉中间某条也发现不了
+    bt_nums = sorted(int(x) for x in re.findall(r"\| T(\d+) \|", bt))
+    check("v156自测用例编号连续", bt_nums == list(range(1, len(bt_nums) + 1)) and len(bt_nums) >= 32,
+          "n=%d nums=%s" % (len(bt_nums), bt_nums[:5]))
+    check("v156情绪与挫折用例", "T31" in bt and "T32" in bt and "接住情绪" in bt and "不得评价情绪本身" in bt)
 finally:
     cleanup()
 
