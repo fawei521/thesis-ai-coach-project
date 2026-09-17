@@ -84,8 +84,15 @@
 ### 12. AI依赖
 | 量表 | 题数 | 维度 | 信度 | 验证样本 | 出处 |
 |---|---|---|---|---|---|
-| AI情感依赖量表（AIED） | 5 | 单维度 | α=.89 | 中国青少年 | 近年新发表 |
-| 生成式AI依赖量表（CAIDS） | 20 | 多维度 | α=.85-.90 | 大学生 | 近年新发表 |
+| AI情感依赖量表（AIED） | 5 | 单维度 | α=.89 | 中国青少年（n=5,855） | Wei, Liu & Cheung，*Emotional dependence on AI chatbots: Development and Validation of the AIED Scale*，**OSF 预印本，2026-04**（10.31234/osf.io/yhetz；截至 2026-04 未注明正式见刊） |
+| 对话式AI依赖量表（CAIDS） | 20 | 四维度：失控 / 戒断症状 / 心境改变 / 负面影响 | 总分α=.86、四维度α=.88–.94（原文另报分半 .77–.90、组合信度 .86–.91） | 中国大学生 | Chen Y, Wang M, Yuan S, Zhao Y（2025）. *Development and validation of the conversational AI dependence scale for Chinese college students*. **Front. Psychol., 16:1621540**，doi:10.3389/fpsyg.2025.1621540 |
+
+> **这两条要特别注意（否则方法部分会被导师追问，甚至算引用不实）**：
+> - **AIED 目前是 OSF 预印本**（题项与信度可查原文，但未经同行评审）→ 写进论文前先确认是否已正式见刊；
+>   若仍是预印本，按学校要求标注"预印本"，或改用已见刊版本。题数与计分方式必须查原文核对。
+> - **CAIDS 测的是"对话式 AI（聊天机器人）依赖"，不是"生成式 AI 依赖"**（原文标题即 conversational AI dependence；
+>   四维度＝失控、戒断症状、心境改变、负面影响）。若你的变量是"生成式 AI 依赖"，需另找针对生成式 AI 的量表并核实原文，
+>   不要把 CAIDS 的中文名直接当成"生成式AI依赖量表"来引。
 
 ## 五、认知与思维类
 
