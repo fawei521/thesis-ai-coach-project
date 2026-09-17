@@ -10,6 +10,13 @@ thesis-ai-coach 全量端到端回归（测试金字塔 L7）。
 """
 import os, sys, subprocess, csv, re, shutil
 from pathlib import Path
+# --- 输出编码守卫：管道/重定向时强制 UTF-8 ---
+# 中文 Windows 控制台默认 GBK，Python 写真实控制台不受影响，
+# 但 stdout 被管道/重定向时会退回 GBK，遇到 ² χ² ⚠ ↔ 等字符直接 UnicodeEncodeError 崩溃。
+# AI 助手与 tests/full_e2e.py 都是以管道捕获输出的，故此处统一为 UTF-8。
+if hasattr(sys.stdout, "reconfigure") and not sys.stdout.isatty():
+    sys.stdout.reconfigure(encoding="utf-8", errors="replace")
+    sys.stderr.reconfigure(encoding="utf-8", errors="replace")
 
 ROOT = Path(__file__).resolve().parents[1]
 os.chdir(ROOT)
@@ -197,8 +204,10 @@ try:
     po0 = tx("templates/paper-outline.md")
     check("大纲伦理埋点", "监护人书面知情同意" in po0 and "注意力检查题" in po0 and "Bootstrap 5000" in po0)
     check("大纲结果章完整", all(s in po0 for s in ["平行分析", "Games-Howell", "卡方", "简单斜率", "偏态"]))
-    sg = tx("psychology/stats-guide.md"); asrc = tx("tools/auto_stats.py")
-    check("stats能力真实", "Welch" in sg and "_welch_anova" in asrc and "_levene" in asrc and "_welch_t" in asrc)
+    sg = tx("psychology/stats-guide.md")
+    # v1.53.1：auto_stats 已拆为 tools/stats/ 包，实现函数按所属模块核对（不再只看 CLI 入口）
+    acmp = tx("tools/stats/compare.py"); areg = tx("tools/stats/regress.py")
+    check("stats能力真实", "Welch" in sg and "_welch_anova" in acmp and "_levene" in acmp and "_welch_t" in acmp)
     check("GamesHowell引导JASP", "Games-Howell" in sg and "JASP" in sg)
     check("正态性边界引导JASP", "Shapiro-Wilk" in sg and "Q-Q" in sg and "JASP" in sg)
     check("stats指南PROCESS域名", "processmacro.org" in sg and "hayesprocess.com" not in sg)
@@ -206,7 +215,7 @@ try:
     lit = tx("core/ai-literacy.md")
     check("AI素养agentic去魅", all(s in lit for s in ["能联网", "虚拟电脑", "关键动作", "动手查", "动手算"]))
     check("AI素养隐私去标识化", all(s in lit for s in ["去标识化", "身份证号", "验证码"]))
-    check("START能力清单VIF真实", "_vif" in asrc and "VIF" in st and "Bonferroni" in asrc)
+    check("START能力清单VIF真实", "_vif" in areg and "VIF" in st and "Bonferroni" in acmp)
     pt = tx("templates/proposal-template.md")
     check("开题功效依据", "G*Power" in pt and "300" in pt and "15%" in pt)
     check("开题伦理不预填α", "监护人书面知情同意" in pt and "注意力检查题" in pt and "不要预先填写" in pt and "慎用" in pt)
@@ -243,6 +252,49 @@ try:
     check("去Sci-Hub改合法途径", "Sci-Hub" not in psrc and "馆际互借" in psrc and "mkdir" in psrc)
     gd = run(["tests/test_graceful_degradation.py"], 260)
     check("降级与闭环回归测试0", gd.returncode == 0, ((gd.stdout or "")[-600:]) + ((gd.stderr or "")[-200:]))
+
+    # ---- v1.53.1 工程化：编码守卫 + auto_stats 拆包 ----
+    guard_files = ([p.name for p in (ROOT / "tools").glob("*.py")]
+                   + [p.name for p in (ROOT / "tests").glob("*.py")])
+    no_guard = [n for n in guard_files if "输出编码守卫" not in (ROOT / ("tools" if n in
+                [q.name for q in (ROOT / "tools").glob("*.py")] else "tests") / n).read_text(encoding="utf-8")]
+    check("全部脚本有编码守卫", not no_guard, str(no_guard))
+    # 管道运行不得因 GBK 崩溃：默认编码下跑一致性自检，退出码必须为 0
+    env_min = {k: v for k, v in os.environ.items() if k not in ("PYTHONIOENCODING", "PYTHONUTF8")}
+    pc = subprocess.run([sys.executable, "tests/consistency_check.py"], capture_output=True,
+                        text=True, encoding="utf-8", errors="replace", timeout=120, env=env_min)
+    check("管道下一致性自检不崩", pc.returncode == 0 and "Traceback" not in (pc.stderr or ""),
+          (pc.stderr or "")[-200:])
+    check("管道下输出中文正常", "一致性自检" in (pc.stdout or "") and "\ufffd" not in (pc.stdout or ""))
+    stats_pkg = ROOT / "tools" / "stats"
+    check("auto_stats已拆包", stats_pkg.is_dir() and len(list(stats_pkg.glob("*.py"))) >= 10,
+          "modules=%d" % len(list(stats_pkg.glob("*.py"))))
+    check("CLI入口瘦身", len((ROOT / "tools" / "auto_stats.py").read_text(encoding="utf-8").splitlines()) < 300,
+          "lines=%d" % len((ROOT / "tools" / "auto_stats.py").read_text(encoding="utf-8").splitlines()))
+    check("原大文件已分解", not any(len(p.read_text(encoding="utf-8").splitlines()) > 700
+                                 for p in list((ROOT / "tools").glob("*.py")) + list(stats_pkg.glob("*.py"))))
+    check("sample_size复用路径已更新", "from stats.mathx import" in tx("tools/sample_size.py"))
+    check("一致性检查覆盖子包", "rglob" in tx("tests/consistency_check.py"))
+    # auto_stats 拆包后必须能被 runpy.run_path 调用：runpy 不把脚本目录加入 sys.path，
+    # 少了显式 sys.path 引导就会 ModuleNotFoundError: stats（tests/test_graceful_degradation.py 走的正是这条路）
+    rpy = subprocess.run(
+        [sys.executable, "-c",
+         "import runpy,sys; sys.argv=['auto_stats.py','tests/test-data/demo_survey.csv','--profile'];"
+         " runpy.run_path('tools/auto_stats.py', run_name='__main__')"],
+        capture_output=True, text=True, encoding="utf-8", errors="replace", timeout=120)
+    check("auto_stats可被runpy调用", rpy.returncode == 0 and "ModuleNotFoundError" not in (rpy.stderr or ""),
+          (rpy.stderr or "")[-250:])
+    # ---- v1.53.1 版本日志单文件化：CHANGELOG.md 是唯一版本历史，其余人只留指针 ----
+    chg = tx("CHANGELOG.md")
+    check("CHANGELOG存在且带日期索引", "版本索引（含日期）" in chg and "v1.53.1" in chg and "_发布包" in chg)
+    check("README指向CHANGELOG", "CHANGELOG.md" in rm)
+    check("ROADMAP指向CHANGELOG", "CHANGELOG.md" in tx("ROADMAP.md"))
+    check("PROJECT_PLAN指向CHANGELOG", "CHANGELOG.md" in tx("PROJECT_PLAN.md"))
+    check("版本历史不再四处重复", len(tx("ROADMAP.md").splitlines()) < 60
+          and len(tx("README.md").splitlines()) < 200, "roadmap=%d readme=%d" % (
+              len(tx("ROADMAP.md").splitlines()), len(tx("README.md").splitlines())))
+    check("START版本号同步", "v1.53.1" in st)
+    check("DEVELOPMENT引用CHANGELOG", "CHANGELOG.md" in tx("DEVELOPMENT.md"))
 finally:
     cleanup()
 

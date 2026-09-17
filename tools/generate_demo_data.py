@@ -31,6 +31,14 @@ import csv
 import random
 import argparse
 from pathlib import Path
+import sys
+# --- 输出编码守卫：管道/重定向时强制 UTF-8 ---
+# 中文 Windows 控制台默认 GBK，Python 写真实控制台不受影响，
+# 但 stdout 被管道/重定向时会退回 GBK，遇到 ² χ² ⚠ ↔ 等字符直接 UnicodeEncodeError 崩溃。
+# AI 助手与 tests/full_e2e.py 都是以管道捕获输出的，故此处统一为 UTF-8。
+if hasattr(sys.stdout, "reconfigure") and not sys.stdout.isatty():
+    sys.stdout.reconfigure(encoding="utf-8", errors="replace")
+    sys.stderr.reconfigure(encoding="utf-8", errors="replace")
 
 
 def generate(n=200, seed=20260917):

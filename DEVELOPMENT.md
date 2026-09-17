@@ -67,16 +67,17 @@
 - **门**：测试清单全绿，关键数值与黄金来源偏差在容差内并记录。
 
 ### 阶段 D — 文档 Document（让人会用）
-- 同步：菜单 `menu.py`、对应 `workflows/*.md`、`psychology/stats-guide.md`（报告口径与 JASP 复核步骤）、`START.md` 工具清单、`README.md`、`QUICKSTART.md`（如影响学生）、`tests/e2e-test.md` 用例、版本记录。
+- 同步：菜单 `menu.py`、对应 `workflows/*.md`、`psychology/stats-guide.md`（报告口径与 JASP 复核步骤）、`START.md` 工具清单、`README.md`、`QUICKSTART.md`（如影响学生）、`tests/e2e-test.md` 用例、**`CHANGELOG.md` 版本记录**。
+- **版本历史只有一个来源**：`CHANGELOG.md`（单文件 · 日期标签）。`README.md` / `PROJECT_PLAN.md` / `ROADMAP.md` 只保留当前版本指针，不重复维护版本清单，避免同一版本手改四处造成漂移。
 - 说明"脚本结果用于快速预览/教学，正式口径以 JASP/SPSS 复核为准"的边界（适用时）。
 - **门**：一个不懂的 AI 只读文档就能正确调用并解读结果。
 
 ### 阶段 G — 发布 Release（打包验证）
 1. `python -m py_compile` 全部脚本；跑 `python tests/full_e2e.py` 一键全量回归（用例清单与历史见 `tests/e2e-test.md`）。
-2. 更新版本号（语义化：新增功能 minor，修复 patch），三处保持一致：README.md 顶部"版本记录"、START.md 顶部版本行、git tag；然后 commit、打 tag。
+2. 更新版本号（语义化：新增功能 minor，修复 patch），三处保持一致：`CHANGELOG.md` 顶部新增该版本条目、`START.md` 顶部版本行、git tag；README 的"当前版本"同步；然后 commit、打 tag。
 3. `git archive` 打包到**全新临时目录解压**，在副本里再跑一遍 `python tests/full_e2e.py`（不是在开发目录）。
 4. 核对：文件齐全、中文文件名正常、启动器（GBK+CRLF）正常、演示数据/工作区就位、无 `__pycache__`/临时文件/学生真实数据入库。
-5. 更新 `ROADMAP.md`、`PROJECT_PLAN.md` 版本进展。
+5. `ROADMAP.md` / `PROJECT_PLAN.md` 一般无需再改（版本进展统一在 `CHANGELOG.md`）；仅在路线图有增减时更新；发布包归档到项目外的 `_发布包/`（不在本包内），并同步其中的发布记录文件。
 - **门**：干净解压副本端到端 PASS，方可作为推荐分发包。
 
 ---
@@ -95,7 +96,7 @@
 
 > **L7 自检用法**：每次改动 CLI 开关、导出文件名、文档命令、文档间引用或工作区路径后必须跑一遍，退出码 0 才允许打包；该脚本还应能"抓得到假错误"（临时植入不存在的脚本/开关/导出/文档链接/工作区路径应报非 0），避免检查器空转。
 
-> **L5 一键回归用法**：`python tests/full_e2e.py` 把统计/清洗/样本量/模型图/文献脚本的真实运行、统计基准数值、缺库降级闭环、文档-代码一致性、合规与量表事实断言全部跑一遍（129 项起，随能力增长只增不减），退出码 0 才算通过。脚本自动定位项目根、自动备份并恢复 `tests/test-data` 基准样例、自动清理生成物，因此开发仓库与解压后的干净副本都能直接跑；新增能力必须同步往该脚本加断言，不允许只加功能不加回归。
+> **L5 一键回归用法**：`python tests/full_e2e.py` 把统计/清洗/样本量/模型图/文献脚本的真实运行、统计基准数值、缺库降级闭环、文档-代码一致性、合规与量表事实断言全部跑一遍（138 项起，随能力增长只增不减），退出码 0 才算通过。脚本自动定位项目根、自动备份并恢复 `tests/test-data` 基准样例、自动清理生成物，因此开发仓库与解压后的干净副本都能直接跑；新增能力必须同步往该脚本加断言，不允许只加功能不加回归。
 
 > Wolfram 调用：先用 `tool_search` 找到 wolfram 连接器工具，用 `WolframLanguageEvaluator` 跑独立实现，**不看本项目代码**算一遍，再比对，避免"自我印证"。
 

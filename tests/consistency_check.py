@@ -16,6 +16,13 @@ import ast
 import re
 import sys
 from pathlib import Path
+# --- 输出编码守卫：管道/重定向时强制 UTF-8 ---
+# 中文 Windows 控制台默认 GBK，Python 写真实控制台不受影响，
+# 但 stdout 被管道/重定向时会退回 GBK，遇到 ² χ² ⚠ ↔ 等字符直接 UnicodeEncodeError 崩溃。
+# AI 助手与 tests/full_e2e.py 都是以管道捕获输出的，故此处统一为 UTF-8。
+if hasattr(sys.stdout, "reconfigure") and not sys.stdout.isatty():
+    sys.stdout.reconfigure(encoding="utf-8", errors="replace")
+    sys.stderr.reconfigure(encoding="utf-8", errors="replace")
 
 ROOT = Path(__file__).resolve().parent.parent
 TOOLS = ROOT / "tools"
@@ -67,13 +74,22 @@ def command_segments(md_text: str):
 def main():
     problems = []
 
-    py_files = sorted(p.name for p in TOOLS.glob("*.py"))
-    py_set = set(py_files)
-    switches_by_tool = {n: tool_switches(TOOLS / n) for n in py_files}
-    all_switches = set().union(*switches_by_tool.values()) | SWITCH_WHITELIST
+    # 扫描 tools/ 下全部 .py（含 stats/ 子包）：导出文件名与 CLI 开关可能定义在任一实现模块里，
+    # 只扫顶层会在拆分后漏掉 "_因子分析.csv" 这类由子模块写出的文件，导致误报漂移。
+    tool_paths = sorted(p for p in TOOLS.rglob("*.py") if "__pycache__" not in p.parts)
+    tool_keys = {p.relative_to(TOOLS).as_posix(): p for p in tool_paths}
+    py_set = set(tool_keys) | {p.name for p in tool_paths}
+    top_py_files = sorted(p.name for p in TOOLS.glob("*.py"))
+    switches_by_tool = {k: tool_switches(p) for k, p in tool_keys.items()}
+    # 命令片段里通常只写裸脚本名，按文件名汇总其开关，供 owner 归属核对
+    switches_by_name = {}
+    for k, sw in switches_by_tool.items():
+        switches_by_name.setdefault(k.rsplit("/", 1)[-1], set()).update(sw)
+    all_switches = (set().union(*switches_by_tool.values()) if switches_by_tool
+                    else set()) | SWITCH_WHITELIST
     all_exports = set()
-    for n in py_files:
-        all_exports |= py_export_suffixes(TOOLS / n)
+    for p in tool_keys.values():
+        all_exports |= py_export_suffixes(p)
 
     # 全项目 Python 脚本名（tools + tests），用于核对命令里出现的脚本（含 tests/ 下脚本）
     all_py_names = {p.name for p in ROOT.rglob("*.py")
@@ -102,8 +118,8 @@ def main():
         is_workspace = rel.parts[0] == "我的工作区"
         text = md.read_text(encoding="utf-8", errors="replace")
 
-        # 1. 显式 tools/xxx.py 引用存在性
-        for ref in re.findall(r"tools/([A-Za-z0-9_]+\.py)\b", text):
+        # 1. 显式 tools/xxx.py 引用存在性（允许子包路径，如 tools/stats/efa.py）
+        for ref in re.findall(r"tools/([A-Za-z0-9_/]+\.py)\b", text):
             if ref not in py_set:
                 problems.append(f"[{rel}] 引用了不存在的 tools/{ref}")
 
@@ -123,9 +139,9 @@ def main():
                 for sw in block_switches:
                     if sw in SWITCH_WHITELIST:
                         continue
-                    if sw not in switches_by_tool.get(owner, set()):
+                    if sw not in switches_by_name.get(owner, set()):
                         # 同一块可能串联多个工具；任一工具定义过即视为合理
-                        if not any(sw in s for s in switches_by_tool.values()):
+                        if not any(sw in s for s in switches_by_name.values()):
                             problems.append(
                                 f"[{rel}] 命令片段里的开关 {sw} 在 {owner}（及其它工具）中均未定义")
             else:
@@ -168,7 +184,7 @@ def main():
     print("=" * 56)
     print("文档 ↔ 代码 一致性自检")
     print("=" * 56)
-    print(f"工具脚本 {len(py_files)} 个；Markdown {len(md_files)} 个；")
+    print(f"工具脚本 {len(top_py_files)} 个（含 stats/ 子包共 {len(tool_keys)} 个实现模块）；Markdown {len(md_files)} 个；")
     print(f"已定义 CLI 开关 {len(all_switches)} 个；导出 csv 后缀 {len(all_exports)} 个。")
     if problems:
         print(f"\n发现 {len(problems)} 处漂移：")

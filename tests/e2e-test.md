@@ -666,6 +666,22 @@ python tests/test_special_columns.py`
 
 **通过标准**：问卷模板含"学段/中学生版/大学生版/仅大学生填写；中学生样本删除/其他/不愿透露/个人信息最小化"；干净副本 full_e2e 退出 0 且计数为 129。
 
+---
+
+## 测试50：管道编码崩溃修复＋auto_stats 拆包＋版本日志单文件化（v1.53.1）
+
+- **背景（实测发现）**：中文 Windows 控制台代码页为 GBK 时，Python 写**真实控制台**走 PEP 528 通道不受影响，但 stdout 被**管道/重定向**时会退回 GBK。脚本里 `²(U+00B2)`、`χ²`、`−`、`⚠`、`✗`、`↔` 等字符 GBK 编不出来，直接抛 `UnicodeEncodeError`。实测三处崩溃：`tools/auto_stats.py` L1529（Bartlett χ²，结构效度之后的分析全部不执行）、`tests/consistency_check.py` L169（`↔`，退出码 1）、`tests/full_e2e.py`（打印含 U+FFFD 的失败详情，127 项只跑到第 3 项）。而"AI 助手跑脚本读输出"与本项目的 `subprocess.run(capture_output=True)` 走的正是管道，故此缺陷会同时打瘫 L5/L7 两道发布门。
+- **修复**：9 个工具脚本 + 4 个测试脚本统一插入"输出编码守卫"——`if not sys.stdout.isatty(): sys.stdout.reconfigure(encoding="utf-8", errors="replace")`（stderr 同理）。只在非交互场景切换，学生双击 .bat 的交互式控制台行为完全不变。全项目扫描确认 89 处不可编码字符，其中 auto_stats 61 处、sample_size 18 处、menu 4 处。
+- **auto_stats 拆包**：2694 行单文件 → `tools/stats/` 包 9 个模块 + 215 行 CLI。按 `ast` 精确切片逐行搬运，不重打代码；跨模块 import 由依赖图自动生成。**CLI 开关（42 个）与导出文件名（17 个）全部保持**，文档命令零改动。
+- **拆包连带修复两处断链**：① `tools/sample_size.py` 的 `from auto_stats import betai, f_p_value` 改指 `stats.mathx`；② `auto_stats.py` 补显式 `sys.path` 引导，否则被 `runpy.run_path` 调用（`test_graceful_degradation.py` 用临时阻断脚本包装后就是这么跑的）会 `ModuleNotFoundError: No module named 'stats'`。第②点在沙箱里被子进程临时目录权限问题掩盖，靠手工复刻该测试才暴露。
+- **consistency_check 递归化**：`py_files` 由 `TOOLS.glob("*.py")` 改为 `TOOLS.rglob("*.py")`，开关按文件名汇总。拆包后 `_因子分析.csv`、`_量表总分.csv`、`_调节效应.csv` 等导出写在子模块里，只扫顶层会误报漂移。
+- **版本日志单文件化**：新建 `CHANGELOG.md`（日期索引表 + 逐版详情）。此前版本记录只有版本号**没有日期**，且分散在 4 处。`README.md` 358→136 行、`PROJECT_PLAN.md` 384→296 行、`ROADMAP.md` 145→28 行，重复清单改为指针。
+- full_e2e 新增 9 条断言（129→138 项）。
+
+**通过标准**：默认 GBK 环境、输出被管道捕获时，`consistency_check.py` 退出 0 且 stdout 含正确中文无替换符；`auto_stats.py` 能打印 Bartlett χ² 不崩；`tools/stats/` 存在且 ≥10 个模块、`auto_stats.py` <300 行、无任何 tools 脚本超 700 行；`runpy.run_path('tools/auto_stats.py')` 不报 `ModuleNotFoundError`；`CHANGELOG.md` 存在且 `README.md`/`PROJECT_PLAN.md`/`ROADMAP.md` 均含其链接；干净副本 full_e2e 退出 0 且计数为 138。
+
+---
+
 
 
 
