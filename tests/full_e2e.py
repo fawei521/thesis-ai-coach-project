@@ -249,6 +249,43 @@ try:
     esbad = run(["tools/effect_size.py", "r", "--r", "0.9", "--n", "2"])
     check("效应量坏参守卫", esbad.returncode == 0 and "Traceback" not in (esbad.stdout or "")
           and "n>3" in (esbad.stdout or ""))
+    # ---- 聚合/区分效度 validity_cr_ave.py（纯标准库；CR/AVE 公式已用 numpy 黄金对照）----
+    vca_src = tx("tools/validity_cr_ave.py")
+    check("效度工具纯标准库", "import csv" in vca_src and "matplotlib" not in vca_src and "pandas" not in vca_src)
+    check("效度工具公式与红线", "(Σλ" in vca_src and "Fornell" in vca_src and "真实 CFA" in vca_src)
+    vca_ok = run(["tools/validity_cr_ave.py",
+                  "--factor", "学习投入=0.72,0.68,0.74,0.70",
+                  "--factor", "学业倦怠=0.60,0.65,0.58,0.62",
+                  "--corr", "学习投入,学业倦怠,0.45"])
+    check("效度CR_AVE黄金值", vca_ok.returncode == 0 and all(s in vca_ok.stdout for s in
+          ["0.803", "0.505", "0.710", "0.706", "0.376", "0.613"]), (vca_ok.stderr or "")[-200:])
+    check("效度区分成立", "区分效度成立" in vca_ok.stdout and "Fornell-Larcker" in vca_ok.stdout)
+    vca_bad_disc = run(["tools/validity_cr_ave.py",
+                        "--factor", "学习投入=0.72,0.68,0.74,0.70",
+                        "--factor", "学业倦怠=0.60,0.65,0.58,0.62",
+                        "--corr", "学习投入,学业倦怠,0.65"])
+    check("效度区分存疑能识别", vca_bad_disc.returncode == 0 and "区分效度存疑" in vca_bad_disc.stdout
+          and "0.613" in vca_bad_disc.stdout and "0.650" in vca_bad_disc.stdout)
+    vca_bad_load = run(["tools/validity_cr_ave.py", "--factor", "X=1.02,0.7"])
+    check("效度坏载荷守卫", vca_bad_load.returncode == 1 and "标准化载荷" in vca_bad_load.stdout
+          and "Traceback" not in (vca_bad_load.stdout or "") + (vca_bad_load.stderr or ""))
+    vca_bad_fac = run(["tools/validity_cr_ave.py", "--factor", "X=0.7,0.6", "--corr", "X,Y,0.3"])
+    check("效度未知因子守卫", vca_bad_fac.returncode == 1 and "未提供载荷" in vca_bad_fac.stdout
+          and "Traceback" not in (vca_bad_fac.stdout or "") + (vca_bad_fac.stderr or ""))
+    vca_dir = new_tmp("validity")
+    vca_csv = run(["tools/validity_cr_ave.py",
+                   "--factor", "学习投入=0.72,0.68,0.74,0.70",
+                   "--factor", "学业倦怠=0.60,0.65,0.58,0.62",
+                   "--corr", "学习投入,学业倦怠,0.45",
+                   "--csv-out", str(vca_dir)])
+    vca_out = vca_dir / "_聚合区分效度.csv" if (vca_dir / "_聚合区分效度.csv").exists() else None
+    check("效度CSV导出", vca_csv.returncode == 0 and vca_out is not None and vca_out.exists())
+    if vca_out:
+        vca_rows = list(csv.reader(open(vca_out, encoding="utf-8-sig")))
+        check("效度CSV内容", vca_rows[0][:5] == ["因子", "题项数", "CR组合信度", "AVE平均方差抽取", "√AVE"]
+              and vca_rows[1][0] == "学习投入" and abs(float(vca_rows[1][2]) - 0.803) < 5e-3
+              and "成立" in vca_rows[1][7], str(vca_rows[:2]))
+
     p1 = run(["tests/consistency_check.py"]); check("一致性0", p1.returncode == 0, p1.stdout[-200:])
     g = ROOT / "_ghost_doc_xyz.md"
     g.write_text("运行 `tools/ghost_tool_xyz.py --fake-switch-xyz`，导出 `_幽灵分析.csv`，见 [假文档](ghost_page_xyz.md)，路径 `我的工作区/99-ghost/`", encoding="utf-8")
@@ -266,7 +303,7 @@ try:
     check("coach5多选填空", "多选题" in cr and "scales.txt 时勿列入" in cr)
     check("coach6样本量", "sample_size.py" in cr)
     check("coach7五指标", "低变异" in cr and "注意力检查题答错" in cr)
-    menu = tx("tools/menu.py"); check("menu第8项", "【8/12】" in menu and "sample_size.py" in menu)
+    menu = tx("tools/menu.py"); check("menu第8项", "【8/13】" in menu and "sample_size.py" in menu)
     qs = tx("QUICKSTART.md"); check("QS菜单8", "8. 开题样本量" in qs)
     check("QS流程顺序", qs.find("查文献读文献") < qs.find("开题报告/开题答辩"))
     bad = []
@@ -577,7 +614,7 @@ try:
     check("预览器--list可运行", pl.returncode == 0 and "index.html" in (pl.stdout or ""), (pl.stderr or "")[-200:])
     wdir = ROOT / "我的工作区" / "04-网页"
     check("工作区04-网页就位", wdir.is_dir() and (wdir / "把网页放这里.txt").exists())
-    check("菜单第9项", "【9/12】" in menu and "webpage_preview.py" in menu)
+    check("菜单第9项", "【9/13】" in menu and "webpage_preview.py" in menu)
     check("网页能力已登记到入口",
           "webpage-guide.md" in st and "webpage_preview.py" in st and "webpage-guide.md" in cr)
     check("README登记网页能力", "webpage-guide.md" in rm and "webpage_preview.py" in rm)
@@ -589,8 +626,9 @@ try:
     check("脱敏工具纯标准库", "import csv" in an_src and "matplotlib" not in an_src and "pandas" not in an_src)
     check("脱敏工具有安全开关", all(s in an_src for s in ["--dry-run", "--no-key", "--columns", "--k"]))
     check("脱敏工具另存不改原文件", "_去标识化.csv" in an_src and "同名同路径" in an_src)
-    check("菜单第11项去标识化", "【11/12】" in menu and "anonymize_data.py" in menu and "去标识化" in menu)
-    check("菜单第12项效应量", "【12/12】" in menu and "effect_size.py" in menu and "效应量" in menu)
+    check("菜单第11项去标识化", "【11/13】" in menu and "anonymize_data.py" in menu and "去标识化" in menu)
+    check("菜单第12项效应量", "【12/13】" in menu and "effect_size.py" in menu and "效应量" in menu)
+    check("菜单第13项效度", "【13/13】" in menu and "validity_cr_ave.py" in menu and "区分效度" in menu)
     check("START登记去标识化", "anonymize_data.py" in st and "去标识化" in st)
     check("QUICKSTART登记第11项", "去标识化" in tx("QUICKSTART.md"))
     check("AI素养接线去标识化工具", "anonymize_data.py" in tx("core/ai-literacy.md"))
@@ -836,7 +874,7 @@ try:
     check("v158量表多词检索纪律", "量表检索纪律" in sl and "同义词" in sl and "OR" in sl and "AND" in sl)
     check("v158检索脚本多词开关", all(x in psrc for x in ('--queries', '--source', '--min', 'action="append"')))
     check("v158卡片脚本与菜单项",
-          (ROOT / "tools" / "literature_cards.py").exists() and "literature_cards.py" in menu and "【10/12】" in menu)
+          (ROOT / "tools" / "literature_cards.py").exists() and "literature_cards.py" in menu and "【10/13】" in menu)
     check("v158卡片接入网页指南且不增类型", "literature_cards.py" in wg and "文献笔记网页" in wg)
     check("v158手机交接单与原生做法", all(s in mg for s in ("设备交接单", "全球学术快报", "literature_cards")))
 

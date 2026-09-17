@@ -184,6 +184,8 @@ python tools/auto_stats.py 数据.csv --scales scales.txt --efa 我的新量表,
 
 **验证性因子分析CFA（进阶，需专门软件）：** AMOS/Mplus/R(lavaan) 或 JASP Factor → CFA，报告 χ²/df<3、RMSEA<.08、CFI/TLI>.90、SRMR<.08。脚本不做SEM，AI给具体点击步骤或 lavaan 代码。
 
+**聚合效度/区分效度（CFA 之后，菜单第 13 项 `validity_cr_ave.py` 一键算）：** 拿到 CFA 的**标准化因子载荷**后，用它算每个因子的组合信度 CR、平均方差抽取 AVE、√AVE，并结合因子间相关做 Fornell-Larcker 区分效度判定（CR≥.70、AVE≥.50 为常用门槛，.36–.50 且 CR 良好时可接受需说明；√AVE 应大于该因子与其它因子的 |r|）。题项少可直接 `--factor "名称=载荷,..."`，题项多用 `--loadings-csv 载荷表.csv --corr-csv 因子相关.csv`，可 `--csv-out` 另存 `_聚合区分效度.csv`。区分效度建议同时在 CFA 软件里补报更现代的 HTMT（<.85/.90）。载荷必须来自真实测量模型输出，不得为达标手改。
+
 > 多数本科问卷研究引用成熟量表，4.1的自动结果 + 报告原量表效度通常已够；**自编或重大修订的多维量表**才需要 4.2 的完整 EFA（脚本一键出结果，JASP补碎石图/斜交）。
 
 ---
@@ -345,6 +347,7 @@ AI对每个结果：
 
 - [ ] 有效样本量达到要求（Bootstrap 中介建议 N≥200；链式等复杂模型建议 300、至少不低于 200；已按 10%–20% 预留无效卷；以 G*Power 先验功效分析为准）
 - [ ] 所有量表α达标或已说明
+- [ ] 多维量表报告了结构效度：EFA 的 KMO/Bartlett/载荷，做 CFA 的另报 CR、AVE（聚合）与 Fornell-Larcker √AVE 或 HTMT（区分）；缺 CR/AVE 时用 validity_cr_ave.py 由真实标准化载荷补算
 - [ ] 共同方法偏差已检验
 - [ ] 描述统计、相关分析完整
 - [ ] 每个推断检验都报告效应量（d/r/η²/V 等）及能给时的置信区间（缺时用 effect_size.py 补算复核）

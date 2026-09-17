@@ -847,6 +847,20 @@ python tests/test_special_columns.py`
 7. 健壮性：缺参、r 时 n≤3、列联表行/列<2 等给中文提示，不抛 Traceback；页脚固定"不显著也如实报告、不得为凑阈值反推改数"。
 8. 菜单第12项引导（6 类换算）端到端跑通；文档：stats-guide 第十节、data-analysis-auto 第11步与质量闸、README/START/QUICKSTART/AGENTS 同步。
 
+## 测试58：聚合/区分效度工具（validity_cr_ave.py，菜单第13项）
+
+**目的**：多维量表做完 CFA 拿到标准化因子载荷后，学生需要报告组合信度 CR、平均方差抽取 AVE（聚合效度）与 Fornell-Larcker 区分效度，但 AMOS 不直接给、手算易错。用纯标准库工具由真实载荷一键算并判定，不替学生改载荷、不造数。
+
+**公式与口径（已联网核对 Fornell & Larcker 1981；Bagozzi & Yi 1988；Hair 等）**：CR=(Σλ)²/[(Σλ)²+Σ(1−λ²)]；AVE=Σλ²/n；θ=1−λ²；区分效度 √AVE_j>|r_jk|。CR≥.70 良好（.60–.70 探索性可接受），AVE≥.50 严格达标（.36–.50 且 CR 良好可接受需说明）；现代补充指标 HTMT<.85/.90（需题项相关，本工具不算，仅提示）。
+
+**步骤与预期**：
+1. `--factor "学习投入=0.72,0.68,0.74,0.70" --factor "学业倦怠=0.60,0.65,0.58,0.62" --corr "学习投入,学业倦怠,0.45"`：CR=0.803/0.706，AVE=0.505/0.376，√AVE=0.710/0.613，r=.45 时区分效度成立。
+2. 同一对因子把相关改为 .65：学业倦怠 √AVE=.613<.650，明确报"区分效度存疑"并指出因子对；学习投入侧仍成立。
+3. 载荷表 CSV（列：因子,题项,载荷）+ 因子相关方阵 CSV（下三角或全矩阵，缺格按对称补全）端到端读入，结果与手动参数一致；`--csv-out 目录` 另存 `_聚合区分效度.csv`（表头 因子/题项数/CR/AVE/√AVE/判定/区分效度）。
+4. 健壮性：载荷出现 ≥1（误用非标准化载荷）报错退出码1并中文提示；`--corr` 引用未提供载荷的因子报错；无参数打印帮助不崩；|载荷|<.50 给题项信度不足提醒；全程不抛 Traceback。
+5. 公式用 numpy 对 5 组随机载荷独立复算 CR/AVE/√AVE 逐位一致；固定黄金值 CR_A=.803/AVE_A=.505、CR_B=.706/AVE_B=.376。
+6. 菜单第13项引导（逐因子录载荷＋可选因子相关）端到端跑通；文档：stats-guide 第三节"聚合效度与区分效度"、data-analysis-auto 第4步 CFA 段与质量闸、README/START/QUICKSTART/AGENTS 同步；工具脚本总数 14、菜单 13 项。
+
 ---
 
 # 脚本回归测试清单（每次改动后执行）
@@ -888,6 +902,9 @@ python tools\effect_size.py d --m1 10 --sd1 2 --n1 30 --m2 9 --sd2 2 --n2 30
 python tools\effect_size.py r --r 0.34 --n 120
 python tools\effect_size.py eta --F 5.20 --df1 2 --df2 117
 python tools\effect_size.py v --chi2 6.10 --n 200 --rows 2 --cols 2
+# 14 聚合/区分效度（CFA 标准化载荷→CR/AVE/√AVE 与 Fornell-Larcker；.65 应判区分存疑）
+python tools\validity_cr_ave.py --factor "学习投入=0.72,0.68,0.74,0.70" --factor "学业倦怠=0.60,0.65,0.58,0.62" --corr "学习投入,学业倦怠,0.45"
+python tools\validity_cr_ave.py --factor "学习投入=0.72,0.68,0.74,0.70" --factor "学业倦怠=0.60,0.65,0.58,0.62" --corr "学习投入,学业倦怠,0.65"
 ```
 
 测试结束后删除 `_t_*` 临时文件和 `tests/test-data/_demo_check` 目录。（test_special_columns.py 会自清其 `_special*` 临时文件）所有脚本只用Python标准库（模型图需matplotlib），

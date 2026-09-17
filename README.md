@@ -56,6 +56,7 @@
 - `webpage_preview.py` — 学生自己做网页时的**本地预览器**（纯标准库静态服务器；只读、不上传、不越出指定目录，默认只绑本机；`--lan` 后手机可看）
 - `anonymize_data.py` — **数据去标识化/隐私闸**（发给AI/上传/给外校前：自动假名化或删除姓名、学号、手机、邮箱、身份证、微信/QQ、IP、住址等直接标识符，表头没写明的按内容模式识别；对性别/年级/专业/生源组合做 k-匿名体检；只读原文件、另存新文件，可生成单独保管的假名对照表用于前后测配对）
 - `effect_size.py` — **效应量换算与复核**（写结果时由两组均值标准差或 t 值算 Cohen's d/Hedges' g/配对 d_z，由 r、n 算 Fisher z 置信区间并换算 d，由 F 算偏 η²/η²/ε²，由 χ² 算 Cramér's V/φ，支持 r↔d 互转；纯标准库，阈值口径 .1/.3/.5、.2/.5/.8、.01/.06/.14 与 stats-guide 一致）
+- `validity_cr_ave.py` — **聚合/区分效度计算**（CFA 后由标准化因子载荷算组合信度 CR、平均方差抽取 AVE、√AVE，并结合因子间相关做 Fornell-Larcker 区分效度判定；支持手动参数或载荷/相关 CSV，可另存 `_聚合区分效度.csv`；纯标准库，载荷须来自真实 CFA 输出）
 
 **典型数据流水线**：问卷星导出 →（外发前）去标识化 → 预处理 → 清洗 → 一键自动统计（频数/信度/效度/Harman/相关/回归/Bootstrap中介）→ JASP/SPSS复核 → 画模型图
 
@@ -133,7 +134,7 @@ thesis-ai-coach-project/
 ├── 我的工作区/                # 学生自己的文件：01-文献PDF/02-问卷数据/03-分析结果/04-网页 + 我的论文进度.md
 ├── core/                     # AI规则（coach-rules）+ 身份陪伴边界（companionship）+ 引导反馈协议 + 鼓励系统 + AI素养
 ├── workflows/                # 10个阶段工作流手册
-├── tools/                    # 13个脚本（含统一菜单menu.py、重点文献卡片literature_cards.py、网页预览器、去标识化anonymize_data.py、效应量换算effect_size.py）+ stats/ 统计实现包（9个模块）
+├── tools/                    # 14个脚本（含统一菜单menu.py、重点文献卡片literature_cards.py、网页预览器、去标识化anonymize_data.py、效应量换算effect_size.py、聚合区分效度validity_cr_ave.py）+ stats/ 统计实现包（9个模块）
 ├── psychology/               # 量表/统计/伦理知识库
 ├── templates/                # 问卷/大纲/开题/答辩/进度卡/AI声明模板 + 网页范例/
 └── tests/                    # full_e2e.py 一键全量回归、consistency_check.py 文档↔代码一致性自检、专项测试与测试数据
