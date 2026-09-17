@@ -8,6 +8,7 @@
      仅跳过图表并给出 pip install matplotlib 提示；
    - chart_generator.py 必须友好报错退出1（提示 pip install），不得抛 Traceback。
 2. 菜单1 wjx_preprocess.py 对问卷星样例数据端到端可用（纯标准库）。
+3. 菜单7生成演示数据 → 菜单3统计的练手闭环可一键跑通（含图表）。
 
 运行：python tests/test_graceful_degradation.py ；退出码 0 = 全部通过。
 临时文件全部写在系统 temp，结束自动清理。
@@ -87,6 +88,27 @@ def main():
         check("菜单1 wjx_preprocess 退出0", r3.returncode == 0, f"rc={r3.returncode} {r3.stderr[-200:]}")
         check("菜单1 产出clean与report",
               (tmp / "wjx_clean.csv").exists() and (tmp / "wjx_report.txt").exists())
+
+        # 3. 菜单7演示数据 → 菜单3统计 的练手闭环（正常库环境）
+        loop = tmp / "loop"
+        r4 = subprocess.run([py, str(ROOT / "tools" / "generate_demo_data.py"),
+                             "--outdir", str(loop)], capture_output=True, text=True,
+                            encoding="utf-8", errors="replace", cwd=str(tmp), timeout=60)
+        check("菜单7生成演示数据", r4.returncode == 0 and
+              (loop / "demo_survey.csv").exists() and (loop / "demo_scales.txt").exists(),
+              r4.stderr[-200:])
+        r5 = subprocess.run([py, str(ROOT / "tools" / "auto_stats.py"),
+                             str(loop / "demo_survey.csv"), "--scales", str(loop / "demo_scales.txt"),
+                             "--y", "NSSI", "--x", "AI情感依赖",
+                             "--mediators", "孤独感,反刍思维", "--boot", "300"],
+                            capture_output=True, text=True, encoding="utf-8",
+                            errors="replace", cwd=str(loop), timeout=150)
+        check("演示数据统计闭环退出0", r5.returncode == 0 and "Traceback" not in r5.stderr,
+              f"rc={r5.returncode} {r5.stderr[-200:]}")
+        check("闭环产出中介CSV与热图",
+              (loop / "demo_survey_中介效应.csv").exists() and
+              (loop / "demo_survey_信度分析.csv").exists() and
+              (loop / "demo_survey_相关热图.png").exists())
     finally:
         shutil.rmtree(tmp, ignore_errors=True)
 

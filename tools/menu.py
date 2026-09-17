@@ -173,9 +173,11 @@ def t_demo():
     print("\n【7/8】生成演示数据（还没收回问卷时，先拿它练手）")
     print("  会生成一份内置链式中介结构、含反向题的模拟数据，")
     print("  用来跑通第3步统计流程。模拟数据严禁写进真实论文。")
-    out = input("  保存到哪个文件夹？可直接拖入一个文件夹，回车默认当前目录：").strip().strip('"').strip("'")
-    args = ["--outdir", out] if out else ["--outdir", "."]
+    out = input("  保存到哪个文件夹？可直接拖入一个文件夹，回车默认放进 我的工作区\\02-问卷数据：").strip().strip('"').strip("'")
+    args = ["--outdir", out] if out else ["--outdir", "我的工作区/02-问卷数据"]
     run("generate_demo_data.py", args)
+    if not out:
+        print("  演示数据已放进「我的工作区\\02-问卷数据」，第3步统计时把里面的 demo_survey.csv 拖进来即可。")
 
 
 def t_power():

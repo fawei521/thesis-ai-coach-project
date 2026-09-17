@@ -488,6 +488,17 @@ python tests/test_special_columns.py`
 
 **通过标准**：学生只装标准 Python、未装任何第三方库时，数值分析不崩、图表功能给出可执行的安装指引。
 
+---
+
+## 测试33：演示数据练手闭环与菜单7归位（v1.37）
+
+- 全新 `generate_demo_data.py --outdir 临时目录` 生成 demo_survey.csv 与 demo_scales.txt 后，直接对其跑 auto_stats（链式、Bootstrap）必须退出0、无 Traceback、产出中介/信度 CSV 与相关热图（已并入 tests/test_graceful_degradation.py，共12断言）。
+- 菜单第7项学生直接回车时，演示数据默认写入「我的工作区/02-问卷数据」而非项目根（不污染源码目录），并有提示下一步把 demo_survey.csv 拖入第3项。
+- 启动器与菜单路径健壮性走查：bat 用 `cd /d %~dp0` 定位项目根，menu.run 用脚本绝对路径（HERE）调用 tools 脚本、子进程 cwd 固定项目根，从任意目录启动均能找到脚本。
+
+**通过标准**：新学生不接真实数据也能一键跑通"生成演示数据→完整统计"全链路；练手文件自动归位工作区。
+
+
 
 
 
