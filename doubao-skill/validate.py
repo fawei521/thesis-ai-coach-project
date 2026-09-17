@@ -9,7 +9,7 @@ thesis-ai-coach 豆包 Skill 结构自检（轻量版自己的 L7 门禁）。
 
 检查项：
   1. SKILL.md frontmatter（name 与目录名一致、description 非空且含触发词）
-  2. 必备文件齐全（人格/阶段/参考资料）
+  2. 必备文件齐全（语气/阶段/参考资料）
   3. 阶段文件编号 0-11 连续，且含准入、准出与三闸 checkbox
   4. 全部 md 的内部 .md 引用（链接与反引号）真实存在
   5. 鼓励系统默认打开且可关闭、安全口径存在
@@ -28,7 +28,7 @@ ROOT = Path(__file__).resolve().parent
 problems = []
 
 REQUIRED_REFERENCES = [
-    "coaching-protocol.md", "encouragement-guide.md", "stage-checklist.md",
+    "coaching-protocol.md", "companionship.md", "encouragement-guide.md", "stage-checklist.md",
     "ai-basics.md", "tools.md", "academic-norms.md", "faq.md", "self-test.md",
     "mobile-guide.md",
 ]
@@ -73,7 +73,7 @@ else:
 # 2. 必备文件 -----------------------------------------------------------
 for f in REQUIRED_PERSONALITIES:
     if not (ROOT / "personalities" / f).exists():
-        problems.append(f"缺少人格文件 personalities/{f}")
+        problems.append(f"缺少语气文件 personalities/{f}")
 for f in REQUIRED_REFERENCES:
     if not (ROOT / "references" / f).exists():
         problems.append(f"缺少参考文件 references/{f}")
@@ -113,9 +113,9 @@ STUDENT_ARTIFACTS = {
     "thesis-ai-coach-手机版.md",    # 由 build_mobile_single.py 生成的合并单文件
 }
 FULL_PACKAGE_PATHS = ("我的工作区/",)
-# 示意性写法（花括号枚举、stage-N 模式）不算引用
+# 示意性写法（花括号枚举、stage-N 模式、xxx 占位）不算引用
 def is_pattern_ref(ref: str):
-    return ("{" in ref or "}" in ref or "*" in ref
+    return ("{" in ref or "}" in ref or "*" in ref or "xxx" in ref
             or re.search(r"stage-N", ref) or "名称" in ref)
 
 
@@ -150,9 +150,18 @@ proto = read("references/coaching-protocol.md")
 for kw in ("12356", "120 或 110", "紧急模式", "P0", "进度", "告知"):
     if kw not in proto:
         problems.append(f"coaching-protocol.md 缺少关键内容「{kw}」")
-# 默认自然风格：SKILL 与 default 人格不得把角色扮演设为默认
+# 默认自然语气：SKILL 与 proto 不得把角色扮演设为默认
 if "默认不套任何人设" not in proto and "默认不套任何人设" not in skill_text:
-    problems.append("未声明「默认不套人设、使用自然专业风格」")
+    problems.append("未声明「默认不套人设、使用自然语气」")
+# 陪伴定位与关系边界
+comp = read("references/companionship.md")
+for kw in ("不是老师", "虚拟伴侣", "脚手架", "情感依赖", "12356"):
+    if kw not in comp:
+        problems.append(f"companionship.md 缺少关键内容「{kw}」")
+# 去老师化：SKILL 身份段必须明确不自称老师/导师、不扮演虚拟伴侣
+for kw in ("不自称", "虚拟伴侣"):
+    if kw not in skill_text:
+        problems.append(f"SKILL.md 身份段缺少「{kw}」声明")
 checklist = read("references/stage-checklist.md")
 for i in range(STAGE_COUNT):
     if f"**{i} " not in checklist:
