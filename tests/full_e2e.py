@@ -96,6 +96,19 @@ try:
     except Exception as e:
         check("热图读取", False, str(e))
     r3 = run(["tools/sample_size.py"]); check("样本量速查", r3.returncode == 0 and ("85" in r3.stdout or "179" in r3.stdout))
+    # Welch ANOVA 数值回归：强异方差下锁定 F/df1/df2/p，防止分母自由度公式退回 (k^3-k)/(3D)
+    # 历史缺陷：df2 被放大 k 倍、p 系统性偏小（强异方差时可翻转显著性）；基准经教科书公式＋scipy 三方核对
+    try:
+        if str(ROOT / "tools") not in sys.path:
+            sys.path.insert(0, str(ROOT / "tools"))
+        import stats.compare as _wcmp
+        _wg = [[1, 2, 2, 3, 2, 1, 3, 2], [6, 9, 14, 7, 12, 5, 13, 8], [2, 3, 1, 4, 2, 3, 2, 3]]
+        _wF, _wd1, _wd2, _wp = _wcmp._welch_anova(_wg)
+        check("Welch强异方差数值基准", _wF is not None and abs(_wF - 16.7979) < 2e-3 and _wd1 == 2
+              and abs(_wd2 - 12.5210) < 2e-3 and _wp is not None and abs(_wp - 2.8522e-4) < 2e-5,
+              f"F={_wF} df1={_wd1} df2={_wd2} p={_wp}（错误式会得 df2≈37.56、p≈6.1e-6）")
+    except Exception as _we:
+        check("Welch强异方差数值基准", False, repr(_we))
     p1 = run(["tests/consistency_check.py"]); check("一致性0", p1.returncode == 0, p1.stdout[-200:])
     g = ROOT / "_ghost_doc_xyz.md"
     g.write_text("运行 `tools/ghost_tool_xyz.py --fake-switch-xyz`，导出 `_幽灵分析.csv`，见 [假文档](ghost_page_xyz.md)，路径 `我的工作区/99-ghost/`", encoding="utf-8")
