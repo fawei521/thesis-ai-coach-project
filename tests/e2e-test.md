@@ -859,7 +859,22 @@ python tests/test_special_columns.py`
 3. 载荷表 CSV（列：因子,题项,载荷）+ 因子相关方阵 CSV（下三角或全矩阵，缺格按对称补全）端到端读入，结果与手动参数一致；`--csv-out 目录` 另存 `_聚合区分效度.csv`（表头 因子/题项数/CR/AVE/√AVE/判定/区分效度）。
 4. 健壮性：载荷出现 ≥1（误用非标准化载荷）报错退出码1并中文提示；`--corr` 引用未提供载荷的因子报错；无参数打印帮助不崩；|载荷|<.50 给题项信度不足提醒；全程不抛 Traceback。
 5. 公式用 numpy 对 5 组随机载荷独立复算 CR/AVE/√AVE 逐位一致；固定黄金值 CR_A=.803/AVE_A=.505、CR_B=.706/AVE_B=.376。
-6. 菜单第13项引导（逐因子录载荷＋可选因子相关）端到端跑通；文档：stats-guide 第三节"聚合效度与区分效度"、data-analysis-auto 第4步 CFA 段与质量闸、README/START/QUICKSTART/AGENTS 同步；工具脚本总数 14、菜单 13 项。
+6. 菜单第13项引导（逐因子录载荷＋可选因子相关）端到端跑通；文档：stats-guide 第三节"聚合效度与区分效度"、data-analysis-auto 第4步 CFA 段与质量闸、README/START/QUICKSTART/AGENTS 同步。
+
+## 测试59：预试问卷项目分析工具（item_analysis.py，菜单第14项）
+
+**目的**：自编/修订量表在预试阶段要逐题甄别（项目分析），auto_stats 只给 CITC/删题α，缺教材必做的**决断值 CR（高低分组 t 检验）**。本工具复用 stats 包（不重复实现统计量），一次算齐决断值 CR、均值标准差、CITC、删题后α并给保留/讨论删改判定，导出项目分析表；只提示不替学生删题。
+
+**方法口径（教材通用）**：按量表总分把完整作答者排序，前 27% 为低分组、后 27% 为高分组，每题做等方差独立样本 t，t 即决断值 CR；|CR|≥3 且 p<.05 为区分度合格；CITC≥.40；删题后α不应高于整表α .02 以上。
+
+**构造与黄金对照**：固定随机种子造 5 题数据（4 题强载荷、第5题为纯噪声），用 scipy `ttest_ind(equal_var=True)`、numpy 相关与手算α逐题比对，CR/p/CITC/删题α/均值/标准差逐位一致（容差 2e-3）；噪声题被标记"CR不显著/|CR|<3/CITC<.40/删题后α升高"，4 道强题全部"保留"；整表α一致。注意分组排序须稳定（总分并列时口径一致）。
+
+**步骤与预期**：
+1. `item_analysis.py tests/test-data/demo_survey.csv --scales tests/test-data/demo_scales.txt`：4 个量表逐题输出 M/SD/CR（df、p）/CITC/删题α，demo 数据均"保留"，导出 `demo_survey_项目分析.csv`（UTF-8-BOM，12 列）。
+2. `--only 孤独感`：只处理该量表；`--csv-out 目录`：目录不存在自动创建并用默认文件名；给 `.csv` 路径则按文件写。
+3. 健壮性：缺 `--scales`、数据文件不存在、`--group` 越界（不在 .10-.50）、完整样本过少、题列缺失、配置里量表名拼错（--only）均中文提示并退出码1，不抛 Traceback；无参数打印帮助退出0。
+4. 反向题在 scales.txt 用 (R) 标对（复用 recoded_item_series），否则 CR 方向反；页脚固定"CR/CITC 仅经验参考、删题结合内容效度与理论、正式数据不反复套用"。
+5. 菜单第14项引导（数据→scales→可选单量表）端到端跑通；文档：stats-guide 第二节"预试项目分析"、data-analysis-auto 第3步与质量闸、README/START/QUICKSTART/AGENTS 同步；工具脚本总数 15、菜单 14 项。
 
 ---
 
@@ -905,6 +920,8 @@ python tools\effect_size.py v --chi2 6.10 --n 200 --rows 2 --cols 2
 # 14 聚合/区分效度（CFA 标准化载荷→CR/AVE/√AVE 与 Fornell-Larcker；.65 应判区分存疑）
 python tools\validity_cr_ave.py --factor "学习投入=0.72,0.68,0.74,0.70" --factor "学业倦怠=0.60,0.65,0.58,0.62" --corr "学习投入,学业倦怠,0.45"
 python tools\validity_cr_ave.py --factor "学习投入=0.72,0.68,0.74,0.70" --factor "学业倦怠=0.60,0.65,0.58,0.62" --corr "学习投入,学业倦怠,0.65"
+# 15 预试项目分析（决断值CR高低27%t + CITC + 删题α；默认导出 _项目分析.csv，验毕删）
+python tools\item_analysis.py tests\test-data\demo_survey.csv --scales tests\test-data\demo_scales.txt --only 孤独感
 ```
 
 测试结束后删除 `_t_*` 临时文件和 `tests/test-data/_demo_check` 目录。（test_special_columns.py 会自清其 `_special*` 临时文件）所有脚本只用Python标准库（模型图需matplotlib），

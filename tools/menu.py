@@ -63,7 +63,7 @@ def pause():
 
 
 def t_preprocess():
-    print("\n【1/13】问卷星数据预处理")
+    print("\n【1/14】问卷星数据预处理")
     print("  用途：把问卷星下载的原始表，转成后面能统计的标准数字表。")
     f = ask_path("  把问卷星导出的原始CSV拖进来，回车：")
     if not f:
@@ -72,7 +72,7 @@ def t_preprocess():
 
 
 def t_clean():
-    print("\n【2/13】问卷数据清洗（找无效问卷）")
+    print("\n【2/14】问卷数据清洗（找无效问卷）")
     f = ask_path("  把（预处理后的）数据CSV拖进来，回车：")
     if not f:
         return
@@ -91,7 +91,7 @@ def t_clean():
 
 
 def t_stats():
-    print("\n【3/13】自动统计分析")
+    print("\n【3/14】自动统计分析")
     print("  自动完成：人口学频数表、反向计分、信度α、结构效度(KMO/Bartlett/载荷)、")
     print("  共同方法偏差Harman、量表总分、描述统计、相关、回归、")
     print("  Bootstrap中介（模型4/6），并导出三线表和频数表。")
@@ -134,7 +134,7 @@ def t_stats():
 
 
 def t_search():
-    print("\n【4/13】检索英文学术文献（需要联网，免费，不用账号）")
+    print("\n【4/14】检索英文学术文献（需要联网，免费，不用账号）")
     print("  建议每个概念给 2-4 个同义/近义词，用分号 ; 隔开（概念内 OR、概念间 AND）。")
     print("  例：AI dependence;AI attachment;chatbot reliance")
     kw = input("  输入英文检索词（多个近义词用 ; 隔开；至少给一个）：").strip()
@@ -157,7 +157,7 @@ def t_search():
 
 
 def t_lit():
-    print("\n【5/13】文献去重与分类")
+    print("\n【5/14】文献去重与分类")
     print("  可拖入的有两种：① 每行一篇的 txt；② 第 4 项检索导出的标准 CSV（含 标题/作者 表头）。")
     print("  也可以直接拖知网导出的题录 txt。")
     f = ask_path("  把文献文件拖进来，回车：")
@@ -167,7 +167,7 @@ def t_lit():
 
 
 def t_cards():
-    print("\n【10/13】生成重点文献卡片网页（手机友好，挑精读用）")
+    print("\n【10/14】生成重点文献卡片网页（手机友好，挑精读用）")
     print("  吃第 4 项检索导出的 CSV、第 5 项的整理表（可多个，UTF-8/GBK 都行），")
     print("  自动去重、按 精读标记/被引/近年/相关度 选出重点，生成单个 HTML。")
     raw = input("  把一个或多个文献 CSV/整理表拖进来（多个用分号 ; 隔开），回车：").strip()
@@ -188,7 +188,7 @@ def t_cards():
 
 
 def t_chart():
-    print("\n【6/13】生成研究模型图")
+    print("\n【6/14】生成研究模型图")
     print("  链式模型示例变量：AI依赖,孤独感,反刍,NSSI（用英文逗号分隔，4个）")
     print("  简单模型示例变量：AI依赖,NSSI（2个）")
     vars_ = input("  输入变量名（逗号分隔）：").strip()
@@ -207,7 +207,7 @@ def t_chart():
 
 
 def t_demo():
-    print("\n【7/13】生成演示数据（还没收回问卷时，先拿它练手）")
+    print("\n【7/14】生成演示数据（还没收回问卷时，先拿它练手）")
     print("  会生成一份内置链式中介结构、含反向题的模拟数据，")
     print("  用来跑通第3步统计流程。模拟数据严禁写进真实论文。")
     out = input("  保存到哪个文件夹？可直接拖入一个文件夹，回车默认放进 我的工作区\\02-问卷数据：").strip().strip('"').strip("'")
@@ -218,7 +218,7 @@ def t_demo():
 
 
 def t_power():
-    print("\n【8/13】开题样本量 / 功效估算（G*Power 等价，回答要发多少份）")
+    print("\n【8/14】开题样本量 / 功效估算（G*Power 等价，回答要发多少份）")
     print("  1 相关分析（Pearson r）")
     print("  2 多元回归总体 R²（检验整组预测变量）")
     print("  3 多元回归 R² 增量（检验新增变量，如交互项）")
@@ -247,7 +247,7 @@ def t_power():
 
 
 def t_preview():
-    print("\n【9/13】预览我做的网页（本地预览，不上传任何东西）")
+    print("\n【9/14】预览我做的网页（本地预览，不上传任何东西）")
     print("  把你做的网页放进「我的工作区\\04-网页」，这里用浏览器打开它。")
     print("  还没有网页？对你的 AI 助手说：")
     print("     「我想做一个网页，你读一下 workflows/webpage-guide.md 带我做一个。」")
@@ -264,7 +264,7 @@ def t_preview():
 
 
 def t_anonymize():
-    print("\n【11/13】数据去标识化（发给AI/上传/给外校前，隐去姓名学号手机等）")
+    print("\n【11/14】数据去标识化（发给AI/上传/给外校前，隐去姓名学号手机等）")
     print("  自动识别并假名化/删除姓名、学号、手机、邮箱、身份证、微信/QQ、IP、住址等，")
     print("  并对性别/年级/专业/生源等组合做 k-匿名风险体检；只读原文件、另存新文件，绝不改原数据。")
     f = ask_path("  把要外发的原始数据CSV拖进来，回车：")
@@ -297,7 +297,7 @@ def _ask_num(prompt, kind=float):
 
 
 def t_effect():
-    print("\n【12/13】效应量换算与复核（写结果时，由 t/F/χ²/r 或均值标准差算效应量）")
+    print("\n【12/14】效应量换算与复核（写结果时，由 t/F/χ²/r 或均值标准差算效应量）")
     print("  论文不能只报 p 值，还要报效应量及（能给时）置信区间。选你手上已有的结果：")
     print("   1 两组均值/标准差/n → Cohen's d、Hedges' g")
     print("   2 已知 t 值 → d（独立两组）或配对 d_z")
@@ -358,7 +358,7 @@ def t_effect():
 
 
 def t_validity():
-    print("\n【13/13】聚合/区分效度（由 CFA 标准化载荷算 CR、AVE、√AVE 与 Fornell-Larcker）")
+    print("\n【13/14】聚合/区分效度（由 CFA 标准化载荷算 CR、AVE、√AVE 与 Fornell-Larcker）")
     print("  题项多/想用文件：把 CFA 载荷整理成 CSV（列：因子,题项,载荷），命令行跑：")
     print("  python tools/validity_cr_ave.py --loadings-csv 载荷.csv --corr-csv 因子相关.csv")
     nf = _ask_num("  因子（维度）个数：", int)
@@ -392,6 +392,25 @@ def t_validity():
     print("\n  载荷必须来自真实 CFA 输出；不达标如实报告，不得为凑 AVE≥.5 手改载荷。")
 
 
+def t_itemanalysis():
+    print("\n【14/14】预试问卷项目分析（决断值CR + CITC + 删题后α，决定删改哪些题）")
+    print("  用于预试数据：按量表总分取高/低各27%，逐题做独立样本t（决断值CR），")
+    print("  并给校正项总相关 CITC、删题后α与均值标准差，导出项目分析表。")
+    print("  scales.txt 与第3项同一个，反向题必须用 (R) 标对。")
+    f = ask_path("  把预试数据CSV拖进来，回车：")
+    if not f:
+        return
+    sc = ask_path("  把 scales.txt 拖进来，回车：")
+    if not sc:
+        return
+    args = [f, "--scales", sc]
+    only = input("  只分析某一个量表？输入量表名（直接回车=全部）：").strip()
+    if only:
+        args += ["--only", only]
+    run("item_analysis.py", args)
+    print("\n  CR/CITC 不达标只提示讨论；删题务必结合内容效度与专业理论，不能只凭数字。")
+
+
 MENU = [
     ("1", "问卷星数据预处理（原始答卷 → 标准数字表）", t_preprocess),
     ("2", "问卷数据清洗（识别无效问卷）", t_clean),
@@ -406,6 +425,7 @@ MENU = [
     ("11", "数据去标识化（外发前隐去姓名/学号/手机，附k-匿名体检）", t_anonymize),
     ("12", "效应量换算与复核（由t/F/χ²/r或均值标准差算d、r、η²、V及区间）", t_effect),
     ("13", "聚合/区分效度（CFA标准化载荷→CR、AVE、√AVE与Fornell-Larcker）", t_validity),
+    ("14", "预试问卷项目分析（高低27%决断值CR、CITC、删题后α，导出项目分析表）", t_itemanalysis),
 ]
 
 
@@ -420,6 +440,7 @@ def main():
         print("  画图用 6；练手用 7；开题估样本量用 8；预览自己的网页用 9")
         print("  数据外发前用 11 去标识化；写结果补效应量用 12")
         print("  CFA 后算组合信度/平均方差抽取/区分效度用 13")
+        print("  预试问卷筛题（决断值CR/CITC/删题α）用 14")
         print("-" * 64)
         for num, name, _ in MENU:
             print(f"  {num}. {name}")
