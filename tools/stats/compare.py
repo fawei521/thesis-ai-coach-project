@@ -117,7 +117,7 @@ def _welch_anova(groups):
     den = 1.0 + 2.0 * (k - 2) / (k ** 2 - 1) * D
     F = num / den
     df1 = k - 1
-    df2 = (k ** 3 - k) / (3.0 * D) if D > 0 else float("inf")
+    df2 = (k ** 2 - 1) / (3.0 * D) if D > 0 else float("inf")
     p = f_p_value(F, df1, df2) if df2 != float("inf") else None
     return F, df1, df2, p
 
