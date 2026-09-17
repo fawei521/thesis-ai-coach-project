@@ -114,6 +114,7 @@
 - [x] 量表库硬事实核查纠错（v1.47：RRQ 24题、AAS 18题、FASM Kelley/功能模型、UCLA V3=Russell1996、CD-RISC-10简版作者、MPAI=Leung2008，其余20+量表核对无误）
 - [x] 一键全量回归固化（v1.48：115项断言沉淀为随包 tests/full_e2e.py，自备份恢复自清，开发/干净副本通用，DEVELOPMENT L5与发布清单改指该脚本）
 - [x] Zotero/Obsidian 工具链插件职责纠错（v1.49：ZI只导入笔记，正文引用改指Word Zotero插件/Citations/Zotero Citations；Zotero7菜单措辞；full_e2e清理遗漏修复，断言118）
+- [x] 数据库批量下载红线＋归类/结果顺序（v1.50：联网核实知网过量下载阈值/封禁规则，补合规红线，题录总表归01，写作结果章人口学差异独立，断言122）
 - [ ] 知网检索流程针对更多学校适配（学校路径配置文件）
 - [ ] 增加Excel版自动统计（给完全不装Python的同学）
 - [ ] 进度看板HTML（优先级低，对话与脚本已能覆盖）

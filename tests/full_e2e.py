@@ -117,6 +117,9 @@ try:
     check("目录名统一", not bad, str(sorted(set(bad))))
     st = tx("START.md"); check("START第七步", "## 第七步：开始引导" in st and "第五步半" not in st)
     las = tx("workflows/literature-auto-search.md"); check("知网落点", "我的工作区/01-文献PDF/" in las and "`文献PDF/`" not in las)
+    check("批量下载红线阈值", "单次登录全文下载不超过约 **30 篇**" in las and "30-50 篇以内" in las and "永久封禁" in las)
+    check("全文不传播不批量工具", "不得传播、上传到公开网络" in las and "禁用迅雷" in las and "不整期/整卷下载" in las)
+    check("题录总表归文献区", "文献总表 CSV 都归文献区" in las and "文献总表 CSV 放 `我的工作区/03" not in las)
     for d in ["01-文献PDF", "02-问卷数据", "03-分析结果"]: check("目录" + d, (ROOT / "我的工作区" / d).is_dir())
     bat = (ROOT / "启动工具箱.bat").read_bytes(); cc = bat.count(b"\r\n"); lo = bat.count(b"\n") - cc
     check("bat编码行尾", bat[:3] != b"\xef\xbb\xbf" and cc > 20 and lo == 0, f"crlf={cc} lf={lo}")
@@ -169,6 +172,7 @@ try:
     check("样本量质量闸口径", "链式等复杂模型建议 300" in daa and "至少>150" not in daa)
     wg = tx("workflows/writing-guide.md")
     check("写作结果章节", "简单斜率" in wg and "热图" in wg and "卡方" in wg)
+    check("结果章顺序规范", "人口学差异（t/方差分析/卡方等）→相关" in wg)
     sp = run(["tests/test_special_columns.py"]); check("特殊列测试0", sp.returncode == 0, (sp.stdout or "")[-300:] + (sp.stderr or "")[-200:])
     wp = tx("tools/wjx_preprocess.py"); dc = tx("tools/data_cleaner.py")
     check("预处理特殊列识别", "detect_special_column" in wp and "multi" in wp)
