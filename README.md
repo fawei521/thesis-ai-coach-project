@@ -32,7 +32,7 @@
 | 选题 | 给选题方向、验证创新性、检索英文文献 |
 | 开题 | 开题报告模板、开题PPT、模拟开题问答 |
 | 文献 | 自动操作知网检索、英文API检索、PDF结构化分析、研究空白梳理 |
-| 量表 | 16类常用量表对比（含AI依赖、NSSI、孤独、反刍等），信效度信息、问卷生成 |
+| 量表 | 16种常用量表对比（含AI依赖、NSSI、孤独、反刍等），信效度信息、问卷生成 |
 | 数据 | 问卷星预处理、自动清洗（注意力检查题/长直线/低变异/高缺失/时长，附剔除报告）、反向计分、算总分 |
 | 分析 | 一键跑人口学频数/信度α+题项分析(CITC/删题α)+分半信度(Spearman-Brown/Guttman λ4)/结构效度KMO/自编量表完整EFA(多因子+Varimax+平行分析+自动碎石图)/Harman/描述统计(含偏度峰度正态性)/相关矩阵+α对角整合三线表并自动出下三角相关热图(系数+显著性星号、对角Cronbach α,支持--spearman秩相关、--partial控制性别年级等的偏相关)/人口学差异(Levene方差齐性+独立样本t/Welch t+单因素ANOVA/Welch ANOVA+Cohen d/η²+Bonferroni事后；偏态/有序时--nonparametric给Mann-Whitney U/Kruskal-Wallis H非参数检验)/人口学交叉卡方χ²+Cramér's V(分类×分类,Yates/Fisher提示)/回归(含容差/VIF共线性诊断)/Bootstrap中介(模型4/6)/调节效应(模型1中心化交互项+±1SD简单斜率+简单斜率图)、开题样本量功效估算(sample_size.py，G*Power等价)、生成三线表、画模型图，JASP/SPSS仅复核 |
 | 写作 | 大纲、各章节要点、语言润色、格式检查、去AI味 |
@@ -62,11 +62,12 @@
 - `proposal-guide.md` — 开题报告专项
 - `defense-guide.md` — 毕业答辩专项
 - `writing-guide.md` — 论文写作辅助
+- `communication-guide.md` — 跟老师沟通全程指南（节奏、12个场景话术、反馈解读、礼仪、留痕）
 
 ## 专业知识库（psychology/）
 
-- `scale-library.md` — 16类心理学常用量表（题数、维度、信度、出处，含AI依赖、NSSI等新主题）
-- `stats-guide.md` — 10种统计方法的SPSS/JASP操作步骤
+- `scale-library.md` — 16种心理学常用量表（题数、维度、信度、出处，含AI依赖、NSSI等新主题）
+- `stats-guide.md` — 常用统计方法的SPSS/JASP/PROCESS操作步骤（信效度、共同方法偏差、相关与差异、中介/调节、网络分析、功效分析等）
 - `ethics.md` — 研究伦理（知情同意、未成年人、敏感话题）
 
 ## 4种导师风格
@@ -104,6 +105,10 @@ thesis-ai-coach-project/
 ```
 
 ## 版本
+
+**v1.45 新增《跟老师沟通指南》补全程短板版**
+- 新增 workflows/communication-guide.md：五原则、沟通节奏、12个场景可套用话术（选题/量表/开题/伦理/收数/初稿/修改/催稿/被批评/不回复/分歧）、礼仪、态度解读、留痕
+- coach 阶段10、START 导航、README 接入；修正"16类/10种"数字漂移（实际16种量表分6大类、stats-guide 11章节）
 
 **v1.44 AI使用声明如实化＋文献精读/工作区走查版**
 - 修正 AI 使用声明：原"AI未参与的内容"绝对化表述与实际用脚本检索/计算矛盾（签了反而不如实），改为"核心学术贡献由本人独立完成"的可如实签署口径
