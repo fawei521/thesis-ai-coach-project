@@ -36,7 +36,7 @@
 | 数据 | 问卷星预处理、自动清洗（注意力检查题/长直线/低变异/高缺失/时长，附剔除报告）、反向计分、算总分 |
 | 分析 | 一键跑人口学频数/信度α+题项分析(CITC/删题α)+分半信度(Spearman-Brown/Guttman λ4)/结构效度KMO/自编量表完整EFA(多因子+Varimax+平行分析+自动碎石图)/Harman/描述统计(含偏度峰度正态性)/相关矩阵+α对角整合三线表并自动出下三角相关热图(系数+显著性星号、对角Cronbach α,支持--spearman秩相关、--partial控制性别年级等的偏相关)/人口学差异(Levene方差齐性+独立样本t/Welch t+单因素ANOVA/Welch ANOVA+Cohen d/η²+Bonferroni事后；偏态/有序时--nonparametric给Mann-Whitney U/Kruskal-Wallis H非参数检验)/人口学交叉卡方χ²+Cramér's V(分类×分类,Yates/Fisher提示)/回归(含容差/VIF共线性诊断)/Bootstrap中介(模型4/6)/调节效应(模型1中心化交互项+±1SD简单斜率+简单斜率图)、开题样本量功效估算(sample_size.py，G*Power等价)、生成三线表、画模型图，JASP/SPSS仅复核 |
 | 写作 | 大纲、各章节要点、语言润色、格式检查、去AI味 |
-| 答辩 | PPT大纲、发言稿、20个高频问题、模拟答辩 |
+| 答辩 | PPT大纲、发言稿、24个高频问题、模拟答辩 |
 
 ## 自动化工具（tools/）
 
@@ -104,6 +104,10 @@ thesis-ai-coach-project/
 ```
 
 ## 版本
+
+**v1.42 核心规则手册整体走查＋答辩题库数字一致性版**
+- 逐节走查 coach-rules（角色/原则/4人格/3难度/进度卡续接/12阶段/红线/8常见错误/紧急模式/工具规范/三检查闸/说话方式），与工具实际能力一致
+- 修正数字漂移：defense-guide 题库 v1.29 已扩到 24 问，但 coach-rules 阶段11 与 README 能力表仍写"20个"，统一为 24；核查文献量口径（收集30-50、精读10-15）各文档已一致
 
 **v1.41 环境搭建指南事实准确性走查版（联网核实）**
 - JASP 中介改为"先内置 Regression → Mediation（Bootstrap），PROCESS 为模块库可选"，并区分 SPSS 需另装 Hayes PROCESS 宏（Model 4/6）
