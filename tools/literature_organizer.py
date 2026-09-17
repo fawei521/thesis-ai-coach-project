@@ -3,8 +3,11 @@
 """
 文献整理工具
 功能：文献去重、分类、导出整理表
-用法：python literature_organizer.py <输入文件.csv或txt>
-输入格式：每行一篇文献，包含标题、作者、年份、期刊等信息
+用法：
+  python literature_organizer.py <输入文件.csv或txt>
+  - 输入为带表头的中文 CSV（paper_search.py 导出、知网导出、Excel 另存）时，自动按列解析
+    （UTF-8 / GBK 都能读；列名支持 标题·作者·年份·期刊 或 题名·作者·年·来源 等常见写法）；
+  - 输入为纯文本（每行一篇文献，含标题、作者、年份等信息）时，按行启发式解析。
 """
 
 import csv
@@ -22,8 +25,59 @@ if hasattr(sys.stdout, "reconfigure") and not sys.stdout.isatty():
     sys.stderr.reconfigure(encoding="utf-8", errors="replace")
 
 
+def find_csv_encoding(path):
+    """返回该 CSV 实际可用的编码；不是"带表头的标准CSV"则返回 None。
+
+    必须同时含 标题/作者 两列且含逗号，避免把普通文本误判。
+    关键：识别与解析必须用**同一个**编码，否则 GBK 导出的 CSV（知网、Excel 另存）
+    会被 utf-8 解成乱码、认不出列名，最后静默导出 0 篇。
+    """
+    for enc in ("utf-8-sig", "gb18030", "gbk"):
+        try:
+            with open(path, 'r', encoding=enc, newline='') as f:
+                sample = f.read(4096)
+        except (UnicodeDecodeError, UnicodeError, OSError):
+            continue
+        if ("标题" in sample) and ("作者" in sample) and ("," in sample):
+            return enc
+    return None
+
+
+def parse_csv_literatures(path, encoding="utf-8-sig"):
+    """按列解析标准CSV（paper_search.py 导出，或知网/Excel 另存的中文表头 CSV）。"""
+    items = []
+    with open(path, 'r', encoding=encoding, newline='') as f:
+        reader = csv.DictReader(f)
+        if not reader.fieldnames:
+            return items
+        for row in reader:
+            # 容忍列名前后的空格与 BOM
+            row = {(k or "").strip().lstrip("\ufeff"): v for k, v in row.items()}
+            title = (row.get("标题") or row.get("题名") or "").strip()
+            if not title or title in ("标题", "题名"):
+                continue
+            author = (row.get("作者") or "").strip()
+            year = (row.get("年份") or row.get("年") or "").strip()
+            journal = (row.get("期刊") or row.get("来源") or row.get("刊名") or "").strip()
+            doi = (row.get("DOI") or "").strip()
+            abstract = (row.get("摘要") or "").strip()
+            oa = (row.get("开放获取链接") or "").strip()
+            raw_parts = [p for p in [title, author, year, journal, doi, abstract, oa] if p]
+            items.append({
+                'raw': " | ".join(raw_parts)[:200],
+                'title': title[:100],
+                'author': author,
+                'year': year,
+                'journal': journal,
+                'doi': doi,
+                'category': '',
+                'notes': ''
+            })
+    return items
+
+
 def parse_literature_line(line):
-    """解析一行文献信息，提取标题、作者、年份"""
+    """解析一行文献信息，提取标题、作者、年份（纯文本格式）"""
     line = line.strip()
     if not line:
         return None
@@ -53,6 +107,36 @@ def parse_literature_line(line):
         'category': '',
         'notes': ''
     }
+
+
+def load_literatures(input_path):
+    """读取文献：标准CSV按列解析，否则按行启发式解析。返回 None 表示读取失败。"""
+    csv_enc = find_csv_encoding(input_path)
+    if csv_enc:
+        items = parse_csv_literatures(input_path, csv_enc)
+        if not items:
+            print('识别为带表头的CSV，但没有解析到任何一行文献。')
+            print('请确认表格里有「标题」列且至少一行有内容；')
+            print('若你的导出表用的是别的列名，可另存为「每行一篇的txt」再重试。')
+            return None
+        return items
+    text = None
+    for enc in ("utf-8-sig", "gb18030", "gbk"):
+        try:
+            with open(input_path, 'r', encoding=enc) as f:
+                text = f.read()
+            break
+        except (UnicodeDecodeError, UnicodeError):
+            continue
+    if text is None:
+        print('无法识别文件编码，请把文献清单另存为UTF-8后重试。')
+        return None
+    items = []
+    for line in text.splitlines():
+        parsed = parse_literature_line(line)
+        if parsed:
+            items.append(parsed)
+    return items
 
 
 def normalize_title(title):
@@ -85,11 +169,15 @@ def auto_categorize(literatures, keywords_map=None):
     """
     if keywords_map is None:
         keywords_map = {
-            '自变量相关': ['AI', '人工智能', '依赖', '成瘾', '手机', '网络', '短视频'],
-            '因变量相关': ['自伤', 'NSSI', '自杀', '抑郁', '焦虑', '心理健康'],
-            '中介变量': ['孤独', '反刍', '社会支持', '自尊', '自我效能'],
-            '方法学': ['中介', '调节', '网络分析', '纵向', '元分析'],
-            '理论综述': ['综述', '理论', '模型', '机制'],
+            '自变量相关': ['AI', '人工智能', '依赖', '成瘾', '手机', '网络', '短视频',
+                         'smartphone', 'addiction', 'artificial intelligence', 'social media', 'internet'],
+            '因变量相关': ['自伤', 'NSSI', '自杀', '抑郁', '焦虑', '心理健康',
+                         'self-injury', 'self-harm', 'suicide', 'depression', 'anxiety'],
+            '中介变量': ['孤独', '反刍', '社会支持', '自尊', '自我效能',
+                       'loneliness', 'rumination', 'social support', 'self-esteem', 'self-efficacy'],
+            '方法学': ['中介', '调节', '网络分析', '纵向', '元分析',
+                     'mediation', 'moderat', 'network analysis', 'longitudinal', 'meta-analysis', 'bootstrap'],
+            '理论综述': ['综述', '理论', '模型', '机制', 'review', 'theory', 'mechanism'],
         }
 
     for lit in literatures:
@@ -160,7 +248,7 @@ def print_summary(literatures, duplicates):
 
 def main():
     parser = argparse.ArgumentParser(description='文献整理工具')
-    parser.add_argument('input', help='输入文件路径（txt或csv，每行一篇文献）')
+    parser.add_argument('input', help='输入文件路径（txt，或带中文表头的CSV：paper_search导出/知网导出/Excel另存）')
     parser.add_argument('--output', '-o', help='输出文件路径（默认：输入文件名_整理表.csv）')
     args = parser.parse_args()
 
@@ -177,23 +265,10 @@ def main():
     print('文献整理工具')
     print('=' * 50)
 
-    # 读取文献（自动兼容UTF-8/GBK）
-    literatures = []
-    text = None
-    for enc in ("utf-8-sig", "gb18030", "gbk"):
-        try:
-            with open(input_path, 'r', encoding=enc) as f:
-                text = f.read()
-            break
-        except (UnicodeDecodeError, UnicodeError):
-            continue
-    if text is None:
-        print('无法识别文件编码，请把文献清单另存为UTF-8后重试。')
+    # 读取文献（带表头的CSV按列解析；纯文本按行启发式解析，自动兼容UTF-8/GBK）
+    literatures = load_literatures(input_path)
+    if literatures is None:
         return
-    for line in text.splitlines():
-        parsed = parse_literature_line(line)
-        if parsed:
-            literatures.append(parsed)
 
     print(f'\n读取文献：{len(literatures)}篇')
 

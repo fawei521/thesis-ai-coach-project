@@ -16,9 +16,19 @@ data/
 *.xls
 *.sav
 
-# ===== 学生工作区：只跟踪占位提示与进度卡，学生放入的真实文件一律不提交 =====
+# ===== 学生工作区：只跟踪预置的说明/模板/进度卡，学生放入的真实文件一律不提交 =====
+# 注意：git 不能重新包含落在**被排除目录**里的文件，所以这里逐目录写"排除全部 + 白名单具体文件"。
+# 加白名单时务必确认该文件是"随包预置的模板"而非学生产物——学生一旦填写，改动的就是模板本身，
+# 是否入库由维护者判断（可像本文件一样只放预置基线）。
+#   - 先读我.md / 我的论文进度.md：预置说明与进度卡（学生填写版由学生自己保管）
+#   - 01-文献PDF/检索记录.md：预置检索留痕表（防假空白反查要求写入这里，见 workflows/literature-auto-search.md）
+#   - 各目录 *.txt：占位提示文件
+# ⚠️ 例外要小心：题录/文献清单类 txt 属于**学生本人成果**，随包分发等于把作者自己的检索结果
+#    送给别的同学（也泄私），故按文件名排除，不要收进包。
 我的工作区/01-文献PDF/*
 !我的工作区/01-文献PDF/*.txt
+!我的工作区/01-文献PDF/检索记录.md
+我的工作区/01-文献PDF/知网题录_*.txt
 我的工作区/02-问卷数据/*
 !我的工作区/02-问卷数据/*.txt
 我的工作区/03-分析结果/*
@@ -36,6 +46,8 @@ tests/test-data/*_频数表.csv
 tests/test-data/demo_survey_统计结果.csv
 tests/test-data/*_列映射报告.txt
 tests/test-data/_*
+# 测试自己的临时工作区（full_e2e 在里面建随机子目录，不放 test-data：见 new_tmp 的注释）
+tests/.tmp_e2e/
 
 # ===== 输出产物 =====
 output/
@@ -71,6 +83,19 @@ tests/test-data/*_信度分析.csv
 tests/test-data/*_题项分析.csv
 tests/test-data/*_cleaned.csv
 tests/test-data/*_清洗报告.csv
+# 文献整理输出（organizer 的产物，随分类规则变化；此前被误跟踪，导致测试一跑就"脏"）
+tests/test-data/*_整理表.csv
+# 测试自身的临时工作目录前缀（正常会被清理，兜底防止残留被提交）
+tests/test-data/_skill_neg_*/
+tests/test-data/_litcsv_*/
+tests/test-data/_v12mobile_*/
 
 # auto_stats 拆包后的实现包缓存
 tools/stats/__pycache__/
+
+# ===== 凭据类文件一律不入库（项目口径：任何位置都不保存账号密码）=====
+# 本规则是兜底，不代表允许学生把密码写进项目文件夹——见 CONSTITUTION.md 第七条。
+我的工作区/*.local.json
+我的工作区/**/*登录*.txt
+我的工作区/**/*密码*
+

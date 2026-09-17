@@ -151,7 +151,9 @@ def t_search():
 
 def t_lit():
     print("\n【5/9】文献去重与分类")
-    f = ask_path("  把文献列表（每行一篇的txt）拖进来，回车：")
+    print("  可拖入的有两种：① 每行一篇的 txt；② 第 4 项检索导出的标准 CSV（含 标题/作者 表头）。")
+    print("  也可以直接拖知网导出的题录 txt。")
+    f = ask_path("  把文献文件拖进来，回车：")
     if not f:
         return
     run("literature_organizer.py", [f])

@@ -107,7 +107,7 @@
   - `search_repositories/search_code` 用于调研成熟做法（阶段 R）。
   - 推送/建仓属**外部写操作**：默认建**私有**仓库；推送前确认不含学生数据、账号密码、学校代理凭据；公开仓库需用户明确同意。
 - **etsy-openapi**：与本项目无关，不使用。
-- 浏览器/虚拟电脑（知网）：登录、验证码、扫码一律交学生，AI 不接触密码（见 `workflows/literature-auto-search.md`）。
+- 浏览器/虚拟电脑（知网）：登录、验证码、扫码一律交学生，AI 不接触密码，**也不许 AI 去读取写着密码的文件**（见 `workflows/literature-auto-search.md` 第〇步与第二步）。此红线由 `full_e2e.py` 的"凭据代填红线"断言守护。
 
 ## 4. 学术正确性红线
 

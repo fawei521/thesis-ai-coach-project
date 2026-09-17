@@ -8,7 +8,7 @@ thesis-ai-coach 全量端到端回归（测试金字塔 L7）。
 退出码 0 = 全部通过；非 0 = 有失败项（见 FAIL 行）。
 运行中会在 tests/test-data 生成并自动清理临时产物，结束时恢复被跟踪的基准样例。
 """
-import os, sys, subprocess, csv, re, shutil
+import os, sys, subprocess, csv, re, shutil, time
 from pathlib import Path
 # --- 输出编码守卫：管道/重定向时强制 UTF-8 ---
 # 中文 Windows 控制台默认 GBK，Python 写真实控制台不受影响，
@@ -47,6 +47,75 @@ for name in ["demo_survey.csv", "demo_scales.txt", "sample_literature.txt"]:
     if f.exists():
         BACKUP[name] = f.read_bytes()
 
+def new_tmp(name):
+    """给测试准备一个固定名字的临时目录（`tests/.tmp_e2e/<name>/`），已存在则先清空。
+
+    为什么不用 `tempfile.mkdtemp()`：
+    1. 系统临时区在本项目可能的运行环境里可能只读/半隔离（实测 mkdtemp 出的目录写文件直接 PermissionError）；
+    2. tests/test-data 的 `_*` 被 .gitignore 整体排除，子目录无法用 `!` 白名单救回；
+    3. 更关键的是 Windows 语义：目录删除后有一段"delete-pending"窗口（句柄未释放前，目录名仍在、
+       且**对它及其子路径的一切访问都报拒绝**）。一次回归里反复 mkdtemp + rmtree，
+       新建目录就可能撞上刚删掉还没消失的旧目录，导致写入/删除随机 PermissionError。
+    改用固定目录名 + 全程复用 + 只清内容不删目录，就完全避开这个窗口。"""
+    d = ROOT / "tests" / ".tmp_e2e" / name
+    if d.exists():
+        for child in d.iterdir():
+            if child.is_dir():
+                rmtree_retry(child)
+            else:
+                try: child.unlink()
+                except OSError: pass
+    d.mkdir(parents=True, exist_ok=True)
+    return d
+
+def rmtree_retry(d, tries=5):
+    """删目录：Windows 上刚用完的目录可能被杀软/索引器/子进程短暂占用（WinError 5）。
+    ignore_errors 会让它**静默留下残留目录**污染仓库，故改为小退避重试并回报。"""
+    d = Path(d)
+    for i in range(tries):
+        try:
+            shutil.rmtree(d)
+            return True
+        except FileNotFoundError:
+            return True
+        except OSError:
+            if i == tries - 1:
+                return False
+            time.sleep(0.4 * (i + 1))
+    return False
+
+def dir_state(d):
+    """区分"真残留"与"删除挂起"。
+    Windows 上删除目录后，若仍有句柄未释放，目录名会保留在父目录里且**连列目录都被拒绝**
+    （delete-pending 状态，句柄一关就自动消失）。这种情况既不是测试失败、也无法强行清理，
+    只能报告；能正常列出内容却删不掉的，才是需要人工处理的真残留。
+    本函数与 `leftover_dirs` 一律吞掉 OSError：清理阶段的探测本身绝不能抛异常打断回归。"""
+    d = Path(d)
+    try:
+        if not d.exists():
+            return "gone"
+    except OSError:
+        return "pending"
+    try:
+        list(os.scandir(d))
+        return "leftover"
+    except OSError:
+        return "pending"
+
+def leftover_dirs(sub, prefixes):
+    out = []
+    try:
+        for pre in prefixes:
+            for x in sub.glob(pre + "*"):
+                try:
+                    if x.is_dir():
+                        out.append(x)
+                except OSError:
+                    continue
+    except OSError:
+        pass
+    return out
+
 def cleanup():
     # demo_survey_*.csv/png 只匹配带下划线后缀的生成物，不会动基准 demo_survey.csv
     for pat in ["_e2e*", "_special*", "_ps.csv", "demo_survey_*.csv", "demo_survey_*.png", "demo_survey_cleaned.csv"]:
@@ -55,11 +124,33 @@ def cleanup():
                 try: f.unlink()
                 except OSError: pass
     for d in [TD / "_chart", TD / "_demo"]:
-        shutil.rmtree(d, ignore_errors=True)
+        rmtree_retry(d)
+    # 测试自身的临时目录（阴性测试 / 文献CSV / 手机版构建）：用 tests/.tmp_e2e/ 下固定名目录，
+    # 只清内容、不删目录（避免 Windows delete-pending 窗口撞车，见 new_tmp）；
+    # 同时兜底扫一遍 test-data 的历史前缀（旧版残留、外部脚本留下的目录）。
+    tmp_base = ROOT / "tests" / ".tmp_e2e"
+    for d in leftover_dirs(tmp_base, [""]):
+        for child in leftover_dirs(d, [""]):
+            rmtree_retry(child)
+        try:
+            for f in os.scandir(d):
+                if f.is_file():
+                    try: os.unlink(f.path)
+                    except OSError: pass
+        except OSError:
+            pass
+    for d in leftover_dirs(TD, ["_skill_neg_", "_litcsv_", "_v12mobile_"]):
+        if rmtree_retry(d):
+            continue
+        st = dir_state(d)
+        if st == "pending":
+            print("NOTE 测试临时目录处于系统删除挂起态（句柄释放后自行消失，非残留）：" + d.name)
+        else:
+            print("WARN 测试临时目录未能删除（Windows 占用，请手动清理）：" + str(d))
     for name, b in BACKUP.items():
         (TD / name).write_bytes(b)
     for d in ROOT.rglob("__pycache__"):
-        shutil.rmtree(d, ignore_errors=True)
+        rmtree_retry(d)
 
 try:
     for pat in ["_e2e*", "demo_survey_*.csv", "demo_survey_*.png"]:
@@ -140,6 +231,43 @@ try:
     check("批量下载红线阈值", "单次登录全文下载不超过约 **30 篇**" in las and "30-50 篇以内" in las and "永久封禁" in las)
     check("全文不传播不批量工具", "不得传播、上传到公开网络" in las and "禁用迅雷" in las and "不整期/整卷下载" in las)
     check("题录总表归文献区", "文献总表 CSV 都归文献区" in las and "文献总表 CSV 放 `我的工作区/03" not in las)
+    # ---- 账号密码红线（P0）：项目任何文件都不得出现"AI 代填/凭据文件"这类写法 ----
+    # 起因：并行会话把"AI 读取本地凭据文件代填图书馆密码"写进了 literature-auto-search，
+    # 与 CONSTITUTION 第七条、ai-literacy、behavior-self-test T25 三处直接冲突。
+    # 该缺陷此前能一路过关，是因为没有任何断言守这条红线——本组断言即为它补的闸。
+    cred_md = [p for p in ROOT.rglob("*.md")
+               if "CHANGELOG" not in p.name and p.name not in ("e2e-test.md", "behavior-self-test.md")
+               and "doubao-skill" not in p.parts]
+    cred_hits = []
+    for p in cred_md:
+        t = p.read_text(encoding="utf-8", errors="ignore")
+        for bad in ("AI代填", "授权AI代填", "library-login.local.json", "代填并提交", "读取凭据文件"):
+            if bad in t:
+                cred_hits.append(f"{p.name}:{bad}")
+    check("凭据代填红线", not cred_hits, str(sorted(set(cred_hits))))
+    check("登录交学生本人", "登录一律由学生本人" in las or "学生本人输入" in las)
+    check("拒绝代填明确入工作流", "不索取、不接受、不存储、不代填" in las and "T25" in las)
+    check("检索记录预置存在", (ROOT / "我的工作区" / "01-文献PDF" / "检索记录.md").exists())
+    check("检索记录模板存在", (ROOT / "templates" / "检索记录模板.md").exists())
+    check("检索记录入口", "检索记录.md" in las and "检索记录.md" in tx("我的工作区/先读我.md"))
+    check("进度卡接检索留痕", "文献与检索留痕" in tx("我的工作区/我的论文进度.md"))
+    check("菜单5接受CSV", "标准 CSV" in menu and "txt" in menu)
+    # 发布形态安全：预置文件必须在 git 索引里，否则 git archive 打出的包会缺它，
+    # 而开发树里看着"明明存在"（.gitignore 的目录级排除曾把新建的 检索记录.md 挡在包外）。
+    if (ROOT / ".git").exists():
+        ls = subprocess.run(["git", "ls-files", "-z"], capture_output=True, text=True,
+                            encoding="utf-8", errors="replace", cwd=str(ROOT))
+        tracked = set(ls.stdout.split("\0")) if ls.returncode == 0 else set()
+        want = {"我的工作区/01-文献PDF/检索记录.md", "templates/检索记录模板.md",
+                "我的工作区/先读我.md", "我的工作区/我的论文进度.md"}
+        check("预置文件已入库", want <= tracked, str(sorted(want - tracked)))
+        # 反向：学生本人的数据/成果/凭据不得入库（题录 txt、CSV、真实数据）
+        leak = [t for t in tracked if t.startswith("我的工作区/")
+                and not (t.endswith("把论文PDF放这里.txt") or t.endswith("把问卷数据放这里.txt")
+                         or t.endswith("把分析结果放这里.txt") or t.endswith("把网页放这里.txt")
+                         or t.endswith("先读我.md") or t.endswith("我的论文进度.md")
+                         or t.endswith("检索记录.md"))]
+        check("学生数据不入库", not leak, str(sorted(leak)))
     for d in ["01-文献PDF", "02-问卷数据", "03-分析结果"]: check("目录" + d, (ROOT / "我的工作区" / d).is_dir())
     bat = (ROOT / "启动工具箱.bat").read_bytes(); cc = bat.count(b"\r\n"); lo = bat.count(b"\n") - cc
     check("bat编码行尾", bat[:3] != b"\xef\xbb\xbf" and cc > 20 and lo == 0, f"crlf={cc} lf={lo}")
@@ -257,6 +385,29 @@ try:
     check("菜单7默认归位工作区02", "我的工作区/02-问卷数据" in menu)
     r = run(["tools/literature_organizer.py", str(TD / "sample_literature.txt")])
     check("菜单5文献整理", r.returncode == 0 and "去重" in (r.stdout or ""), (r.stderr or "")[-200:])
+    # 文献整理器吃"带中文表头的CSV"（paper_search 导出 / 知网导出 / Excel 另存）
+    # 关键回归点：识别列名与解析必须用同一编码，否则 GBK 导出会静默导出 0 篇
+    lit_tmp = new_tmp("litcsv")
+    try:
+        utf8_csv = lit_tmp / "utf8.csv"
+        utf8_csv.write_text("序号,标题,作者,年份,期刊,DOI\n1,大学生AI依赖与孤独感,张三,2025,心理科学,10.1/x\n"
+                            "2,反刍思维的中介作用,李四,2024,心理学报,\n", encoding="utf-8")
+        r = run(["tools/literature_organizer.py", str(utf8_csv), "-o", str(lit_tmp / "o1.csv")])
+        check("整理器吃UTF8标准CSV", r.returncode == 0 and "读取文献：2篇" in (r.stdout or ""), (r.stdout or "")[-200:])
+        # 知网/Excel 另存的 GBK CSV：必须同样读出 2 篇（此前会解成乱码、静默 0 篇）
+        gbk_csv = lit_tmp / "gbk.csv"
+        gbk_csv.write_bytes("序号,标题,作者,年份,期刊\n1,大学生AI依赖与孤独感,张三,2025,心理科学\n"
+                            "2,反刍思维的中介作用,李四,2024,心理学报\n".encode("gb18030"))
+        r = run(["tools/literature_organizer.py", str(gbk_csv), "-o", str(lit_tmp / "o2.csv")])
+        check("整理器吃GBK中文CSV", r.returncode == 0 and "读取文献：2篇" in (r.stdout or ""), (r.stdout or "")[-240:])
+        # 有表头但无内容：必须中文提示而不是静默吐出 0 篇整理表
+        empty_csv = lit_tmp / "empty.csv"
+        empty_csv.write_text("序号,标题,作者\n1,,\n", encoding="utf-8")
+        r = run(["tools/literature_organizer.py", str(empty_csv), "-o", str(lit_tmp / "o3.csv")])
+        check("整理器空表不静默", r.returncode != 0 or "读取文献：0篇" not in (r.stdout or ""),
+              (r.stdout or "")[-200:])
+    finally:
+        shutil.rmtree(lit_tmp, ignore_errors=True)
     check("菜单6提示回车", "直接回车" in menu)
     r = run(["tools/paper_search.py", "--query", "AI dependence", "--limit", "2", "--output", str(TD / "_ps.csv")], 90)
     check("菜单4英文检索不崩", r.returncode == 0 or "Traceback" not in (r.stderr or ""), (r.stderr or "")[-200:])
@@ -372,10 +523,22 @@ try:
     check("Skill进度模板", (SK / "templates" / "我的论文进度模板.md").exists())
     check("Skill轻量版不虚构工具", "不含脚本" in (SK / "references" / "tools.md").read_text(encoding="utf-8"))
     # 阴性测试：在临时副本植入断链与占位，validate.py 必须判失败（防止自检是空壳）
-    import tempfile
-    neg = Path(tempfile.mkdtemp(dir=TD, prefix="_skill_neg_"))
+    # 临时目录用**系统临时区**，不放 tests/test-data：实测 Windows 下在仓库内 mkdtemp + copytree
+    # 会被杀软/索引器短暂锁住（WinError 5），既可能打断回归、又会留下删不掉的目录污染仓库。
+    neg = new_tmp("skill_neg")
     try:
-        shutil.copytree(SK, neg / "doubao-skill")
+        # copytree 到刚建的目录仍可能被瞬时占用，保留小退避重试（此前无重试，直接抛 PermissionError 打断全量回归）
+        copied = False
+        for attempt in range(5):
+            try:
+                shutil.copytree(SK, neg / "doubao-skill")
+                copied = True
+                break
+            except OSError:
+                if attempt == 4:
+                    raise
+                time.sleep(0.4 * (attempt + 1))
+        check("Skill阴性副本就位", copied)
         vf = neg / "doubao-skill" / "SKILL.md"
         vf.write_text(vf.read_text(encoding="utf-8") + "\n见 `ghost-ref-xyz.md`，TODO 待补充\n",
                       encoding="utf-8")
@@ -383,7 +546,8 @@ try:
         check("Skill自检能抓变异", nr.returncode != 0 and "ghost-ref-xyz.md" in (nr.stdout or ""),
               "rc=%s" % nr.returncode)
     finally:
-        shutil.rmtree(neg, ignore_errors=True)
+        if not rmtree_retry(neg):
+            print("WARN 阴性测试临时目录未能删除（请手动清理）：" + str(neg))
     check("一致性检查跳过Skill子包", "doubao-skill" in tx("tests/consistency_check.py"))
 
     # ---- v1.56 本体反馈协议+鼓励系统（学习成熟技能范式：强制基准/分级/门禁/行为自测）----
@@ -486,7 +650,7 @@ try:
     bsp = ROOT / "doubao-skill" / "build_mobile_single.py"
     check("v12合并单文件生成器存在", bsp.exists())
     if bsp.exists():
-        md_dir = Path(tempfile.mkdtemp(dir=TD, prefix="_v12mobile_"))
+        md_dir = new_tmp("v12mobile")
         try:
             tg = md_dir / "single.md"
             rg = run(["doubao-skill/build_mobile_single.py", "--out", str(tg)], 120)
@@ -500,10 +664,30 @@ try:
             rc2 = run(["doubao-skill/build_mobile_single.py", "--check", "--out", str(tg)], 60)
             check("v12合并版同步校验通过", rc2.returncode == 0, (rc2.stdout or "")[-150:])
         finally:
-            shutil.rmtree(md_dir, ignore_errors=True)
+            if not rmtree_retry(md_dir):
+                print("WARN 手机版构建临时目录未能删除（请手动清理）：" + str(md_dir))
 finally:
     cleanup()
 
 fails = [x for x in results if not x[1]]
 print(f"\n==== 共 {len(results)} 项，通过 {len(results) - len(fails)}，失败 {len(fails)} ====")
+# 收尾自检：测试产生的临时**文件**必须已被清掉。
+# 只查文件、不要求目录消失：Windows 上刚删过的目录会有一段 delete-pending 窗口，
+# 这时连列目录都被拒绝，把"目录名还在"当失败会误报（实测踩过）；而文件残留才是真污染。
+def _stray_files():
+    out = []
+    for d in leftover_dirs(ROOT / "tests" / ".tmp_e2e", [""]):
+        try:
+            out += [f.name for f in os.scandir(d) if f.is_file()]
+        except OSError:
+            continue
+    out += [f.name for f in leftover_dirs(TD, ["_skill_neg_", "_litcsv_", "_v12mobile_"])
+            if dir_state(f) == "leftover"]
+    return out
+
+stray = _stray_files()
+if stray:
+    print("FAIL 测试临时文件残留：" + str(sorted(stray)))
+    fails.append(("测试临时文件残留", False))
+    print(f"==== 修正后：共 {len(results)} 项，失败 {len(fails)} ====")
 sys.exit(1 if fails else 0)

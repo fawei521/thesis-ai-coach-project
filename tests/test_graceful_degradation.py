@@ -12,12 +12,12 @@
 4. paper_search 导出到尚不存在的目录时自动建目录，不崩溃。
 
 运行：python tests/test_graceful_degradation.py ；退出码 0 = 全部通过。
-临时文件全部写在系统 temp，结束自动清理。
+临时文件写在仓库内 tests/.tmp_e2e/ 下（不写系统 temp：该区在部分运行环境里只读/半隔离，
+实测 mkdtemp 出的目录里写文件会 PermissionError），结束自动清空内容。
 """
 import os
 import sys
 import shutil
-import tempfile
 import subprocess
 from pathlib import Path
 # --- 输出编码守卫：管道/重定向时强制 UTF-8 ---
@@ -40,7 +40,13 @@ def check(name, cond, extra=""):
 
 
 def main():
-    tmp = Path(tempfile.mkdtemp(prefix="coach_deg_"))
+    # 固定名临时目录、全程复用、只清内容不删目录：避开 Windows 目录 delete-pending 窗口
+    # （目录刚删掉就被重新创建时，对它的一切访问会短暂报"拒绝访问"）。
+    tmp = ROOT / "tests" / ".tmp_e2e" / "graceful"
+    if tmp.exists():
+        for child in list(tmp.iterdir()):
+            shutil.rmtree(child, ignore_errors=True) if child.is_dir() else child.unlink(missing_ok=True)
+    tmp.mkdir(parents=True, exist_ok=True)
     try:
         # 阻断第三方库的 wrapper（修正 argv 后 runpy 运行目标脚本）
         block = tmp / "_block.py"
@@ -128,7 +134,15 @@ def main():
         ps.export_csv([{"标题": "a"}, {"标题": "b"}], str(nest))
         check("检索结果自动建目录", nest.exists())
     finally:
-        shutil.rmtree(tmp, ignore_errors=True)
+        # 只清内容，保留固定名目录壳（见 main 开头的注释）
+        for child in list(tmp.iterdir()):
+            if child.is_dir():
+                shutil.rmtree(child, ignore_errors=True)
+            else:
+                try:
+                    child.unlink()
+                except OSError:
+                    pass
 
     print(f"\n==== 优雅降级测试：{len(fails)} 项失败 ====")
     sys.exit(1 if fails else 0)
