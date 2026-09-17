@@ -59,7 +59,7 @@ core/               规则手册 + 引导反馈协议 + 鼓励系统 + AI 素养
 workflows/          各阶段操作手册（按需读）
 psychology/         量表库 / 统计指南 / 伦理
 templates/          各类模板 + 网页范例/
-tools/              12 个脚本（含 webpage_preview.py 网页预览器、anonymize_data.py 去标识化、literature_cards.py 文献卡片）+ stats/ 统计实现包（9 个模块）
+tools/              13 个脚本（含 webpage_preview.py 网页预览器、anonymize_data.py 去标识化、effect_size.py 效应量换算复核、literature_cards.py 文献卡片）+ stats/ 统计实现包（9 个模块）
 tests/              full_e2e.py 全量回归、consistency_check.py 一致性自检
 我的工作区/          学生自己的文件（原始数据、PDF、结果、网页）
 CHANGELOG.md        版本历史（唯一来源）

@@ -63,7 +63,7 @@ def pause():
 
 
 def t_preprocess():
-    print("\n【1/10】问卷星数据预处理")
+    print("\n【1/11】问卷星数据预处理")
     print("  用途：把问卷星下载的原始表，转成后面能统计的标准数字表。")
     f = ask_path("  把问卷星导出的原始CSV拖进来，回车：")
     if not f:
@@ -72,7 +72,7 @@ def t_preprocess():
 
 
 def t_clean():
-    print("\n【2/10】问卷数据清洗（找无效问卷）")
+    print("\n【2/11】问卷数据清洗（找无效问卷）")
     f = ask_path("  把（预处理后的）数据CSV拖进来，回车：")
     if not f:
         return
@@ -91,7 +91,7 @@ def t_clean():
 
 
 def t_stats():
-    print("\n【3/10】自动统计分析")
+    print("\n【3/11】自动统计分析")
     print("  自动完成：人口学频数表、反向计分、信度α、结构效度(KMO/Bartlett/载荷)、")
     print("  共同方法偏差Harman、量表总分、描述统计、相关、回归、")
     print("  Bootstrap中介（模型4/6），并导出三线表和频数表。")
@@ -134,7 +134,7 @@ def t_stats():
 
 
 def t_search():
-    print("\n【4/10】检索英文学术文献（需要联网，免费，不用账号）")
+    print("\n【4/11】检索英文学术文献（需要联网，免费，不用账号）")
     kw = input("  输入英文关键词（例如 AI dependence adolescent NSSI）：").strip()
     if not kw:
         print("  关键词为空，已取消。")
@@ -150,7 +150,7 @@ def t_search():
 
 
 def t_lit():
-    print("\n【5/10】文献去重与分类")
+    print("\n【5/11】文献去重与分类")
     print("  可拖入的有两种：① 每行一篇的 txt；② 第 4 项检索导出的标准 CSV（含 标题/作者 表头）。")
     print("  也可以直接拖知网导出的题录 txt。")
     f = ask_path("  把文献文件拖进来，回车：")
@@ -160,7 +160,7 @@ def t_lit():
 
 
 def t_chart():
-    print("\n【6/10】生成研究模型图")
+    print("\n【6/11】生成研究模型图")
     print("  链式模型示例变量：AI依赖,孤独感,反刍,NSSI（用英文逗号分隔，4个）")
     print("  简单模型示例变量：AI依赖,NSSI（2个）")
     vars_ = input("  输入变量名（逗号分隔）：").strip()
@@ -179,7 +179,7 @@ def t_chart():
 
 
 def t_demo():
-    print("\n【7/10】生成演示数据（还没收回问卷时，先拿它练手）")
+    print("\n【7/11】生成演示数据（还没收回问卷时，先拿它练手）")
     print("  会生成一份内置链式中介结构、含反向题的模拟数据，")
     print("  用来跑通第3步统计流程。模拟数据严禁写进真实论文。")
     out = input("  保存到哪个文件夹？可直接拖入一个文件夹，回车默认放进 我的工作区\\02-问卷数据：").strip().strip('"').strip("'")
@@ -190,7 +190,7 @@ def t_demo():
 
 
 def t_power():
-    print("\n【8/10】开题样本量 / 功效估算（G*Power 等价，回答要发多少份）")
+    print("\n【8/11】开题样本量 / 功效估算（G*Power 等价，回答要发多少份）")
     print("  1 相关分析（Pearson r）")
     print("  2 多元回归总体 R²（检验整组预测变量）")
     print("  3 多元回归 R² 增量（检验新增变量，如交互项）")
@@ -219,11 +219,11 @@ def t_power():
 
 
 def t_preview():
-    print("\n【9/10】预览我做的网页（本地预览，不上传任何东西）")
+    print("\n【9/11】预览我做的网页（本地预览，不上传任何东西）")
     print("  把你做的网页放进「我的工作区\\04-网页」，这里用浏览器打开它。")
     print("  还没有网页？对你的AI导师说：")
     print("     「我想做一个网页，你读一下 workflows/webpage-guide.md 带我做一个。」")
-    print("  项目里已带 3 个现成范例，也可以先看看效果：")
+    print("  项目里已带 4 个现成范例（含问答式统计方法选择器），也可以先看看效果：")
     print("     templates\\网页范例\\  （双击里面的 index.html 即可）")
     print("-" * 60)
     d = ask_path("  要预览哪个文件夹？（直接回车 = 我的工作区\\04-网页）：", must_exist=False)
@@ -236,7 +236,7 @@ def t_preview():
 
 
 def t_anonymize():
-    print("\n【10/10】数据去标识化（发给AI/上传/给外校前，隐去姓名学号手机等）")
+    print("\n【10/11】数据去标识化（发给AI/上传/给外校前，隐去姓名学号手机等）")
     print("  自动识别并假名化/删除姓名、学号、手机、邮箱、身份证、微信/QQ、IP、住址等，")
     print("  并对性别/年级/专业/生源等组合做 k-匿名风险体检；只读原文件、另存新文件，绝不改原数据。")
     f = ask_path("  把要外发的原始数据CSV拖进来，回车：")
@@ -256,6 +256,79 @@ def t_anonymize():
     print("  必须和数据分开单独保管，绝不发给AI/上传，配对完尽早删除。")
 
 
+def _ask_num(prompt, kind=float):
+    """读一个数字；留空返回 None（用于取消/可选）。"""
+    raw = input(prompt).strip()
+    if raw == "":
+        return None
+    try:
+        return kind(raw)
+    except ValueError:
+        print("  没看懂这个数字，已取消这一步。")
+        return None
+
+
+def t_effect():
+    print("\n【11/11】效应量换算与复核（写结果时，由 t/F/χ²/r 或均值标准差算效应量）")
+    print("  论文不能只报 p 值，还要报效应量及（能给时）置信区间。选你手上已有的结果：")
+    print("   1 两组均值/标准差/n → Cohen's d、Hedges' g")
+    print("   2 已知 t 值 → d（独立两组）或配对 d_z")
+    print("   3 已知 r 和 n → r 的95%CI，并换算 d")
+    print("   4 已知 F 值（方差分析）→ 偏 η²")
+    print("   5 已知 χ²（卡方）→ Cramér's V / φ")
+    print("   6 r 与 d 互转")
+    c = input("  输入 1-6，回车取消：").strip()
+    if c == "1":
+        m1 = _ask_num("  第1组均值："); sd1 = _ask_num("  第1组标准差："); n1 = _ask_num("  第1组n：", int)
+        m2 = _ask_num("  第2组均值："); sd2 = _ask_num("  第2组标准差："); n2 = _ask_num("  第2组n：", int)
+        if None in (m1, sd1, n1, m2, sd2, n2):
+            return
+        args = ["d", "--m1", str(m1), "--sd1", str(sd1), "--n1", str(n1),
+                "--m2", str(m2), "--sd2", str(sd2), "--n2", str(n2)]
+    elif c == "2":
+        t = _ask_num("  t 值（带正负号）：")
+        if t is None:
+            return
+        paired = input("  是配对（前后测）吗？[y/N]：").strip().lower()
+        if paired in ("y", "yes", "是", "1"):
+            n = _ask_num("  配对人数 n：", int)
+            if n is None:
+                return
+            args = ["paired-d", "--t", str(t), "--n", str(n)]
+        else:
+            n1 = _ask_num("  第1组n：", int); n2 = _ask_num("  第2组n：", int)
+            if n1 is None or n2 is None:
+                return
+            args = ["d-t", "--t", str(t), "--n1", str(n1), "--n2", str(n2)]
+    elif c == "3":
+        r = _ask_num("  相关系数 r（-1~1）："); n = _ask_num("  样本量 n：", int)
+        if r is None or n is None:
+            return
+        args = ["r", "--r", str(r), "--n", str(n)]
+    elif c == "4":
+        f = _ask_num("  F 值："); d1 = _ask_num("  分子自由度 df1：", int); d2 = _ask_num("  分母自由度 df2：", int)
+        if f is None or d1 is None or d2 is None:
+            return
+        args = ["eta", "--F", str(f), "--df1", str(d1), "--df2", str(d2)]
+    elif c == "5":
+        chi = _ask_num("  χ² 值："); n = _ask_num("  总样本量 N：", int)
+        rows = _ask_num("  行数（如2）：", int); cols = _ask_num("  列数（如2）：", int)
+        if chi is None or n is None or rows is None or cols is None:
+            return
+        args = ["v", "--chi2", str(chi), "--n", str(n), "--rows", str(rows), "--cols", str(cols)]
+    elif c == "6":
+        kind = input("  手上是 r 还是 d？输入 r 或 d（留空取消）：").strip().lower()
+        val = _ask_num("  数值：")
+        if not kind or val is None:
+            return
+        args = ["convert", "--r", str(val)] if kind in ("r", "相关") else ["convert", "--d", str(val)]
+    else:
+        print("  已取消。")
+        return
+    run("effect_size.py", args)
+    print("\n  以上为快速复核；精确 p 值与区间以 JASP/SPSS 正式输出为准，效应量必须来自你的真实结果。")
+
+
 MENU = [
     ("1", "问卷星数据预处理（原始答卷 → 标准数字表）", t_preprocess),
     ("2", "问卷数据清洗（识别无效问卷）", t_clean),
@@ -267,6 +340,7 @@ MENU = [
     ("8", "开题样本量/功效估算（G*Power等价，要发多少份）", t_power),
     ("9", "预览我做的网页（本地预览，不上传）", t_preview),
     ("10", "数据去标识化（外发前隐去姓名/学号/手机，附k-匿名体检）", t_anonymize),
+    ("11", "效应量换算与复核（由t/F/χ²/r或均值标准差算d、r、η²、V及区间）", t_effect),
 ]
 
 
@@ -278,7 +352,7 @@ def main():
         print("=" * 64)
         print("  典型顺序：先 1 预处理 → 2 清洗 → 3 统计")
         print("  写文献综述时用 4 检索、5 整理；画图用 6；练手用 7；开题估样本量用 8")
-        print("  做了自己的网页想看看效果，用 9；数据外发前用 10 去标识化")
+        print("  做了自己的网页想看看效果，用 9；数据外发前用 10 去标识化；写结果补效应量用 11")
         print("-" * 64)
         for num, name, _ in MENU:
             print(f"  {num}. {name}")

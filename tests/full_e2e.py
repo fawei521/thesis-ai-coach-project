@@ -231,6 +231,24 @@ try:
     check("Mahalanobis坏alpha守卫", "--mah-alpha" in (rbad.stdout or "") and "0 与 1" in (rbad.stdout or ""))
     check("Mahalanobis只标记不删口径",
           "不能为了让模型好看而删点" in (rmh.stdout or "") and "敏感性分析" in (rmh.stdout or ""))
+    # ---- 效应量换算/复核 effect_size.py（纯标准库；关键数值已用 numpy/scipy 黄金对照）----
+    esd = run(["tools/effect_size.py", "d", "--m1", "10", "--sd1", "2", "--n1", "30",
+               "--m2", "9", "--sd2", "2", "--n2", "30"])
+    check("效应量d均值换算", esd.returncode == 0 and "Cohen's d = 0.500" in esd.stdout
+          and "Hedges' g = 0.494" in esd.stdout and ".2/.5/.8" in esd.stdout)
+    esdt = run(["tools/effect_size.py", "d-t", "--t", "2.65", "--n1", "60", "--n2", "60"])
+    check("效应量d由t换算", esdt.returncode == 0 and "Cohen's d = 0.484" in esdt.stdout)
+    esr = run(["tools/effect_size.py", "r", "--r", "0.34", "--n", "120"])
+    check("效应量r的Fisher区间", esr.returncode == 0 and "[0.171, 0.489]" in esr.stdout
+          and "d ≈ 0.723" in esr.stdout)
+    ese = run(["tools/effect_size.py", "eta", "--F", "5.20", "--df1", "2", "--df2", "117"])
+    check("效应量偏eta2", ese.returncode == 0 and "= 0.082" in ese.stdout and ".01/.06/.14" in ese.stdout)
+    esv = run(["tools/effect_size.py", "v", "--chi2", "6.10", "--n", "200", "--rows", "2", "--cols", "2"])
+    check("效应量CramersV", esv.returncode == 0 and "Cramér's V = √(χ²/(N·df_min)) = 0.175" in esv.stdout
+          and "φ(phi) = √(χ²/N) = 0.175" in esv.stdout)
+    esbad = run(["tools/effect_size.py", "r", "--r", "0.9", "--n", "2"])
+    check("效应量坏参守卫", esbad.returncode == 0 and "Traceback" not in (esbad.stdout or "")
+          and "n>3" in (esbad.stdout or ""))
     p1 = run(["tests/consistency_check.py"]); check("一致性0", p1.returncode == 0, p1.stdout[-200:])
     g = ROOT / "_ghost_doc_xyz.md"
     g.write_text("运行 `tools/ghost_tool_xyz.py --fake-switch-xyz`，导出 `_幽灵分析.csv`，见 [假文档](ghost_page_xyz.md)，路径 `我的工作区/99-ghost/`", encoding="utf-8")
@@ -248,7 +266,7 @@ try:
     check("coach5多选填空", "多选题" in cr and "scales.txt 时勿列入" in cr)
     check("coach6样本量", "sample_size.py" in cr)
     check("coach7五指标", "低变异" in cr and "注意力检查题答错" in cr)
-    menu = tx("tools/menu.py"); check("menu第8项", "【8/10】" in menu and "sample_size.py" in menu)
+    menu = tx("tools/menu.py"); check("menu第8项", "【8/11】" in menu and "sample_size.py" in menu)
     qs = tx("QUICKSTART.md"); check("QS菜单8", "8. 开题样本量" in qs)
     check("QS流程顺序", qs.find("查文献读文献") < qs.find("开题报告/开题答辩"))
     bad = []
@@ -559,7 +577,7 @@ try:
     check("预览器--list可运行", pl.returncode == 0 and "index.html" in (pl.stdout or ""), (pl.stderr or "")[-200:])
     wdir = ROOT / "我的工作区" / "04-网页"
     check("工作区04-网页就位", wdir.is_dir() and (wdir / "把网页放这里.txt").exists())
-    check("菜单第9项", "【9/10】" in menu and "webpage_preview.py" in menu)
+    check("菜单第9项", "【9/11】" in menu and "webpage_preview.py" in menu)
     check("网页能力已登记到入口",
           "webpage-guide.md" in st and "webpage_preview.py" in st and "webpage-guide.md" in cr)
     check("README登记网页能力", "webpage-guide.md" in rm and "webpage_preview.py" in rm)
@@ -571,7 +589,8 @@ try:
     check("脱敏工具纯标准库", "import csv" in an_src and "matplotlib" not in an_src and "pandas" not in an_src)
     check("脱敏工具有安全开关", all(s in an_src for s in ["--dry-run", "--no-key", "--columns", "--k"]))
     check("脱敏工具另存不改原文件", "_去标识化.csv" in an_src and "同名同路径" in an_src)
-    check("菜单第10项去标识化", "【10/10】" in menu and "anonymize_data.py" in menu and "去标识化" in menu)
+    check("菜单第10项去标识化", "【10/11】" in menu and "anonymize_data.py" in menu and "去标识化" in menu)
+    check("菜单第11项效应量", "【11/11】" in menu and "effect_size.py" in menu and "效应量" in menu)
     check("START登记去标识化", "anonymize_data.py" in st and "去标识化" in st)
     check("QUICKSTART登记第10项", "去标识化" in tx("QUICKSTART.md"))
     check("AI素养接线去标识化工具", "anonymize_data.py" in tx("core/ai-literacy.md"))

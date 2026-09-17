@@ -831,6 +831,24 @@ python tests/test_special_columns.py`
 
 ---
 
+## 测试57：效应量换算与复核工具（effect_size.py，菜单第11项）
+
+**目的**：论文不能只报 p 值；学生从 JASP/SPSS 或文献拿到 t、F、χ²、r 或两组均值标准差时，用纯标准库工具补算效应量与置信区间并给小/中/大口判，口径与 `psychology/stats-guide.md`、`tools/stats/compare.py` 完全一致；只做换算，不碰原始数据、不替学生造数。
+
+**构造与黄金对照**：关键数值已用 numpy/scipy 交叉核对（t↔r 恒等式、Fisher z 区间端点一致）；d 区间用 Borenstein 方差近似、r 区间用 Fisher z 变换，均明确标注"近似，以 JASP/SPSS 为准"。
+
+**步骤与预期**：
+1. `d --m1 10 --sd1 2 --n1 30 --m2 9 --sd2 2 --n2 30`：Sp=2.000，Cohen's d=0.500（中效应），Hedges' g=0.494，给 95%CI。
+2. `d-t --t 2.65 --n1 60 --n2 60`：d=0.484；`paired-d --mean-diff .4 --sd-diff 1.1 --n 60`：配对 d_z=0.364；`paired-d --t 2 --n 64`：d_z=0.25。
+3. `r --r .34 --n 120`：95%CI≈[0.171, 0.489]（Fisher），并换算 d≈0.723；`r-t --t 2.65 --df 118`：r=0.237。
+4. `eta --F 5.20 --df1 2 --df2 117`：偏 η²=0.082（中）；加 `--ss-between 10.4 --ss-within 117` 另出 η²=0.082、ε²=0.066。
+5. `v --chi2 6.10 --n 200 --rows 2 --cols 2`：Cramér's V=φ=0.175（小）；3×3 用 df_min=2。
+6. `convert --r .30`→d=0.629；`--d .50`→r=0.243。
+7. 健壮性：缺参、r 时 n≤3、列联表行/列<2 等给中文提示，不抛 Traceback；页脚固定"不显著也如实报告、不得为凑阈值反推改数"。
+8. 菜单第11项引导（6 类换算）端到端跑通；文档：stats-guide 第十节、data-analysis-auto 第11步与质量闸、README/START/QUICKSTART/AGENTS 同步。
+
+---
+
 # 脚本回归测试清单（每次改动后执行）
 
 在项目根目录（PowerShell）逐条运行，全部通过才算合格：
@@ -865,6 +883,11 @@ python tools\anonymize_data.py tests\test-data\sample_pii.csv -o tests\test-data
 python tools\auto_stats.py tests\test-data\demo_survey.csv --scales tests\test-data\demo_scales.txt --mahalanobis
 # 12 第4个网页范例（静态检查由 full_e2e 覆盖；人工双击确认向导可点、结果页正常）
 #    templates\网页范例\04-统计方法选择器\index.html
+# 13 效应量换算与复核（d/g、r 的 Fisher 区间、偏η²/ε²、Cramér V/φ、r↔d）
+python tools\effect_size.py d --m1 10 --sd1 2 --n1 30 --m2 9 --sd2 2 --n2 30
+python tools\effect_size.py r --r 0.34 --n 120
+python tools\effect_size.py eta --F 5.20 --df1 2 --df2 117
+python tools\effect_size.py v --chi2 6.10 --n 200 --rows 2 --cols 2
 ```
 
 测试结束后删除 `_t_*` 临时文件和 `tests/test-data/_demo_check` 目录。（test_special_columns.py 会自清其 `_special*` 临时文件）所有脚本只用Python标准库（模型图需matplotlib），

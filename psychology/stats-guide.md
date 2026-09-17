@@ -366,6 +366,17 @@ corStability(net_case)                                    # 中心性 CS 系数
 - p值：p < .05, p < .01, p < .001（不写p = .000）
 - β、r、t、F、χ²等统计量保留2位小数
 
+### 效应量（与 p 值一起报告，不能只报显著性）
+- 相关 r/Spearman rs/偏 r：`.10/.30/.50` 为小/中/大；t 检验报 Cohen's d（`.2/.5/.8`），小样本可并列 Hedges' g；方差分析报 η²/偏η²（或偏差更小的 ε²），`.01/.06/.14` 为小/中/大；卡方报 Cramér's V（2×2 报 φ），`.1/.3/.5`；非参数 t 对应报 r、Kruskal-Wallis 报 ε²。
+- 能给置信区间时一并给出（相关 r 用 Fisher z 区间，d 用其方差近似区间）；区间跨 0 与显著性结论一致，要如实呈现。
+- **换算/复核脚本 `tools/effect_size.py`（菜单第11项）**：手上只有 JASP/SPSS 给出的 t、F、χ²、r 或两组均值标准差时，用它补算效应量与区间：
+  - `python tools/effect_size.py d --m1 .. --sd1 .. --n1 .. --m2 .. --sd2 .. --n2 ..`（均值标准差→d/g/CI）
+  - `python tools/effect_size.py d-t --t 2.65 --n1 60 --n2 60`；配对用 `paired-d --mean-diff .. --sd-diff .. --n ..`
+  - `python tools/effect_size.py r --r 0.34 --n 120`（Fisher 95%CI）；`r-t --t .. --df ..`
+  - `python tools/effect_size.py eta --F 5.2 --df1 2 --df2 117`（偏η²；有平方和时加 `--ss-between/--ss-within` 出 η²、ε²）
+  - `python tools/effect_size.py v --chi2 6.1 --n 200 --rows 2 --cols 2`；`convert --r 0.3` / `--d 0.5` 互转
+  - 该工具只做换算与教学复核，数字必须来自你自己的真实检验输出，精确区间以 JASP/SPSS 为准；不显著也要如实报告效应量与区间，不得为凑"中/大效应"反推或改数。
+
 ## 十一、样本量与统计功效（开题·先验功效分析）
 
 开题报告"拟发放多少份问卷"必须有依据，标准做法是 **G\*Power 先验功效分析**（a priori power）：给定效应量、显著性水平 α（通常 .05）、目标功效 1−β（通常 .80），反推最小样本量。
