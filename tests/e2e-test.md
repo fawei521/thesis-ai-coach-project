@@ -876,7 +876,23 @@ python tests/test_special_columns.py`
 2. `--only 孤独感`：只处理该量表；`--csv-out 目录`：目录不存在自动创建并用默认文件名；给 `.csv` 路径则按文件写。
 3. 健壮性：缺 `--scales`、数据文件不存在、`--group` 越界（不在 .10-.50）、完整样本过少、题列缺失、配置里量表名拼错（--only）均中文提示并退出码1，不抛 Traceback；无参数打印帮助退出0。
 4. 反向题在 scales.txt 用 (R) 标对（复用 recoded_item_series），否则 CR 方向反；页脚固定"CR/CITC 仅经验参考、删题结合内容效度与理论、正式数据不反复套用"。
-5. 菜单第14项引导（数据→scales→可选单量表）端到端跑通；文档：stats-guide 第二节"预试项目分析"、data-analysis-auto 第3步与质量闸、README/START/QUICKSTART/AGENTS 同步；工具脚本总数 15、菜单 14 项。
+5. 菜单第14项引导（数据→scales→可选单量表）端到端跑通；文档：stats-guide 第二节"预试项目分析"、data-analysis-auto 第3步与质量闸同步。
+
+---
+
+## 测试60：自编量表内容效度 CVI（content_cvi.py，菜单第15项）
+
+**目的**：自编/修订量表在 EFA/CFA 等结构效度之前要先做**内容效度**（专家评定），此前系统只有结构效度工具，缺这一环。本工具吃专家 1-4 相关性评分，算 I-CVI、机遇校正 κ*、S-CVI/Ave、S-CVI/UA 并给保留/修改/重审建议。
+
+**方法口径（Lynn, 1986；Polit & Beck, 2006；Polit, Beck & Owen, 2007）**：I-CVI=评 3/4 的专家比例；Pc=C(N,A)·0.5^N，κ*=(I-CVI−Pc)/(1−Pc)，κ*>.74 优秀/.60–.74 良好/.40–.59 一般/<.40 差；3–5 名专家保留要求 I-CVI=1.00，≥6 名 I-CVI≥.78；S-CVI/Ave≥.90、S-CVI/UA≥.80。
+
+**构造与黄金对照**：用 R `contentValidity` 包手册算例（5 专家×4 题，A=5,5,4,2）作夹具 `tests/test-data/demo_cvi.csv`，手算/Python 复核：I-CVI=1.00/1.00/.80/.40，Pc=.03125/.03125/.15625/.3125，κ*=1.000/1.000/.763/.127，S-CVI/Ave=.800、S-CVI/UA=.500，全部逐位一致。
+
+**步骤与预期**：
+1. `content_cvi.py tests/test-data/demo_cvi.csv --csv-out 目录`：逐条输出 I-CVI（A/N）、Pc、κ* 与等级、建议，量表行给 S-CVI/Ave、S-CVI/UA、平均 κ* 与达标结论；导出 `demo_cvi_内容效度CVI.csv`（UTF-8-BOM，含逐条与重复的量表指数列）。
+2. κ*=.763 但因专家≤5 人 I-CVI 未达 1.00，题3 建议"增补至≥6名专家复核或修改"（小专家组 Lynn 严格线优先于 κ* 等级）；题4 κ*=.127 建议删除/重写。
+3. 健壮性：数据文件不存在、`--threshold` 越界（不在 2..points）、`--points<2`、单元格非整数或超范围、某条目全空均中文提示退出1，不抛 Traceback；无参数打印帮助退出0；留空单元格按该条实际参评人数计算。
+4. 菜单第15项引导（评分 CSV→可选阈值）端到端跑通；文档：stats-guide 第三节"内容效度"、data-analysis-auto 第4.0步与质量闸、README/START/QUICKSTART/AGENTS 同步；工具脚本总数 16、菜单 15 项。
 
 ---
 
@@ -924,7 +940,9 @@ python tools\validity_cr_ave.py --factor "学习投入=0.72,0.68,0.74,0.70" --fa
 python tools\validity_cr_ave.py --factor "学习投入=0.72,0.68,0.74,0.70" --factor "学业倦怠=0.60,0.65,0.58,0.62" --corr "学习投入,学业倦怠,0.65"
 # 15 预试项目分析（决断值CR高低27%t + CITC + 删题α；默认导出 _项目分析.csv，验毕删）
 python tools\item_analysis.py tests\test-data\demo_survey.csv --scales tests\test-data\demo_scales.txt --only 孤独感
+# 16 自编量表内容效度 CVI（专家评分→I-CVI/κ*/S-CVI；默认在数据旁导出 _内容效度CVI.csv，验毕删）
+python tools\content_cvi.py tests\test-data\demo_cvi.csv
 ```
 
-测试结束后删除 `_t_*` 临时文件和 `tests/test-data/_demo_check` 目录。（test_special_columns.py 会自清其 `_special*` 临时文件）所有脚本只用Python标准库（模型图需matplotlib），
+测试结束后删除 `_t_*` 临时文件、`tests/test-data/_demo_check` 目录，以及在 test-data 旁生成的 `demo_survey_项目分析.csv`、`demo_cvi_内容效度CVI.csv`。（test_special_columns.py 会自清其 `_special*` 临时文件）所有脚本只用Python标准库（模型图需matplotlib），
 统计数字以SPSS/JASP为准，脚本用于快速预览和教学。

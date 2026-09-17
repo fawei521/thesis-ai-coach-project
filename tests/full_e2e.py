@@ -319,6 +319,28 @@ try:
     ia_noscale = run(["tools/item_analysis.py", str(TD / "demo_survey.csv")])
     check("项目分析缺配置守卫", ia_noscale.returncode == 1 and "--scales" in ia_noscale.stdout)
 
+    # ---- v1.60 自编量表内容效度 content_cvi.py（菜单15），黄金值对照 Lynn/Polit 算例 ----
+    cvi_src = tx("tools/content_cvi.py")
+    check("内容效度纯标准库", "import csv" in cvi_src and "matplotlib" not in cvi_src
+          and "math.comb" in cvi_src and "read_data" in cvi_src)
+    cvi_dir = new_tmp("cvi")
+    cvi_ok = run(["tools/content_cvi.py", str(TD / "demo_cvi.csv"), "--csv-out", str(cvi_dir)])
+    # 5专家×4题：A=5,5,4,2 → I-CVI 1/1/.8/.4；κ*=1/1/.763/.127；S-CVI/Ave=.80、UA=.50
+    check("内容效度指数", cvi_ok.returncode == 0 and "I-CVI=1.000" in cvi_ok.stdout
+          and "I-CVI=0.800" in cvi_ok.stdout and "κ*=0.763" in cvi_ok.stdout
+          and "κ*=0.127" in cvi_ok.stdout and "S-CVI/Ave=0.800" in cvi_ok.stdout
+          and "S-CVI/UA=0.500" in cvi_ok.stdout)
+    cvi_out = cvi_dir / "demo_cvi_内容效度CVI.csv"
+    check("内容效度CSV导出", cvi_out.exists())
+    if cvi_out.exists():
+        cvi_rows = list(csv.reader(open(cvi_out, encoding="utf-8-sig")))
+        check("内容效度CSV内容", cvi_rows[0][:5] == ["条目", "专家数N", "评相关人数A", "I-CVI", "机遇一致Pc"]
+              and len(cvi_rows) == 5 and cvi_rows[3][3] == "0.8" and cvi_rows[4][3] == "0.4"
+              and cvi_rows[1][7] == "0.8", str(cvi_rows))
+    cvi_bad = run(["tools/content_cvi.py", str(TD / "demo_cvi.csv"), "--threshold", "5"])
+    check("内容效度坏阈值守卫", cvi_bad.returncode == 1 and "--threshold" in cvi_bad.stdout
+          and "Traceback" not in (cvi_bad.stdout or "") + (cvi_bad.stderr or ""))
+
     p1 = run(["tests/consistency_check.py"]); check("一致性0", p1.returncode == 0, p1.stdout[-200:])
     g = ROOT / "_ghost_doc_xyz.md"
     g.write_text("运行 `tools/ghost_tool_xyz.py --fake-switch-xyz`，导出 `_幽灵分析.csv`，见 [假文档](ghost_page_xyz.md)，路径 `我的工作区/99-ghost/`", encoding="utf-8")
@@ -336,7 +358,7 @@ try:
     check("coach5多选填空", "多选题" in cr and "scales.txt 时勿列入" in cr)
     check("coach6样本量", "sample_size.py" in cr)
     check("coach7五指标", "低变异" in cr and "注意力检查题答错" in cr)
-    menu = tx("tools/menu.py"); check("menu第8项", "【8/14】" in menu and "sample_size.py" in menu)
+    menu = tx("tools/menu.py"); check("menu第8项", "【8/15】" in menu and "sample_size.py" in menu)
     qs = tx("QUICKSTART.md"); check("QS菜单8", "8. 开题样本量" in qs)
     check("QS流程顺序", qs.find("查文献读文献") < qs.find("开题报告/开题答辩"))
     bad = []
@@ -663,7 +685,7 @@ try:
     check("预览器--list可运行", pl.returncode == 0 and "index.html" in (pl.stdout or ""), (pl.stderr or "")[-200:])
     wdir = ROOT / "我的工作区" / "04-网页"
     check("工作区04-网页就位", wdir.is_dir() and (wdir / "把网页放这里.txt").exists())
-    check("菜单第9项", "【9/14】" in menu and "webpage_preview.py" in menu)
+    check("菜单第9项", "【9/15】" in menu and "webpage_preview.py" in menu)
     check("网页能力已登记到入口",
           "webpage-guide.md" in st and "webpage_preview.py" in st and "webpage-guide.md" in cr)
     check("README登记网页能力", "webpage-guide.md" in rm and "webpage_preview.py" in rm)
@@ -675,10 +697,11 @@ try:
     check("脱敏工具纯标准库", "import csv" in an_src and "matplotlib" not in an_src and "pandas" not in an_src)
     check("脱敏工具有安全开关", all(s in an_src for s in ["--dry-run", "--no-key", "--columns", "--k"]))
     check("脱敏工具另存不改原文件", "_去标识化.csv" in an_src and "同名同路径" in an_src)
-    check("菜单第11项去标识化", "【11/14】" in menu and "anonymize_data.py" in menu and "去标识化" in menu)
-    check("菜单第12项效应量", "【12/14】" in menu and "effect_size.py" in menu and "效应量" in menu)
-    check("菜单第13项效度", "【13/14】" in menu and "validity_cr_ave.py" in menu and "区分效度" in menu)
-    check("菜单第14项项目分析", "【14/14】" in menu and "item_analysis.py" in menu and "决断值" in menu)
+    check("菜单第11项去标识化", "【11/15】" in menu and "anonymize_data.py" in menu and "去标识化" in menu)
+    check("菜单第12项效应量", "【12/15】" in menu and "effect_size.py" in menu and "效应量" in menu)
+    check("菜单第13项效度", "【13/15】" in menu and "validity_cr_ave.py" in menu and "区分效度" in menu)
+    check("菜单第14项项目分析", "【14/15】" in menu and "item_analysis.py" in menu and "决断值" in menu)
+    check("菜单第15项内容效度", "【15/15】" in menu and "content_cvi.py" in menu and "CVI" in menu)
     check("START登记去标识化", "anonymize_data.py" in st and "去标识化" in st)
     check("QUICKSTART登记第11项", "去标识化" in tx("QUICKSTART.md"))
     check("AI素养接线去标识化工具", "anonymize_data.py" in tx("core/ai-literacy.md"))
@@ -924,7 +947,7 @@ try:
     check("v158量表多词检索纪律", "量表检索纪律" in sl and "同义词" in sl and "OR" in sl and "AND" in sl)
     check("v158检索脚本多词开关", all(x in psrc for x in ('--queries', '--source', '--min', 'action="append"')))
     check("v158卡片脚本与菜单项",
-          (ROOT / "tools" / "literature_cards.py").exists() and "literature_cards.py" in menu and "【10/14】" in menu)
+          (ROOT / "tools" / "literature_cards.py").exists() and "literature_cards.py" in menu and "【10/15】" in menu)
     check("v158卡片接入网页指南且不增类型", "literature_cards.py" in wg and "文献笔记网页" in wg)
     check("v158手机交接单与原生做法", all(s in mg for s in ("设备交接单", "全球学术快报", "literature_cards")))
 
