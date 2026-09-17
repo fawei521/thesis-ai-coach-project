@@ -419,6 +419,25 @@ try:
     check("v1562规则单源不重复", "第三节为唯一来源" in eg and "coach-rules.md` 第四节" in cp
           and "主动临时降一档把这一步讲透" not in cp)
 
+    # ---- v1.56.4 规则接线：core规则真正接入10个workflow（统一指针，不复制正文）+ 鼓励理论规范出处 + 防假空白 ----
+    wf_all = sorted(p for p in (ROOT / "workflows").glob("*.md"))
+    check("v1564工作流十份", len(wf_all) == 10, "n=%d" % len(wf_all))
+    check("v1564工作流全部接带教约定",
+          all(all(s in p.read_text(encoding="utf-8") for s in
+                  ("**带教约定**", "core/coaching-protocol.md", "core/encouragement-guide.md",
+                   "反馈三段式", "P0/P1/P2", "core/coach-rules.md")) for p in wf_all))
+    _conv = [[l for l in p.read_text(encoding="utf-8").splitlines() if "**带教约定**" in l]
+             for p in wf_all]
+    check("v1564带教约定指针逐字一致",
+          all(len(x) == 1 for x in _conv) and len({x[0].strip() for x in _conv}) == 1)
+    check("v1564鼓励理论规范出处", all(s in eg for s in (
+        "10.1037/0033-2909.119.2.254", "10.1037/0022-3514.75.1.33",
+        "Mueller, C. M., & Dweck, C. S. (1998)", "Kluger, A. N., & DeNisi, A. (1996)",
+        "Ryan, R. M., & Deci, E. L. (2000)", "Skinner, B. F. (1953)")))
+    check("v1564理论出处带核对日期", "核对" in eg and "勿与上面 Ryan & Deci (2000) 混写" in eg)
+    check("v1564文献防假空白反查", all(s in tx("workflows/literature-auto-search.md")
+                                  for s in ("假空白", "0 命中", "上位词")))
+
     # ---- v1.2 手机独立版：能力边界三处一致 + 合并单文件可生成且自包含 ----
     mgp = ROOT / "doubao-skill" / "references" / "mobile-guide.md"
     check("v12手机说明文件", mgp.exists())
