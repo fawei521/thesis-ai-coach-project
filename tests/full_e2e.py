@@ -584,7 +584,7 @@ try:
     check("QUICKSTART登记第9项", "预览我做的网页" in tx("QUICKSTART.md"))
     check("工作区说明含04-网页", "04-网页" in tx("我的工作区/先读我.md"))
 
-    # ---- v1.58(本体) 数据去标识化工具（隐私闸：假名化/删除直接标识符 + 准标识符 k-匿名体检）----
+    # ---- v1.59 数据去标识化工具（隐私闸：假名化/删除直接标识符 + 准标识符 k-匿名体检）----
     an_src = tx("tools/anonymize_data.py")
     check("脱敏工具纯标准库", "import csv" in an_src and "matplotlib" not in an_src and "pandas" not in an_src)
     check("脱敏工具有安全开关", all(s in an_src for s in ["--dry-run", "--no-key", "--columns", "--k"]))
