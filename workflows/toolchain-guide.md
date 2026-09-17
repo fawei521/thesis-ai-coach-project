@@ -11,9 +11,9 @@
 知网/英文数据库
    ↓（Zotero Connector一键抓取）
 Zotero（文献库 + PDF管理 + 标注）
-   ↓（Zotero Integration插件）
-Obsidian（每篇文献一个笔记 + 写作 + 引用）
-   ↓（引用命令）
+   ↓（Zotero Integration插件：把元数据与标注导成文献笔记）
+Obsidian（每篇文献一个笔记 + 写作）
+   ↓（正文插引用需另装 Citations / Zotero Citations 插件；更省事是直接用 Word 的 Zotero 插件，见3.5）
 论文正文（自动插入引用 + 自动生成参考文献）
 ```
 
@@ -26,7 +26,7 @@ Obsidian（每篇文献一个笔记 + 写作 + 引用）
 2. 搜索 "China" 或 "GB/T 7714"
 3. 找到 "中国国家标准 GB/T 7714-2015 (numeric)"，点击安装
 4. Zotero会自动弹出安装确认，点确定
-5. 编辑 → 首选项 → 引用 → 样式，能看到该格式即成功
+5. 编辑 → 设置（Zotero 6 旧版叫"首选项"）→ 引用 → 样式，能看到该格式即成功
 
 ### 2.2 建立分类
 左侧"我的文献库"右键 → 新建分类：
@@ -55,6 +55,7 @@ Obsidian（每篇文献一个笔记 + 写作 + 引用）
 ## 三、Obsidian配置
 
 ### 3.1 安装Zotero Integration插件
+> 先说清分工：**Zotero Integration 只负责把 Zotero 里的文献信息和 PDF 标注"导入成一篇结构化笔记"**（命令是 Import）；它**不提供**在正文里插入引用、自动生成参考文献的功能，那是 3.5 的另一款插件（或 Word 的 Zotero 插件）做的事。
 1. Obsidian → 设置（左下角齿轮）→ 第三方插件
 2. 关闭"安全模式"
 3. 点"浏览"，搜索 "Zotero Integration"
@@ -94,11 +95,19 @@ status: 未读
 3. 选择Zotero中的文献
 4. 自动生成结构化笔记（含PDF标注）
 
-### 3.5 插入引用
-1. 写论文时按 Ctrl+P
-2. 输入 "Insert Citation"
-3. 搜索作者/标题，选中插入
-4. 文末执行"Insert Bibliography"自动生成参考文献列表
+### 3.5 在正文里插入引用、生成参考文献
+注意：**Zotero Integration 插件没有 "Insert Citation" 命令**，它只做 3.4 的文献笔记导入。要在正文里像 Word 一样插入引用、文末自动生成参考文献，二选一：
+
+**方案A（推荐，最省事）：正文放 Word 写，用 Zotero 自带的 Word 插件**
+1. 安装 Zotero 桌面版时 Word 插件会自动装好（Word 顶部出现 Zotero 选项卡；没有就去 Zotero：编辑→设置→引用→文字处理软件→重新安装）
+2. Word 里点 Zotero 选项卡 → Add/Edit Citation 选文献插入
+3. 文末点 Add/Edit Bibliography 自动生成参考文献，样式选 GB/T 7714-2015
+4. Obsidian 只用来管理文献笔记和草稿，互不冲突
+
+**方案B（坚持全程在 Obsidian 写）：再装一款引用插件**
+- 装 **Citations** 插件：先在 Zotero 装 Better BibTeX 插件，导出（或自动输出）一个 `.bib` / CSL-JSON 文件，在 Citations 设置里把 Citation Database path 指向它；之后 Ctrl+P 用 "Citations: Insert citation" 插引用、"Citations: Insert bibliography" 生成参考文献，最后用 Pandoc 导出 Word。
+- 或装 **Zotero Citations** 插件：直接联动开着的 Zotero 桌面版，Ctrl+P 搜 "Insert citation" / "Insert bibliography"，Pandoc 导出 docx 时参考文献会保留。
+- 方案B配置较繁，卡住就退回方案A，不影响论文进度和规范性。
 
 ---
 
@@ -143,10 +152,9 @@ status: 未读
 3. 用双链 `[[]]` 把相关文献连起来
 
 ### 写作阶段
-1. Obsidian分章节写
-2. 需要引用处用Insert Citation
-3. 文末自动生成参考文献
-4. 完成后导出为Word（用Pandoc或复制到Word排版）
+1. Obsidian分章节写草稿、整理文献笔记
+2. 正文引用与参考文献按 3.5 走：要么在 Word 里用 Zotero 插件（方案A，推荐），要么在 Obsidian 装 Citations / Zotero Citations 插件（方案B）
+3. 最终按学校模板用 Word 排版、生成 GB/T 7714 参考文献
 
 ---
 
@@ -174,4 +182,5 @@ status: 未读
 | Obsidian插件搜不到 | 关闭安全模式；网络问题可手动下载插件放入plugins文件夹 |
 | 引用格式不对 | 确认选了GB/T 7714-2015 numeric；让AI检查格式 |
 | 联动失败 | 确保 Zotero 桌面版开着；Zotero Integration 一般可直接用，若你的模板用到 citekey，再装 Better BibTeX 插件 |
+| 命令面板搜不到 Insert Citation | 正常：Zotero Integration 没有这个命令。正文插引用要装 Citations / Zotero Citations 插件，或直接用 Word 的 Zotero 插件（见 3.5） |
 | 同步空间不够 | Zotero免费300MB附件空间；PDF可只不同步（用坚果云WebDAV扩容，AI可指导） |

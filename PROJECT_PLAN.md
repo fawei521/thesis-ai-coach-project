@@ -361,7 +361,8 @@
 - **v1.45** ✅ 新增《跟老师沟通指南》：workflows/communication-guide.md（五原则＋节奏表＋12场景话术＋礼仪＋态度解读＋红线＋决策日志留痕），coach阶段10/START/README接入；修正README量表16种/统计方法数字漂移
 - **v1.46** ✅ 数据分析主流程走查＋纠错：逐字走查data-analysis-auto；纠正JASP原生Mediation不直接做链式（需Process模块Model6/SEM）、PROCESS官网processmacro.org；统一样本量口径（链式建议300、最低≥200）
 - **v1.47** ✅ 量表库硬事实核查纠错：联网核查16量表题数/维度/作者年份，改6处硬伤（RRQ 24题、AAS 18题、FASM Kelley/功能模型、UCLA V3=Russell1996、CD-RISC-10作者、MPAI=Leung2008）
-- **v1.48** ✅ 一键全量回归固化（当前）：115项端到端断言沉淀为随包 tests/full_e2e.py，开发仓库/干净副本均可一键跑、自备份恢复自清；DEVELOPMENT 测试金字塔L5与发布清单改指该脚本
+- **v1.48** ✅ 一键全量回归固化：115项端到端断言沉淀为随包 tests/full_e2e.py，开发仓库/干净副本均可一键跑、自备份恢复自清；DEVELOPMENT 测试金字塔L5与发布清单改指该脚本
+- **v1.49** ✅ Zotero/Obsidian 工具链纠错（当前）：ZI插件只导入文献笔记，正文引用改指 Word Zotero插件（推荐）/Citations/Zotero Citations；修full_e2e清理遗漏，断言增至118
 - **v2.0**（远期）：本地知识库向量检索、实验/质性研究支持、多学科扩展
 - **v3.0**（远期）：网页应用、社区化
 

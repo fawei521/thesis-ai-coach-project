@@ -104,9 +104,12 @@ thesis-ai-coach-project/
 └── tests/                    # full_e2e.py 一键全量回归、consistency_check.py 文档↔代码一致性自检、专项测试与测试数据
 ```
 
-> 维护者/接手者：改动后运行 `python tests/full_e2e.py`（约3-5分钟，115项起，自动备份恢复测试数据），退出码 0 才算通过；学生日常使用不需要跑。
+> 维护者/接手者：改动后运行 `python tests/full_e2e.py`（约3-5分钟，118项起，自动备份恢复测试数据），退出码 0 才算通过；学生日常使用不需要跑。
 
 ## 版本
+
+**v1.49 Zotero/Obsidian 工具链插件职责纠错版**
+- 纠正"Zotero Integration 可在正文 Insert Citation"的张冠李戴：该插件只导入文献笔记；正文插引用/参考文献应在 Word 用 Zotero 插件（推荐）或在 Obsidian 装 Citations / Zotero Citations；全景图、3.1/3.5、写作流程、FAQ 同步，Zotero 7 菜单措辞修正；full_e2e 补 3 条断言并修复生成物清理遗漏
 
 **v1.48 一键全量回归脚本固化版**
 - 把 115 项端到端断言固化为随包 `tests/full_e2e.py`：脚本真实运行＋统计基准＋缺库降级闭环＋文档一致性＋合规/量表事实，自动定位项目根、自动备份恢复基准样例、自动清理；开发仓库与解压干净副本都能一键跑，新增能力必须同步加断言；DEVELOPMENT 测试金字塔 L5/发布清单同步

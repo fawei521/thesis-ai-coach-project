@@ -610,6 +610,17 @@ python tests/test_special_columns.py`
 
 **通过标准**：开发仓库直接 `python tests/full_e2e.py` 退出 0、打印"共 115 项，通过 115，失败 0"；全新解压副本里同一命令同样退出 0；跑完 tests/test-data 基准样例被还原、无 _ 临时产物残留。
 
+---
+
+## 测试45：Zotero/Obsidian 工具链插件职责纠错（v1.49）
+
+- 逐字走查 workflows/toolchain-guide.md 并联网核实（Obsidian 官方社区插件页、PKM 对比、Zotero 官方文档）：**Zotero Integration 插件（mgmeyers）只负责把 Zotero 元数据＋PDF标注导入成结构化文献笔记（Import 命令），不提供正文 Insert Citation / Insert Bibliography**；后者属 **Citations 插件**（hans，读 Better BibTeX 的 .bib/CSL-JSON，命令 Citations: Insert citation/bibliography）或 **Zotero Citations 插件**（直接联动 Zotero，Pandoc 导出 docx 保留参考文献），Word 里则用 Zotero 官方文字处理插件（Add/Edit Citation、Add/Edit Bibliography）。
+- 原文 3.5 把 Insert Citation/Insert Bibliography 安到 Zotero Integration 上（张冠李戴，学生照做在命令面板搜不到会卡住），改为：方案A（推荐）Word＋Zotero 插件；方案B Obsidian 装 Citations/Zotero Citations；全景图、3.1职责说明、写作阶段流程、FAQ 同步；Zotero 7 菜单"编辑→设置（旧版首选项）"措辞修正。
+- 修 full_e2e 自清理瑕疵：cleanup 枚举后缀漏了 auto_stats 的"量表总分/频数表/题项分析"导出，干净副本跑完有残留；改为通配 demo_survey_*.csv/png（天然不匹配基准 demo_survey.csv），干净副本复验无残留。
+
+**通过标准**：toolchain 明确 Zotero Integration 不做正文引用、指向 Citations/Zotero Citations 与 Word Zotero 插件；full_e2e 新增 3 条插件职责断言；干净副本跑 full_e2e 退出 0 且 tests/test-data 无 demo_survey_* 生成物残留。
+
+
 
 
 
