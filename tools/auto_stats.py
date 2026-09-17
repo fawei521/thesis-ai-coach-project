@@ -10,6 +10,7 @@
   python auto_stats.py data.csv                          # 全自动分析所有数值列
   python auto_stats.py data.csv --scales scales.txt      # 按量表分组算信度
   python auto_stats.py data.csv --profile                # 只看数据画像
+  python auto_stats.py data.csv --scales scales.txt --mahalanobis   # 多元异常值筛查（只标记不删除）
   python auto_stats.py data.csv --output 结果.csv
 
 量表配置文件 scales.txt 格式（每行：量表名=列1,列2,列3）：
@@ -54,7 +55,7 @@ from stats.dataio import numeric_columns, parse_scales, read_data, resolve_col, 
 from stats.desc import data_profile, descriptive, export_three_line_table, frequency_analysis
 from stats.efa import harman_test, validity_analysis
 from stats.plots import _plot_corr_heatmap
-from stats.regress import correlation_matrix, linear_regression, mediation_analysis, moderation_analysis, partial_correlation_analysis
+from stats.regress import correlation_matrix, linear_regression, mahalanobis_outliers, mediation_analysis, moderation_analysis, partial_correlation_analysis
 from stats.reliability import build_scale_scores, export_scale_dataset, reliability_analysis
 
 # ============ 主程序 ============
@@ -90,6 +91,10 @@ def main():
                         help="完整探索性因子分析：不跟量表名=对全部量表；也可跟量表名（空格或逗号分隔）")
     parser.add_argument("--pa-rep", type=int, default=500,
                         help="平行分析随机模拟次数（默认500，越大越稳但越慢；0=关闭平行分析）")
+    parser.add_argument("--mahalanobis", nargs="*", default=None,
+                        help="多元异常值筛查（Mahalanobis D²，只标记不删除）：不跟变量=对全部量表总分；也可跟变量名（空格或逗号分隔）")
+    parser.add_argument("--mah-alpha", type=float, default=0.001,
+                        help="多元异常值判定阈值 p（默认0.001，常用0.001或0.01）")
     parser.add_argument("--output", "-o", help="三线表输出路径")
     args = parser.parse_args()
 
@@ -243,6 +248,33 @@ def main():
                             reps=args.boot, seed=args.seed, output=mod_out)
 
     print("\n" + "=" * 60)
+    # 多元异常值筛查（--mahalanobis；只标记不删除，做敏感性分析而非自动剔除）
+    if args.mahalanobis is not None:
+        if not (0.0 < args.mah_alpha < 1.0):
+            print("✗ --mah-alpha 必须在 0 与 1 之间（常用 0.001 或 0.01），已跳过多元异常值筛查。")
+        else:
+            if scales:
+                mah_default = scale_total_cols
+            else:
+                mah_default = list(num_cols)
+            if len(args.mahalanobis) == 0:
+                mah_cols = [c for c in mah_default if c in analysis_pool]
+            else:
+                mah_names, mah_cols = [], []
+                for tok in args.mahalanobis:
+                    mah_names += [s.strip() for s in tok.split(",") if s.strip()]
+                for nm in mah_names:
+                    rc = _resolve_or_warn("多元异常值变量", nm, analysis_pool, scales)
+                    if rc:
+                        mah_cols.append(rc)
+            mah_cols = list(dict.fromkeys(mah_cols))
+            if mah_cols:
+                mah_out = str(path.with_name(path.stem + "_多元异常值.csv"))
+                mahalanobis_outliers(analysis_pool, mah_cols,
+                                     alpha=args.mah_alpha, output=mah_out)
+            else:
+                print("✗ 多元异常值筛查已跳过：没有找到可用变量（提供 --scales 或指定数值列名）。")
+
     print("分析完成。提示：")
     print("- 已用 --mediators 自动做Bootstrap中介；正式结果建议JASP/SPSS PROCESS复核")
     print("- 反向题已按scales.txt的(R)标记处理；请核对反向题是否标对")

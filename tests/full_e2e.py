@@ -200,6 +200,37 @@ try:
               f"F={_wF} df1={_wd1} df2={_wd2} p={_wp}（错误式会得 df2≈37.56、p≈6.1e-6）")
     except Exception as _we:
         check("Welch强异方差数值基准", False, repr(_we))
+    # ---- Mahalanobis 多元异常值筛查（纯标准库；D²/标记已用 numpy/scipy 黄金对照；只标记不删）----
+    import random as _rnd
+    mdir = new_tmp("mahalanobis")
+    _rgen = _rnd.Random(20260918)
+    def _ih(): return _rgen.random() + _rgen.random() + _rgen.random() - 1.5
+    mrows = []
+    for _ in range(80):
+        _z1 = _ih(); _z2 = 0.6 * _z1 + 0.4 * _ih(); _z3 = 0.3 * _z1 + 0.7 * _ih()
+        mrows.append([round(20 + 5 * _z1, 2), round(15 + 4 * _z2, 2), round(10 + 3 * _z3, 2)])
+    mrows.append([45, 35, 28])  # 极端多元异常点（最后一行→数据行号82）
+    with open(mdir / "mah.csv", "w", encoding="utf-8-sig", newline="") as _mf:
+        _mw = csv.writer(_mf); _mw.writerow(["V1", "V2", "V3"]); _mw.writerows(mrows)
+    rdef = run(["tools/auto_stats.py", str(mdir / "mah.csv")], 200)
+    check("Mahalanobis默认关闭", "多元异常值筛查" not in (rdef.stdout or "")
+          and not (mdir / "mah_多元异常值.csv").exists())
+    rmh = run(["tools/auto_stats.py", str(mdir / "mah.csv"), "--mahalanobis"], 200)
+    check("Mahalanobis检出极端点", rmh.returncode == 0 and "发现 1 个多元异常个案" in (rmh.stdout or "")
+          and "数据行号 82" in (rmh.stdout or ""), (rmh.stderr or "")[-200:])
+    with open(mdir / "mah_多元异常值.csv", encoding="utf-8-sig") as _mf:
+        mout = list(csv.reader(_mf))
+    mflag = [row for row in mout[1:] if row[-1] == "是"]
+    check("Mahalanobis仅标记极端点",
+          mout[0] == ["数据行号", "D2", "df", "p", "是否多元异常值"] and len(mflag) == 1 and mflag[0][0] == "82",
+          str(mflag))
+    check("Mahalanobis不删原数据", sum(1 for _ in open(mdir / "mah.csv", encoding="utf-8-sig")) - 1 == 81)
+    rtwo = run(["tools/auto_stats.py", str(mdir / "mah.csv"), "--mahalanobis", "V1", "V2"], 200)
+    check("Mahalanobis指定变量", rtwo.returncode == 0 and "变量 2 个" in (rtwo.stdout or ""))
+    rbad = run(["tools/auto_stats.py", str(mdir / "mah.csv"), "--mahalanobis", "--mah-alpha", "1.5"], 200)
+    check("Mahalanobis坏alpha守卫", "--mah-alpha" in (rbad.stdout or "") and "0 与 1" in (rbad.stdout or ""))
+    check("Mahalanobis只标记不删口径",
+          "不能为了让模型好看而删点" in (rmh.stdout or "") and "敏感性分析" in (rmh.stdout or ""))
     p1 = run(["tests/consistency_check.py"]); check("一致性0", p1.returncode == 0, p1.stdout[-200:])
     g = ROOT / "_ghost_doc_xyz.md"
     g.write_text("运行 `tools/ghost_tool_xyz.py --fake-switch-xyz`，导出 `_幽灵分析.csv`，见 [假文档](ghost_page_xyz.md)，路径 `我的工作区/99-ghost/`", encoding="utf-8")

@@ -800,6 +800,23 @@ python tests/test_special_columns.py`
 
 ---
 
+## 测试55：多元异常值筛查（Mahalanobis D²，回归/中介假设检查）
+
+**目的**：回归/中介/SEM 前找出"单变量不极端、但变量组合很罕见"的多元异常个案；只标记、不自动删除（数据真实性 P0），引导学生做敏感性分析而非为模型好看删点。
+
+**构造数据**：`full_e2e.py` 用固定随机种子（20260918）经 Irwin-Hall 近似正态生成 80 行 3 列相关数据，末尾追加 1 个极端点 `[45,35,28]`（数据行号 82）。D² 与异常点集合已用 numpy/scipy 黄金对照（最大差 5e-4）。
+
+**步骤与预期**：
+1. 不带开关：`auto_stats.py mah.csv` 不出现"多元异常值筛查"段、不生成 `_多元异常值.csv`（opt-in，不打扰常规流程）。
+2. `--mahalanobis`：对（无量表时）全部数值列算 D²，报告 χ²(3) 临界 16.266、"发现 1 个多元异常个案"、点名数据行号 82（D²≈66.4，p<.001），导出 `_多元异常值.csv`（列：数据行号,D2,df,p,是否多元异常值；全部个案在内、按 D² 降序）。
+3. 原数据仍为 81 行，工具不删任何个案；输出含"不能为了让模型好看而删点""敏感性分析"口径。
+4. `--mahalanobis V1 V2`：只对两变量，显示"变量 2 个"。
+5. `--mah-alpha 1.5`：越界（须在 0 与 1 之间）友好报错跳过，不崩。
+6. 边界：变量 <2、完整个案数 ≤ 变量数（协方差奇异）均中文提示跳过；量表数据下不带变量=对全部量表总分。
+7. 文档：`psychology/stats-guide.md` 第六节前置、`workflows/data-analysis-auto.md` 回归段、README auto_stats 功能行均有说明。
+
+---
+
 # 脚本回归测试清单（每次改动后执行）
 
 在项目根目录（PowerShell）逐条运行，全部通过才算合格：
@@ -830,6 +847,8 @@ python tools\webpage_preview.py templates\网页范例
 # 10 数据去标识化（隐私闸；--dry-run 只体检不写文件）
 python tools\anonymize_data.py tests\test-data\sample_pii.csv --dry-run
 python tools\anonymize_data.py tests\test-data\sample_pii.csv -o tests\test-data\_t_去标识化.csv --report tests\test-data\_t_去标识化报告.txt --key tests\test-data\_t_假名对照表.csv
+# 11 多元异常值筛查（Mahalanobis D²，只标记不删；对 demo 干净数据应"未发现"）
+python tools\auto_stats.py tests\test-data\demo_survey.csv --scales tests\test-data\demo_scales.txt --mahalanobis
 ```
 
 测试结束后删除 `_t_*` 临时文件和 `tests/test-data/_demo_check` 目录。（test_special_columns.py 会自清其 `_special*` 临时文件）所有脚本只用Python标准库（模型图需matplotlib），
