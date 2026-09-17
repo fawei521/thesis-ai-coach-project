@@ -369,7 +369,7 @@ corStability(net_case)                                    # 中心性 CS 系数
 ### 效应量（与 p 值一起报告，不能只报显著性）
 - 相关 r/Spearman rs/偏 r：`.10/.30/.50` 为小/中/大；t 检验报 Cohen's d（`.2/.5/.8`），小样本可并列 Hedges' g；方差分析报 η²/偏η²（或偏差更小的 ε²），`.01/.06/.14` 为小/中/大；卡方报 Cramér's V（2×2 报 φ），`.1/.3/.5`；非参数 t 对应报 r、Kruskal-Wallis 报 ε²。
 - 能给置信区间时一并给出（相关 r 用 Fisher z 区间，d 用其方差近似区间）；区间跨 0 与显著性结论一致，要如实呈现。
-- **换算/复核脚本 `tools/effect_size.py`（菜单第11项）**：手上只有 JASP/SPSS 给出的 t、F、χ²、r 或两组均值标准差时，用它补算效应量与区间：
+- **换算/复核脚本 `tools/effect_size.py`（菜单第12项）**：手上只有 JASP/SPSS 给出的 t、F、χ²、r 或两组均值标准差时，用它补算效应量与区间：
   - `python tools/effect_size.py d --m1 .. --sd1 .. --n1 .. --m2 .. --sd2 .. --n2 ..`（均值标准差→d/g/CI）
   - `python tools/effect_size.py d-t --t 2.65 --n1 60 --n2 60`；配对用 `paired-d --mean-diff .. --sd-diff .. --n ..`
   - `python tools/effect_size.py r --r 0.34 --n 120`（Fisher 95%CI）；`r-t --t .. --df ..`

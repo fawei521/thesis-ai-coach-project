@@ -266,7 +266,7 @@ try:
     check("coach5多选填空", "多选题" in cr and "scales.txt 时勿列入" in cr)
     check("coach6样本量", "sample_size.py" in cr)
     check("coach7五指标", "低变异" in cr and "注意力检查题答错" in cr)
-    menu = tx("tools/menu.py"); check("menu第8项", "【8/11】" in menu and "sample_size.py" in menu)
+    menu = tx("tools/menu.py"); check("menu第8项", "【8/12】" in menu and "sample_size.py" in menu)
     qs = tx("QUICKSTART.md"); check("QS菜单8", "8. 开题样本量" in qs)
     check("QS流程顺序", qs.find("查文献读文献") < qs.find("开题报告/开题答辩"))
     bad = []
@@ -343,7 +343,7 @@ try:
     check("README能力表24", "24个高频问题" in tx("README.md"))
     check("coach12阶段", "12阶段工作流" in cr and "阶段11：答辩准备" in cr)
     check("coach三检查闸", "动机闸" in cr and "质量闸" in cr and "留痕闸" in cr)
-    check("coach文献量口径", "30-50篇文献收集" in cr and "重点10-15篇" in cr)
+    check("coach文献量口径", "至少 90 篇候选池" in cr and "10–20 篇重点" in cr and "多词交叉核验" in cr)
     pg = tx("workflows/proposal-guide.md")
     check("开题脚本不进论文", "不写进开题报告" in pg and "公认软件" in pg)
     check("量表授权邮件", "书面许可" in pg and "授权邮件" in pg)
@@ -355,7 +355,7 @@ try:
     check("AI声明三版本", "详细版" in ad and "简洁版" in ad and "学校有固定格式" in ad)
     pr = tx("workflows/paper-reading-guide.md")
     check("精读IMRaD卡片", "IMRaD" in pr and "与本研究的关系" in pr)
-    check("精读分层数量", "精读（10-15篇）" in pr and "泛读（20-40篇）" in pr)
+    check("精读分层数量", "精读（10–20 篇，从约 90 篇候选池中筛）" in pr and "泛读（20-40篇）" in pr)
     check("进度卡12阶段", "11 答辩准备" in tx("我的工作区/我的论文进度.md"))
     cm = ROOT / "workflows" / "communication-guide.md"
     check("沟通指南文件存在", cm.exists())
@@ -577,7 +577,7 @@ try:
     check("预览器--list可运行", pl.returncode == 0 and "index.html" in (pl.stdout or ""), (pl.stderr or "")[-200:])
     wdir = ROOT / "我的工作区" / "04-网页"
     check("工作区04-网页就位", wdir.is_dir() and (wdir / "把网页放这里.txt").exists())
-    check("菜单第9项", "【9/11】" in menu and "webpage_preview.py" in menu)
+    check("菜单第9项", "【9/12】" in menu and "webpage_preview.py" in menu)
     check("网页能力已登记到入口",
           "webpage-guide.md" in st and "webpage_preview.py" in st and "webpage-guide.md" in cr)
     check("README登记网页能力", "webpage-guide.md" in rm and "webpage_preview.py" in rm)
@@ -589,10 +589,10 @@ try:
     check("脱敏工具纯标准库", "import csv" in an_src and "matplotlib" not in an_src and "pandas" not in an_src)
     check("脱敏工具有安全开关", all(s in an_src for s in ["--dry-run", "--no-key", "--columns", "--k"]))
     check("脱敏工具另存不改原文件", "_去标识化.csv" in an_src and "同名同路径" in an_src)
-    check("菜单第10项去标识化", "【10/11】" in menu and "anonymize_data.py" in menu and "去标识化" in menu)
-    check("菜单第11项效应量", "【11/11】" in menu and "effect_size.py" in menu and "效应量" in menu)
+    check("菜单第11项去标识化", "【11/12】" in menu and "anonymize_data.py" in menu and "去标识化" in menu)
+    check("菜单第12项效应量", "【12/12】" in menu and "effect_size.py" in menu and "效应量" in menu)
     check("START登记去标识化", "anonymize_data.py" in st and "去标识化" in st)
-    check("QUICKSTART登记第10项", "去标识化" in tx("QUICKSTART.md"))
+    check("QUICKSTART登记第11项", "去标识化" in tx("QUICKSTART.md"))
     check("AI素养接线去标识化工具", "anonymize_data.py" in tx("core/ai-literacy.md"))
     check("数据工作流接线去标识化", "anonymize_data.py" in tx("workflows/data-analysis-auto.md"))
 
@@ -655,7 +655,7 @@ try:
     check("Skill自检退出0", skr.returncode == 0 and "全部通过" in (skr.stdout or ""),
           ((skr.stdout or "")[-400:]) + ((skr.stderr or "")[-200:]))
     skm = (SK / "SKILL.md").read_text(encoding="utf-8")
-    check("Skill默认自然风格", "自然专业（默认" in skm and "不套任何人设" in skm)
+    check("Skill默认自然语气", "自然（默认" in skm and "不套任何人设" in skm)
     check("Skill鼓励默认可关", "标准（默认" in skm and "关闭鼓励" in skm)
     stage_list = list((SK / "stages").glob("stage-*.md"))
     check("Skill阶段12个", len(stage_list) == 12, "n=%d" % len(stage_list))
@@ -711,15 +711,16 @@ try:
     check("v156鼓励三档与默认", all(s in eg for s in ("标准", "精简", "关闭", "默认")))
     check("v156鼓励切换指令", all(s in eg for s in ("关闭鼓励", "鼓励精简一点", "开启鼓励")))
     check("v156鼓励P0不包装与奖赏", "P0 不包装" in eg and "里程碑" in eg and "挫折时刻协议" in eg)
-    check("v156鼓励禁夸天赋", "禁止夸天赋" in eg and "每轮至多一次肯定" in eg)
-    check("v156鼓励四人格措辞", all(s in eg for s in ("专业导师（默认）", "霸道总裁（可选）", "知心姐姐（可选）", "小奶狗（可选）")))
+    check("v156鼓励禁夸天赋且去机械计数", "禁止夸天赋" in eg and "每轮至多一次肯定" not in eg and "密度自然" in eg)
+    check("v158鼓励四语气措辞", all(s in eg for s in ("自然（默认）", "简洁直接（可选）", "温和耐心（可选）", "活泼热情（可选）"))
+          and "专业导师（默认）" not in eg and "小奶狗（可选）" not in eg)
     check("v156行为自测用例与声明", "T1 " in bt and "T32" in bt and "测试计划" in bt and "不是" in bt)
     check("v156coach人格鼓励正交", "人格只管" in cr and "鼓励档" in cr and "core/encouragement-guide.md" in cr)
     check("v156coach旧鼓励表述移除", "不给无意义鼓励" not in cr)
     check("v156coach卡壳临时降档", "临时降一档" in cr)
     check("v156coach阶段0鼓励档", "鼓励档（默认" in cr)
     check("v156coach引用反馈协议", "core/coaching-protocol.md" in cr and "反馈三段式" in cr)
-    check("v156START必读五份", "先读这五份" in st and "core/coaching-protocol.md" in st and "core/encouragement-guide.md" in st)
+    check("v156START必读六份", "先读这六份" in st and "core/companionship.md" in st and "core/coaching-protocol.md" in st and "core/encouragement-guide.md" in st)
     check("v156START开场第五问", "关闭鼓励" in st and "反馈方式" in st)
     card_t = tx("templates/progress-template.md"); card_w = tx("我的工作区/我的论文进度.md")
     check("v156双进度卡鼓励档行", "鼓励反馈档" in card_t and "鼓励反馈档" in card_w)
@@ -769,9 +770,12 @@ try:
     check("v1566统计数据真实性P0",
           "P0 红线" in psy["stats-guide.md"] and "不显著也是结果" in psy["stats-guide.md"])
     check("v1566量表库需核实", "需核实" in psy["scale-library.md"])
-    check("v1566自测用例扩至38且连续", len(bt_nums) == 38 and bt_nums == list(range(1, 39)),
+    check("v1566自测用例扩至38且连续", len(bt_nums) >= 38 and bt_nums[:38] == list(range(1, 39)),
           "n=%d" % len(bt_nums))
     check("v1566自测新增六场景", all(s in bt for s in ("T33", "T34", "T35", "T36", "T37", "T38")))
+    check("v158自测用例扩至45且连续", len(bt_nums) == 45 and bt_nums == list(range(1, 46)),
+          "n=%d" % len(bt_nums))
+    check("v158自测新增七场景", all(("T%d" % i) in bt for i in range(39, 46)))
     check("v1566走查记录诚实标注",
           "桌面静态走查" in bt and "非真人" in bt and "最高优先级遗留" in bt)
 
@@ -811,6 +815,109 @@ try:
         finally:
             if not rmtree_retry(md_dir):
                 print("WARN 手机版构建临时目录未能删除（请手动清理）：" + str(md_dir))
+
+    # ---- v1.58 身份/稳定陪伴/鼓励自然化/多词检索/90篇候选池/重点卡片/手机原生适配 ----
+    companionship = ROOT / "core" / "companionship.md"
+    skill_comp = SK / "references" / "companionship.md"
+    check("v158陪伴文件存在", companionship.exists() and skill_comp.exists())
+    ct = companionship.read_text(encoding="utf-8") if companionship.exists() else ""
+    check("v158陪伴身份与边界", all(s in ct for s in ("不是老师", "虚拟伴侣", "脚手架", "情感依赖", "12356")))
+    sct = skill_comp.read_text(encoding="utf-8") if skill_comp.exists() else ""
+    check("v158skill陪伴口径", all(s in sct for s in ("不是老师", "虚拟伴侣", "脚手架", "情感依赖")))
+    check("v158陪伴登记入规则与入口",
+          "core/companionship.md" in cr and "core/companionship.md" in st and "companionship.md" in skm)
+    for _nm, _txt in (("coach-rules", cr), ("coaching-protocol", cp), ("START", st), ("SKILL", skm)):
+        check("v158去旧人格:" + _nm, not any(x in _txt for x in ("霸道总裁", "知心姐姐", "小奶狗")))
+    check("v158START不自称导师", "毕业论文AI导师" not in st and "毕业论文 AI 导师" not in st and "AI 助手" in st)
+    check("v158鼓励原则化自然化", "密度自然" in eg and "每轮至多一次肯定" not in eg)
+    # 多词检索 + ≥90 候选池（文档口径 + 脚本开关）
+    check("v158工作流多词与90池",
+          all(s in las for s in ("--queries", "--source all", "--min 90", "至少 3 组", "候选池")))
+    check("v158量表多词检索纪律", "量表检索纪律" in sl and "同义词" in sl and "OR" in sl and "AND" in sl)
+    check("v158检索脚本多词开关", all(x in psrc for x in ('--queries', '--source', '--min', 'action="append"')))
+    check("v158卡片脚本与菜单项",
+          (ROOT / "tools" / "literature_cards.py").exists() and "literature_cards.py" in menu and "【10/12】" in menu)
+    check("v158卡片接入网页指南且不增类型", "literature_cards.py" in wg and "文献笔记网页" in wg)
+    check("v158手机交接单与原生做法", all(s in mg for s in ("设备交接单", "全球学术快报", "literature_cards")))
+
+    # paper_search 纯函数 + collect 注入假 fetcher（离线、确定性）
+    try:
+        if str(ROOT / "tools") not in sys.path:
+            sys.path.insert(0, str(ROOT / "tools"))
+        import paper_search as psearch
+        ql = psearch.split_queries(["AI dependence;AI attachment", "chatbot reliance", "AI attachment"])
+        check("v158多词拆分去重", ql == ["AI dependence", "AI attachment", "chatbot reliance"], str(ql))
+        check("v158DOI规范化",
+              psearch.normalize_doi("https://doi.org/10.1/X") == "10.1/x"
+              and psearch.normalize_doi("doi: 10.2/Y") == "10.2/y")
+        bk = {}
+        r_a = {"title": "Same Paper", "doi": "10.9/z", "cited": 5, "source_api": ["OpenAlex"]}
+        r_b = {"title": "Same Paper", "doi": "10.9/Z", "cited": 9, "source_api": ["Semantic Scholar"]}
+        psearch.add_record(bk, r_a); psearch.add_record(bk, r_b)
+        merged_one = bk.get(psearch.dedup_key(r_a))
+        check("v158跨源DOI去重合并", len(bk) == 1 and int(merged_one["cited"]) == 9
+              and set(merged_one["source_api"]) == {"OpenAlex", "Semantic Scholar"}, "n=%d" % len(bk))
+        _cnt = {"i": 0}
+        def _fake_fetcher(source, query, offset, per_page, year):
+            if offset:
+                return []  # 第二页空 → 该"来源×词"穷尽
+            out = []
+            for _ in range(50):
+                _cnt["i"] += 1
+                out.append({"title": "Paper %d" % _cnt["i"], "doi": "10.7/%d" % _cnt["i"],
+                            "cited": 1, "year": 2024, "source_api": [source]})
+            return out  # 50 < per_page(100) → 首页即穷尽
+        recs_p, stats_p = psearch.collect(["q1", "q2"], ["openalex", "semantic"], 90, 100,
+                                          fetcher=_fake_fetcher, sleeper=lambda s: None, verbose=False)
+        check("v158collect凑够90且去重", len(recs_p) >= 90 and len(stats_p) >= 2, "n=%d" % len(recs_p))
+        check("v158不足目标非静默", "未达到目标" in psrc and "补" in psrc)
+    except Exception as _pe:
+        check("v158paper_search离线纯函数", False, repr(_pe))
+
+    # literature_cards 端到端（UTF-8-sig + GBK、跨文件重复 DOI、强制精读入选）
+    card_tmp = new_tmp("cards")
+    try:
+        import literature_cards as lc
+        f_utf8 = card_tmp / "cand_utf8.csv"
+        lines = ["标题,作者,年份,期刊/会议,DOI,链接,被引数,摘要,来源API,命中检索词,检索日期"]
+        for i in range(1, 13):
+            forced = "（强制精读）" if i == 12 else ""
+            cited = 0 if i == 12 else (200 - i * 10)
+            year = 2000 if i == 12 else 2020 + (i % 6)
+            ab = "" if i == 12 else "摘要内容 AI dependence %d" % i
+            lines.append("文献标题%d%s,作者%d,%d,期刊%d,10.5/%d,https://doi.org/10.5/%d,%d,%s,OpenAlex,q1,2026-09-17"
+                         % (i, forced, i, year, i, i, i, cited, ab))
+        f_utf8.write_text("\n".join(lines), encoding="utf-8-sig")
+        gbk_lines = ["标题,作者,年份,期刊,DOI,被引数,摘要,是否精读",
+                     "文献标题12（强制精读）,作者12,2000,期刊12,10.5/12,0,,是",
+                     "文献标题1,作者1,2021,期刊1,10.5/1,190,摘要内容 AI dependence 1,"]
+        f_gbk = card_tmp / "org_gbk.csv"
+        f_gbk.write_bytes("\n".join(gbk_lines).encode("gb18030"))
+        out_html = card_tmp / "cards.html"
+        rc_c = run(["tools/literature_cards.py", str(f_utf8), str(f_gbk),
+                    "--focus", "AI dependence", "--top", "5", "--output", str(out_html)], 90)
+        check("v158卡片CLI退出0", rc_c.returncode == 0 and out_html.exists(), (rc_c.stderr or "")[-240:])
+        htxt = out_html.read_text(encoding="utf-8") if out_html.exists() else ""
+        check("v158卡片单文件无外网",
+              all(x not in htxt for x in ("<script src=", "<link", "@import", "url(http", "https://cdn")),
+              "len=%d" % len(htxt))
+        check("v158卡片移动友好与可追溯",
+              all(x in htxt for x in ("width=device-width", "application/json", "modal", "⭐",
+                                      "不构成论文引用依据", "textContent")))
+        papers_c, probs_c = lc.load_papers([f_utf8, f_gbk])
+        check("v158卡片读GBK且跨文件去重", not probs_c and len(papers_c) == 12,
+              "n=%d problems=%s" % (len(papers_c), probs_c))
+        focus_c = lc.parse_focus("AI dependence")
+        star_idx_c = lc.pick_stars(papers_c, focus_c, 5)
+        data_c, cats_c = lc.build_payload(papers_c, star_idx_c, focus_c)
+        forced_c = [d for d in data_c if "强制精读" in d["title"]]
+        n_star = sum(1 for d in data_c if d["star"])
+        check("v158卡片强制精读入选且篇数受控",
+              len(forced_c) == 1 and forced_c[0]["star"] is True and n_star == 5, "stars=%d" % n_star)
+    except Exception as _ce:
+        check("v158literature_cards端到端", False, repr(_ce))
+    finally:
+        shutil.rmtree(card_tmp, ignore_errors=True)
 finally:
     cleanup()
 

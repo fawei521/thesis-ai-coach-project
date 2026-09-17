@@ -51,7 +51,7 @@ def run(script, args):
         result = subprocess.run(cmd, cwd=str(HERE.parent))
         if result.returncode != 0:
             print(f"\n（提示：{script} 运行返回码 {result.returncode}，")
-            print(" 如果看不懂报错，把这段画面截图发给你的AI导师。）")
+            print(" 如果看不懂报错，把这段画面截图发给你的 AI 助手。）")
     except FileNotFoundError:
         print(f"没找到脚本 {script}，请确认 tools 文件夹完整。")
     except Exception as e:
@@ -63,7 +63,7 @@ def pause():
 
 
 def t_preprocess():
-    print("\n【1/11】问卷星数据预处理")
+    print("\n【1/12】问卷星数据预处理")
     print("  用途：把问卷星下载的原始表，转成后面能统计的标准数字表。")
     f = ask_path("  把问卷星导出的原始CSV拖进来，回车：")
     if not f:
@@ -72,7 +72,7 @@ def t_preprocess():
 
 
 def t_clean():
-    print("\n【2/11】问卷数据清洗（找无效问卷）")
+    print("\n【2/12】问卷数据清洗（找无效问卷）")
     f = ask_path("  把（预处理后的）数据CSV拖进来，回车：")
     if not f:
         return
@@ -91,7 +91,7 @@ def t_clean():
 
 
 def t_stats():
-    print("\n【3/11】自动统计分析")
+    print("\n【3/12】自动统计分析")
     print("  自动完成：人口学频数表、反向计分、信度α、结构效度(KMO/Bartlett/载荷)、")
     print("  共同方法偏差Harman、量表总分、描述统计、相关、回归、")
     print("  Bootstrap中介（模型4/6），并导出三线表和频数表。")
@@ -129,19 +129,26 @@ def t_stats():
         if pc:
             args += ["--partial", pc]
     run("auto_stats.py", args)
-    print("\n  脚本已自动做Bootstrap中介；正式结果建议让AI导师带你用")
+    print("\n  脚本已自动做Bootstrap中介；正式结果建议让 AI 助手带你用")
     print("  JASP/SPSS PROCESS 打开“_量表总分.csv”复核一次。")
 
 
 def t_search():
-    print("\n【4/11】检索英文学术文献（需要联网，免费，不用账号）")
-    kw = input("  输入英文关键词（例如 AI dependence adolescent NSSI）：").strip()
+    print("\n【4/12】检索英文学术文献（需要联网，免费，不用账号）")
+    print("  建议每个概念给 2-4 个同义/近义词，用分号 ; 隔开（概念内 OR、概念间 AND）。")
+    print("  例：AI dependence;AI attachment;chatbot reliance")
+    kw = input("  输入英文检索词（多个近义词用 ; 隔开；至少给一个）：").strip()
     if not kw:
-        print("  关键词为空，已取消。")
+        print("  检索词为空，已取消。")
         return
-    num = input("  要几篇？直接回车默认15篇：").strip() or "15"
+    tgt = input("  去重后想要多少篇候选池？直接回车=每词每源约15篇；想凑约90篇就输入 90：").strip()
     out = input("  结果保存成什么文件名？直接回车默认放进 我的工作区\\01-文献PDF\\英文文献.csv：").strip()
-    args = ["--query", kw, "--limit", num]
+    # 支持分号/换行多词：交给 paper_search 的 --queries；同时双源检索
+    args = ["--queries", kw, "--source", "all"]
+    if tgt.isdigit() and int(tgt) > 0:
+        args += ["--min", tgt]
+    else:
+        args += ["--limit", "15"]
     if out:
         args += ["--output", out]
     else:
@@ -150,7 +157,7 @@ def t_search():
 
 
 def t_lit():
-    print("\n【5/11】文献去重与分类")
+    print("\n【5/12】文献去重与分类")
     print("  可拖入的有两种：① 每行一篇的 txt；② 第 4 项检索导出的标准 CSV（含 标题/作者 表头）。")
     print("  也可以直接拖知网导出的题录 txt。")
     f = ask_path("  把文献文件拖进来，回车：")
@@ -159,8 +166,29 @@ def t_lit():
     run("literature_organizer.py", [f])
 
 
+def t_cards():
+    print("\n【10/12】生成重点文献卡片网页（手机友好，挑精读用）")
+    print("  吃第 4 项检索导出的 CSV、第 5 项的整理表（可多个，UTF-8/GBK 都行），")
+    print("  自动去重、按 精读标记/被引/近年/相关度 选出重点，生成单个 HTML。")
+    raw = input("  把一个或多个文献 CSV/整理表拖进来（多个用分号 ; 隔开），回车：").strip()
+    if not raw:
+        print("  没有输入文件，已取消。")
+        return
+    paths = [p.strip().strip('"').strip("'") for p in raw.replace("\n", ";").split(";") if p.strip()]
+    focus = input("  你的核心变量/主题词（逗号分隔，命中的重点加权；直接回车跳过）：").strip()
+    out = input("  网页存成什么文件名？直接回车默认 我的工作区\\04-网页\\重点文献卡片.html：").strip()
+    args = paths
+    if focus:
+        args += ["--focus", focus]
+    if out:
+        args += ["--output", out]
+    else:
+        args += ["--output", "我的工作区/04-网页/重点文献卡片.html"]
+    run("literature_cards.py", args)
+
+
 def t_chart():
-    print("\n【6/11】生成研究模型图")
+    print("\n【6/12】生成研究模型图")
     print("  链式模型示例变量：AI依赖,孤独感,反刍,NSSI（用英文逗号分隔，4个）")
     print("  简单模型示例变量：AI依赖,NSSI（2个）")
     vars_ = input("  输入变量名（逗号分隔）：").strip()
@@ -179,7 +207,7 @@ def t_chart():
 
 
 def t_demo():
-    print("\n【7/11】生成演示数据（还没收回问卷时，先拿它练手）")
+    print("\n【7/12】生成演示数据（还没收回问卷时，先拿它练手）")
     print("  会生成一份内置链式中介结构、含反向题的模拟数据，")
     print("  用来跑通第3步统计流程。模拟数据严禁写进真实论文。")
     out = input("  保存到哪个文件夹？可直接拖入一个文件夹，回车默认放进 我的工作区\\02-问卷数据：").strip().strip('"').strip("'")
@@ -190,7 +218,7 @@ def t_demo():
 
 
 def t_power():
-    print("\n【8/11】开题样本量 / 功效估算（G*Power 等价，回答要发多少份）")
+    print("\n【8/12】开题样本量 / 功效估算（G*Power 等价，回答要发多少份）")
     print("  1 相关分析（Pearson r）")
     print("  2 多元回归总体 R²（检验整组预测变量）")
     print("  3 多元回归 R² 增量（检验新增变量，如交互项）")
@@ -219,9 +247,9 @@ def t_power():
 
 
 def t_preview():
-    print("\n【9/11】预览我做的网页（本地预览，不上传任何东西）")
+    print("\n【9/12】预览我做的网页（本地预览，不上传任何东西）")
     print("  把你做的网页放进「我的工作区\\04-网页」，这里用浏览器打开它。")
-    print("  还没有网页？对你的AI导师说：")
+    print("  还没有网页？对你的 AI 助手说：")
     print("     「我想做一个网页，你读一下 workflows/webpage-guide.md 带我做一个。」")
     print("  项目里已带 4 个现成范例（含问答式统计方法选择器），也可以先看看效果：")
     print("     templates\\网页范例\\  （双击里面的 index.html 即可）")
@@ -236,7 +264,7 @@ def t_preview():
 
 
 def t_anonymize():
-    print("\n【10/11】数据去标识化（发给AI/上传/给外校前，隐去姓名学号手机等）")
+    print("\n【11/12】数据去标识化（发给AI/上传/给外校前，隐去姓名学号手机等）")
     print("  自动识别并假名化/删除姓名、学号、手机、邮箱、身份证、微信/QQ、IP、住址等，")
     print("  并对性别/年级/专业/生源等组合做 k-匿名风险体检；只读原文件、另存新文件，绝不改原数据。")
     f = ask_path("  把要外发的原始数据CSV拖进来，回车：")
@@ -269,7 +297,7 @@ def _ask_num(prompt, kind=float):
 
 
 def t_effect():
-    print("\n【11/11】效应量换算与复核（写结果时，由 t/F/χ²/r 或均值标准差算效应量）")
+    print("\n【12/12】效应量换算与复核（写结果时，由 t/F/χ²/r 或均值标准差算效应量）")
     print("  论文不能只报 p 值，还要报效应量及（能给时）置信区间。选你手上已有的结果：")
     print("   1 两组均值/标准差/n → Cohen's d、Hedges' g")
     print("   2 已知 t 值 → d（独立两组）或配对 d_z")
@@ -339,8 +367,9 @@ MENU = [
     ("7", "生成演示数据（没收回问卷前先练手）", t_demo),
     ("8", "开题样本量/功效估算（G*Power等价，要发多少份）", t_power),
     ("9", "预览我做的网页（本地预览，不上传）", t_preview),
-    ("10", "数据去标识化（外发前隐去姓名/学号/手机，附k-匿名体检）", t_anonymize),
-    ("11", "效应量换算与复核（由t/F/χ²/r或均值标准差算d、r、η²、V及区间）", t_effect),
+    ("10", "生成重点文献卡片网页（检索/整理 CSV → 手机友好 HTML）", t_cards),
+    ("11", "数据去标识化（外发前隐去姓名/学号/手机，附k-匿名体检）", t_anonymize),
+    ("12", "效应量换算与复核（由t/F/χ²/r或均值标准差算d、r、η²、V及区间）", t_effect),
 ]
 
 
@@ -351,8 +380,9 @@ def main():
         print("        毕业论文工具箱（心理学问卷研究）")
         print("=" * 64)
         print("  典型顺序：先 1 预处理 → 2 清洗 → 3 统计")
-        print("  写文献综述时用 4 检索、5 整理；画图用 6；练手用 7；开题估样本量用 8")
-        print("  做了自己的网页想看看效果，用 9；数据外发前用 10 去标识化；写结果补效应量用 11")
+        print("  写文献综述时用 4 多词检索（可凑约90篇候选池）→ 5 整理 → 10 生成重点卡片")
+        print("  画图用 6；练手用 7；开题估样本量用 8；预览自己的网页用 9")
+        print("  数据外发前用 11 去标识化；写结果补效应量用 12")
         print("-" * 64)
         for num, name, _ in MENU:
             print(f"  {num}. {name}")
@@ -360,7 +390,7 @@ def main():
         print("-" * 64)
         choice = input("请输入数字后回车：").strip()
         if choice == "0":
-            print("再见！记得让AI导师帮你核对每一步结果。")
+            print("再见！记得让 AI 助手帮你核对每一步结果。")
             break
         action = None
         for num, name, fn in MENU:

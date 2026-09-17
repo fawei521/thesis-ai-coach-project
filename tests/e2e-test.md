@@ -796,7 +796,7 @@ python tests/test_special_columns.py`
 7. 只有性别/年级/作答题的无标识符文件：友好提示"未发现直接标识符"，不生成多余文件。
 8. `--columns "手机号:mask;姓名:drop;学号:drop"`：手机号列保留但打码成 `138****0001`，姓名学号删除。
 9. 全过程原 `sample_pii.csv` 内容不变。
-10. 菜单第 10 项、START、QUICKSTART、AI 素养、自动化数据分析工作流均有入口与说明。
+10. 菜单第 11 项、START、QUICKSTART、AI 素养、自动化数据分析工作流均有入口与说明。
 
 ---
 
@@ -831,7 +831,7 @@ python tests/test_special_columns.py`
 
 ---
 
-## 测试57：效应量换算与复核工具（effect_size.py，菜单第11项）
+## 测试57：效应量换算与复核工具（effect_size.py，菜单第12项）
 
 **目的**：论文不能只报 p 值；学生从 JASP/SPSS 或文献拿到 t、F、χ²、r 或两组均值标准差时，用纯标准库工具补算效应量与置信区间并给小/中/大口判，口径与 `psychology/stats-guide.md`、`tools/stats/compare.py` 完全一致；只做换算，不碰原始数据、不替学生造数。
 
@@ -845,7 +845,7 @@ python tests/test_special_columns.py`
 5. `v --chi2 6.10 --n 200 --rows 2 --cols 2`：Cramér's V=φ=0.175（小）；3×3 用 df_min=2。
 6. `convert --r .30`→d=0.629；`--d .50`→r=0.243。
 7. 健壮性：缺参、r 时 n≤3、列联表行/列<2 等给中文提示，不抛 Traceback；页脚固定"不显著也如实报告、不得为凑阈值反推改数"。
-8. 菜单第11项引导（6 类换算）端到端跑通；文档：stats-guide 第十节、data-analysis-auto 第11步与质量闸、README/START/QUICKSTART/AGENTS 同步。
+8. 菜单第12项引导（6 类换算）端到端跑通；文档：stats-guide 第十节、data-analysis-auto 第11步与质量闸、README/START/QUICKSTART/AGENTS 同步。
 
 ---
 
