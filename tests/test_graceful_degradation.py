@@ -124,14 +124,14 @@ def main():
               (loop / "demo_survey_信度分析.csv").exists() and
               (loop / "demo_survey_相关热图.png").exists())
 
-        # 4. paper_search 导出到尚不存在的目录时自动建目录（离线直接调 export_csv）
+        # 4. paper_search 导出到尚不存在的目录时自动建目录（离线直接调 save_csv）
         import importlib.util
         spec = importlib.util.spec_from_file_location(
             "paper_search_under_test", str(ROOT / "tools" / "paper_search.py"))
         ps = importlib.util.module_from_spec(spec)
         spec.loader.exec_module(ps)
         nest = tmp / "nest" / "sub" / "英文文献.csv"
-        ps.export_csv([{"标题": "a"}, {"标题": "b"}], str(nest))
+        ps.save_csv([{"标题": "a"}, {"标题": "b"}], str(nest))
         check("检索结果自动建目录", nest.exists())
     finally:
         # 只清内容，保留固定名目录壳（见 main 开头的注释）
