@@ -106,6 +106,10 @@ thesis-ai-coach-project/
 
 ## 版本
 
+**v1.46 数据分析主流程走查＋JASP链式/样本量口径纠错版**
+- 逐字走查 data-analysis-auto.md；纠正"JASP原生Mediation支持链式中介"（链式需 Process 模块 Model 6 或 SEM），PROCESS 宏官网更正为 processmacro.org
+- 统一样本量口径（链式建议300、最低不低于200、预留10-20%无效卷、G*Power 为准），消除质量闸"至少>150"的偏低漂移
+
 **v1.45 新增《跟老师沟通指南》补全程短板版**
 - 新增 workflows/communication-guide.md：五原则、沟通节奏、12个场景可套用话术（选题/量表/开题/伦理/收数/初稿/修改/催稿/被批评/不回复/分歧）、礼仪、态度解读、留痕
 - coach 阶段10、START 导航、README 接入；修正"16类/10种"数字漂移（实际16种量表分6大类、stats-guide 11章节）

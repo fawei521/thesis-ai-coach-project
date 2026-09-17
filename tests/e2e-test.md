@@ -580,6 +580,17 @@ python tests/test_special_columns.py`
 
 **通过标准**：communication-guide.md 存在且含12场景与伦理/留痕要点；coach阶段10、START、README三处引用到位；consistency退出0；README量表/统计数字与实际文件一致。
 
+---
+
+## 测试42：数据分析主流程走查＋JASP链式/样本量口径纠错（v1.46）
+
+- 逐字走查 workflows/data-analysis-auto.md（251→约255行，预处理/清洗/反向计分/信度/效度EFA/Harman/描述相关/差异/中介/调节/图表/写作/质量闸/FAQ），与 auto_stats.py 真实能力逐项对照，绝大多数准确（Wolfram黄金验证、平行分析、Welch/Games-Howell、非参数、偏相关、卡方Yates/Fisher、VIF、Bootstrap）。
+- 纠错1（关键，项目核心模型即链式）：原文称"JASP 菜单 Regression→Mediation 新版原生支持链式中介"，联网核实（JASP官方博客2024 Process模块、2026文献链式仍普遍用PROCESS Model 6）确认原生 Mediation 主要做简单/并行中介，有序链式(M1→M2)需模块库(+)装官方 Process 模块选Model 6（JASP18.2+）或SEM(lavaan)；已改正，SPSS PROCESS宏官网域名由误写的 hayesprocess.com 更正为 processmacro.org。
+- 纠错2：质量闸"链式中介建议≥200、至少>150"与 sample_size.py/coach/proposal/stats-guide 统一口径（Bootstrap中介≥200、链式建议300、预留10-20%无效卷、G*Power为准）不符且偏低，已统一；FAQ"不会装PROCESS"同步改为简单中介用原生Mediation、链式装Process模块。
+
+**通过标准**：data-analysis-auto 不再出现"原生支持链式中介"和 hayesprocess.com；链式中介明确引导 JASP Process 模块 Model 6 / SPSS PROCESS；样本量口径与 sample_size.py 及其他文档一致（链式建议300、最低不低于200）。
+
+
 
 
 

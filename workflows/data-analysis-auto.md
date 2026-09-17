@@ -245,8 +245,8 @@ python tools/auto_stats.py 数据_量表总分.csv --scales scales.txt \
 脚本用于快速预览和练手；**写进论文的正式结果建议用成熟工具复核一遍**（导师更认可）。
 **数据打开第2步导出的 `_量表总分.csv`，变量选各量表"总分"列。**
 
-**SPSS**：安装PROCESS宏（AI指导从hayesprocess.com免费下载安装），模型4/6
-**JASP**：菜单 Regression → Mediation（新版原生支持链式中介）
+**SPSS**：安装PROCESS宏（AI指导从processmacro.org免费下载安装），简单中介选模型4、链式选模型6
+**JASP**：简单中介用 Regression → Mediation（勾Bootstrap）；**链式中介（模型6，M1→M2有序）需在顶部模块库(+)安装官方 Process 模块后选 Model 6（JASP 18.2+），或用 SEM 模块(lavaan)**；原生 Mediation 主要支持简单/并行中介，不直接做有序链式
 
 复核要点：
 - Bootstrap 5000次，95%置信区间；建议同时看偏差校正(bias-corrected)CI
@@ -312,7 +312,7 @@ AI对每个结果：
 
 ## 分析结果检查清单（质量闸）
 
-- [ ] 有效样本量达到要求（链式中介建议≥200，至少>150）
+- [ ] 有效样本量达到要求（Bootstrap 中介建议 N≥200；链式等复杂模型建议 300、至少不低于 200；已按 10%–20% 预留无效卷；以 G*Power 先验功效分析为准）
 - [ ] 所有量表α达标或已说明
 - [ ] 共同方法偏差已检验
 - [ ] 描述统计、相关分析完整
@@ -333,6 +333,6 @@ AI对每个结果：
 | α低 | 查反向计分、删低质量题、必要时换量表 |
 | 相关不显著 | 中介可能不成立，如实报告，讨论原因 |
 | 中介CI包含0 | 中介不成立，报告为"中介效应不显著"，讨论理论原因 |
-| 不会装PROCESS | 用JASP原生中介功能，或让AI开虚拟电脑指导 |
+| 不会装PROCESS | 简单中介用JASP的 Regression → Mediation；链式中介在JASP模块库(+)装官方 Process 模块选 Model 6，或让AI开虚拟电脑一步步指导 |
 | auto_stats结果和SPSS略有差异 | 以SPSS/JASP为准，脚本用于快速预览 |
 | 结果和假设相反 | 不显著/反向也是发现，诚实讨论，可能是创新点 |
