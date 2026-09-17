@@ -529,6 +529,18 @@ python tests/test_special_columns.py`
 
 **通过标准**：全项目不再出现"全国心理援助热线：400-161-9995"的错误标注；所有给学生/被试的求助号码以官方核实信息为准且含紧急处置。
 
+---
+
+## 测试37：环境搭建指南事实准确性走查（v1.41，联网核实）
+
+- JASP 中介路径核实：JASP 既有内置 Regression → Mediation（Bootstrap 间接效应，最简单），也确有官方 PROCESS 模块（2024 年起在顶部模块库"+"安装）；改写为"先内置、PROCESS 为可选"，并区分 SPSS 需另装 Hayes PROCESS 宏（Model 4/6）。
+- Python 版本建议放宽为 3.11 及以上稳定版（不必追最新大版本）。
+- 修正"Mac 自带 Python"过时表述：新版 macOS 不再预装 Python，给出 python3 验证、Xcode 命令行工具/官网 pkg、命令换 python3/pip3 的准确步骤。
+- 修正 Zotero 中文格式：GB/T 7714 是"引用样式"不是插件，给出 编辑→首选项→引用→样式→"+"搜 GB/T 7714 的准确路径，删除不存在的"Zotero Style 插件"说法。
+
+**通过标准**：environment-setup.md 中四个软件的下载地址、安装关键步骤、中介/样式路径均与官方现状一致，小白照做不会走到不存在的选项。
+
+
 
 
 

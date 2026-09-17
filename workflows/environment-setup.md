@@ -48,7 +48,7 @@
 ### JASP vs SPSS
 - 学校有SPSS：用SPSS即可，AI给的SPSS操作步骤同样适用
 - 没有SPSS：用JASP，菜单逻辑几乎一样，结果也能导出
-- JASP做中介：安装PROCESS模块或用菜单 Regression → Mediation
+- JASP做中介：最简单用菜单 Regression → Mediation（把自变量、因变量、中介变量拖进去，勾选 Bootstrap、看间接效应的置信区间）；想要 Hayes PROCESS 同款模型，可在 JASP 顶部模块库（"+"按钮）安装官方 PROCESS 模块。SPSS 则需另装 Hayes 的 PROCESS 宏（简单中介 Model 4、链式中介 Model 6）
 
 ---
 
@@ -59,7 +59,7 @@
 
 ### 下载安装（Windows，关键步骤不能错）
 1. 打开官网：https://www.python.org/downloads/
-2. 点黄色按钮下载最新稳定版（推荐3.11或3.12）
+2. 点黄色按钮下载稳定版（建议 3.11 及以上版本即可，不必追刚发布的最新大版本，兼容性更稳）
 3. **双击安装包后，最重要的一步**：
    - 安装界面最下方有个勾选框 **"Add python.exe to PATH"（将Python添加到PATH）**
    - **一定要勾选！一定要勾选！一定要勾选！**
@@ -92,7 +92,7 @@ AI会在安装前说明这个库是做什么的、多大，征得你同意后再
 ### 常见问题
 - **pip下载慢**：AI会教你换国内镜像源
 - **权限错误**：不要装在C盘系统保护目录，装在默认目录即可
-- **Mac用户**：Mac自带Python，建议再装python3，用 `python3 --version` 验证
+- **Mac用户**：新版 macOS 已不再预装 Python。打开"终端"输入 `python3 --version` 验证；若提示没有，按弹窗提示安装 Xcode 命令行工具，或从 Python 官网下载 macOS 安装包。Mac 上本项目的命令把 `python` 换成 `python3`、`pip` 换成 `pip3`
 
 ---
 
@@ -119,8 +119,11 @@ AI会在安装前说明这个库是做什么的、多大，征得你同意后再
 4. **做标注**：双击打开PDF，可以高亮、加笔记
 5. **生成参考文献**：选中文献，右键→由所选条目生成参考文献目录，选GB/T 7714格式
 
+### 中文参考文献格式 GB/T 7714（这是"引用样式"，不是插件）
+- 菜单 编辑 → 首选项 → 引用 → 样式，点样式列表下方的 "+"，在样式库搜索 "GB/T 7714"（或"中国国家标准"）添加
+- 之后生成参考文献、导出时选择 GB/T 7714 格式即可
+
 ### 常用插件（AI可指导安装）
-- **Zotero Style**：GB/T 7714中文参考文献格式
 - **Better BibTeX**：和Obsidian联动用
 - **PDF Translate**：PDF翻译
 
