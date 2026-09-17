@@ -30,6 +30,7 @@ problems = []
 REQUIRED_REFERENCES = [
     "coaching-protocol.md", "encouragement-guide.md", "stage-checklist.md",
     "ai-basics.md", "tools.md", "academic-norms.md", "faq.md", "self-test.md",
+    "mobile-guide.md",
 ]
 REQUIRED_TEMPLATES = ["我的论文进度模板.md"]
 REQUIRED_PERSONALITIES = ["default.md", "strict-ceo.md", "gentle-sister.md", "puppy.md"]
@@ -106,8 +107,11 @@ for p in stage_files:
 name_index = {p.name: p for p in ROOT.rglob("*") if p.is_file()}
 
 
-# 学生侧自建产物 / 完整版项目包路径：轻量版里不实物存在，不算断链
-STUDENT_ARTIFACTS = {"我的论文进度.md"}
+# 学生侧自建产物 / 生成产物：轻量版里不实物存在，不算断链
+STUDENT_ARTIFACTS = {
+    "我的论文进度.md",              # 学生自建
+    "thesis-ai-coach-手机版.md",    # 由 build_mobile_single.py 生成的合并单文件
+}
 FULL_PACKAGE_PATHS = ("我的工作区/",)
 # 示意性写法（花括号枚举、stage-N 模式）不算引用
 def is_pattern_ref(ref: str):
@@ -155,7 +159,9 @@ for i in range(STAGE_COUNT):
         problems.append(f"stage-checklist.md 缺少阶段 {i} 行")
 
 # 6. 占位符残留 ---------------------------------------------------------
-PLACEHOLDER = re.compile(r"TODO|TBD|待补充|待完善|FIXME|（占位）|\bXXX\b")
+# 只认真正的"没写完"标记。**不要**把 \bXXX\b、【】这类**模板填空位**算作残留——
+# 模板里本来就该留空让学生填，误报会让维护者免疫真问题。
+PLACEHOLDER = re.compile(r"TODO|TBD|待补充|待完善|FIXME")
 for md in md_files():
     if md.name == "self-test.md":
         continue  # 测试用例文件本身需要描述"检查什么"，含占位符字样属正常
@@ -163,6 +169,43 @@ for md in md_files():
     for i, line in enumerate(text.splitlines(), 1):
         if PLACEHOLDER.search(line):
             problems.append(f"[{md.relative_to(ROOT)}:{i}] 疑似占位残留：{line.strip()[:40]}")
+
+# 7. 手机独立版能力边界 -------------------------------------------------
+# 手机做不了统计是本技能对外承诺的硬边界，必须三处一致地写清楚：
+# SKILL.md（行为约束）、mobile-guide.md（学生可见说明）、stage-8（阶段内拦截）
+mg = read("references/mobile-guide.md")
+if not mg:
+    problems.append("缺少 references/mobile-guide.md（手机版使用说明）")
+else:
+    for kw in ("手机上能完成", "手机上做不了", "必须回电脑", "不要相信"):
+        if kw not in mg:
+            problems.append(f"mobile-guide.md 缺少关键内容「{kw}」")
+for rel, kws in [
+    ("SKILL.md", ("手机做不了", "第 8 阶段只能做一半")),
+    ("stages/stage-8-analysis.md", ("本阶段需要电脑", "JASP")),
+    ("stages/stage-7-data.md", ("必须回电脑", "预处理", "清洗")),
+    ("references/mobile-guide.md", ("必须回电脑", "手机上做不了")),
+]:
+    t = read(rel)
+    for kw in kws:
+        if kw not in t:
+            problems.append(f"{rel} 未写明手机能力边界关键句「{kw}」")
+# 手机端不得把电脑专属工具写成可用的必经步骤
+mg_all = (mg or "") + read("references/tools.md")
+if "手机上也能跑 SPSS" in mg_all and "不要相信" not in mg_all:
+    problems.append("mobile-guide/tools 提到了「手机上也能跑 SPSS」，未同时否定")
+
+# 8. 合并单文件：生成器存在；若产物已在目录内，必须与源同步 -------
+_builder = ROOT / "build_mobile_single.py"
+if not _builder.exists():
+    problems.append("缺少 build_mobile_single.py（手机合并单文件生成器）")
+_single = ROOT / "thesis-ai-coach-手机版.md"
+if _single.exists():
+    import subprocess
+    r = subprocess.run([sys.executable, str(_builder), "--check", "--out", str(_single)],
+                       capture_output=True, text=True, encoding="utf-8", errors="replace", timeout=60)
+    if r.returncode != 0:
+        problems.append("合并单文件 thesis-ai-coach-手机版.md 与源文件不同步，请重新生成")
 
 # 汇总 -----------------------------------------------------------------
 print("=" * 56)
@@ -176,5 +219,5 @@ if problems:
         print("  [问题] " + p)
     print("\n结论：自检未通过，修正后再同步/发布。")
     sys.exit(1)
-print("\n结论：全部通过，可以同步到 .user_skills 并随完整版发布。")
+print("\n结论：全部通过，可以单独分发 / 同步到 .user_skills。")
 sys.exit(0)

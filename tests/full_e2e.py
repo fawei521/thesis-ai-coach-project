@@ -411,6 +411,49 @@ try:
     check("v156自测用例编号连续", bt_nums == list(range(1, len(bt_nums) + 1)) and len(bt_nums) >= 32,
           "n=%d nums=%s" % (len(bt_nums), bt_nums[:5]))
     check("v156情绪与挫折用例", "T31" in bt and "T32" in bt and "接住情绪" in bt and "不得评价情绪本身" in bt)
+
+    # ---- v1.56.2 本体口径硬化：人格与挫折协议一致 + 反攀比回归 + 规则单源 ----
+    check("v1562霸道总裁情绪口径", "会怼回去" not in cr and "正常化情绪" in cr and "我卡在哪" in cr)
+    check("v1562反攀比无凭据比较", "大半同级学生" not in eg and "攀比式表达" in eg)
+    check("v1562专业导师焦虑先接情绪", "先一句话正常化" in eg)
+    check("v1562规则单源不重复", "第三节为唯一来源" in eg and "coach-rules.md` 第四节" in cp
+          and "主动临时降一档把这一步讲透" not in cp)
+
+    # ---- v1.2 手机独立版：能力边界三处一致 + 合并单文件可生成且自包含 ----
+    mgp = ROOT / "doubao-skill" / "references" / "mobile-guide.md"
+    check("v12手机说明文件", mgp.exists())
+    mg = mgp.read_text(encoding="utf-8") if mgp.exists() else ""
+    check("v12手机能力边界齐全", all(s in mg for s in ("手机上能完成", "手机上做不了", "必须回电脑", "手机装不了")))
+    check("v12统计回电脑的理由", "JASP" in mg and "SPSS" in mg and "PROCESS" in mg and "电脑软件" in mg)
+    check("v12只有手机时的出路", all(s in mg for s in ("必须找一台电脑", "带回手机", "跟导师说明")))
+    check("v12安装方式含保底单文件", "合并单文件" in mg and "thesis-ai-coach-手机版.md" in mg)
+    check("v12安装入口标注需核实", "[需核实]" in mg)
+    check("v12三处边界一致",
+          "手机做不了" in skm and "第 8 阶段只能做一半" in skm
+          and "本阶段需要电脑" in tx("doubao-skill/stages/stage-8-analysis.md")
+          and "必须回电脑" in tx("doubao-skill/stages/stage-7-data.md")
+          and "预处理" in tx("doubao-skill/stages/stage-7-data.md"))
+    check("v12工具表含手机对照", "手机上能用什么" in tx("doubao-skill/references/tools.md"))
+    check("v12学校示例不绑定某校", "九江" not in tx("doubao-skill/references/tools.md"))
+    # 合并单文件：生成到临时目录（不依赖项目外的 _发布包/，保证干净副本也能跑）
+    bsp = ROOT / "doubao-skill" / "build_mobile_single.py"
+    check("v12合并单文件生成器存在", bsp.exists())
+    if bsp.exists():
+        md_dir = Path(tempfile.mkdtemp(dir=TD, prefix="_v12mobile_"))
+        try:
+            tg = md_dir / "single.md"
+            rg = run(["doubao-skill/build_mobile_single.py", "--out", str(tg)], 120)
+            check("v12合并单文件可生成", rg.returncode == 0 and tg.exists(), (rg.stderr or "")[-200:])
+            stext = tg.read_text(encoding="utf-8") if tg.exists() else ""
+            check("v12合并单文件自包含",
+                  all(s in stext for s in ("手机做不了", "引导循环", "阶段 11：答辩准备", "strict-ceo")),
+                  "len=%d" % len(stext))
+            check("v12合并单文件规模合理", len(stext) > 50000, "chars=%d" % len(stext))
+            check("v12合并版排除维护者文件", "Skill 行为自测用例" not in stext)
+            rc2 = run(["doubao-skill/build_mobile_single.py", "--check", "--out", str(tg)], 60)
+            check("v12合并版同步校验通过", rc2.returncode == 0, (rc2.stdout or "")[-150:])
+        finally:
+            shutil.rmtree(md_dir, ignore_errors=True)
 finally:
     cleanup()
 

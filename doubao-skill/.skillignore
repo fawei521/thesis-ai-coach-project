@@ -18,3 +18,6 @@ __pycache__/
 # 维护者本地验证证据不随技能分发
 selftest_evidence.json
 evidence/
+
+# 合并单文件产物（由 build_mobile_single.py 生成，属分发产物、不是源文件）
+thesis-ai-coach-手机版.md
