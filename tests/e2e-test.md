@@ -600,6 +600,17 @@ python tests/test_special_columns.py`
 
 **通过标准**：RRQ=24题、AAS=18题、FASM作者为Kelley且1997、UCLA第3版归Russell 1996、CD-RISC-10归Campbell-Sills&Stein、MPAI标Leung 2008；旧错误串（RRQ 10题、AAS 17题、Lloyd Kelly、R-UCLA第3版1980）不再出现。
 
+---
+
+## 测试44：一键全量回归脚本固化（v1.48）
+
+- 把此前散落在临时验证脚本里的 115 项端到端断言（统计/清洗/样本量/模型图/文献脚本真实运行＋统计基准数值＋缺库降级闭环＋consistency一致性＋合规热线/伦理/AI声明＋量表硬事实）固化为随包 `tests/full_e2e.py`。
+- 工程要求：ROOT 用 `Path(__file__).resolve().parents[1]` 自动定位（开发仓库与解压干净副本同一套代码都能跑）；开头备份 tests/test-data 被跟踪基准样例（demo_survey.csv/demo_scales.txt/sample_literature.txt），finally 写回并清理生成物与 __pycache__（干净副本无 git 也能还原）；纯标准库＋subprocess 命令行端到端，不 import 内部函数。
+- DEVELOPMENT.md 测试金字塔 L5 与阶段G发布清单、发布前 checklist 改指 `python tests/full_e2e.py`；README 文件清单与维护者提示同步；约定新增能力必须同步往该脚本加断言（只增不减）。
+
+**通过标准**：开发仓库直接 `python tests/full_e2e.py` 退出 0、打印"共 115 项，通过 115，失败 0"；全新解压副本里同一命令同样退出 0；跑完 tests/test-data 基准样例被还原、无 _ 临时产物残留。
+
+
 
 
 
