@@ -373,6 +373,30 @@ try:
     check("UCLA第3版1996", "Russell, 1996（V3" in sl and "R-UCLA，第3版" not in sl)
     check("CDRISC简版作者", "Campbell-Sills & Stein, 2007" in sl)
     check("MPAI原始Leung", "Leung, 2008" in sl)
+    # ---- v1.59 量表库扩充：8 个新小节(17-24)+BSMAS，硬事实逐条锁定（均经联网核查）----
+    check("DASS21事实", all(s in sl for s in [
+        "DASS-21", "龚栩等, 2010", "21（抑郁/焦虑/压力各7题）", "求和后**×2**", "不作临床诊断"]))
+    check("PSS10事实", all(s in sl for s in [
+        "PSS-10", "Cohen & Williamson, 1988", "失控/无助感（6个负向题：1,2,3,6,9,10）",
+        "4个正向题反向计分", "过去一个月"]))
+    check("SCSQ事实", all(s in sl for s in [
+        "SCSQ", "解亚宁, 1998", "积极应对1-12题", "消极应对13-20题", "0=不采取"]))
+    check("ERQ事实且区别CERQ", all(s in sl for s in [
+        "ERQ", "王力等, 2007", "认知重评6题：1,3,5,7,8,10", "表达抑制4题：2,4,6,9",
+        "**7点计分**", "不可混用或互相替代引用"]))
+    check("SCS谭树华19题", all(s in sl for s in [
+        "谭树华、郭永玉, 2008", "节制娱乐(6)", "专注工作(4)", "谭树华**19题**中文版", "BSCS 为13题"]))
+    check("CSES中文10题", all(s in sl for s in [
+        "CSES", "杜建政、张翔、赵燕, 2012", "中文版10题（原版12题", "第2,3,5,7,8,10题为反向计分"]))
+    check("SWLS事实", all(s in sl for s in [
+        "SWLS", "Diener, Emmons, Larsen & Griffin, 1985", "总分5-35", "30-35非常满意"]))
+    check("BPNS题数存疑标注", all(s in sl for s in [
+        "BPNS", "刘俊升、林丽玲、吕媛等, 2013", "自主7+胜任6+关系8", "多被记为19题",
+        "必须查刘俊升2013原文确认总题数"]))
+    check("BSMAS六要素", all(s in sl for s in [
+        "BSMAS", "Andreassen等, 2016", "显著性+心境改变", "耐受+戒断+冲突+复发", "总分6-30"]))
+    check("量表库编号到24且九大类", "### 24. 基本心理需要" in sl and "## 九、自我评价、幸福感与基本需要类" in sl
+          and "## 七、负性情绪综合筛查" in sl and "## 八、压力、应对与自我调节类" in sl)
     po0 = tx("templates/paper-outline.md")
     check("大纲伦理埋点", "监护人书面知情同意" in po0 and "注意力检查题" in po0 and "Bootstrap 5000" in po0)
     check("大纲结果章完整", all(s in po0 for s in ["平行分析", "Games-Howell", "卡方", "简单斜率", "偏态"]))

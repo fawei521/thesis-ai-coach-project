@@ -35,7 +35,7 @@
 | 选题 | 给选题方向、验证创新性、检索英文文献 |
 | 开题 | 开题报告模板、开题PPT、模拟开题问答 |
 | 文献 | 自动操作知网检索、英文API检索、PDF结构化分析、研究空白梳理 |
-| 量表 | 16种常用量表对比（含AI依赖、NSSI、孤独、反刍等），信效度信息、问卷生成 |
+| 量表 | 24组常用量表对比（含AI依赖、NSSI、孤独、反刍，以及DASS-21、压力知觉PSS-10、应对方式SCSQ、情绪调节ERQ、自我控制SCS、核心自我评价CSES、生活满意度SWLS、基本心理需要BPNS、社交媒体成瘾BSMAS等），信效度信息、问卷生成 |
 | 数据 | 问卷星预处理、自动清洗（注意力检查题/长直线/低变异/高缺失/时长，附剔除报告）、反向计分、算总分 |
 | 分析 | 一键跑人口学频数/信度α+题项分析(CITC/删题α)+分半信度(Spearman-Brown/Guttman λ4)/结构效度KMO/自编量表完整EFA(多因子+Varimax+平行分析+自动碎石图)/Harman/描述统计(含偏度峰度正态性)/相关矩阵+α对角整合三线表并自动出下三角相关热图(系数+显著性星号、对角Cronbach α,支持--spearman秩相关、--partial控制性别年级等的偏相关)/人口学差异(Levene方差齐性+独立样本t/Welch t+单因素ANOVA/Welch ANOVA+Cohen d/η²+Bonferroni事后；偏态/有序时--nonparametric给Mann-Whitney U/Kruskal-Wallis H非参数检验)/人口学交叉卡方χ²+Cramér's V(分类×分类,Yates/Fisher提示)/回归(含容差/VIF共线性诊断)/Bootstrap中介(模型4/6)/调节效应(模型1中心化交互项+±1SD简单斜率+简单斜率图)、开题样本量功效估算(sample_size.py，G*Power等价)、生成三线表、画模型图，JASP/SPSS仅复核 |
 | 写作 | 大纲、各章节要点、语言润色、格式检查、去AI味 |
