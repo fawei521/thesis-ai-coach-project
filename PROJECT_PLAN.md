@@ -363,4 +363,4 @@
 - **内容效度 CVI**：新增 `tools/content_cvi.py`（菜单第 15 项），专家 1–4 评分→I-CVI/Pc/校正 κ*/S-CVI(Ave、UA)，按 Lynn 1986 与 Polit-Beck 阈值给保留/修改/重审，导出 `_内容效度CVI.csv`；黄金对照 R `contentValidity` 算例（夹具 `tests/test-data/demo_cvi.csv`）。
 - **量表库**：`psychology/scale-library.md` 24→29 小节、9→10 大类，新增 PANAS、IRI-C、GQ-6、GHQ-12、PSQI（新开睡眠与心身健康类），全部小节确定性重编号，硬事实逐条联网核查。
 - **共同方法偏差**：stats-guide 第四节与 data-analysis-auto 第 5 步补程序控制（Podsakoff 等 2003）与 ULMC、标记变量法（Lindell & Whitney 2001），标明 Harman 仅最宽松事后检验与工具边界。
-- **测试与发布**：菜单 12→15 项，工具脚本 13→16 个（含 stats 共 26 实现模块）；`full_e2e.py` 343→**375 项全过**，consistency_check 退出 0（88 CLI 开关/24 csv 后缀无漂移），doubao-skill validate 通过；版本 v1.60（Skill 保持 v1.3）；全门禁绿＋项目外干净副本复验后打 tag。
+- **测试与发布**：菜单 12→15 项，工具脚本 13→16 个（含 stats 共 26 实现模块）；`full_e2e.py` 343→**377 项全过**，consistency_check 退出 0（88 CLI 开关/24 csv 后缀无漂移），doubao-skill validate 通过；版本 v1.60（Skill 保持 v1.3）；全门禁绿＋项目外干净副本复验后打 tag。
