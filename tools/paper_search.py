@@ -167,8 +167,11 @@ def export_csv(results, output_path):
         print("没有结果可导出。")
         return
 
+    out_p = Path(output_path)
+    if out_p.parent and not out_p.parent.exists():
+        out_p.parent.mkdir(parents=True, exist_ok=True)
     fieldnames = ["序号", "标题", "作者", "年份", "期刊", "DOI", "被引次数", "摘要", "开放获取链接", "语言"]
-    with open(output_path, "w", encoding="utf-8-sig", newline="") as f:
+    with open(out_p, "w", encoding="utf-8-sig", newline="") as f:
         writer = csv.DictWriter(f, fieldnames=fieldnames)
         writer.writeheader()
         for i, r in enumerate(results, 1):
@@ -242,7 +245,8 @@ def main():
 
     print("\n提示：")
     print("- 开放获取链接可以直接下载PDF")
-    print("- 没有免费链接的文献，可以通过学校图书馆或Sci-Hub获取（注意版权）")
+    print("- 没有免费链接的文献，优先通过学校图书馆下载，或用图书馆馆际互借/文献传递；")
+    print("  也可在 Google Scholar、ResearchGate、作者主页找合法开放获取版，或邮件向作者索取（请勿使用侵权渠道）")
     print("- 把CSV发给AI，可以帮你筛选、分类、提取重点")
 
 

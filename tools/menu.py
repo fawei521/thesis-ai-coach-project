@@ -133,12 +133,12 @@ def t_search():
         print("  关键词为空，已取消。")
         return
     num = input("  要几篇？直接回车默认15篇：").strip() or "15"
-    out = input("  结果保存成什么文件名？直接回车默认 英文文献.csv：").strip()
+    out = input("  结果保存成什么文件名？直接回车默认放进 我的工作区\\01-文献PDF\\英文文献.csv：").strip()
     args = ["--query", kw, "--limit", num]
     if out:
         args += ["--output", out]
     else:
-        args += ["--output", "英文文献.csv"]
+        args += ["--output", "我的工作区/01-文献PDF/英文文献.csv"]
     run("paper_search.py", args)
 
 

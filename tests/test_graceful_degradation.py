@@ -9,6 +9,7 @@
    - chart_generator.py 必须友好报错退出1（提示 pip install），不得抛 Traceback。
 2. 菜单1 wjx_preprocess.py 对问卷星样例数据端到端可用（纯标准库）。
 3. 菜单7生成演示数据 → 菜单3统计的练手闭环可一键跑通（含图表）。
+4. paper_search 导出到尚不存在的目录时自动建目录，不崩溃。
 
 运行：python tests/test_graceful_degradation.py ；退出码 0 = 全部通过。
 临时文件全部写在系统 temp，结束自动清理。
@@ -109,6 +110,16 @@ def main():
               (loop / "demo_survey_中介效应.csv").exists() and
               (loop / "demo_survey_信度分析.csv").exists() and
               (loop / "demo_survey_相关热图.png").exists())
+
+        # 4. paper_search 导出到尚不存在的目录时自动建目录（离线直接调 export_csv）
+        import importlib.util
+        spec = importlib.util.spec_from_file_location(
+            "paper_search_under_test", str(ROOT / "tools" / "paper_search.py"))
+        ps = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(ps)
+        nest = tmp / "nest" / "sub" / "英文文献.csv"
+        ps.export_csv([{"标题": "a"}, {"标题": "b"}], str(nest))
+        check("检索结果自动建目录", nest.exists())
     finally:
         shutil.rmtree(tmp, ignore_errors=True)
 
