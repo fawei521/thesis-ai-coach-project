@@ -369,6 +369,40 @@ try:
     finally:
         shutil.rmtree(neg, ignore_errors=True)
     check("一致性检查跳过Skill子包", "doubao-skill" in tx("tests/consistency_check.py"))
+
+    # ---- v1.56 本体反馈协议+鼓励系统（学习成熟技能范式：强制基准/分级/门禁/行为自测）----
+    cp_path = ROOT / "core" / "coaching-protocol.md"
+    eg_path = ROOT / "core" / "encouragement-guide.md"
+    bt_path = ROOT / "tests" / "behavior-self-test.md"
+    check("v156反馈协议文件", cp_path.exists() and bt_path.exists() and eg_path.exists())
+    cp = cp_path.read_text(encoding="utf-8")
+    eg = eg_path.read_text(encoding="utf-8")
+    bt = bt_path.read_text(encoding="utf-8")
+    check("v156协议核心结构", all(s in cp for s in ("引导循环", "反馈三段式", "P0", "P1", "P2", "回复前门禁")))
+    check("v156协议触发与边界", all(s in cp for s in ("触发边界", "边界情况", "学生长时间失联", "复合请求")))
+    check("v156协议学生指令", "关闭鼓励" in cp and "读进度卡继续" in cp and "跳到第 N 步" in cp)
+    check("v156协议危机口径", "12356" in cp and "120 或 110" in cp and "不允诺保密" in cp)
+    check("v156鼓励四理论依据", all(s in eg for s in ("正强化", "成长型思维", "反馈干预理论", "自我决定理论")))
+    check("v156鼓励三档与默认", all(s in eg for s in ("标准", "精简", "关闭", "默认")))
+    check("v156鼓励切换指令", all(s in eg for s in ("关闭鼓励", "鼓励精简一点", "开启鼓励")))
+    check("v156鼓励P0不包装与奖赏", "P0 不包装" in eg and "里程碑" in eg and "挫折时刻协议" in eg)
+    check("v156鼓励禁夸天赋", "禁止夸天赋" in eg and "每轮至多一次肯定" in eg)
+    check("v156鼓励四人格措辞", all(s in eg for s in ("专业导师（默认）", "霸道总裁（可选）", "知心姐姐（可选）", "小奶狗（可选）")))
+    check("v156行为自测用例与声明", "T1" in bt and "T30" in bt and "测试计划" in bt and "不是" in bt)
+    check("v156coach人格鼓励正交", "人格只管" in cr and "鼓励档" in cr and "core/encouragement-guide.md" in cr)
+    check("v156coach旧鼓励表述移除", "不给无意义鼓励" not in cr)
+    check("v156coach卡壳临时降档", "临时降一档" in cr)
+    check("v156coach阶段0鼓励档", "鼓励档（默认" in cr)
+    check("v156coach引用反馈协议", "core/coaching-protocol.md" in cr and "反馈三段式" in cr)
+    check("v156START必读五份", "先读这五份" in st and "core/coaching-protocol.md" in st and "core/encouragement-guide.md" in st)
+    check("v156START开场第五问", "关闭鼓励" in st and "反馈方式" in st)
+    card_t = tx("templates/progress-template.md"); card_w = tx("我的工作区/我的论文进度.md")
+    check("v156双进度卡鼓励档行", "鼓励反馈档" in card_t and "鼓励反馈档" in card_w)
+    check("v156入口登记齐全", all(s in tx("AGENTS.md") for s in ("coaching-protocol.md", "encouragement-guide.md"))
+          and "关闭鼓励" in rm and "关闭鼓励" in tx("QUICKSTART.md"))
+    check("v156鼓励与Skill口径一致",
+          "鼓励精简一点" in eg and "鼓励精简一点" in skm and "反馈三段式" in skp and "P0/P1/P2" in skp)
+    check("v156自测用例编号连续", all(("T%d" % i) in bt for i in (1, 15, 22, 30)))
 finally:
     cleanup()
 

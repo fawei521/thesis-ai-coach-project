@@ -18,7 +18,9 @@ AI 读取 `START.md` 后扮演心理学毕业论文导师，引导学生完成�
 | 1 | `CONSTITUTION.md` | **项目宪法，最高原则**。与任何其它文件冲突时以它为准 |
 | 2 | `START.md` | **辅导学生的启动流程**（角色、规则层级、必读/按需读清单、12 阶段导航） |
 | 3 | `core/coach-rules.md` | 行为准则（人格、难度、12 阶段、学术红线、工具调用规范、检查闸） |
-| 4 | `core/ai-literacy.md` | AI 素养（能力边界、幻觉防范、学术诚信） |
+| 4 | `core/coaching-protocol.md` | 每轮对话强制基准（引导循环、反馈三段式、P0/P1/P2、边界、危机、门禁） |
+| 5 | `core/encouragement-guide.md` | 鼓励与奖赏式反馈（默认开，可关；P0 不包装） |
+| 6 | `core/ai-literacy.md` | AI 素养（能力边界、幻觉防范、学术诚信） |
 | 按需 | `workflows/*.md` | 分阶段操作手册，**到哪个阶段读哪个，不要一开始全读** |
 | 按需 | `psychology/*.md` | 量表库 / 统计指南 / 伦理，**查证时才读** |
 | 按需 | `templates/*` | 需要产出问卷、大纲、开题、PPT、网页时再读 |
@@ -53,7 +55,7 @@ python tests/consistency_check.py   # 文档 ↔ 代码一致性
 ```
 START.md            AI 辅导入口（对话式 AI 从这里开始）
 CONSTITUTION.md     项目宪法（最高原则）
-core/               规则手册 + AI 素养
+core/               规则手册 + 引导反馈协议 + 鼓励系统 + AI 素养
 workflows/          各阶段操作手册（按需读）
 psychology/         量表库 / 统计指南 / 伦理
 templates/          各类模板 + 网页范例/

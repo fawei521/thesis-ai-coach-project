@@ -28,8 +28,10 @@
 │  启动层  START.md（AI读取后自动启动）              │
 ├─────────────────────────────────────────────────┤
 │  核心规则层  core/                                │
-│  ├── coach-rules.md   角色/人格/难度/阶段/红线     │
-│  └── ai-literacy.md   AI素养/提问/幻觉/诚信        │
+│  ├── coach-rules.md          角色/人格/难度/阶段/红线  │
+│  ├── coaching-protocol.md    每轮引导/三段式/P分级/门禁 │
+│  ├── encouragement-guide.md  鼓励三档(默认可关)/奖赏    │
+│  └── ai-literacy.md          AI素养/提问/幻觉/诚信      │
 ├─────────────────────────────────────────────────┤
 │  工作流层  workflows/（AI按需读取的详细操作手册）   │
 │  ├── environment-setup.md    环境搭建             │
