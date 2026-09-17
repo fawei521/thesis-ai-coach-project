@@ -1,307 +1,420 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-英文学术文献检索工具
-数据源：OpenAlex（免费，无需API key，2.4亿篇文献）、Semantic Scholar（免费）
-用法：
-  python paper_search.py --query "AI emotional dependence adolescent" --limit 20
-  python paper_search.py --source semantic --query "non-suicidal self-injury rumination" --limit 15
-  python paper_search.py --query "loneliness mediation" --output results.csv
-健壮性：单个数据源 429 限流/超时会自动等待重试一次；仍失败则自动换另一个数据源再试。
+毕业论文英文文献检索工具（OpenAlex / Semantic Scholar，免费、无需 API key）
+====================================================================
+设计原则（v1.58 起）：
+  1. **多词检索，不单词下判断**：一个概念往往有多种英文写法，只搜一个词会漏掉
+     一大片，甚至把"0 命中"误判成"没人做过"（假空白）。请为每个核心概念准备
+     至少 3 个同义/近义/上下位/缩写词，用 --query 重复传入或用 --queries 一次传入。
+  2. **多源交叉**：--source all 同时查 OpenAlex 与 Semantic Scholar，按
+     DOI/规范标题去重合并，互相补全被引数与摘要。
+  3. **候选池要大**：--min 90 会逐词逐源翻页，直到去重后达到 90 篇或库内穷尽；
+     这是"候选题录池"，不是要精读/引用 90 篇——再分级筛重点 10–20 篇精读。
+  4. 纯标准库 + 纯函数化：合并/去重/配额逻辑不依赖网络，便于离线确定性测试。
+
+典型用法：
+  # 单词、单源（老用法，兼容）
+  python tools/paper_search.py --query "AI dependence adolescent NSSI" --source openalex --limit 20
+
+  # 多近义词 + 双源 + 凑够 90 篇候选池（推荐）
+  python tools/paper_search.py \\
+      --query "AI chatbot dependence adolescent" \\
+      --query "artificial intelligence emotional attachment teenagers" \\
+      --query "human-AI relationship compulsive use youth" \\
+      --source all --min 90 \\
+      --output "我的工作区/01-文献PDF/英文文献_候选池.csv"
+
+  # 分号/换行分隔的便捷写法（菜单用）
+  python tools/paper_search.py --queries "AI dependence;AI attachment;chatbot reliance" --source all --min 90
+
+输出 CSV（UTF-8-BOM，Excel 直接打开不乱码）列：
+  标题,作者,年份,期刊/会议,DOI,链接,被引数,摘要,来源API,命中检索词,检索日期
+====================================================================
 """
 
-import json
+import argparse
 import csv
+import json
+import re
 import sys
 import time
-import argparse
-import urllib.request
+import unicodedata
 import urllib.parse
-import urllib.error
+import urllib.request
+from datetime import date
 from pathlib import Path
-from datetime import datetime
-# --- 输出编码守卫：管道/重定向时强制 UTF-8 ---
-# 中文 Windows 控制台默认 GBK，Python 写真实控制台不受影响，
-# 但 stdout 被管道/重定向时会退回 GBK，遇到 ² χ² ⚠ ↔ 等字符直接 UnicodeEncodeError 崩溃。
-# AI 助手与 tests/full_e2e.py 都是以管道捕获输出的，故此处统一为 UTF-8。
+
+# --- 输出编码守卫：管道/重定向时强制 UTF-8（中文 Windows 控制台默认 GBK）---
 if hasattr(sys.stdout, "reconfigure") and not sys.stdout.isatty():
     sys.stdout.reconfigure(encoding="utf-8", errors="replace")
     sys.stderr.reconfigure(encoding="utf-8", errors="replace")
 
-
-def _open_with_retry(req, source_name, attempts=2):
-    """带重试的 urlopen：429 限流等待 3 秒重试一次，其他网络错误等待 2 秒重试一次。
-    成功返回 response；两次都失败返回 None（None=网络失败，区别于"零结果"的 []）。"""
-    last_err = None
-    for i in range(attempts):
-        try:
-            return urllib.request.urlopen(req, timeout=30)
-        except urllib.error.HTTPError as e:
-            last_err = e
-            if e.code == 429 and i < attempts - 1:
-                print(f"{source_name} 返回 429 限流，等待 3 秒后自动重试一次……")
-                time.sleep(3)
-                continue
-            print(f"网络错误：HTTP {e.code} {e.reason}（{source_name}）")
-            return None
-        except urllib.error.URLError as e:
-            last_err = e
-            if i < attempts - 1:
-                print(f"{source_name} 连接失败（{e.reason}），等待 2 秒后自动重试一次……")
-                time.sleep(2)
-                continue
-            print(f"网络错误：{e}（{source_name}）")
-            return None
-    print(f"网络错误：{last_err}（{source_name}）")
-    return None
+FIELDNAMES = ["标题", "作者", "年份", "期刊/会议", "DOI", "链接", "被引数",
+              "摘要", "来源API", "命中检索词", "检索日期"]
+TODAY = date.today().isoformat()
+USER_AGENT = "ThesisLiteratureSearch/1.0 (academic literature search for undergraduate thesis; mailto:student@example.com)"
 
 
-def search_openalex(query, limit=20):
-    """通过OpenAlex API检索文献（免费，无需key）；网络失败返回 None，零结果返回 []"""
-    base_url = "https://api.openalex.org/works"
+# ============================================================
+# 纯函数区（不联网；被 literature_cards.py 复用，也被离线单测覆盖）
+# ============================================================
+def normalize_title(title):
+    """把标题规范化成去重键：NFKC、去注音符号、小写、去标点与多余空白。
+
+    仅用于去重比较，不改变原始标题。
+    """
+    if not title:
+        return ""
+    s = unicodedata.normalize("NFKC", str(title))
+    # 去掉拉丁附加符号（é→e、ï→i），提升跨库标题匹配率
+    s = "".join(c for c in unicodedata.normalize("NFKD", s)
+                if not unicodedata.combining(c))
+    s = s.lower()
+    s = re.sub(r"[^0-9a-z\u4e00-\u9fff]+", " ", s)
+    return re.sub(r"\s+", " ", s).strip()
+
+
+def normalize_doi(doi):
+    """规范 DOI：去 URL 前缀与空白、转小写。无法识别返回空串。"""
+    if not doi:
+        return ""
+    s = str(doi).strip().lower()
+    s = re.sub(r"^https?://(dx\.)?doi\.org/", "", s)
+    s = re.sub(r"^doi:\s*", "", s)
+    return s.strip()
+
+
+def split_queries(values):
+    """把多个 --query / 一个 --queries 的输入拆成去重后的检索词列表。
+
+    --queries 接受分号（;；）、换行分隔；逗号在英文学术短语里可能是检索式的
+    一部分，故不作为分隔符。每个词去重并保序。
+    """
+    out = []
+    seen = set()
+
+    def add(q):
+        q = q.strip()
+        if q and q not in seen:
+            seen.add(q)
+            out.append(q)
+
+    for v in values or []:
+        if v is None:
+            continue
+        for part in re.split(r"[;\n；]+", str(v)):
+            add(part)
+    return out
+
+
+def dedup_key(rec):
+    """去重主键：有 DOI 用 DOI，否则用规范标题。"""
+    doi = normalize_doi(rec.get("doi"))
+    if doi:
+        return ("doi", doi)
+    return ("title", normalize_title(rec.get("title", "")))
+
+
+def merge_records(existing, incoming):
+    """把 incoming 合并进 existing（同一篇）：并集命中词/来源，被引取大，缺漏互补。
+
+    返回合并后的记录（不就地改 existing 的关键字段以外结构）。
+    """
+    merged = dict(existing)
+    # 命中检索词、来源 API 取并集（保序去重）
+    for list_key in ("matched_queries", "source_api"):
+        old = merged.get(list_key) or []
+        new = incoming.get(list_key) or []
+        if isinstance(old, str):
+            old = [old]
+        if isinstance(new, str):
+            new = [new]
+        union = []
+        for x in old + new:
+            if x and x not in union:
+                union.append(x)
+        merged[list_key] = union
+    # 被引数取较大值（不同库口径不同）
+    try:
+        merged["cited"] = max(int(merged.get("cited") or 0), int(incoming.get("cited") or 0))
+    except (TypeError, ValueError):
+        pass
+    # 缺漏字段互补（incoming 不为空就补 existing 的空值）
+    for k in ("title", "authors", "year", "venue", "doi", "url", "abstract"):
+        if not merged.get(k) and incoming.get(k):
+            merged[k] = incoming[k]
+    return merged
+
+
+def add_record(bucket, rec):
+    """按 dedup_key 把 rec 合入 bucket（dict）。返回是否为新增。"""
+    key = dedup_key(rec)
+    # DOI 缺失时标题为空不参与合并，各自保留
+    if key[1] and key in bucket:
+        bucket[key] = merge_records(bucket[key], rec)
+        return False
+    if not key[1]:
+        # 无任何可用键，用 id() 占位确保不丢记录
+        bucket[("uid", id(rec))] = rec
+        return True
+    bucket[key] = rec
+    return True
+
+
+def collect(queries, sources, target, per_page, year=None, fetcher=None,
+            sleeper=None, max_pages_per_pair=6, verbose=True):
+    """逐"来源×检索词"翻页拉取并去重合并，直到去重后篇数 ≥ target 或全部穷尽。
+
+    纯编排逻辑：网络动作由注入的 fetcher(source, query, offset, per_page, year)
+    完成，默认 None 时不联网（离线测试注入假 fetcher）。
+    返回 (records_list, stats)；stats 记录每个 (source, query) 的命中数，便于留痕。
+    """
+    fetcher = fetcher or (lambda *a, **k: [])
+    sleeper = sleeper or (lambda s: None)
+    bucket = {}
+    stats = []
+    for source in sources:
+        for query in queries:
+            offset = 0
+            got_this_pair = 0
+            for page in range(max_pages_per_pair):
+                try:
+                    batch = fetcher(source, query, offset, per_page, year) or []
+                except Exception as e:  # 单次请求失败不致命：记录后跳到下一词/源
+                    stats.append({"source": source, "query": query, "page": page,
+                                  "fetched": 0, "error": str(e)})
+                    if verbose:
+                        print(f"  [跳过] {source} / {query!r} 第{page + 1}页请求失败：{e}")
+                    break
+                if not batch:
+                    break
+                for r in batch:
+                    r.setdefault("matched_queries", [query])
+                    if query not in r["matched_queries"]:
+                        r["matched_queries"].append(query)
+                    r.setdefault("source_api", [source])
+                    add_record(bucket, r)
+                got_this_pair += len(batch)
+                offset += len(batch)
+                stats.append({"source": source, "query": query, "page": page,
+                              "fetched": len(batch)})
+                if verbose:
+                    print(f"  {source}｜{query!r} 第{page + 1}页 {len(batch)} 篇，"
+                          f"去重后累计 {len(bucket)} 篇")
+                if len(batch) < per_page:
+                    break  # 该词在该库已穷尽
+                if target and len(bucket) >= target:
+                    break
+                sleeper(0.35)
+            if target and len(bucket) >= target:
+                break
+            sleeper(0.2)
+        if target and len(bucket) >= target:
+            break
+    records = sorted(bucket.values(),
+                     key=lambda r: (-(int(r.get("cited") or 0)), -(int(r.get("year") or 0))))
+    return records, stats
+
+
+# ============================================================
+# 网络抓取区（可被 collect 的默认流程调用；解析为统一 record 结构）
+# ============================================================
+def _http_get_json(url, timeout=20):
+    req = urllib.request.Request(url, headers={"User-Agent": USER_AGENT, "Accept": "application/json"})
+    with urllib.request.urlopen(req, timeout=timeout) as resp:
+        return json.loads(resp.read().decode("utf-8", errors="replace"))
+
+
+def _as_int(v):
+    try:
+        return int(v)
+    except (TypeError, ValueError):
+        return 0
+
+
+def search_openalex_page(query, offset, per_page, year=None, timeout=20):
+    """抓 OpenAlex 一页，返回统一 record 列表。按被引数降序。"""
     params = {
         "search": query,
-        "per_page": min(limit, 50),
-        "sort": "relevance_score:desc",
-        "filter": "type:article",
+        "per-page": min(int(per_page), 200),
+        "page": (offset // max(1, int(per_page))) + 1,
+        "sort": "cited_by_count:desc",
+        "mailto": "student@example.com",
     }
-    url = base_url + "?" + urllib.parse.urlencode(params)
-
-    req = urllib.request.Request(url, headers={
-        "User-Agent": "ThesisAICoach/1.0 (mailto:student@example.com)"
-    })
-
-    response = _open_with_retry(req, "OpenAlex")
-    if response is None:
-        return None
-    data = json.loads(response.read().decode("utf-8"))
-
-    results = []
-    for work in data.get("results", []):
-        # 提取作者
-        authors = []
-        for authorship in work.get("authorships", [])[:5]:
-            name = authorship.get("author", {}).get("display_name", "")
-            if name:
-                authors.append(name)
-        author_str = ", ".join(authors)
-        if len(work.get("authorships", [])) > 5:
-            author_str += " et al."
-
-        # 提取期刊
-        source = work.get("primary_location", {}).get("source", {}) or {}
-        journal = source.get("display_name", "")
-
-        # 提取年份
-        pub_date = work.get("publication_date", "")
-        year = pub_date[:4] if pub_date else ""
-
-        # 提取DOI
-        doi = work.get("doi", "") or ""
-        if doi and doi.startswith("https://doi.org/"):
-            doi = doi.replace("https://doi.org/", "")
-
-        # 摘要（OpenAlex用倒排索引存储）
+    if year:
+        params["filter"] = f"from_publication_date:{year}-01-01,to_publication_date:{year}-12-31"
+    url = "https://api.openalex.org/works?" + urllib.parse.urlencode(params)
+    data = _http_get_json(url, timeout=timeout)
+    out = []
+    for w in data.get("results", []):
+        doi = normalize_doi(w.get("doi") or (w.get("ids") or {}).get("doi"))
+        authors = ", ".join(
+            a.get("author", {}).get("display_name", "")
+            for a in w.get("authorships", []) if a.get("author"))
+        # 重建摘要（OpenAlex 给的是 词->位置 的倒排索引）
         abstract = ""
-        abstract_inverted = work.get("abstract_inverted_index", {})
-        if abstract_inverted:
-            word_positions = []
-            for word, positions in abstract_inverted.items():
-                for pos in positions:
-                    word_positions.append((pos, word))
-            word_positions.sort()
-            abstract = " ".join(w for _, w in word_positions)
-
-        # 开放获取链接
-        oa_url = ""
-        best_oa = work.get("open_access", {}) or {}
-        oa_url = best_oa.get("oa_url", "") or ""
-        if not oa_url:
-            primary = work.get("primary_location", {}) or {}
-            oa_url = primary.get("pdf_url", "") or ""
-
-        results.append({
-            "标题": work.get("title", ""),
-            "作者": author_str,
-            "年份": year,
-            "期刊": journal,
-            "DOI": doi,
-            "被引次数": work.get("cited_by_count", 0),
-            "摘要": abstract[:500],
-            "开放获取链接": oa_url,
-            "语言": work.get("language", ""),
+        inv = w.get("abstract_inverted_index")
+        if inv:
+            positions = {}
+            for word, idxs in inv.items():
+                for i in idxs:
+                    positions[i] = word
+            abstract = " ".join(positions[i] for i in sorted(positions))
+        out.append({
+            "title": (w.get("title") or "").strip(),
+            "authors": authors,
+            "year": w.get("publication_year") or "",
+            "venue": (w.get("primary_location") or {}).get("source", {}).get("display_name", "")
+                     if w.get("primary_location") else "",
+            "doi": doi,
+            "url": (w.get("doi") or w.get("id") or "").replace("https://doi.org/", "https://doi.org/"),
+            "cited": _as_int(w.get("cited_by_count")),
+            "abstract": abstract,
+            "source_api": ["OpenAlex"],
         })
+    return out
 
-    return results
 
-
-def search_semantic_scholar(query, limit=20):
-    """通过Semantic Scholar API检索文献（免费，无需key）；网络失败返回 None，零结果返回 []"""
-    base_url = "https://api.semanticscholar.org/graph/v1/paper/search"
+def search_semantic_page(query, offset, per_page, year=None, timeout=20):
+    """抓 Semantic Scholar 一页，返回统一 record 列表。"""
+    fields = "title,authors,year,venue,externalIds,abstract,citationCount,openAccessPdf,url"
     params = {
         "query": query,
-        "limit": min(limit, 100),
-        "fields": "title,authors,year,venue,externalIds,citationCount,abstract,tldr,openAccessPdf",
+        "limit": min(int(per_page), 100),
+        "offset": int(offset),
+        "fields": fields,
     }
-    url = base_url + "?" + urllib.parse.urlencode(params)
-
-    req = urllib.request.Request(url, headers={
-        "User-Agent": "ThesisAICoach/1.0"
-    })
-
-    response = _open_with_retry(req, "Semantic Scholar")
-    if response is None:
-        return None
-    data = json.loads(response.read().decode("utf-8"))
-
-    results = []
-    for paper in data.get("data", []):
-        authors = []
-        for a in paper.get("authors", [])[:5]:
-            name = a.get("name", "")
-            if name:
-                authors.append(name)
-        author_str = ", ".join(authors)
-        if len(paper.get("authors", [])) > 5:
-            author_str += " et al."
-
-        ids = paper.get("externalIds", {}) or {}
-        doi = ids.get("DOI", "")
-
-        abstract = paper.get("abstract", "") or ""
-        tldr = paper.get("tldr", {}) or {}
-        if tldr and tldr.get("text"):
-            abstract = tldr["text"] + " [TLDR] " + abstract
-
-        oa_pdf = paper.get("openAccessPdf", {}) or {}
-        pdf_url = oa_pdf.get("url", "") if oa_pdf else ""
-
-        results.append({
-            "标题": paper.get("title", ""),
-            "作者": author_str,
-            "年份": paper.get("year", ""),
-            "期刊": paper.get("venue", ""),
-            "DOI": doi,
-            "被引次数": paper.get("citationCount", 0),
-            "摘要": abstract[:500],
-            "开放获取链接": pdf_url,
-            "语言": "",
+    if year:
+        params["year"] = year
+    url = "https://api.semanticscholar.org/graph/v1/paper/search?" + urllib.parse.urlencode(params)
+    data = _http_get_json(url, timeout=timeout)
+    out = []
+    for p in data.get("data", []):
+        ext = p.get("externalIds") or {}
+        doi = normalize_doi(ext.get("DOI"))
+        authors = ", ".join(a.get("name", "") for a in p.get("authors", []) if a.get("name"))
+        link = (p.get("openAccessPdf") or {}).get("url") or p.get("url") or ""
+        if doi and not link:
+            link = "https://doi.org/" + doi
+        out.append({
+            "title": (p.get("title") or "").strip(),
+            "authors": authors,
+            "year": p.get("year") or "",
+            "venue": p.get("venue") or "",
+            "doi": doi,
+            "url": link,
+            "cited": _as_int(p.get("citationCount")),
+            "abstract": (p.get("abstract") or "").replace("\n", " ").strip(),
+            "source_api": ["Semantic Scholar"],
         })
+    return out
 
-    return results
+
+def live_fetcher(source, query, offset, per_page, year):
+    if source == "openalex":
+        return search_openalex_page(query, offset, per_page, year)
+    if source == "semantic":
+        return search_semantic_page(query, offset, per_page, year)
+    return []
 
 
-def export_csv(results, output_path):
-    """导出为CSV"""
-    if not results:
-        print("没有结果可导出。")
-        return
+# ============================================================
+# 输出
+# ============================================================
+def records_to_rows(records):
+    """统一 record → CSV 行字典（FIELDNAMES）。"""
+    rows = []
+    for r in records:
+        rows.append({
+            "标题": r.get("title", ""),
+            "作者": r.get("authors", ""),
+            "年份": r.get("year", ""),
+            "期刊/会议": r.get("venue", ""),
+            "DOI": r.get("doi", ""),
+            "链接": r.get("url", ""),
+            "被引数": r.get("cited", 0),
+            "摘要": (r.get("abstract") or "").replace("\r", " ").replace("\n", " "),
+            "来源API": ";".join(r.get("source_api", [])),
+            "命中检索词": ";".join(r.get("matched_queries", [])),
+            "检索日期": TODAY,
+        })
+    return rows
 
-    out_p = Path(output_path)
-    if out_p.parent and not out_p.parent.exists():
-        out_p.parent.mkdir(parents=True, exist_ok=True)
-    fieldnames = ["序号", "标题", "作者", "年份", "期刊", "DOI", "被引次数", "摘要", "开放获取链接", "语言"]
-    with open(out_p, "w", encoding="utf-8-sig", newline="") as f:
-        writer = csv.DictWriter(f, fieldnames=fieldnames)
+
+def save_csv(rows, output):
+    out = Path(output)
+    out.parent.mkdir(parents=True, exist_ok=True)
+    with open(out, "w", encoding="utf-8-sig", newline="") as f:
+        writer = csv.DictWriter(f, fieldnames=FIELDNAMES)
         writer.writeheader()
-        for i, r in enumerate(results, 1):
-            row = {"序号": i}
-            row.update(r)
-            writer.writerow(row)
-
-    print(f"结果已导出：{output_path}（共{len(results)}篇）")
-
-
-def print_results(results, max_show=10):
-    """打印检索结果"""
-    print("\n" + "=" * 70)
-    print(f"检索结果（共{len(results)}篇，显示前{min(max_show, len(results))}篇）")
-    print("=" * 70)
-
-    for i, r in enumerate(results[:max_show], 1):
-        print(f"\n[{i}] {r['标题']}")
-        print(f"    作者：{r['作者']}")
-        print(f"    年份：{r['年份']}  期刊：{r['期刊']}")
-        print(f"    被引：{r['被引次数']}  DOI：{r['DOI']}")
-        if r["摘要"]:
-            print(f"    摘要：{r['摘要'][:150]}...")
-        if r["开放获取链接"]:
-            print(f"    免费下载：{r['开放获取链接']}")
-
-    if len(results) > max_show:
-        print(f"\n...还有{len(results) - max_show}篇，导出CSV查看全部。")
-
-
-SEARCHERS = {
-    "openalex": ("OpenAlex", search_openalex),
-    "semantic": ("Semantic Scholar", search_semantic_scholar),
-}
+        writer.writerows(rows)
 
 
 def main():
-    parser = argparse.ArgumentParser(description="英文学术文献检索工具（免费API）")
-    parser.add_argument("--query", "-q", required=True, help="检索关键词（英文）")
-    parser.add_argument("--source", "-s", choices=["openalex", "semantic"],
-                        default="openalex", help="数据源（默认openalex，稳定免费）")
-    parser.add_argument("--limit", "-n", type=int, default=20, help="返回数量（默认20）")
-    parser.add_argument("--output", "-o", help="输出CSV文件路径")
-    args = parser.parse_args()
+    ap = argparse.ArgumentParser(
+        description="英文学术文献检索（OpenAlex/Semantic Scholar，免费无 key；支持多近义词、多源、目标篇数）")
+    ap.add_argument("--query", action="append", default=[],
+                    help="检索词，可重复传入多个近义词（如 --query 'AI dependence' --query 'AI attachment'）")
+    ap.add_argument("--queries", default="",
+                    help="便捷写法：分号/换行分隔的多个检索词（如 'AI dependence;AI attachment;chatbot reliance'）")
+    ap.add_argument("--source", default="openalex", choices=["openalex", "semantic", "all"],
+                    help="数据源：openalex（默认）/semantic/all（两个都查并去重合并）")
+    ap.add_argument("--limit", type=int, default=20,
+                    help="不设 --min 时，每个检索词×每个来源单页拉取的上限（默认20）")
+    ap.add_argument("--min", dest="min_target", type=int, default=0,
+                    help="去重后的目标篇数（如 90）：达到即停，达不到会明确提示补词，不静默成功")
+    ap.add_argument("--year", default=None, help="限定年份，如 2023（默认不限）")
+    ap.add_argument("--output", default="papers.csv", help="输出 CSV 路径")
+    args = ap.parse_args()
 
-    print("=" * 70)
-    print("英文学术文献检索工具")
-    print("=" * 70)
-    print(f"首选数据源：{args.source}")
-    print(f"关键词：{args.query}")
-    print(f"数量：{args.limit}")
-    print("正在检索，请稍候...\n")
+    queries = split_queries(args.query + ([args.queries] if args.queries else []))
+    if not queries:
+        print("错误：请用 --query 或 --queries 提供至少一个检索词。")
+        print("示例：python tools/paper_search.py --query \"AI dependence adolescent NSSI\" --source all --min 90")
+        return 1
+    sources = ["openalex", "semantic"] if args.source == "all" else [args.source]
 
-    # 首选源；网络失败（None）时自动换另一个源重试一次；零结果（[]）不换源
-    order = [args.source] + [s for s in ("openalex", "semantic") if s != args.source]
-    results, used_source = None, None
-    for s in order:
-        name, fn = SEARCHERS[s]
-        r = fn(args.query, args.limit)
-        if r is None:
-            if s != order[-1]:
-                print(f"{name} 暂不可用，自动改用另一数据源重试……\n")
-                continue
-            results = None
-            break
-        results, used_source = r, name
-        break
-
-    if not results:
-        if results is None:
-            print("两个数据源本次都未能连通（超时/限流）。建议：")
-            print("1. 检查网络（校园网/代理），稍后重试；")
-            print("2. 再跑一次本命令（工具已内置等待重试与自动换源）；")
-            print("3. 仍失败时先用知网等中文库，网络恢复后补英文检索。")
-            sys.exit(1)
-        print("未检索到结果。建议：")
-        print("1. 简化关键词，用2-3个核心词")
-        print("2. 换同义词（如 self-injury 换成 NSSI）")
-        print("3. 换数据源试试（--source semantic）")
-        sys.exit(1)
-
-    print(f"实际命中数据源：{used_source}")
-    # 按被引次数排序
-    results.sort(key=lambda x: x["被引次数"] if x["被引次数"] else 0, reverse=True)
-
-    print_results(results)
-
-    if args.output:
-        export_csv(results, args.output)
+    if args.min_target:
+        per_page = max(args.limit, 100)
+        target = args.min_target
+        print(f"检索目标：去重后 ≥{target} 篇候选池；{len(queries)} 个检索词 × {len(sources)} 个来源，逐页拉取……")
     else:
-        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-        default_output = Path(f"文献检索结果_{timestamp}.csv")
-        export_csv(results, str(default_output))
+        per_page = max(1, args.limit)
+        target = 0
+        print(f"检索词 {len(queries)} 个；来源 {sources}；每词每源单页上限 {per_page} 篇……")
 
-    print("\n提示：")
-    print("- 开放获取链接可以直接下载PDF")
-    print("- 没有免费链接的文献，优先通过学校图书馆下载，或用图书馆馆际互借/文献传递；")
-    print("  也可在 Google Scholar、ResearchGate、作者主页找合法开放获取版，或邮件向作者索取（请勿使用侵权渠道）")
-    print("- 把CSV发给AI，可以帮你筛选、分类、提取重点")
+    try:
+        records, stats = collect(queries, sources, target, per_page, year=args.year,
+                                 fetcher=live_fetcher, sleeper=time.sleep, verbose=True)
+    except Exception as e:
+        print(f"检索失败：{e}")
+        print("可能是网络不通或 API 临时限流。可：①稍后重试；②改用浏览器在 Google Scholar/PubMed 手动检索。")
+        return 1
+
+    rows = records_to_rows(records)
+    save_csv(rows, args.output)
+
+    print(f"\n已保存 {len(rows)} 篇（去重后）到：{args.output}")
+    print("各来源×检索词命中明细（请同步抄进检索记录留痕）：")
+    for s in stats:
+        if "error" in s:
+            print(f"  - {s['source']}｜{s['query']!r}｜第{s['page'] + 1}页｜失败：{s['error']}")
+        else:
+            print(f"  - {s['source']}｜{s['query']!r}｜第{s['page'] + 1}页｜{s['fetched']} 篇")
+
+    if target and len(rows) < target:
+        print(f"\n⚠ 去重后仅 {len(rows)} 篇，未达到目标 {target} 篇。这不是失败，但请不要据此下"
+              f"'没人做过'的结论（防假空白）。建议：")
+        print("  1) 为每个核心概念再补 2–3 个同义/近义词（含缩写、英式/美式拼写、更上位词）；")
+        print("  2) 加 --source all 双源互补；3) 到知网/万方/PubMed/Google Scholar 用中文与英文词再检；")
+        print("  4) 把每个词的命中数如实记入检索记录，0 命中也留痕。")
+    if not rows:
+        print("\n本次 0 条结果。请检查网络，或换更上位的词重检（例：chatbot→artificial intelligence）。")
+    else:
+        print("\n下一步：用 tools/literature_organizer.py 去重分类，再用 tools/literature_cards.py 把重点做成卡片网页。")
+    return 0
 
 
 if __name__ == "__main__":
-    main()
+    sys.exit(main())
