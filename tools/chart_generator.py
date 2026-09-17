@@ -4,6 +4,7 @@
 研究模型图生成工具
 功能：生成链式中介模型图、描述统计表格
 用法：python chart_generator.py --model "A->B->C->D" --coefs "0.32,0.45,0.28,0.15"
+链式4个系数依次为 a1(X→M1)、d21(M1→M2)、b2(M2→Y)、c'(直接效应)，与 auto_stats 中介输出同名。
 依赖：matplotlib（如未安装会提示）
 """
 
@@ -32,7 +33,7 @@ def draw_mediation_model(variables, coefficients, output_path, title='研究模�
     """
     绘制链式中介模型图
     variables: [自变量, 中介1, 中介2, 因变量]
-    coefficients: [a1, a2, b, c'] 对应路径系数
+    coefficients: [a1, d21, b2, c'] 依次对应 X→M1、M1→M2、M2→Y 与直接效应（PROCESS模型6口径）
     """
     import matplotlib
     matplotlib.use('Agg')
@@ -57,13 +58,13 @@ def draw_mediation_model(variables, coefficients, output_path, title='研究模�
         box = FancyBboxPatch(
             (x - 1.0, y - 0.5), 2.0, 1.0,
             boxstyle="round,pad=0.1",
-            facecolor=colors[i], edgecolor='#333', linewidth=1.5
+            facecolor=colors[i], edgecolor='#333', linewidth=1.5, zorder=2
         )
         ax.add_patch(box)
-        ax.text(x, y, var, ha='center', va='center', fontsize=12)
+        ax.text(x, y, var, ha='center', va='center', fontsize=12, zorder=3)
 
     # 绘制箭头和路径系数
-    coef_labels = ['a', 'b1', 'b2', "c'"]
+    coef_labels = ['a1', 'd21', 'b2', "c'"]  # PROCESS模型6：X→M1、M1→M2、M2→Y、直接效应
     for i in range(3):
         x1, y1 = positions[i]
         x2, y2 = positions[i + 1]
@@ -79,7 +80,7 @@ def draw_mediation_model(variables, coefficients, output_path, title='研究模�
             if abs(coef) > 0:
                 p = '***' if coef and abs(coef) > 0.3 else ('**' if abs(coef) > 0.2 else ('*' if abs(coef) > 0.1 else ''))
                 sig = p
-            ax.text((x1 + x2) / 2, y1 + 0.4, f'β={coef:.2f}{sig}',
+            ax.text((x1 + x2) / 2, y1 + 0.4, f'{coef_labels[i]} β={coef:.2f}{sig}',
                     ha='center', va='center', fontsize=10, color='#C62828')
 
     # 直接效应（如果有）
@@ -88,7 +89,7 @@ def draw_mediation_model(variables, coefficients, output_path, title='研究模�
         x2, y2 = positions[3]
         arrow = FancyArrowPatch(
             (x1, y1 - 0.5), (x2, y2 - 0.5),
-            connectionstyle="arc3,rad=-0.3",
+            connectionstyle="arc3,rad=-0.5",
             arrowstyle='->', mutation_scale=20,
             color='#666', linewidth=1.2, linestyle='--'
         )
@@ -125,10 +126,10 @@ def draw_simple_model(variables, coefficients, output_path, title='研究模型�
         box = FancyBboxPatch(
             (x - 1.0, y - 0.5), 2.0, 1.0,
             boxstyle="round,pad=0.1",
-            facecolor=colors[i], edgecolor='#333', linewidth=1.5
+            facecolor=colors[i], edgecolor='#333', linewidth=1.5, zorder=2
         )
         ax.add_patch(box)
-        ax.text(x, y, var, ha='center', va='center', fontsize=12)
+        ax.text(x, y, var, ha='center', va='center', fontsize=12, zorder=3)
 
     # a路径和b路径
     for i in range(2):
@@ -140,7 +141,7 @@ def draw_simple_model(variables, coefficients, output_path, title='研究模型�
         )
         ax.add_patch(arrow)
         if i < len(coefficients):
-            ax.text((x1 + x2) / 2, y1 + 0.4, f'β={coefficients[i]:.2f}',
+            ax.text((x1 + x2) / 2, y1 + 0.4, f'{["a", "b"][i]} β={coefficients[i]:.2f}',
                     ha='center', va='center', fontsize=10, color='#C62828')
 
     # 直接效应
@@ -149,7 +150,7 @@ def draw_simple_model(variables, coefficients, output_path, title='研究模型�
         x2, y2 = positions[2]
         arrow = FancyArrowPatch(
             (x1, y1 - 0.5), (x2, y2 - 0.5),
-            connectionstyle="arc3,rad=-0.3",
+            connectionstyle="arc3,rad=-0.5",
             arrowstyle='->', mutation_scale=20,
             color='#666', linewidth=1.2, linestyle='--'
         )
@@ -169,7 +170,7 @@ def main():
     parser.add_argument('--variables', '-v', required=True,
                         help='变量名，用逗号分隔，如"AI情感依赖,孤独感,反刍思维,NSSI"')
     parser.add_argument('--coefs', '-c', required=False, default=None,
-                        help="路径系数，逗号分隔，链式4个 a,b1,b2,c'；不填则先用0占位")
+                        help="路径系数，逗号分隔；链式4个依次 a1,d21,b2,c'（X→M1、M1→M2、M2→Y、直接效应，与auto_stats中介输出同名）；不填则先用0占位")
     parser.add_argument('--type', '-t', choices=['chain', 'simple'], default='chain',
                         help='模型类型：chain链式中介，simple简单中介')
     parser.add_argument('--output', '-o', default='model.png', help='输出图片路径')
@@ -207,6 +208,7 @@ def main():
     print(f'模型类型：{args.type}')
 
     output_path = Path(args.output)
+    output_path.parent.mkdir(parents=True, exist_ok=True)
 
     if args.type == 'chain':
         if len(variables) != 4:

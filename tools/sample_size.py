@@ -252,6 +252,10 @@ def print_report(design, alpha, power, extra, effect, **kw):
             k = kw["groups"]
             nmin = min_n_f(k - 1, lambda N, k=k: N - k, effect * effect, alpha, power, k + 3)
             note = f"f={effect:.3f}"
+        if nmin is None:
+            print("按该效应量在 20000 样本内仍达不到目标功效，请检查效应量是否过小（不得为 0 或越界）。")
+            print_practice_notes()
+            return
         rec = recommend_collect(nmin, extra)
         print(f"按你指定的 {note}：统计最小 N={nmin}；预留 {int(extra*100)}% 无效卷，"
               f"建议实际发放 ≈ {rec} 份。")
@@ -318,6 +322,33 @@ def main():
     ap.add_argument("--extra", type=float, default=0.15,
                     help="为无效问卷预留的比例，默认 0.15（15%%）")
     args = ap.parse_args()
+
+    # ---- 入参校验：越界参数给中文友好提示，避免 math.atanh 等抛英文 Traceback ----
+    def fail(msg):
+        print("错误：" + msg)
+        print("示例：相关 --effect 0.3（0<r<1）；回归/增量 --effect 0.15（f²>0）；ANOVA --effect 0.25（f>0）。")
+        sys.exit(1)
+    if not (0 < args.alpha < 1):
+        fail("显著性水平 --alpha 必须在 0 与 1 之间（通常 0.05）。")
+    if not (0 < args.power < 1):
+        fail("目标功效 --power 必须在 0 与 1 之间（通常 0.80）。")
+    if not (0 <= args.extra < 1):
+        fail("无效卷预留比例 --extra 必须在 0 与 1 之间（默认 0.15）。")
+    if args.design:
+        if args.effect is None:
+            pass  # 看三档速查表，允许
+        elif args.design == "correlation" and not (0 < abs(args.effect) < 1):
+            fail("相关效应量 r 必须在 0 与 1 之间（如 0.1 小 / 0.3 中 / 0.5 大）。")
+        elif args.design in ("regression", "r2-change") and not (args.effect > 0):
+            fail("回归效应量 f² 必须大于 0（如 0.02 小 / 0.15 中 / 0.35 大）。")
+        elif args.design == "anova" and not (args.effect > 0):
+            fail("ANOVA 效应量 f 必须大于 0（如 0.10 小 / 0.25 中 / 0.40 大）。")
+        if args.design == "regression" and args.predictors < 1:
+            fail("预测变量数 --predictors 至少为 1。")
+        if args.design == "r2-change" and (args.tested < 1 or args.total < args.tested):
+            fail("R²增量设计要求 --tested≥1 且 --total（全模型预测变量数）≥ --tested。")
+        if args.design == "anova" and args.groups < 2:
+            fail("ANOVA 组数 --groups 至少为 2。")
 
     if not args.design:
         print_cheatsheet(args.alpha, args.power, args.extra)

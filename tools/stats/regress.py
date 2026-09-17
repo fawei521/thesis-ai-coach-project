@@ -307,9 +307,9 @@ def moderation_analysis(matrix, x_col, w_col, y_col, reps=5000,
     Var(b1+b3 w)=Cov11+w^2 Cov33+2w Cov13，并用 Bootstrap 百分位 CI 复核。
     """
     cols = [x_col, w_col, y_col]
-    missing = [c for c in cols if c not in matrix]
+    missing = [c for c in cols if not isinstance(c, str) or c not in matrix]
     if missing:
-        print(f"✗ 调节分析失败，以下列不存在：{missing}")
+        print("✗ 调节分析失败：存在无法识别的量表名/列名，请对照 scales.txt 与数据表头检查 --x/--y/--moderator（人口学调节变量需已编码为数字）。")
         return None
     rows = [i for i in range(len(matrix[y_col]))
             if all(matrix[c][i] is not None for c in cols)]
@@ -506,9 +506,9 @@ def _mediation_effects(x, ms, y, idx):
 def mediation_analysis(matrix, x_col, m_cols, y_col, reps=5000, seed=20260917, output=None):
     """Bootstrap中介分析（模型4简单中介 / 模型6链式中介），百分位95%CI。"""
     cols = [x_col] + m_cols + [y_col]
-    missing = [c for c in cols if c not in matrix]
+    missing = [c for c in cols if not isinstance(c, str) or c not in matrix]
     if missing:
-        print(f"✗ 中介分析失败，以下列不存在：{missing}")
+        print("✗ 中介分析失败：存在无法识别的量表名/列名，请对照 scales.txt 与数据表头检查 --x/--y/--mediators。")
         return None
     rows = [i for i in range(len(matrix[x_col]))
             if all(matrix[c][i] is not None for c in cols)]

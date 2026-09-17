@@ -7,11 +7,13 @@
   python paper_search.py --query "AI emotional dependence adolescent" --limit 20
   python paper_search.py --source semantic --query "non-suicidal self-injury rumination" --limit 15
   python paper_search.py --query "loneliness mediation" --output results.csv
+健壮性：单个数据源 429 限流/超时会自动等待重试一次；仍失败则自动换另一个数据源再试。
 """
 
 import json
 import csv
 import sys
+import time
 import argparse
 import urllib.request
 import urllib.parse
@@ -27,8 +29,35 @@ if hasattr(sys.stdout, "reconfigure") and not sys.stdout.isatty():
     sys.stderr.reconfigure(encoding="utf-8", errors="replace")
 
 
+def _open_with_retry(req, source_name, attempts=2):
+    """带重试的 urlopen：429 限流等待 3 秒重试一次，其他网络错误等待 2 秒重试一次。
+    成功返回 response；两次都失败返回 None（None=网络失败，区别于"零结果"的 []）。"""
+    last_err = None
+    for i in range(attempts):
+        try:
+            return urllib.request.urlopen(req, timeout=30)
+        except urllib.error.HTTPError as e:
+            last_err = e
+            if e.code == 429 and i < attempts - 1:
+                print(f"{source_name} 返回 429 限流，等待 3 秒后自动重试一次……")
+                time.sleep(3)
+                continue
+            print(f"网络错误：HTTP {e.code} {e.reason}（{source_name}）")
+            return None
+        except urllib.error.URLError as e:
+            last_err = e
+            if i < attempts - 1:
+                print(f"{source_name} 连接失败（{e.reason}），等待 2 秒后自动重试一次……")
+                time.sleep(2)
+                continue
+            print(f"网络错误：{e}（{source_name}）")
+            return None
+    print(f"网络错误：{last_err}（{source_name}）")
+    return None
+
+
 def search_openalex(query, limit=20):
-    """通过OpenAlex API检索文献（免费，无需key）"""
+    """通过OpenAlex API检索文献（免费，无需key）；网络失败返回 None，零结果返回 []"""
     base_url = "https://api.openalex.org/works"
     params = {
         "search": query,
@@ -42,13 +71,10 @@ def search_openalex(query, limit=20):
         "User-Agent": "ThesisAICoach/1.0 (mailto:student@example.com)"
     })
 
-    try:
-        with urllib.request.urlopen(req, timeout=30) as response:
-            data = json.loads(response.read().decode("utf-8"))
-    except urllib.error.URLError as e:
-        print(f"网络错误：{e}")
-        print("请检查网络连接，或稍后重试。")
-        return []
+    response = _open_with_retry(req, "OpenAlex")
+    if response is None:
+        return None
+    data = json.loads(response.read().decode("utf-8"))
 
     results = []
     for work in data.get("results", []):
@@ -110,7 +136,7 @@ def search_openalex(query, limit=20):
 
 
 def search_semantic_scholar(query, limit=20):
-    """通过Semantic Scholar API检索文献（免费，无需key）"""
+    """通过Semantic Scholar API检索文献（免费，无需key）；网络失败返回 None，零结果返回 []"""
     base_url = "https://api.semanticscholar.org/graph/v1/paper/search"
     params = {
         "query": query,
@@ -123,13 +149,10 @@ def search_semantic_scholar(query, limit=20):
         "User-Agent": "ThesisAICoach/1.0"
     })
 
-    try:
-        with urllib.request.urlopen(req, timeout=30) as response:
-            data = json.loads(response.read().decode("utf-8"))
-    except urllib.error.URLError as e:
-        print(f"网络错误：{e}")
-        print("Semantic Scholar可能限流，建议改用OpenAlex（--source openalex）")
-        return []
+    response = _open_with_retry(req, "Semantic Scholar")
+    if response is None:
+        return None
+    data = json.loads(response.read().decode("utf-8"))
 
     results = []
     for paper in data.get("data", []):
@@ -209,6 +232,12 @@ def print_results(results, max_show=10):
         print(f"\n...还有{len(results) - max_show}篇，导出CSV查看全部。")
 
 
+SEARCHERS = {
+    "openalex": ("OpenAlex", search_openalex),
+    "semantic": ("Semantic Scholar", search_semantic_scholar),
+}
+
+
 def main():
     parser = argparse.ArgumentParser(description="英文学术文献检索工具（免费API）")
     parser.add_argument("--query", "-q", required=True, help="检索关键词（英文）")
@@ -221,23 +250,40 @@ def main():
     print("=" * 70)
     print("英文学术文献检索工具")
     print("=" * 70)
-    print(f"数据源：{args.source}")
+    print(f"首选数据源：{args.source}")
     print(f"关键词：{args.query}")
     print(f"数量：{args.limit}")
     print("正在检索，请稍候...\n")
 
-    if args.source == "openalex":
-        results = search_openalex(args.query, args.limit)
-    else:
-        results = search_semantic_scholar(args.query, args.limit)
+    # 首选源；网络失败（None）时自动换另一个源重试一次；零结果（[]）不换源
+    order = [args.source] + [s for s in ("openalex", "semantic") if s != args.source]
+    results, used_source = None, None
+    for s in order:
+        name, fn = SEARCHERS[s]
+        r = fn(args.query, args.limit)
+        if r is None:
+            if s != order[-1]:
+                print(f"{name} 暂不可用，自动改用另一数据源重试……\n")
+                continue
+            results = None
+            break
+        results, used_source = r, name
+        break
 
     if not results:
+        if results is None:
+            print("两个数据源本次都未能连通（超时/限流）。建议：")
+            print("1. 检查网络（校园网/代理），稍后重试；")
+            print("2. 再跑一次本命令（工具已内置等待重试与自动换源）；")
+            print("3. 仍失败时先用知网等中文库，网络恢复后补英文检索。")
+            sys.exit(1)
         print("未检索到结果。建议：")
         print("1. 简化关键词，用2-3个核心词")
         print("2. 换同义词（如 self-injury 换成 NSSI）")
         print("3. 换数据源试试（--source semantic）")
         sys.exit(1)
 
+    print(f"实际命中数据源：{used_source}")
     # 按被引次数排序
     results.sort(key=lambda x: x["被引次数"] if x["被引次数"] else 0, reverse=True)
 

@@ -59,6 +59,17 @@ from stats.reliability import build_scale_scores, export_scale_dataset, reliabil
 
 # ============ 主程序 ============
 
+def _resolve_or_warn(label, name, pool, scales):
+    """把用户输入的量表名/列名解析成 pool 中真实列；找不到时给中文提示并返回 None（不抛 Traceback）。"""
+    col = resolve_col(name, scales, pool)
+    if col not in pool:
+        avail = "、".join(scales.keys()) if scales else "（未提供 --scales，请使用数据中的数值列名）"
+        print(f"✗ {label}「{name}」在数据中找不到：请检查量表名/列名拼写；可用量表：{avail}；"
+              f"人口学变量（性别/年级等）需已在预处理阶段编码为数字。")
+        return None
+    return col
+
+
 def main():
     parser = argparse.ArgumentParser(description="自动化统计分析工具（心理学问卷）")
     parser.add_argument("data", help="CSV数据文件")
@@ -128,6 +139,10 @@ def main():
                           efa_output=efa_out, pa_rep=args.pa_rep)
         harman_test(matrix, scales)
         score_matrix, _ = build_scale_scores(matrix, scales)
+        # 回归/中介/调节取数池：量表总分 + 原始数值列（允许性别/年级等已编码人口学数值列作 X/W）
+        analysis_pool = dict(score_matrix)
+        for _h in num_cols:
+            analysis_pool.setdefault(_h, matrix[_h])
         scale_total_cols = [f"{name}总分" for name in scales]
         dataset = export_scale_dataset(path, headers, data, score_matrix, scales)
         print(f"\n含量表总分的分析数据集已导出：{dataset}")
@@ -153,12 +168,15 @@ def main():
             print("  （本节为 Spearman 秩相关；M/SD/相关/α 整合三线表仍报 Pearson，二者可并列于附录）")
 
         if args.y and args.x:
-            y_col = resolve_col(args.y, scales, score_matrix)
-            x_cols = [resolve_col(c, scales, score_matrix) for c in args.x.split(",")]
+            y_col = _resolve_or_warn("因变量", args.y, analysis_pool, scales)
+            x_cols = [_resolve_or_warn("自变量", c, analysis_pool, scales) for c in args.x.split(",")]
             print("\n" + "=" * 60)
             print("六、回归分析（量表总分层面）")
             print("=" * 60)
-            linear_regression(score_matrix, x_cols, y_col)
+            if y_col and all(x_cols):
+                linear_regression(analysis_pool, x_cols, y_col)
+            else:
+                print("✗ 回归分析已跳过：请修正 --y/--x 参数（量表名或列名）后重跑。")
         active_matrix = score_matrix
         active_cols = scale_total_cols
         diff_suffix = "_差异分析_非参数.csv" if args.nonparametric else "_差异分析.csv"
@@ -182,12 +200,17 @@ def main():
         desc = descriptive(matrix, num_cols)
         corr = correlation_matrix(matrix, num_cols)
         if args.y and args.x:
-            x_cols = [c.strip() for c in args.x.split(",")]
+            y_col = _resolve_or_warn("因变量", args.y, matrix, None)
+            x_cols = [_resolve_or_warn("自变量", c, matrix, None) for c in args.x.split(",")]
             print("\n" + "=" * 60)
             print("三、回归分析")
             print("=" * 60)
-            linear_regression(matrix, x_cols, args.y)
+            if y_col and all(x_cols):
+                linear_regression(matrix, x_cols, y_col)
+            else:
+                print("✗ 回归分析已跳过：请修正 --y/--x 参数（列名）后重跑。")
         active_matrix = matrix
+        analysis_pool = matrix
         active_cols = num_cols
 
     alpha_map = None
@@ -200,23 +223,23 @@ def main():
 
     # 中介分析（模型4/6，Bootstrap）
     if args.mediators and args.y and args.x:
-        x_first = resolve_col(args.x.split(",")[0], scales, active_matrix)
-        y_col = resolve_col(args.y, scales, active_matrix)
-        m_cols = [resolve_col(c, scales, active_matrix) for c in args.mediators.split(",")]
+        x_first = _resolve_or_warn("自变量", args.x.split(",")[0], analysis_pool, scales)
+        y_col = _resolve_or_warn("因变量", args.y, analysis_pool, scales)
+        m_cols = [_resolve_or_warn("中介变量", c, analysis_pool, scales) for c in args.mediators.split(",")]
         if len(m_cols) > 2:
             print("\n⚠ 链式中介最多支持2个中介变量（模型6），已取前两个。")
             m_cols = m_cols[:2]
         med_out = str(path.with_name(path.stem + "_中介效应.csv"))
-        mediation_analysis(active_matrix, x_first, m_cols, y_col,
+        mediation_analysis(analysis_pool, x_first, m_cols, y_col,
                            reps=args.boot, seed=args.seed, output=med_out)
 
     # 调节分析（PROCESS模型1：X、W中心化+交互项+±1SD简单斜率）
     if args.moderator and args.y and args.x:
-        x_first = resolve_col(args.x.split(",")[0], scales, active_matrix)
-        w_col = resolve_col(args.moderator, scales, active_matrix)
-        y_col = resolve_col(args.y, scales, active_matrix)
+        x_first = _resolve_or_warn("自变量", args.x.split(",")[0], analysis_pool, scales)
+        w_col = _resolve_or_warn("调节变量", args.moderator, analysis_pool, scales)
+        y_col = _resolve_or_warn("因变量", args.y, analysis_pool, scales)
         mod_out = str(path.with_name(path.stem + "_调节效应.csv"))
-        moderation_analysis(active_matrix, x_first, w_col, y_col,
+        moderation_analysis(analysis_pool, x_first, w_col, y_col,
                             reps=args.boot, seed=args.seed, output=mod_out)
 
     print("\n" + "=" * 60)
