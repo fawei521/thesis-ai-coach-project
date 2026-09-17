@@ -104,9 +104,12 @@ thesis-ai-coach-project/
 └── tests/                    # full_e2e.py 一键全量回归、consistency_check.py 文档↔代码一致性自检、专项测试与测试数据
 ```
 
-> 维护者/接手者：改动后运行 `python tests/full_e2e.py`（约3-5分钟，127项起，自动备份恢复测试数据），退出码 0 才算通过；学生日常使用不需要跑。
+> 维护者/接手者：改动后运行 `python tests/full_e2e.py`（约3-5分钟，129项起，自动备份恢复测试数据），退出码 0 才算通过；学生日常使用不需要跑。
 
 ## 版本
+
+**v1.53 问卷模板人口学适配中学生/混合样本版**
+- 问卷基本信息从纯大学框架改为按样本裁剪：性别加"其他/不愿透露"、新增"学段"题（混合样本必收）、年级给中学版/大学版二选一、专业题标注仅大学生、强调个人信息最小化；全项目排查无其他写死大学样本处；full_e2e 增至 129 项
 
 **v1.52 统计指南 PROCESS 域名纠错＋网络分析稳定性版**
 - 逐字走查 stats-guide 十一节方法学无误；订正 v1.46 漏改的 stats-guide PROCESS 官网域名（hayesprocess.com→processmacro.org）；网络分析补 strength/expected influence 与 bootnet 边权/删案例自助 CS 系数稳定性检验、定位为补充分析；full_e2e 增至 127 项

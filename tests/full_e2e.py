@@ -133,6 +133,8 @@ try:
     check("敏感话题风险预案", "研究前先定风险预案" in et and "校园投放伦理" in et)
     check("数据保存年限口径", "不少于5年" in et and "至少保存3年" not in et)
     check("问卷模板12356", "12356" in qt)
+    check("问卷模板学段适配", "学段" in qt and "中学生版" in qt and "大学生版" in qt and "仅大学生填写；中学生样本删除" in qt)
+    check("问卷性别第三项与最小化", "其他/不愿透露" in qt and "个人信息最小化" in qt)
     check("答辩答法12356", "12356" in df)
     es = tx("workflows/environment-setup.md")
     check("JASP中介内置+PROCESS可选", "Regression → Mediation" in es and "PROCESS 模块" in es and "Model 6" in es)
