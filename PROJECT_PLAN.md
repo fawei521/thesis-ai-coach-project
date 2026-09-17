@@ -87,7 +87,7 @@
 |---|---|---|
 | START.md | AI启动入口 | ✅ |
 | core/coach-rules.md | 核心规则 | ✅（v1.1需更新） |
-| psychology/scale-library.md | 20+量表 | ✅ |
+| psychology/scale-library.md | 29 组量表（10 大类，v1.60） | ✅ |
 | psychology/stats-guide.md | 10种统计方法 | ✅ |
 | psychology/ethics.md | 伦理规范 | ✅ |
 | tools/data_cleaner.py | 数据清洗 | ✅已测试 |
@@ -298,7 +298,7 @@
 | chart_generator.py | 研究模型图/路径系数图 | matplotlib |
 | menu.py | 中文统一菜单（配合「启动工具箱.bat」，支持拖拽） | 标准库 |
 
-> 注：上表为早期快照，实际工具以 `AGENTS.md` 文件地图与 `tools/` 目录为准（v1.57 为 10 个脚本，v1.58 新增 `literature_cards.py` 后为 11 个，v1.59 新增 `anonymize_data.py`、`effect_size.py` 后为 13 个、菜单 12 项）。
+> 注：上表为早期快照，实际工具以 `AGENTS.md` 文件地图与 `tools/` 目录为准（v1.57 为 10 个脚本，v1.58 新增 `literature_cards.py` 后为 11 个，v1.59 新增 `anonymize_data.py`、`effect_size.py` 后为 13 个、菜单 12 项；v1.60 新增 `validity_cr_ave.py`、`item_analysis.py`、`content_cvi.py` 后为 16 个、菜单 15 项）。
 
 ---
 
@@ -343,3 +343,24 @@
 - **网页范例**：新增 `templates/网页范例/04-统计方法选择器/`（问答式决策树，10 问/26 结果，推荐方法＋前提＋应报告统计量/效应量阈值＋脚本与 JASP/SPSS 路径＋留空论文句式＋真实性提醒）。
 - **效应量工具**：新增 `tools/effect_size.py`（菜单第 12 项），8 子命令 d/d-t/paired-d/r/r-t/eta/v/convert，给 d/g/配对 d_z 与 95%CI、r Fisher 区间、偏 η²/η²/ε²、Cramér's V/φ、r↔d。
 - **合并与测试**：合并 master v1.58（多词检索/90 池/卡片/手机原生/陪伴文档），菜单最终 12 项（卡片 10、去标识化 11、效应量 12）；full_e2e 新增脱敏/Mahalanobis/量表/选择器/效应量断言后 **343 项全过**，consistency_check 退出 0，doubao-skill validate 通过；版本 v1.59（Skill 保持 v1.3，新工具属完整版本体能力）；全门禁绿＋干净副本复验后发布。
+
+## 十一、v1.60 优化：测量学闭环补齐（聚合/区分效度、项目分析、内容效度 CVI、t 样本量）与共同方法偏差加固
+
+> 启动日期 2026-09-18（凌晨自主推进，隔离 worktree 分支 `feat/overnight-privacy-scales`）。起因：v1.59 补齐隐私/异常值/效应量后，问卷测量学链条仍有四个教材必做环节缺工具或只覆盖一半——CFA 后的 CR/AVE/Fornell 要手算、预试决断值 CR 缺失、开题样本量缺最常用的 t 设计、自编量表内容效度 CVI 完全空白。本版在 v1.59 之上补齐，不改动既有统计口径。
+
+### 11.1 设计原则（本轮总纲）
+
+1. **补测量学闭环，不重复造轮子**：新工具复用 `stats/` 子包既有统计量（dataio/reliability/mathx），量表总分计分等已由 auto_stats 覆盖的不再另建；每个新工具只填一个真实缺口。
+2. **公式先黄金验证、再固化断言**：CR/AVE、决断值 CR、t 样本量、CVI κ* 全部先用本机 scipy/numpy 或 R 包算例逐位核对，再写进 `full_e2e.py` 硬事实断言，不凭记忆实现统计量。
+3. **数字必须来自真实输入**：CFA 载荷、专家评分、效应量都要求来自真实测量模型/专家评定，工具只量化整理，坏参数中文守卫、不抛 Traceback、不得为达标改数。
+4. **小步可回退、纯标准库交付**：六个增量各自独立提交、配断言；新脚本只用标准库（`math.comb` 算组合数），不引入运行时第三方依赖。
+
+### 11.2 改动清单（按工作流，小步提交）
+
+- **聚合/区分效度**：新增 `tools/validity_cr_ave.py`（菜单第 13 项），CFA 标准化载荷→CR/AVE/√AVE＋Fornell-Larcker，手动/CSV 双输入，导出 `_聚合区分效度.csv`；注明单因子下 CR 与 McDonald's ω 等价、建议补 HTMT。
+- **预试项目分析**：新增 `tools/item_analysis.py`（菜单第 14 项），高低 27% 等方差独立样本 t 决断值 CR（稳定排序）＋CITC＋删题后 α＋判定，复用 stats 包，导出 `_项目分析.csv`。
+- **样本量补 t**：`tools/sample_size.py` 借 df1=1 时 t²=F 精确等价新增独立两样本 t（等组取偶）与配对/单样本 t，最小 N 经 `scipy.stats.nct` 逐位核对（独立 d=.5 总 128/每组 64；配对 dz=.5 N=34）。
+- **内容效度 CVI**：新增 `tools/content_cvi.py`（菜单第 15 项），专家 1–4 评分→I-CVI/Pc/校正 κ*/S-CVI(Ave、UA)，按 Lynn 1986 与 Polit-Beck 阈值给保留/修改/重审，导出 `_内容效度CVI.csv`；黄金对照 R `contentValidity` 算例（夹具 `tests/test-data/demo_cvi.csv`）。
+- **量表库**：`psychology/scale-library.md` 24→29 小节、9→10 大类，新增 PANAS、IRI-C、GQ-6、GHQ-12、PSQI（新开睡眠与心身健康类），全部小节确定性重编号，硬事实逐条联网核查。
+- **共同方法偏差**：stats-guide 第四节与 data-analysis-auto 第 5 步补程序控制（Podsakoff 等 2003）与 ULMC、标记变量法（Lindell & Whitney 2001），标明 Harman 仅最宽松事后检验与工具边界。
+- **测试与发布**：菜单 12→15 项，工具脚本 13→16 个（含 stats 共 26 实现模块）；`full_e2e.py` 343→**375 项全过**，consistency_check 退出 0（88 CLI 开关/24 csv 后缀无漂移），doubao-skill validate 通过；版本 v1.60（Skill 保持 v1.3）；全门禁绿＋项目外干净副本复验后打 tag。
