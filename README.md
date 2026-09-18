@@ -62,7 +62,7 @@
 - `reference_formatter.py` — **参考文献格式化**（题录 CSV → GB/T 7714-2015 顺序编码制 [n] 文本：期刊/专著/学位论文/会议/报纸/电子资源六类，作者超 3 人自动截"等/et al"、欧美著者姓全大写名缩写，支持全角标点与 GB/T 7714-2025 姓氏口径开关，吃 paper_search 导出与文献整理表；缺字段标【待补】不伪造、坏输入中文报错；纯标准库，只格式化不生成文献）
 - `missing_report.py` — **缺失值分析与 Little's MCAR 检验**（预处理后清洗前：总/逐题缺失率、缺失模式、成列删除完整样本量；EM 多元正态估计后按缺失模式算 Little (1988) T_MLμ 统计量，与 R naniar::mcar_test / Enders (2010) 同口径；p≥.05 可成列删除、p<.05 建议多重插补/FIML；给可直接粘论文的段落，导出 `_缺失值分析.csv`/`_缺失值报告.txt`；纯标准库）
 - `mult_compare.py` — **多重比较校正**（Bonferroni/Holm 控制族系错误率 FWER、BH/BY 控制错误发现率 FDR；`--ps` 直给 p 值或读 CSV 的 p 值列（可带名称列），四法同列，与 R `p.adjust`/scipy `false_discovery_control` 同口径；导出 `_多重比较校正.csv`/`_多重比较报告.txt`；纯标准库）
-- `paired_compare.py` — **配对设计差异检验**（前后测/两条件：配对样本 t、Cohen's d_z 及近似95%CI、差值 Shapiro-Wilk、Wilcoxon 符号秩（n≤25 无结精确 p，否则结校正/连续性校正 z，SPSS 口径）；单文件宽表 `--pairs 前:后` 或两文件 `--id 编号`（可配 scales 算均分），支持 `--group/--level` 组内配对；导出 `_配对检验.csv`/`_配对检验报告.txt`；纯标准库）
+- `paired_compare.py` — **配对设计差异检验**（前后测/两条件：配对样本 t、Cohen's d_z 及近似95%CI、差值 Shapiro-Wilk、Wilcoxon 符号秩（n≤25 无结精确 p，否则结校正/连续性校正 z，SPSS 口径）与 rank-biserial r 效应量；单文件宽表 `--pairs 前:后` 或两文件 `--id 编号`（可配 scales 算均分），支持 `--group/--level` 组内配对；导出 `_配对检验.csv`/`_配对检验报告.txt`；纯标准库）
 - `assumption_check.py` — **参数检验前提假设**（t/ANOVA/回归前：Shapiro-Wilk 正态性 W/p（Royston AS R94，3≤n≤5000，与 R/scipy 同口径）、调整偏度/超额峰度及 z、Kline 判据；`--group` 逐组正态＋Brown-Forsythe 方差齐性（Levene 基于中位数）；p<.05 但偏度峰度在 Kline 内给 Bootstrap/Welch 稳健通道，明显偏态指引非参数；给可粘论文段落，导出 `_前提假设检验.csv`/`_前提假设报告.txt`；纯标准库）
 
 **典型数据流水线**：问卷星导出 →（外发前）去标识化 → 预处理 → 清洗 → 一键自动统计（频数/信度/效度/Harman/相关/回归/Bootstrap中介）→ JASP/SPSS复核 → 画模型图
@@ -147,16 +147,17 @@ thesis-ai-coach-project/
 └── tests/                    # full_e2e.py 一键全量回归、consistency_check.py 文档↔代码一致性自检、专项测试与测试数据
 ```
 
-> 维护者/接手者：改动后运行 `python tests/full_e2e.py`（约3-5分钟，570 项断言，自动备份恢复测试数据），退出码 0 才算通过；学生日常使用不需要跑。
+> 维护者/接手者：改动后运行 `python tests/full_e2e.py`（约3-5分钟，577 项断言，自动备份恢复测试数据），退出码 0 才算通过；学生日常使用不需要跑。
 
 ## 版本
 
-**当前版本：v1.69**（2026-09-18）多重比较校正闭环（完整版；doubao-skill 本轮无改动）
-- **多重检验断档补齐**：新增 `mult_compare.py`（菜单第 20 项），对同一研究问题"家族"内的一组原始 p 值一次给齐 Bonferroni、Holm 逐步法（同控 FWER，Holm 一致强于 Bonferroni，默认推荐）、Benjamini-Hochberg（控 FDR，探索性/检验数多）、Benjamini-Yekutieli（任意相关下控 FDR）四种校正 p 与显著判定；支持 `--ps` 直给或读 CSV 的 p 值列（可带检验名称列）
-- **黄金验证**：3000 组随机向量（含结、0、1）对 R `p.adjust` 独立实现与 scipy `false_discovery_control`：Bonferroni/Holm/BH 零误差、BY ≤4.4e-16；临界值运算顺序与 scipy 对齐避免 .05 浮点翻转；20 组 CLI 场景全过；full_e2e 541→570 项，菜单 19→20 项、工具脚本 20→21 个
-- **不越界**：家族范围与校正方法要求分析前确定（不能几种都跑挑最宽松的），原始 p 与校正后 p 必须同报，校正后不显著也是结果；Tukey HSD 更适合的等方差全两两比较场景明确指引 SPSS，工具只做 p 值校正不替学生挑结果
+**当前版本：v1.70**（2026-09-18）配对检验效应量与口径增强（完整版；doubao-skill 本轮无改动）
+- **Wilcoxon 效应量补齐**：`paired_compare.py` 的符号秩结果新增 rank-biserial 相关 r_rb=（W+−W−）/（W++W−）（符号同差值方向，|r| .1/.3/.5 小/中/大，与 R `effectsize::rank_biserial`、JASP 同口径），控制台、可粘论文段落与导出 CSV 同步给出
+- **小样本有结口径警示**：n<30 且差值有结（Likert 前后测极常见）时，明示只能走正态近似、p 偏乐观，需以 SPSS/JASP 精确法或蒙特卡洛复核并同时报告配对 t；反向计分越出 1~点数 时 dataio 硬提示（0 起编误用、无效码、0/1 题误配反向）
+- **黄金验证**：600 组模拟（n=4…80 × 连续/Likert 结/偏态/含零差值）r_rb 对 scipy 零误差（8.9e-16），连续性校正 z 同步回归；full_e2e 570→577 项；工具脚本与菜单项数不变（21 个/20 项）
+- **不越界**：r 只作效应量描述，不改变检验选择逻辑；有结小样本不给"精确"假象，明确要求权威软件复核
 
-**上一个版本：v1.68** 配对设计差异检验闭环：新增 `paired_compare.py`（菜单第 19 项），前后测/两条件配对样本 t、Cohen's d_z 及近似 95%CI、差值 Shapiro-Wilk、Wilcoxon 符号秩（n≤25 无结精确 p，否则结校正/连续性校正 z，SPSS 口径），单文件宽表与两文件强制 `--id` 配对；462 组对 scipy：t 1.8e-15、精确 p 零误差；full_e2e 504→541 项；逐条见 CHANGELOG。
+**上一个版本：v1.69** 多重比较校正闭环：新增 `mult_compare.py`（菜单第 20 项），Bonferroni/Holm（FWER）、BH/BY（FDR）四法同列，与 R `p.adjust`/scipy 同口径；3000 组黄金对照零误差；full_e2e 541→570 项；逐条见 CHANGELOG。
 
 **更早版本（v1.64 及以前）的逐版说明全部见
 [CHANGELOG.md](CHANGELOG.md)** —— 本 README 自 v1.57 起只保留当前版本与上一版本的摘要，

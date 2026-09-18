@@ -1787,6 +1787,67 @@ try:
     check("v169源码红线", "不能三种都跑" in mc_src and "一个家族" in mc_src
           and "校正后不显著也是结果" in mc_src)
 
+
+    # ========== v1.70 Wilcoxon rank-biserial r 效应量 ==========
+    pc_src = tx("tools/paired_compare.py")
+    check("r_rb公式在源码", "r_rb" in pc_src and "w_plus - w_minus" in pc_src
+          and "rank-biserial" in pc_src)
+    v70 = new_tmp("v170rrb")
+    small70 = v70 / "small.csv"
+    small70.write_text("pre,post\n" + "".join(f"0,{d}\n" for d in
+                       [1.1, -2.3, 0.7, 3.2, -0.4]), encoding="utf-8-sig")
+    import random as _rnd70
+    _rnd70.seed(17002)
+    wide70 = v70 / "wide.csv"
+    with open(str(wide70), "w", encoding="utf-8-sig", newline="") as f70:
+        w70 = csv.writer(f70)
+        w70.writerow(["id", "pre", "post"])
+        for i in range(1, 61):
+            pre = _rnd70.gauss(3, 1)
+            w70.writerow([i, round(pre, 3), round(pre + 0.6 + _rnd70.gauss(0, .5), 3)])
+    # Likert 差值、n<30、有结：小样本结警告（v1.69 顺带维护特性）回归
+    lik70 = v70 / "lik.csv"
+    lik70.write_text("pre,post\n" + "".join(f"3,{3 + d}\n" for d in
+                     [1, -1, 0, 2, -2, 1, 1, -1, 2, 0, 1, -1]), encoding="utf-8-sig")
+
+    r = run([pc_tool, str(small70), "--pairs", "pre:post",
+             "--csv-out", str(v70 / "s.csv"), "--report", str(v70 / "s.txt")])
+    o = r.stdout or ""
+    check("v170手工r_rb", r.returncode == 0 and "r=0.333" in o and "精确双侧 p=.625" in o)
+    s_csv = open(str(v70 / "s.csv"), encoding="utf-8-sig").read()
+    s_rpt = open(str(v70 / "s.txt"), encoding="utf-8").read()
+    check("v170 CSV表头含r", "Wilcoxon_r_rb" in s_csv)
+    # 报告的 Wilcoxon 句只在差值非正态（以非参数为准）时出现：偏态差值夹具
+    import random as _r70b
+    _r70b.seed(17003)
+    skew70 = v70 / "skew.csv"
+    with open(str(skew70), "w", encoding="utf-8-sig", newline="") as f70b:
+        wb = csv.writer(f70b)
+        wb.writerow(["pre", "post"])
+        for _ in range(60):
+            wb.writerow([0, round(_r70b.expovariate(1 / 3), 3)])
+    r = run([pc_tool, str(skew70), "--pairs", "pre:post",
+             "--csv-out", str(v70 / "k.csv"), "--report", str(v70 / "k.txt")])
+    k_rpt = open(str(v70 / "k.txt"), encoding="utf-8").read()
+    k_o = r.stdout or ""
+    check("v170偏态报告含r", r.returncode == 0 and "建议以 Wilcoxon 为准" in k_o
+          and "rank-biserial r=" in k_rpt and "Wilcoxon_r_rb" in
+          open(str(v70 / "k.csv"), encoding="utf-8-sig").read())
+
+    r = run([pc_tool, str(wide70), "--pairs", "pre:post", "--id", "id",
+             "--csv-out", str(v70 / "w.csv"), "--report", str(v70 / "w.txt")])
+    o = r.stdout or ""
+    check("v170大样本r_rb", r.returncode == 0 and "r=0.820" in o and "大效应" in o)
+    # r 必在 [-1,1]
+    m70 = float(re.search(r"r=(-?[0-9.]+)", o).group(1))
+    check("v170 r有界", -1.0 <= m70 <= 1.0)
+
+    r = run([pc_tool, str(lik70), "--pairs", "pre:post",
+             "--csv-out", str(v70 / "l.csv"), "--report", str(v70 / "l.txt")])
+    o = r.stdout or ""
+    check("v170小样本结警告回归", r.returncode == 0 and "小样本且有" in o and "正态近似" in o
+          and "rank-biserial r=" in o)
+
 finally:
     cleanup()
 

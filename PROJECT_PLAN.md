@@ -518,3 +518,21 @@
 - **文档**：stats-guide 多重比较校正方法学小节、data-analysis-auto 第 6.7 步与总览行、START、README（版本轮换）、AGENTS、QUICKSTART、paper-outline、e2e-test 测试68、本文件。
 - **测试（P0）**：`full_e2e.py` 541→**570 项全过**（+29）；scipy/R 黄金（Bonferroni/Holm/BH 零误差、BY ≤4.4e-16）与 20 组 CLI 场景全绿；consistency_check、validate、全量 py_compile 全绿。
 - **范围控制**：doubao-skill 本轮无改动；测试与补丁不入库。
+
+## 二十、v1.70 优化：配对检验效应量与口径增强（rank-biserial r）
+
+> 2026-09-18 晚自主推进，同分支 `feat/advance-closed-loop`，承接 v1.69，补 Wilcoxon 效应量与两处口径隐患。
+
+### 20.1 背景与做法
+
+1. v1.68 的符号秩检验只有显著性没有效应量；非参数结果在论文里需要配套的效应量（评审常问"差异多大"），rank-biserial r 是配对/单样本 Wilcoxon 的标准配套指标（Kerby 2014；R effectsize、JASP 默认输出）。
+2. 公式与权威软件对齐：r_rb=（W+−W−）/T，T=n(n+1)/2（零差值剔除后），幅度等价 1−2·min(W+,W−)/T；600 组模拟（连续/Likert 结/偏态/含零）对 scipy.stats.wilcoxon 的双侧统计量反推，最大误差 8.9e-16，符号约定 d=后−前。
+3. 顺带收口两处口径隐患（工作树内已完成的增强，经审查与门禁回归一并纳入）：n<30 有结只能正态近似时明示 p 偏乐观、需精确法/蒙特卡洛复核；反向计分越界硬提示（0 起编/无效码/0-1 题误配）。
+
+### 20.2 改动清单
+
+- **`tools/paired_compare.py`**：wilcoxon_signed_rank 返回 r_rb；控制台精确/近似两分支、论文段落（随非参数结论句）、CSV 新增 `Wilcoxon_r_rb` 列；新增 _r_tag 分档（.1/.3/.5）。
+- **`tools/stats/dataio.py`**：recoded_item_series 反向结果越界硬提示（正向题不误报）。
+- **菜单与计数**：菜单项 20、工具脚本 21 个均不变；full_e2e 570→**577 项全过**（+7）；consistency（21 工具/31 模块/103 开关/29 csv 后缀）、validate、全量 py_compile 全绿。
+- **文档**：stats-guide、data-analysis-auto、START、README（版本轮换）、AGENTS、QUICKSTART、paper-outline、CHANGELOG、e2e-test 测试69、本文件同步。
+- **范围控制**：doubao-skill 本轮无改动；测试与补丁不入库。

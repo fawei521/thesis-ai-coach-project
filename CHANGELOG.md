@@ -12,6 +12,7 @@
 
 | 版本 | 发布日期 | 主题 | 提交 |
 |---|---|---|---|
+| **v1.70** | 2026-09-18 | 配对检验效应量与口径增强：paired_compare.py 的 Wilcoxon 新增 rank-biserial r 效应量（(W+−W−)/(W++W−)，R effectsize/JASP 同口径，600 组对 scipy 零误差），控制台/论文段落/CSV 同步；n<30 有结正态近似 p 偏乐观警示；dataio 反向计分越界硬提示；full_e2e 570→577 项 | 见下方详情 |
 | **v1.69** | 2026-09-18 | 多重比较校正闭环：新增 mult_compare.py（菜单20，Bonferroni/Holm 控 FWER、BH/BY 控 FDR，支持 --ps 直给或 CSV 读 p 值列/名称列，四法同列对照并给可粘论文段落，与 R p.adjust/scipy false_discovery_control 同口径；导出 _多重比较校正.csv/_多重比较报告.txt；3000 组随机向量黄金对照 Bonferroni/Holm/BH 零误差、BY ≤4.4e-16），full_e2e 541→570 项 | 见下方详情 |
 | **v1.68** | 2026-09-18 | 配对设计差异检验闭环：新增 paired_compare.py（菜单19，前后测/两条件配对样本 t、Cohen's d_z 及近似95%CI、差值 Shapiro-Wilk 正态前提、Wilcoxon 符号秩（n≤25 无结精确 p，否则结校正/连续性校正 z，SPSS 口径）；单文件宽表与两文件按编号配对（强制 --id，缺一方整对剔除计数）、--group/--level 组内配对、scales 量表均分；导出 _配对检验.csv/_配对检验报告.txt；462 组对 scipy：t 1.8e-15、Wilcoxon 精确 p 零误差、近似 z 1.3e-15），full_e2e 504→541 项 | 见下方详情 |
 | **v1.67** | 2026-09-18 | 参数检验前提假设闭环：新增 assumption_check.py（菜单18，Shapiro-Wilk 正态性 W/p（Royston AS R94，3≤n≤5000，与 R/scipy 同源）＋调整偏度/超额峰度及 z＋Kline 判据；--group 逐组正态＋Brown-Forsythe 方差齐性（Levene 基于中位数）；量表均分自动反向计分；分档给 Welch/Bootstrap/非参数建议，导出 _前提假设检验.csv/_前提假设报告.txt；W 对 scipy 误差 4e-10、p<1e-8 数量级、偏度峰度 1e-14、Levene 2e-13），full_e2e 475→504 项 | 见下方详情 |
@@ -97,6 +98,14 @@
 ## 版本详情
 
 > 以下为各版本变更说明，按版本倒序。
+
+**v1.70 配对检验效应量与口径增强版（非参数结果可解释性；完整版，doubao-skill 本轮无改动）**
+- **背景**：v1.68 的 Wilcoxon 符号秩只给 W+/z/p，学生在论文里报了显著性却没有效应量（评审常问"差异多大"）；Likert 前后测差值几乎必有结，n 小时被迫走正态近似，该口径在小样本偏乐观却无任何提示；反向计分时 0 起编数据误用 1 起编公式会静默毁掉均分/信度，此前无告警。
+- **`paired_compare.py` 增强**：Wilcoxon 结果新增 rank-biserial 相关 **r_rb=（W+−W−）/（W++W−）**（Kerby 2014 简单差公式，与 R `effectsize::rank_biserial`、JASP 的 r_rb 同口径），符号与差值方向一致（d=后−前，正=后测更高），|r| .1/.3/.5 分小/中/大；控制台精确/近似两分支、可粘论文段落（仅在以 Wilcoxon 为结论时随句给出）、导出 CSV 新增 `Wilcoxon_r_rb` 列。
+- **小样本有结警示**：n<30 且差值存在结时，控制台与论文段落均明示"有结时精确分布不适用、正态近似 p 偏乐观（实测可与精确值差近一倍），以 SPSS/JASP 精确法或蒙特卡洛复核，并同时报告配对 t"，避免给小样本 Likert 研究虚假的精确感。
+- **`stats/dataio.py` 增强**：`recoded_item_series` 反向计分后若结果越出 1~likert，硬提示并列出题项与原始值，指明三类原因（0 起编数据点数写错、混入 99/77 无效码、0/1 计数题误配反向题）；正向题 0/1 计分不误报。
+- **黄金验证**：600 组模拟（n=4…80 × 连续正态/Likert 结/指数偏态/含零差值）对 scipy.stats.wilcoxon：r_rb 最大误差 8.9e-16、连续性校正 z 同步回归；手工例（全正 r=1、对称 r=0）逐位一致；full_e2e 570→**577 项全过**（+7：公式在源码/手工 n=5 r=.333/CSV 表头/偏态报告句/大样本 r=.820 有界/小样本结警示回归）；consistency_check、validate、全量 py_compile 全绿。
+- **文档**：stats-guide 配对小节（r_rb 定义、报告格式、有结小样本复核要求）、data-analysis-auto 第 6.6 步、START、README（版本轮换）、AGENTS、QUICKSTART、paper-outline、PROJECT_PLAN §二十、e2e-test 测试69 同步。
 
 **v1.69 多重比较校正闭环版（多检验假阳性膨胀断档；完整版，doubao-skill 本轮无改动）**
 - **背景**：多组两两比较、多个量表同时比较、相关矩阵、多个时点配对检验等场景下，"有一个 p<.05 就显著"会让假阳性随检验数膨胀（m=10 时族系假阳性最高约 40%）；工具箱此前只有 auto_stats 内部的 Bonferroni 事后，没有能对任意一组 p 值统一校正、并区分 FWER/FDR 口径的独立出口，学生容易漏校正或在 SPSS 各对话框里得到不一致的结果。

@@ -1,6 +1,6 @@
 # Thesis AI Coach — 启动文件
 
-> 版本 v1.69 ｜ 适用：心理学专业本科毕业论文（实证/问卷研究为主）｜ 学生把整个项目文件夹交给AI，AI从本文件开始（最新版本号以 CHANGELOG.md / git tag 为准；另有可安装到豆包的轻量 Skill 版，见 doubao-skill/）
+> 版本 v1.70 ｜ 适用：心理学专业本科毕业论文（实证/问卷研究为主）｜ 学生把整个项目文件夹交给AI，AI从本文件开始（最新版本号以 CHANGELOG.md / git tag 为准；另有可安装到豆包的轻量 Skill 版，见 doubao-skill/）
 
 > 你是AI。你读取到这个文件，说明学生把整个项目包交给了你。
 > 请严格按照以下步骤启动，不要跳过。
@@ -78,7 +78,7 @@
 - `missing_report.py` — 缺失值分析与 Little's MCAR 检验（预处理后清洗前：逐题缺失率、缺失模式、成列删除完整样本量；EM 估计下按模式算 Little χ²，naniar/Enders 均值项口径；给可直接粘论文的报告段落，导出 `_缺失值分析.csv`/`_缺失值报告.txt`；纯标准库）
 - `assumption_check.py` — 参数检验前提假设（t/ANOVA/回归前：Shapiro-Wilk 正态性 W/p、偏度峰度 z 与 Kline 判据；分组时逐组正态＋Brown-Forsythe 方差齐性；给可粘论文段落，导出 `_前提假设检验.csv`/`_前提假设报告.txt`；Royston AS R94，纯标准库）
 - `mult_compare.py` — 多重比较校正（Bonferroni/Holm 控族系错误率 FWER、BH/BY 控错误发现率 FDR；支持 --ps 直给或 CSV 读 p 值列（可带检验名称），四法同列对照，与 R p.adjust/scipy 同口径；给可粘论文段落，导出 `_多重比较校正.csv`/`_多重比较报告.txt`；纯标准库）
-- `paired_compare.py` — 配对设计差异检验（前后测/两条件：配对样本 t、Cohen's d_z 及近似95%CI、差值 Shapiro-Wilk、Wilcoxon 符号秩（n≤25 无结给精确 p，否则结校正/连续性校正 z）；支持单文件宽表与两文件按编号配对（缺一方剔除并计数）、组内配对；给可粘论文段落，导出 `_配对检验.csv`/`_配对检验报告.txt`；纯标准库）
+- `paired_compare.py` — 配对设计差异检验（前后测/两条件：配对样本 t、Cohen's d_z 及近似95%CI、Wilcoxon rank-biserial r 效应量、差值 Shapiro-Wilk、Wilcoxon 符号秩（n≤25 无结给精确 p，否则结校正/连续性校正 z）；支持单文件宽表与两文件按编号配对（缺一方剔除并计数）、组内配对；给可粘论文段落，导出 `_配对检验.csv`/`_配对检验报告.txt`；纯标准库）
 - `webpage_preview.py` — 本地预览学生做的网页（纯标准库静态服务器，浏览器打开，也能给手机看；不做任何上传）
 - `menu.py` — 统一菜单（不想记命令时用）
 

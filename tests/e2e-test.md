@@ -1017,6 +1017,21 @@ python tests/test_special_columns.py`
 
 ---
 
+## 测试69：配对检验效应量与口径增强（v1.70，paired_compare.py / dataio.py）
+
+**目的**：Wilcoxon rank-biserial r 与 scipy/R effectsize 同口径；小样本有结警示与反向计分越界提示不回归。
+
+**步骤与预期**：
+1. 手工 n=5 差值 [1.1,−2.3,.7,3.2,−.4]：W+=10、W−=5、精确双侧 p=.625，rank-biserial r=(10−5)/15=.333（中效应），控制台、报告、CSV（`Wilcoxon_r_rb` 列）三处一致。
+2. 固定种子宽表（n=60，后=前+.6+噪声，seed 17002）：r≈.820（大效应），|r|≤1。
+3. 偏态差值（指数，n=60，seed 17003）：差值 Shapiro 显著、"建议以 Wilcoxon 为准"，可粘论文段落含 rank-biserial r 句。
+4. Likert 差值 n=12（含零差值与结）：n<30 有结警示出现（正态近似 p 偏乐观、需 SPSS/JASP 精确法复核），r 照常给出。
+5. 反向计分越界：scales 点数与数据编码起点不一致（或混入无效码）时，dataio 硬提示题项与原始值；正常 1~5 数据不误报。
+6. 统计正确性（维护者侧 scipy 对照，不入库）：600 组（n=4…80 × 连续/结/偏态/含零）r_rb 误差 ≤8.9e-16；全正 r=1、对称 r=0 手工例逐位一致。
+7. `python tests/full_e2e.py`：577 项全过；consistency_check、validate、全量 py_compile 全绿。
+
+---
+
 # 脚本回归测试清单（每次改动后执行）
 
 在项目根目录（PowerShell）逐条运行，全部通过才算合格：

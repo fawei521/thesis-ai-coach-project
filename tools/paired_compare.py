@@ -12,7 +12,9 @@
     附近似 95%CI（SE≈√(1/n + d_z²/2n)，Becker 近似，精确 CI 以 JASP/SPSS 为准）；
   - 差值正态性 Shapiro-Wilk（配对 t 的前提是【差值】近似正态，不是原始分数）；
   - Wilcoxon 符号秩检验（配对非参数）：n≤25 且无结给精确双侧 p，
-    否则给正态近似 z（含结校正与连续性校正，SPSS 口径）。
+    否则给正态近似 z（含结校正与连续性校正，SPSS 口径），并给效应量
+    rank-biserial 相关 r_rb=（W+−W−）/（W++W−）（符号同差值方向，
+    |r| .1/.3/.5 为小/中/大，与 R effectsize::rank_biserial 同口径）。
 
 数据口径（两种模式）：
   1) 单文件宽表（同一批人的前/后测列都在一个 CSV）：
@@ -119,10 +121,14 @@ def wilcoxon_signed_rank(diffs):
     else:
         p = min(1.0, 2.0 * normal_sf(abs(z_cc)))
         method = "asymptotic"
+    # rank-biserial r（Kerby 2014 简单差公式；与 R effectsize::rank_biserial、
+    # JASP 的 r_rb 同口径）：符号随差值方向（d=后−前，正=后测更高），
+    # 幅度 |r|=1−2·min(W+,W−)/T，.1/.3/.5 为小/中/大
+    r_rb = (w_plus - w_minus) / total if total > 0 else float("nan")
     return {
         "n": n, "w_plus": w_plus, "w_minus": w_minus, "z": z_cc,
         "z_raw": z_raw, "p": p, "method": method, "n_ties": n_ties,
-        "n_zero": n_zero,
+        "n_zero": n_zero, "r_rb": r_rb,
     }
 
 
@@ -224,6 +230,17 @@ def _dz_tag(dz):
     return "大"
 
 
+def _r_tag(r):
+    a = abs(r)
+    if a < 0.1:
+        return "可忽略"
+    if a < 0.3:
+        return "小"
+    if a < 0.5:
+        return "中"
+    return "大"
+
+
 def print_rows(rows, alpha):
     print("配对设计差异检验（差值 d = 后测 − 前测；H0：差值均值=0）")
     print("=" * 78)
@@ -248,11 +265,13 @@ def print_rows(rows, alpha):
         if w:
             if w["method"] == "exact":
                 print(f"  Wilcoxon 符号秩：W+={fmt(w['w_plus'],1)}，W−={fmt(w['w_minus'],1)}，"
-                      f"精确双侧 p={fmt_p(w['p'])}（n={w['n']}，零差值 {w['n_zero']} 个已剔除）")
+                      f"精确双侧 p={fmt_p(w['p'])}（n={w['n']}，零差值 {w['n_zero']} 个已剔除），"
+                      f"rank-biserial r={fmt(w['r_rb'])}（{_r_tag(w['r_rb'])}效应）")
             else:
                 print(f"  Wilcoxon 符号秩：W+={fmt(w['w_plus'],1)}，W−={fmt(w['w_minus'],1)}，"
                       f"z={fmt(w['z'])}（连续性校正），双侧 p={fmt_p(w['p'])}"
-                      f"（n={w['n']}，结 {w['n_ties']} 组、零差值 {w['n_zero']} 个）")
+                      f"（n={w['n']}，结 {w['n_ties']} 组、零差值 {w['n_zero']} 个），"
+                      f"rank-biserial r={fmt(w['r_rb'])}（{_r_tag(w['r_rb'])}效应）")
                 if w["n"] < 30 and w["n_ties"] > 0:
                     print(f"  ⚠ 小样本且有 {w['n_ties']} 组结（|差值|相等，Likert 前后测极常见）："
                           f"有结时精确分布不再适用、只能走正态近似，此口径 p 偏乐观"
@@ -283,12 +302,14 @@ def make_paragraph(rows, alpha):
                 lines.append(
                     f"  差值 Shapiro-Wilk 检验显著（W={r['sw_W']:.3f}，{fmt_p(r['sw_p'])}），"
                     f"差值不满足正态前提；Wilcoxon 符号秩检验 W+={w['w_plus']:.0f}，"
-                    f"精确双侧 p={fmt_p(w['p'])}，结论以非参数检验为准。")
+                    f"精确双侧 p={fmt_p(w['p'])}，rank-biserial r={w['r_rb']:.3f}，"
+                    f"结论以非参数检验为准。")
             elif w:
                 lines.append(
                     f"  差值 Shapiro-Wilk 检验显著（W={r['sw_W']:.3f}，{fmt_p(r['sw_p'])}），"
                     f"差值不满足正态前提；Wilcoxon 符号秩检验 z={w['z']:.3f}，"
-                    f"双侧 p={fmt_p(w['p'])}，结论以非参数检验为准。")
+                    f"双侧 p={fmt_p(w['p'])}，rank-biserial r={w['r_rb']:.3f}，"
+                    f"结论以非参数检验为准。")
                 if w["n"] < 30 and w["n_ties"] > 0:
                     lines.append(
                         f"  （口径说明：因存在 {w['n_ties']} 组结且 n={w['n']}，"
@@ -308,7 +329,7 @@ def write_csv(path, rows):
                     "t", "df", "p(t双侧)", "d_z", "d_z_CI下限", "d_z_CI上限",
                     "差值Shapiro_W", "差值Shapiro_p",
                     "Wilcoxon_W+", "Wilcoxon_W-", "Wilcoxon_z(校正)", "Wilcoxon_p",
-                    "Wilcoxon方法", "备注"])
+                    "Wilcoxon_r_rb", "Wilcoxon方法", "备注"])
         for r in rows:
             wc = r.get("wilcox") or {}
             note = r.get("error", "")
@@ -324,7 +345,7 @@ def write_csv(path, rows):
                 fmt(r.get("dz_lo"), 4), fmt(r.get("dz_hi"), 4),
                 fmt(r.get("sw_W"), 4), fmt(r.get("sw_p"), 6),
                 fmt(wc.get("w_plus"), 2), fmt(wc.get("w_minus"), 2),
-                fmt(wc.get("z"), 4), fmt(wc.get("p"), 6),
+                fmt(wc.get("z"), 4), fmt(wc.get("p"), 6), fmt(wc.get("r_rb"), 4),
                 {"exact": "精确", "asymptotic": "正态近似"}.get(wc.get("method"), ""),
                 note,
             ])
