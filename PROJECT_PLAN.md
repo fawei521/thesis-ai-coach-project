@@ -606,3 +606,19 @@
 - START（auto_stats 能力＋版本号）、QUICKSTART 第3步、README（612 项/版本块）、CHANGELOG、e2e-test 测试73。
 - **测试（P0）**：full_e2e 608→**612 项全过**（+4 接线断言）；consistency、validate、全量 py_compile 全绿。
 - **范围控制**：工具脚本 21、菜单 20 不变；doubao-skill 无改动。
+
+## 二十五、v1.75 维护：路线图挂账与版本区收敛
+
+> 2026-09-18 晚自主推进，同分支 `feat/advance-closed-loop`，纯文档闭环。
+
+### 25.1 背景与做法
+
+1. v1.62–v1.74 连续闭环后 ROADMAP 失真：今晚识别的真实能力缺口未挂账，"MI 不内置一键插补"的架构决策未落档；后续会话可能重复造轮子或误判边界。
+2. README 版本区多次轮换残留孤立要点，逼近 <200 行硬约束且偏离"当前＋上一版"自定规约，借本次发版收敛回 CHANGELOG 单一事实源。
+
+### 25.2 改动清单
+
+- `ROADMAP.md`：新增 Friedman/Nemenyi、polychoric/polyserial、分层 ω/Schmid-Leiman、HTMT2、回归诊断扩展、PPT 导出在制 6 项挂账；MI 不内置与 v1.62–v1.74 收成 2 项已完成决策；仍 <60 行。
+- `README.md`：版本区收敛（当前 v1.75 块＋v1.74 一行），计数 616；START/CHANGELOG/e2e-test 测试74 同步。
+- **测试（P0）**：full_e2e 612→**616 项全过**（+4）；consistency、validate、全量 py_compile 全绿。
+- **范围控制**：无代码改动；工具脚本 21、菜单 20 不变；doubao-skill 无改动。

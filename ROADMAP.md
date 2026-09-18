@@ -7,6 +7,13 @@
 - [ ] 知网检索流程针对更多学校适配（学校路径配置文件）
 - [ ] 增加Excel版自动统计（给完全不装Python的同学）
 - [ ] 进度看板HTML（优先级低，对话与脚本已能覆盖）
+- [ ] 三个及以上重复测量的非参数检验（Friedman＋Nemenyi 事后、Kendall's W；当前 3+ 时点只引导重复测量 ANOVA/混合模型）
+- [ ] 有序类相关：多序相关 polychoric 与多分相关 polyserial（Likert 的 EFA/相关矩阵；scipy 无原生，需自带黄金对照）
+- [ ] 信度深化：分层 ω、总 ω 与 Schmid-Leiman（高阶因子）；区分效度补 HTMT2
+- [ ] 回归诊断扩展：残差图、影响点（Cook 距离/杠杆值）、分层回归 ΔR² 显著性
+- [ ] 论文 PPT 一键导出（并行会话在制，落盘并自测后补菜单/文档/门禁接线）
+- [x] 多重插补/FIML 经评估**不内置一键插补**（教学红线：先理解 Rubin 池化再插补），v1.71 改为 `psychology/missing-imputation-guide.md` 操作指引＋missing_report 拒绝 MCAR 时指路
+- [x] v1.62–v1.74 夜间闭环：ω/HTMT、量表库 39 组、GB/T 7714、Little MCAR、前提假设、配对检验、多重比较校正、rank-biserial、MI 指引、单样本检验、回归 D-W/残差正态（详见 CHANGELOG）
 - [x] 自行完成整个系统测试，走一遍流程生成一篇模拟论文，收集流程中遇见的 bug 修改，循环至少三次——**v1.64 已完成三轮**（标准路径 29 步、边界坏参 34 步、修复后干净重跑＋产物链核对），过程与结论见 CHANGELOG v1.64、tests/e2e-test.md 测试63
 
 ## v2.0 计划（中期）

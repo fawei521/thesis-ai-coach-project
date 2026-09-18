@@ -1087,6 +1087,18 @@ python tests/test_special_columns.py`
 
 ---
 
+## 测试74：路线图挂账维护（v1.75，ROADMAP/README）
+
+**目的**：路线图反映真实缺口与架构决策；README 版本区不无限膨胀。
+
+**步骤与预期**：
+1. ROADMAP 含新增挂账：Friedman、polychoric、分层 ω（Schmid-Leiman）、HTMT2、Cook 距离/ΔR²、PPT 导出在制；含"多重插补不内置一键插补"的已决策记录；全文 <60 行。
+2. ROADMAP 不出现未提交脚本名（PPT 在制项只写功能不写文件名，避免 consistency 漂移）。
+3. README 版本区只保留当前版本块与上一版一行摘要；总行数 <200；断言计数 616。
+4. `python tests/full_e2e.py`：616 项全过；consistency、validate、全量 py_compile 全绿；无代码改动。
+
+---
+
 # 脚本回归测试清单（每次改动后执行）
 
 在项目根目录（PowerShell）逐条运行，全部通过才算合格：

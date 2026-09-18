@@ -12,6 +12,7 @@
 
 | 版本 | 发布日期 | 主题 | 提交 |
 |---|---|---|---|
+| **v1.75** | 2026-09-18 | 路线图挂账维护：ROADMAP 补 Friedman/polychoric/分层ω/HTMT2/回归诊断扩展/PPT 在制等真实缺口，MI 不内置落档；README 版本区收敛；full_e2e 612→616 项 | 见下方详情 |
 | **v1.74** | 2026-09-18 | 论文模板接线维护：paper-outline 方法章/表3 补单样本 t 与回归残差诊断（VIF/DW/残差正态）规范，START/QUICKSTART 同步；full_e2e 608→612 项 | 见下方详情 |
 | **v1.73** | 2026-09-18 | 回归残差诊断闭环：auto_stats 回归自动报 Durbin-Watson 与残差 Shapiro-Wilk；shapiro_wilk 下沉 stats/mathx 消除层间倒挂；DW 定义级＋AR(1)/白噪声黄金；full_e2e 600→608 项 | 见下方详情 |
 | **v1.72** | 2026-09-18 | paired_compare 新增单样本模式（--onesample/--constant，对标称常数如 Likert 中值 3 的单样本 t/Wilcoxon/d_z/r，菜单 19 选单样本，支持分组）；300 组对 scipy 零误差；full_e2e 589→600 项 | 见下方详情 |
@@ -102,6 +103,12 @@
 ## 版本详情
 
 > 以下为各版本变更说明，按版本倒序。
+
+**v1.75 路线图挂账维护闭环（完整版，doubao-skill 本轮无改动）**
+- **背景**：v1.62–v1.74 夜间连续闭环后，ROADMAP 的 v1.x 待办仍停在旧清单，今晚暴露的真实缺口（3+ 时点非参数、有序相关、高阶信度、回归诊断深化）没有挂账，已做的"MI 不内置"架构决策也没落档；同时 README 版本区经多次轮换残留了孤立的旧版本要点，偏离"只保留当前与上一版摘要"的自定规约（行数逼近 200 行硬约束）。
+- **改动**：①ROADMAP v1.x 新增 5 项待办（Friedman＋Nemenyi/Kendall's W、polychoric/polyserial、分层 ω 与 Schmid-Leiman、HTMT2、回归诊断扩展 Cook 距离/杠杆/ΔR²、PPT 导出在制说明）与 2 项已完成决策（MI 教学指引路线、v1.62–v1.74 一行指针），仍 <60 行硬约束；②README 版本区收敛为"当前版本块＋上一版一行"，v1.71–v1.73 摘要回归 CHANGELOG 单一事实源（184→约 150 行）；③START 版本号、CHANGELOG、PROJECT_PLAN §二十五、e2e-test 测试74 同步。
+- **测试（P0）**：full_e2e 612→**616 项全过**（+4：ROADMAP 新增挂账关键词与 MI 决策落档、README 收敛后仍含当前/上一版、行数约束）；consistency、validate、全量 py_compile 全绿。
+- **范围控制**：无代码改动；工具脚本 21、菜单 20 不变；doubao-skill 无改动。
 
 **v1.74 论文模板接线维护闭环（完整版，doubao-skill 本轮无改动）**
 - **背景**：v1.72 单样本检验、v1.73 回归残差诊断上线后，工具层与 stats-guide 已接线，但学生真正照着写方法章的 `templates/paper-outline.md`、START 能力清单与 QUICKSTART 流程没有同步，属于"能力到了产出链断了"的维护缺口（用户明确要求闭环维护旧内容）。

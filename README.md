@@ -148,29 +148,15 @@ thesis-ai-coach-project/
 └── tests/                    # full_e2e.py 一键全量回归、consistency_check.py 文档↔代码一致性自检、专项测试与测试数据
 ```
 
-> 维护者/接手者：改动后运行 `python tests/full_e2e.py`（约3-5分钟，612 项断言，自动备份恢复测试数据），退出码 0 才算通过；学生日常使用不需要跑。
+> 维护者/接手者：改动后运行 `python tests/full_e2e.py`（约3-5分钟，616 项断言，自动备份恢复测试数据），退出码 0 才算通过；学生日常使用不需要跑。
 
 ## 版本
 
-**当前版本：v1.74**（2026-09-18）论文模板接线维护闭环（完整版；doubao-skill 本轮无改动）
-- **新能力接进论文产出链**：v1.72 单样本检验与 v1.73 回归残差诊断此前只在工具/统计指南层接线，本闭环把它们写进 `templates/paper-outline.md` 方法章与表3规范（单样本 t 的适用场景与"偏离中点≠干预效果"边界、回归表注须交代 VIF/Durbin-Watson/残差正态及 Bootstrap 退路）、START 工具能力描述、QUICKSTART 第3步
-- **维护性质**：无新代码、无数值口径变化，纯文档接线＋回归断言，确保学生照着模板写方法章时不会漏掉新前提指标；full_e2e 608→612 项（+4 接线断言），consistency/validate/py_compile 全绿
+**当前版本：v1.75**（2026-09-18）路线图挂账维护闭环（完整版；doubao-skill 本轮无改动）
+- **ROADMAP 与实际能力对齐**：把夜间闭环暴露的真实缺口挂进 v1.x 待办（Friedman 三时点非参数＋Nemenyi、polychoric/polyserial 有序相关、分层 ω/Schmid-Leiman、HTMT2、回归诊断扩展 Cook 距离/ΔR²、PPT 导出在制说明），并把"多重插补不内置一键插补"作为已决策项落档（v1.71 教学指引路线），v1.62–v1.74 闭环收成一行指针
+- **维护性质**：纯规划文档维护＋接线断言，无代码、无数值口径变化；full_e2e 612→616 项；consistency/validate/py_compile 全绿
 
-- **Durbin-Watson＋残差正态**：`auto_stats.py` 多元回归末尾自动给 D-W（残差一阶自相关，0~4 接近 2 独立；1.5~2.5 经验区间提示＋明示严格判定查 dL/dU 表）与残差 Shapiro-Wilk（轻度非正态稳健、小样本偏态走 Bootstrap）；结果进回归返回字典，论文回归表的两项残差前提不再缺
-- **Shapiro-Wilk 下沉重构**：`shapiro_wilk` 自 `assumption_check.py` 下沉到 `stats/mathx.py`（连同 Royston AS R94 系数与私有助手），前提工具、配对工具改为导入复用，消除"stats 包反向依赖工具层"的结构倒挂；函数体逐行未动，200 组对 scipy 回归 W 误差 4.6e-10（Royston 多项式近似固有精度）
-- **黄金验证**：DW 定义级（常量残差→0、交替序列有限样本 3.8、手算 [1,2,3]→1/7、100 组随机序列对 numpy diff 口径零误差、AR(1) 序列 0.577 报警、白噪声 1.77）；n=120 回归夹具 DW=2.355、残差 W=0.979/p=.060 与 numpy OLS＋scipy 逐位一致；AR(1) 夹具自动触发正自相关提示
-- **验证**：full_e2e 600→608 项全绿；consistency/validate/全量 py_compile 全绿；regress.py 在 700 行硬约束内（恰好 700 行）
-
-- **单样本检验闭环**：`paired_compare.py` 新增 `--onesample 列 --constant C`（菜单第19项选"单样本"），一组分数对标称常数（Likert 中值 3、常模分、理论值）的单样本 t/Wilcoxon 一次给齐；数学上等价于 d=x−C 的配对检验，前提（差值正态）、d_z、rank-biserial r、有结小样本警示与配对模式完全同构；支持 `--group/--level`，控制台/论文段落/CSV 备注按单样本口径呈现
-- **黄金验证**：300 组模拟（n=5…100，连续/含结）对 scipy `ttest_1samp`/`wilcoxon` 零误差（t 4.3e-14、p 1.3e-13、d_z 4.9e-15、校正 z 1.8e-15）；手工例 x=[3,4,5] vs 3 → t(2)=√3；full_e2e 589→600 项；菜单因 700 行硬约束同步瘦身
-- **边界**：与中值比较只能说明"偏离中点"，不能声称干预效果（文档明示）；坏参数四类互斥校验（缺常数/缺列/混 scales/常数无 onesample）rc=1；配对模式零回归
-
-**上一个版本：v1.71** 多重插补/FIML 教学指引闭环（完整版；doubao-skill 无改动）：
-- **缺失处理"最后一公里"补齐**：新增 `psychology/missing-imputation-guide.md`——缺失机制×缺失率决策树（何时成列删除可接受、何时必须 MI/FIML）、SPSS 多重插补照做步骤（PMM 预测均值匹配、m=20+、自动池化与 PROCESS 不池化的两条出路）、AMOS FIML（勾选估计均值与截距即自动启用＋辅助变量）、R mice 代码模板与 Rubin 池化公式（T=Ū+(1+1/m)B、校正自由度）、MNAR 敏感性分析（delta/tipping point）、方法/结果/局限三章论文模板
-- **接线**：`missing_report.py` 在拒绝 MCAR 的控制台解读与可粘论文段落中直接指向该指南；stats-guide、data-analysis-auto 第1.5步、START 查证表、README 知识库列表同步登记
-- **红线先行**：禁止均值/LOCF/单点回归插补当完整数据、禁止看结果换插补方法、插补模型须含全部分析变量与辅助变量、量表题均替代只作描述性处理、成对删除不推荐；关键菜单/方法经 IBM 官方手册核对（PMM、默认 m=5、AMOS FIML 勾选位置）
-- **验证**：full_e2e 577→589 项（指南内容静态断言＋四处接线＋MAR 场景控制台/报告指引）；consistency（Markdown 41 个）、validate、全量 py_compile 全绿；工具脚本与菜单项数不变（21 个/20 项）
-
+**上一个版本：v1.74** 论文模板接线维护：paper-outline 方法章/表3 补单样本 t 与回归残差诊断（VIF/D-W/残差正态）规范，START/QUICKSTART 同步；full_e2e 608→612 项；逐条见 CHANGELOG。
 
 **更早版本（v1.64 及以前）的逐版说明全部见
 [CHANGELOG.md](CHANGELOG.md)** —— 本 README 自 v1.57 起只保留当前版本与上一版本的摘要，
