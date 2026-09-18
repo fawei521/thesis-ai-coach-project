@@ -92,7 +92,7 @@ def t_clean():
 
 def t_stats():
     print("\n【3/15】自动统计分析")
-    print("  自动完成：人口学频数表、反向计分、信度α、结构效度(KMO/Bartlett/载荷)、")
+    print("  自动完成：人口学频数表、反向计分、信度α与McDonald's ω、结构效度(KMO/Bartlett/载荷)、")
     print("  共同方法偏差Harman、量表总分、描述统计、相关、回归、")
     print("  Bootstrap中介（模型4/6），并导出三线表和频数表。")
     print("  自编/修订量表还可选做完整探索性因子分析EFA（多因子+方差最大旋转）。")
@@ -366,7 +366,31 @@ def t_effect():
 
 
 def t_validity():
-    print("\n【13/15】聚合/区分效度（由 CFA 标准化载荷算 CR、AVE、√AVE 与 Fornell-Larcker）")
+    print("\n【13/15】聚合/区分效度")
+    print("  1 由 CFA 标准化载荷算 CR、AVE、√AVE 与 Fornell-Larcker（做完验证性因子分析后）")
+    print("  2 由原始问卷数据直接算 HTMT（更现代的区分效度，含 Bootstrap 95%CI，不用先跑 CFA）")
+    mode = input("  输入 1 或 2（直接回车默认 1）：").strip()
+    if mode == "2":
+        print("  HTMT 把每两个量表的题项相关做比值：<.85 区分成立（构念相近可放宽到 .90），")
+        print("  Bootstrap 95%CI 上限<1 是更严格的推断标准；反向题必须在 scales.txt 标 (R)。")
+        f = ask_path("  把清洗后的问卷数据CSV拖进来，回车：")
+        if not f:
+            return
+        sc = ask_path("  把 scales.txt 拖进来（至少含 2 个量表），回车：")
+        if not sc:
+            return
+        args = ["--htmt", f, "--scales", sc]
+        bb = input("  Bootstrap 次数？直接回车默认 2000（输入 0 只算点估计）：").strip()
+        if bb:
+            args += ["--boot", bb]
+        only = input("  只分析某几个量表？输入量表名用逗号分隔（直接回车=全部两两配对）：").strip()
+        if only:
+            args += ["--only-scales", only]
+        run("validity_cr_ave.py", args)
+        print("\n  HTMT 为 Pearson 题项相关的快速预览；有序类别数据的正式 HTMT 请在")
+        print("  R lavaan/semTools 或 SmartPLS 复核；不达标要如实报告，不能删题凑数。")
+        return
+    print("  （模式1）由 CFA 标准化载荷算 CR、AVE、√AVE 与 Fornell-Larcker")
     print("  题项多/想用文件：把 CFA 载荷整理成 CSV（列：因子,题项,载荷），命令行跑：")
     print("  python tools/validity_cr_ave.py --loadings-csv 载荷.csv --corr-csv 因子相关.csv")
     nf = _ask_num("  因子（维度）个数：", int)
@@ -447,7 +471,7 @@ MENU = [
     ("10", "生成重点文献卡片网页（检索/整理 CSV → 手机友好 HTML）", t_cards),
     ("11", "数据去标识化（外发前隐去姓名/学号/手机，附k-匿名体检）", t_anonymize),
     ("12", "效应量换算与复核（由t/F/χ²/r或均值标准差算d、r、η²、V及区间）", t_effect),
-    ("13", "聚合/区分效度（CFA标准化载荷→CR、AVE、√AVE与Fornell-Larcker）", t_validity),
+    ("13", "聚合/区分效度（CFA载荷→CR/AVE/Fornell，或原始数据→HTMT及95%CI）", t_validity),
     ("14", "预试问卷项目分析（高低27%决断值CR、CITC、删题后α，导出项目分析表）", t_itemanalysis),
     ("15", "自编量表内容效度CVI（专家评分→I-CVI、校正κ*、S-CVI/Ave与UA）", t_cvi),
 ]
@@ -463,7 +487,7 @@ def main():
         print("  写文献综述时用 4 多词检索（可凑约90篇候选池）→ 5 整理 → 10 生成重点卡片")
         print("  画图用 6；练手用 7；开题估样本量用 8；预览自己的网页用 9")
         print("  数据外发前用 11 去标识化；写结果补效应量用 12")
-        print("  CFA 后算组合信度/平均方差抽取/区分效度用 13")
+        print("  CFA后算CR/AVE/Fornell，或直接用原始数据算HTMT及95%CI，用 13")
         print("  预试问卷筛题（决断值CR/CITC/删题α）用 14")
         print("  自编量表请专家评内容效度（I-CVI/κ*/S-CVI）用 15")
         print("-" * 64)

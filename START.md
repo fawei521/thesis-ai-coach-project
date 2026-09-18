@@ -1,6 +1,6 @@
 # Thesis AI Coach — 启动文件
 
-> 版本 v1.61 ｜ 适用：心理学专业本科毕业论文（实证/问卷研究为主）｜ 学生把整个项目文件夹交给AI，AI从本文件开始（最新版本号以 CHANGELOG.md / git tag 为准；另有可安装到豆包的轻量 Skill 版，见 doubao-skill/）
+> 版本 v1.62 ｜ 适用：心理学专业本科毕业论文（实证/问卷研究为主）｜ 学生把整个项目文件夹交给AI，AI从本文件开始（最新版本号以 CHANGELOG.md / git tag 为准；另有可安装到豆包的轻量 Skill 版，见 doubao-skill/）
 
 > 你是AI。你读取到这个文件，说明学生把整个项目包交给了你。
 > 请严格按照以下步骤启动，不要跳过。
@@ -63,7 +63,7 @@
 - `wjx_preprocess.py` — 问卷星原始答卷预处理（中文表头/文本选项/"2分3秒"用时 → 标准数字表，附列映射报告供核对）
 - `anonymize_data.py` — 数据去标识化（**把数据发给AI/上传/给外校前先跑**：自动假名化或删除姓名、学号、手机、邮箱、身份证、微信/QQ、IP、住址等直接标识符，并对性别/年级/专业/生源组合做 k-匿名风险体检；只读原文件、另存新文件，绝不改原数据；可生成单独保管的"假名对照表"用于前后测配对）
 - `data_cleaner.py` — 问卷数据清洗（注意力检查题/长直线/低变异SD/高缺失/时长过短，导出清洗后数据＋剔除明细报告）
-- `auto_stats.py` — 自动统计（人口学频数表、反向计分、Cronbach's α+逐题CITC/删题α题项分析+分半信度(前后半/奇偶,Spearman-Brown/Guttman λ4,_信度分析.csv)、结构效度KMO/Bartlett/因子载荷、`--efa`完整探索性因子分析(多因子+Varimax旋转+Horn平行分析定因子数+自动碎石图)、共同方法偏差Harman、量表总分、描述统计(偏度/峰度正态性)、M/SD/相关/α对角整合三线表并自动出相关矩阵下三角热图(系数+显著性星号,对角α,_相关热图.png)、人口学差异(Levene方差齐性+独立样本t/Welch t/单因素ANOVA/Welch ANOVA+效应量+Bonferroni事后，不齐提示Games-Howell；`--nonparametric`偏态/有序时改Mann-Whitney U/Kruskal-Wallis H非参数检验)、`--spearman`秩相关、`--partial "性别,年级"`控制混淆后的偏相关矩阵，自动人口学交叉卡方χ²/Cramér's V(分类×分类,期望频数不足提示Fisher)、多元回归(含容差/VIF共线性诊断)、Bootstrap中介模型4/6、调节效应模型1(--moderator，中心化交互项+±1SD简单斜率+Bootstrap CI+简单斜率图)，导出可直接进PROCESS复核的量表总分数据集）
+- `auto_stats.py` — 自动统计（人口学频数表、反向计分、Cronbach's α+McDonald's ω(单因子主因子法PAF)+逐题CITC/删题α题项分析+分半信度(前后半/奇偶,Spearman-Brown/Guttman λ4,_信度分析.csv含ω列)、结构效度KMO/Bartlett/因子载荷、`--efa`完整探索性因子分析(多因子+Varimax旋转+Horn平行分析定因子数+自动碎石图)、共同方法偏差Harman、量表总分、描述统计(偏度/峰度正态性)、M/SD/相关/α对角整合三线表并自动出相关矩阵下三角热图(系数+显著性星号,对角α,_相关热图.png)、人口学差异(Levene方差齐性+独立样本t/Welch t/单因素ANOVA/Welch ANOVA+效应量+Bonferroni事后，不齐提示Games-Howell；`--nonparametric`偏态/有序时改Mann-Whitney U/Kruskal-Wallis H非参数检验)、`--spearman`秩相关、`--partial "性别,年级"`控制混淆后的偏相关矩阵，自动人口学交叉卡方χ²/Cramér's V(分类×分类,期望频数不足提示Fisher)、多元回归(含容差/VIF共线性诊断)、Bootstrap中介模型4/6、调节效应模型1(--moderator，中心化交互项+±1SD简单斜率+Bootstrap CI+简单斜率图)，导出可直接进PROCESS复核的量表总分数据集）
 - `generate_demo_data.py` — 生成结构真实的模拟问卷数据（内置链式中介、含反向题，没收回问卷前练手用，严禁写进论文）
 - `paper_search.py` — 英文学术文献检索（OpenAlex/Semantic Scholar免费API）；支持多组近义词（`--query` 重复 / `--queries "词1;词2"`）、`--source all` 双源、`--min 90` 逐词翻页去重凑齐约90篇候选池
 - `literature_organizer.py` — 文献去重、分类、导出（可直接吃 paper_search/知网导出的 CSV，UTF-8/GBK 都行）
@@ -71,7 +71,7 @@
 - `chart_generator.py` — 研究模型图生成
 - `sample_size.py` — 开题样本量/功效估算（G*Power等价：相关/回归R²/R²增量/ANOVA/独立两样本t/配对(单样本)t，非中心F精确+三档效应量速查+无效卷冗余，回答"要发多少份"）
 - `effect_size.py` — 效应量换算与复核（写结果时由均值标准差或 t 值算 d/g/配对 d_z，由 r、n 算 Fisher 置信区间，由 F 算偏 η²/η²/ε²，由 χ² 算 Cramér's V/φ，支持 r↔d 互转；阈值 .1/.3/.5、.2/.5/.8、.01/.06/.14，只做换算、数字须来自真实输出）
-- `validity_cr_ave.py` — 聚合/区分效度（CFA 后由标准化因子载荷算组合信度 CR、平均方差抽取 AVE、√AVE，并结合因子间相关做 Fornell-Larcker 区分效度判定；CR≥.70、AVE≥.50 为常用门槛；支持手动参数或载荷/相关 CSV，载荷须来自真实 CFA 输出）
+- `validity_cr_ave.py` — 聚合/区分效度（模式1：CFA 后由标准化因子载荷算组合信度 CR、平均方差抽取 AVE、√AVE，并结合因子间相关做 Fornell-Larcker 区分效度判定，支持手动参数或载荷/相关 CSV，载荷须来自真实 CFA 输出；模式2：`--htmt 数据.csv --scales scales.txt` 直接由原始问卷数据算 HTMT 异质-单质比率（.85/.90 门槛+Bootstrap 95%CI 上限<1，导出 _HTMT区分效度.csv），无需先跑 CFA）
 - `item_analysis.py` — 预试问卷项目分析（按总分取高/低各27%逐题做独立样本 t 得决断值 CR，另给均值标准差、CITC、删题后α与保留/讨论删改判定，导出 `_项目分析.csv`；只提示不替你删题，删题须结合内容效度与理论）
 - `content_cvi.py` — 自编量表内容效度 CVI（专家 1-4 相关性评分，逐条算 I-CVI、机遇校正 κ* 与量表 S-CVI/Ave、S-CVI/UA，给保留/修改/重审建议，导出 `_内容效度CVI.csv`；仅自编/修订量表需要）
 - `webpage_preview.py` — 本地预览学生做的网页（纯标准库静态服务器，浏览器打开，也能给手机看；不做任何上传）
@@ -83,7 +83,7 @@
 **文献卡片用法**：候选池大、不知道先读哪篇时，用菜单第10项（或 literature_cards.py）把重点文献生成手机友好的卡片网页；它是"先读哪篇"的导航，不替代精读。
 **隐私用法**：把数据发给 AI/上传/给外校前，用菜单第11项（或 anonymize_data.py）先去标识化并做 k-匿名体检。
 **效应量用法**：写结果发现只报了 p 值、缺效应量/置信区间时，用菜单第12项（或 effect_size.py）由 t/F/χ²/r 或均值标准差补算 d、r、η²、V。
-**效度用法**：多维量表做完 CFA 拿到标准化载荷后，用菜单第13项（或 validity_cr_ave.py）算 CR、AVE、√AVE 并判定 Fornell-Larcker 区分效度；不达标如实报告，不得为凑阈值改载荷。
+**效度用法**：多维量表做完 CFA 拿到标准化载荷后，用菜单第13项模式1（或 validity_cr_ave.py）算 CR、AVE、√AVE 并判定 Fornell-Larcker 区分效度；没有 CFA 时用模式2（`--htmt`）直接由清洗后数据算 HTMT 及 Bootstrap 95%CI；不达标如实报告，不得为凑阈值改载荷或删题。
 **项目分析用法**：自编或修订量表的预试数据，用菜单第14项（或 item_analysis.py）配合 scales.txt 逐题算决断值 CR（高低27%独立样本 t）、CITC、删题后α，导出项目分析表决定删改；正式数据不必再跑。
 **内容效度用法**：自编或重大修订量表，在 EFA/CFA 前请 5～10 名专家对条目按 1-4 评相关性，整理成"第一列专家、其余每列一条目"的 CSV，用菜单第15项（或 content_cvi.py）算 I-CVI、κ*、S-CVI/Ave、S-CVI/UA；引用成熟量表免做。
 

@@ -302,6 +302,84 @@ try:
               and vca_rows[1][0] == "学习投入" and abs(float(vca_rows[1][2]) - 0.803) < 5e-3
               and "成立" in vca_rows[1][7], str(vca_rows[:2]))
 
+    # ---- v1.62 现代信效度：McDonald's ω（随 auto_stats 信度节产出）+ HTMT（--htmt 模式）----
+    # ω 在上面的 demo_survey 主回归里已随信度分析产出，这里核列、数值关系与纯标准库实现
+    check("ω进入信度CSV", "McDonald_ω" in rel)
+    omega = {}
+    try:
+        for row in csv.DictReader(open(TD / "demo_survey_信度分析.csv", encoding="utf-8-sig")):
+            if row.get("McDonald_ω"):
+                omega[row["量表"]] = float(row["McDonald_ω"])
+    except Exception:
+        pass
+    check("ω数值合理", all(omega.get(k, 0) >= .70 for k in ["AI情感依赖", "孤独感", "反刍思维", "NSSI"])
+          and all(omega[k] >= alpha[k] - .02 for k in omega if k in alpha), str(omega))
+    check("ω进入stdout", "McDonald" in r.stdout and "ω" in r.stdout)
+    rel_src = tx("tools/stats/reliability.py")
+    check("ω纯标准库PAF", "def mcdonald_omega" in rel_src and "_paf_one_factor" in rel_src
+          and "numpy" not in rel_src and "scipy" not in rel_src)
+    # HTMT 固定夹具：两个正交 4 题构念（n=220），点估计黄金值 0.088（numpy 独立实现核对）
+    hdir = new_tmp("htmt")
+    for fn in ["demo_htmt.csv", "htmt_scales.txt"]:
+        shutil.copy2(TD / fn, hdir / fn)
+    hok = run(["tools/validity_cr_ave.py", "--htmt", str(hdir / "demo_htmt.csv"),
+               "--scales", str(hdir / "htmt_scales.txt"), "--boot", "300"], 120)
+    check("HTMT正交夹具", hok.returncode == 0 and "0.088" in hok.stdout and "区分效度成立" in hok.stdout
+          and "CI上限" in hok.stdout, (hok.stderr or "")[-200:])
+    mci = re.search(r"\[0\.\d{3}, (0\.\d{3})\]", hok.stdout)
+    check("HTMT的CI上限<1", bool(mci) and float(mci.group(1)) < 0.5, hok.stdout[-400:])
+    hcsv = hdir / "demo_htmt_HTMT区分效度.csv"
+    check("HTMT导出CSV", hcsv.exists())
+    if hcsv.exists():
+        hrows = list(csv.reader(open(hcsv, encoding="utf-8-sig")))
+        check("HTMT表内容", hrows[0][:6] == ["构念A", "构念B", "完整N", "HTMT", "CI下限", "CI上限"]
+              and hrows[1][0] == "构念A" and abs(float(hrows[1][3]) - 0.0882) < .01, str(hrows[:2]))
+    # 反向计分不变性：B 构念题项整体反向（6−x），scales 标 (R)，HTMT 点估计应保持一致
+    with open(hdir / "demo_htmt.csv", encoding="utf-8-sig") as f:
+        rdr = list(csv.reader(f)); hdr = rdr[0]; body = rdr[1:]
+    bidx = [hdr.index(c) for c in ["B1", "B2", "B3", "B4"]]
+    for row in body:
+        for bi in bidx:
+            row[bi] = str(6 - int(row[bi]))
+    with open(hdir / "demo_htmt_rev.csv", "w", newline="", encoding="utf-8-sig") as f:
+        w = csv.writer(f); w.writerow(hdr); w.writerows(body)
+    with open(hdir / "htmt_rev_scales.txt", "w", encoding="utf-8") as f:
+        f.write("构念A:5=A1,A2,A3,A4\n构念B:5=B1(R),B2(R),B3(R),B4(R)\n")
+    hrev = run(["tools/validity_cr_ave.py", "--htmt", str(hdir / "demo_htmt_rev.csv"),
+                "--scales", str(hdir / "htmt_rev_scales.txt"), "--boot", "0"], 60)
+    check("HTMT反向题等价", hrev.returncode == 0 and "0.088" in hrev.stdout, (hrev.stderr or "")[-200:])
+    # 阴性夹具：同一因子拆成两个"量表"（n=220，固定随机种子），HTMT 应≥.90 且 CI 上限≥1
+    import random as _rnd
+    _rnd.seed(7)
+    _lam = [0.74, 0.71, 0.69, 0.73, 0.67, 0.70]
+    with open(hdir / "neg.csv", "w", newline="", encoding="utf-8-sig") as f:
+        w = csv.writer(f); w.writerow(["id", "X1", "X2", "X3", "Y1", "Y2", "Y3"])
+        for i in range(220):
+            g = _rnd.gauss(0, 1); row = [i + 1]
+            for L in _lam:
+                v = 3 + .9 * (L * g + (1 - L * L) ** .5 * _rnd.gauss(0, 1))
+                row.append(max(1, min(5, round(v))))
+            w.writerow(row)
+    with open(hdir / "neg_scales.txt", "w", encoding="utf-8") as f:
+        f.write("构念X:5=X1,X2,X3\n构念Y:5=Y1,Y2,Y3\n")
+    hneg = run(["tools/validity_cr_ave.py", "--htmt", str(hdir / "neg.csv"),
+                "--scales", str(hdir / "neg_scales.txt"), "--boot", "300"], 120)
+    check("HTMT同因子判失败", hneg.returncode == 0 and "不足" in hneg.stdout and "不通过" in hneg.stdout,
+          hneg.stdout[-300:])
+    # 守卫：缺 scales / 单量表 / boot 负数，均给中文提示且无 Traceback
+    h_nosc = run(["tools/validity_cr_ave.py", "--htmt", str(hdir / "demo_htmt.csv")])
+    check("HTMT缺scales守卫", h_nosc.returncode == 1 and "--scales" in h_nosc.stdout
+          and "Traceback" not in (h_nosc.stdout or "") + (h_nosc.stderr or ""))
+    with open(hdir / "one_scales.txt", "w", encoding="utf-8") as f:
+        f.write("构念A:5=A1,A2,A3,A4\n")
+    h_one = run(["tools/validity_cr_ave.py", "--htmt", str(hdir / "demo_htmt.csv"),
+                 "--scales", str(hdir / "one_scales.txt")])
+    check("HTMT单量表守卫", h_one.returncode == 1 and "不足 2 个" in h_one.stdout)
+    h_negboot = run(["tools/validity_cr_ave.py", "--htmt", str(hdir / "demo_htmt.csv"),
+                     "--scales", str(hdir / "htmt_scales.txt"), "--boot", "-1"])
+    check("HTMT负boot守卫", h_negboot.returncode == 1 and "不能为负" in h_negboot.stdout
+          and "Traceback" not in (h_negboot.stdout or "") + (h_negboot.stderr or ""))
+
     # ---- v1.60 预试项目分析工具 item_analysis.py（菜单14），决断值CR经 scipy 黄金核对 ----
     ia_src = tx("tools/item_analysis.py")
     check("项目分析纯标准库且复用stats", "import csv" in ia_src and "matplotlib" not in ia_src
@@ -706,6 +784,7 @@ try:
     check("菜单第11项去标识化", "【11/15】" in menu and "anonymize_data.py" in menu and "去标识化" in menu)
     check("菜单第12项效应量", "【12/15】" in menu and "effect_size.py" in menu and "效应量" in menu)
     check("菜单第13项效度", "【13/15】" in menu and "validity_cr_ave.py" in menu and "区分效度" in menu)
+    check("菜单13含HTMT", "HTMT" in menu)
     check("菜单第14项项目分析", "【14/15】" in menu and "item_analysis.py" in menu and "决断值" in menu)
     check("菜单第15项内容效度", "【15/15】" in menu and "content_cvi.py" in menu and "CVI" in menu)
     check("START登记去标识化", "anonymize_data.py" in st and "去标识化" in st)

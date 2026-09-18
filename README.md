@@ -37,7 +37,7 @@
 | 文献 | 自动操作知网检索、英文API检索、PDF结构化分析、研究空白梳理 |
 | 量表 | 24组常用量表对比（含AI依赖、NSSI、孤独、反刍，以及DASS-21、压力知觉PSS-10、应对方式SCSQ、情绪调节ERQ、自我控制SCS、核心自我评价CSES、生活满意度SWLS、基本心理需要BPNS、社交媒体成瘾BSMAS等），信效度信息、问卷生成 |
 | 数据 | 问卷星预处理、自动清洗（注意力检查题/长直线/低变异/高缺失/时长，附剔除报告）、反向计分、算总分 |
-| 分析 | 一键跑人口学频数/信度α+题项分析(CITC/删题α)+分半信度(Spearman-Brown/Guttman λ4)/结构效度KMO/自编量表完整EFA(多因子+Varimax+平行分析+自动碎石图)/Harman/描述统计(含偏度峰度正态性)/相关矩阵+α对角整合三线表并自动出下三角相关热图(系数+显著性星号、对角Cronbach α,支持--spearman秩相关、--partial控制性别年级等的偏相关)/人口学差异(Levene方差齐性+独立样本t/Welch t+单因素ANOVA/Welch ANOVA+Cohen d/η²+Bonferroni事后；偏态/有序时--nonparametric给Mann-Whitney U/Kruskal-Wallis H非参数检验)/人口学交叉卡方χ²+Cramér's V(分类×分类,Yates/Fisher提示)/回归(含容差/VIF共线性诊断)/Bootstrap中介(模型4/6)/调节效应(模型1中心化交互项+±1SD简单斜率+简单斜率图)、开题样本量功效估算(sample_size.py，G*Power等价)、生成三线表、画模型图，JASP/SPSS仅复核 |
+| 分析 | 一键跑人口学频数/信度α+McDonald ω+题项分析(CITC/删题α)+分半信度(Spearman-Brown/Guttman λ4)/结构效度KMO/自编量表完整EFA(多因子+Varimax+平行分析+自动碎石图)/Harman/描述统计(含偏度峰度正态性)/相关矩阵+α对角整合三线表并自动出下三角相关热图(系数+显著性星号、对角Cronbach α,支持--spearman秩相关、--partial控制性别年级等的偏相关)/人口学差异(Levene方差齐性+独立样本t/Welch t+单因素ANOVA/Welch ANOVA+Cohen d/η²+Bonferroni事后；偏态/有序时--nonparametric给Mann-Whitney U/Kruskal-Wallis H非参数检验)/人口学交叉卡方χ²+Cramér's V(分类×分类,Yates/Fisher提示)/回归(含容差/VIF共线性诊断)/Bootstrap中介(模型4/6)/调节效应(模型1中心化交互项+±1SD简单斜率+简单斜率图)、HTMT区分效度(原始问卷数据直算+Bootstrap 95%CI)、开题样本量功效估算(sample_size.py，G*Power等价)、生成三线表、画模型图，JASP/SPSS仅复核 |
 | 写作 | 大纲、各章节要点、语言润色、格式检查、去AI味 |
 | 答辩 | PPT大纲、发言稿、24个高频问题、模拟答辩 |
 
@@ -46,7 +46,7 @@
 - `menu.py` + 根目录「启动工具箱.bat」 — **零门槛入口**，双击看中文菜单，文件可拖进窗口
 - `wjx_preprocess.py` — 问卷星原始答卷预处理（中文表头/文本选项/"2分3秒"用时→标准数字表，附列映射报告）
 - `paper_search.py` — 检索英文学术文献（OpenAlex/Semantic Scholar 免费API，无需key，返回真实文献和下载链接）；支持多组近义词（`--queries "词1;词2"`）、`--source all` 双源、`--min 90` 逐词翻页去重凑齐约90篇候选池
-- `auto_stats.py` — 自动统计分析（人口学频数表、反向计分、信度α+逐题CITC/删题α题项分析表+分半信度(前后半/奇偶分半,Spearman-Brown与Guttman λ4,导出_信度分析.csv)、结构效度KMO/Bartlett/因子载荷、`--efa`完整探索性因子分析(主成分+Varimax旋转+共同度+交叉载荷+Horn平行分析定因子数+自动碎石图PNG)、Harman共同方法偏差、量表总分、描述统计(偏度/峰度正态性)、M/SD/相关矩阵/α对角整合三线表(并自动出下三角相关热图_相关热图.png：下三角相关系数+显著性星号、对角Cronbach α、上三角留白，--spearman时为秩相关热图)、人口学差异(Levene方差齐性+独立样本t/Welch t/单因素ANOVA/Welch ANOVA+Cohen d/η²+Bonferroni事后，不齐提示Games-Howell)、多元异常值Mahalanobis D²筛查(--mahalanobis按χ²只标记不删除+敏感性分析建议)、多元回归(含容差/VIF共线性诊断)、Bootstrap中介模型4/6、调节效应模型1(中心化交互项+W均值±1SD简单斜率+Bootstrap CI，导出_调节效应.csv并出_调节效应_简单斜率图.png)、`--nonparametric`非参数差异(偏态/有序时2组Mann-Whitney U报U/z/p/r、多组Kruskal-Wallis H报H/df/p/ε²，事后引导Dunn)、`--spearman`秩相关、`--partial "性别,年级"`偏相关(控制混淆后的净相关矩阵+_偏相关.csv)；自动对人口学分类列两两做卡方独立性检验(分类×分类,χ²/df/p/Cramér's V,2×2 Yates校正,期望<5提示Fisher,导出_卡方检验.csv)；绘图（相关热图、碎石图、简单斜率图）为可选依赖，未装matplotlib不影响数值结果）
+- `auto_stats.py` — 自动统计分析（人口学频数表、反向计分、信度α+McDonald's ω(单因子PAF,写入_信度分析.csv)+逐题CITC/删题α题项分析表+分半信度(前后半/奇偶分半,Spearman-Brown与Guttman λ4,导出_信度分析.csv)、结构效度KMO/Bartlett/因子载荷、`--efa`完整探索性因子分析(主成分+Varimax旋转+共同度+交叉载荷+Horn平行分析定因子数+自动碎石图PNG)、Harman共同方法偏差、量表总分、描述统计(偏度/峰度正态性)、M/SD/相关矩阵/α对角整合三线表(并自动出下三角相关热图_相关热图.png：下三角相关系数+显著性星号、对角Cronbach α、上三角留白，--spearman时为秩相关热图)、人口学差异(Levene方差齐性+独立样本t/Welch t/单因素ANOVA/Welch ANOVA+Cohen d/η²+Bonferroni事后，不齐提示Games-Howell)、多元异常值Mahalanobis D²筛查(--mahalanobis按χ²只标记不删除+敏感性分析建议)、多元回归(含容差/VIF共线性诊断)、Bootstrap中介模型4/6、调节效应模型1(中心化交互项+W均值±1SD简单斜率+Bootstrap CI，导出_调节效应.csv并出_调节效应_简单斜率图.png)、`--nonparametric`非参数差异(偏态/有序时2组Mann-Whitney U报U/z/p/r、多组Kruskal-Wallis H报H/df/p/ε²，事后引导Dunn)、`--spearman`秩相关、`--partial "性别,年级"`偏相关(控制混淆后的净相关矩阵+_偏相关.csv)；自动对人口学分类列两两做卡方独立性检验(分类×分类,χ²/df/p/Cramér's V,2×2 Yates校正,期望<5提示Fisher,导出_卡方检验.csv)；绘图（相关热图、碎石图、简单斜率图）为可选依赖，未装matplotlib不影响数值结果）
 - `generate_demo_data.py` — 生成内置链式中介的模拟问卷数据（练手/测试，严禁写进论文）
 - `data_cleaner.py` — 问卷数据清洗（识别无效问卷：时长过短/长直线/低变异SD/高缺失/注意力检查题答错，导出清洗后数据＋剔除明细报告）
 - `literature_organizer.py` — 文献去重分类（UTF-8/GBK 都能读，可直接吃检索导出的 CSV）
@@ -56,7 +56,7 @@
 - `webpage_preview.py` — 学生自己做网页时的**本地预览器**（纯标准库静态服务器；只读、不上传、不越出指定目录，默认只绑本机；`--lan` 后手机可看）
 - `anonymize_data.py` — **数据去标识化/隐私闸**（发给AI/上传/给外校前：自动假名化或删除姓名、学号、手机、邮箱、身份证、微信/QQ、IP、住址等直接标识符，表头没写明的按内容模式识别；对性别/年级/专业/生源组合做 k-匿名体检；只读原文件、另存新文件，可生成单独保管的假名对照表用于前后测配对）
 - `effect_size.py` — **效应量换算与复核**（写结果时由两组均值标准差或 t 值算 Cohen's d/Hedges' g/配对 d_z，由 r、n 算 Fisher z 置信区间并换算 d，由 F 算偏 η²/η²/ε²，由 χ² 算 Cramér's V/φ，支持 r↔d 互转；纯标准库，阈值口径 .1/.3/.5、.2/.5/.8、.01/.06/.14 与 stats-guide 一致）
-- `validity_cr_ave.py` — **聚合/区分效度计算**（CFA 后由标准化因子载荷算组合信度 CR、平均方差抽取 AVE、√AVE，并结合因子间相关做 Fornell-Larcker 区分效度判定；支持手动参数或载荷/相关 CSV，可另存 `_聚合区分效度.csv`；纯标准库，载荷须来自真实 CFA 输出）
+- `validity_cr_ave.py` — **聚合/区分效度计算**（模式1：CFA 后由标准化因子载荷算组合信度 CR、平均方差抽取 AVE、√AVE，并结合因子间相关做 Fornell-Larcker 判定，支持手动参数或载荷/相关 CSV，可另存 `_聚合区分效度.csv`；模式2：`--htmt 数据.csv --scales scales.txt` 直接由原始问卷数据算 HTMT 异质-单质比率与 Bootstrap 95%CI，导出 `_HTMT区分效度.csv`；纯标准库，载荷须来自真实 CFA 输出、不得为达标改数）
 - `item_analysis.py` — **预试问卷项目分析**（按量表总分取高/低各 27% 逐题做独立样本 t 得决断值 CR，并给均值标准差、CITC 校正项总相关、删题后 α 与保留/讨论删改判定，导出 `_项目分析.csv`；复用 stats 包，纯标准库，CR 经 scipy 黄金核对；只提示不替学生删题）
 - `content_cvi.py` — **自编量表内容效度 CVI**（专家 1-4 相关性评分 → 逐条 I-CVI、机遇校正 κ*、量表 S-CVI/Ave 与 S-CVI/UA，按 Lynn 1986/Polit&Beck 2006 阈值给保留/修改/重审建议，导出 `_内容效度CVI.csv`；纯标准库，仅自编/修订量表需要）
 
@@ -142,23 +142,18 @@ thesis-ai-coach-project/
 └── tests/                    # full_e2e.py 一键全量回归、consistency_check.py 文档↔代码一致性自检、专项测试与测试数据
 ```
 
-> 维护者/接手者：改动后运行 `python tests/full_e2e.py`（约3-5分钟，234项起，自动备份恢复测试数据），退出码 0 才算通过；学生日常使用不需要跑。
+> 维护者/接手者：改动后运行 `python tests/full_e2e.py`（约3-5分钟，404 项断言，自动备份恢复测试数据），退出码 0 才算通过；学生日常使用不需要跑。
 
 ## 版本
 
-**当前版本：v1.61**（2026-09-18）Skill 补丁集（doubao-skill v1.3 → v1.4；完整版本体工具无改动）
-- **手机能力边界修正（P0）**：旧表述"手机能做阶段 0–7"与阶段 7 预处理/清洗必须回电脑自相矛盾，统一为：阶段 0–6 手机全程、阶段 7 仅收数/监控/备份/导出可在手机（预处理、五指标清洗、反向计分、量表总分必须回电脑）、阶段 8 全部统计与出图必须回电脑；写作/沟通/答辩可手机起草演练，排版、查重、AI 检测、PPT 定稿回电脑；仅手机学生改在**阶段 6 开题通过后**即提醒并带填设备交接单（原"第 7 阶段结束前"过晚）
-- **规则优先级（P1）**：Skill 入口与手机合并单文件开头新增六层冲突顺序（coaching-protocol＞companionship＞stages＞encouragement＞语气文件＞参考常识），语气文件只改说法、不改规则
-- **语气文件去人设化命名（P1）**：strict-ceo→concise-direct（concise-direct.md）、gentle-sister→gentle-patient（gentle-patient.md）、puppy→lively-warm（lively-warm.md）（default.md 不变），全部引用同步
-- **统计阈值标争议（P1）**：stage-8 第三节加"判读标准说明"（阈值为常见经验范围，以导师意见/量表原文/软件输出/领域惯例为准），α、KMO、Harman、中介四处各加"[阈值因教材而异，结合导师意见]"
-- **量表授权分级与伦理本地化（P1）**：stage-4 第 5 步改四级分类（开源免费/需邮件申请/需修订翻译授权/商业限制）；数据保存年限、未成年人同意、敏感主题流程明确以本校文件为准，12356 与 120/110 使用前核实
-- **留痕自动化（P1）**：每阶段过闸后 AI 主动输出可直接粘贴的"进度卡更新块"（skill coaching-protocol 与完整版 core/coach-rules 同步）
-- **AI 正文边界调整（P1，用户授权）**：经学生明确要求、基于其真实材料，AI **可生成可编辑的论文正文草稿**，但每次必须①标注"AI 草稿、不可直接提交"②逐段报告风险（编造/与数据不符/AI 检测/学校规定/答辩讲不清）③给核对清单；学生须逐句核实、用自己的话改写并如实做 AI 使用声明；量表题目、编造文献数据、高风险决定、无材料凭空生成结果/整章、"可直接交"定稿仍禁止；不改不核实直接提交仍按全文代写红线处理（skill 与完整版 core/workflows/宪法/START/伦理等十余处口径同步）
-- **安装与获取（P2）**：mobile-guide 补合并单文件截断时改"分步喂"的提示；tools 完整版获取改为"核对版本号与校验值，不从非官方渠道下载"
+**当前版本：v1.62**（2026-09-18）现代信效度指标补齐（完整版；doubao-skill 本轮无改动）
+- **McDonald's ω 进入自动统计**：auto_stats 信度节在每个量表 α 之后自动报告 ω total（单因子主因子法 PAF 估计载荷，SMC 初值+迭代共同度），写入 `_信度分析.csv` 新列；ω≥α 的理论关系、已知载荷大样本还原（误差<.001）、τ 等价数据 ω≈α 均经 numpy 独立实现黄金核对
+- **HTMT 区分效度（菜单13新模式）**：validity_cr_ave.py 新增 `--htmt 数据.csv --scales scales.txt`，由原始问卷数据直接逐对计算异质-单质比率（.85 保守/.90 宽松双门槛 + Bootstrap 百分位 95%CI 上限<1 推断标准），自动反向计分、块内相关非正守卫、导出 `_HTMT区分效度.csv`；正交/同因子两套模拟夹具验证判定方向
+- **测试与文档**：full_e2e 390→404 项（ω 列/数值/纯标准库、HTMT 点估计黄金值/CI/反向题等价/阴性夹具/三类守卫/菜单接线），stats-guide、data-analysis-auto、START、README 同步
 
-**上一个版本：v1.60** 测量学闭环补齐：新增聚合/区分效度 CR/AVE（菜单 13）、预试项目分析决断值 CR（菜单 14）、自编量表内容效度 CVI（菜单 15）三个工具，样本量补独立/配对 t 设计，量表库扩至 29 组 10 大类，共同方法偏差补程序控制与 ULMC/标记变量法路径。
+**上一个版本：v1.61** Skill 补丁集（doubao-skill v1.3→v1.4；完整版本体无改动）：手机能力边界修正（阶段0–6手机全程、阶段7仅收数监控备份、阶段8回电脑）、六层规则优先级、语气文件去人设化命名、统计阈值标争议、量表授权分级、进度卡更新块、AI 正文边界调整（用户授权+风险标注+核对清单）、安装获取安全提示；逐条见 CHANGELOG。
 
-**更早版本（v1.58 及以前）的逐版说明全部见
+**更早版本（v1.60 及以前）的逐版说明全部见
 [CHANGELOG.md](CHANGELOG.md)** —— 本 README 自 v1.57 起只保留当前版本与上一版本的摘要，
 不再往下堆积版本正文（同一版本的说明只维护 CHANGELOG 一处，避免两处漂移、README 无限变长）。
 

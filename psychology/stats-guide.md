@@ -51,17 +51,25 @@
 
 **脚本自动输出：** 跑 `auto_stats.py`（提供 `--scales`）会逐题打印 CITC 与删题后 α、自动标记异常题，并导出"数据名_题项分析.csv"（量表/题项/CITC/删题后α/总α/提示，UTF-8-SIG 可直接整理成信度三线表）。
 
+### McDonald's ω（Omega，现代信度指标）
+α 假设各题对总分的贡献等价（本质 τ 等价），载荷不均时会低估信度；**McDonald's ω total** 基于单因子测量模型的标准化载荷 λ 与误差方差 θ=1−λ²：
+- **公式：** ω = (Σλ)² / [ (Σλ)² + Σ(1−λ²) ]，单因子模型下与组合信度 CR 数学等价；通常 ω ≥ α，二者接近恰说明量表单维性好
+- **判断标准：** 与 α 相同（≥.70 可接受、≥.80 良好、≥.90 优秀）；ω 与 α 一并报告是 JASP 的默认做法，近年评审越来越常见
+- **脚本自动输出：** `auto_stats.py` 在每个量表 α 之后自动打印 ω（载荷由题项相关阵的**单因子主因子法 PAF** 估计，SMC 初值、迭代共同度），并写入"数据名_信度分析.csv"的 `McDonald_ω` 列；PAF 实现已用已知载荷模拟数据与 numpy 独立实现双重核对
+- **JASP/lavaan 复核：** JASP：Reliability→Consistency 勾选 McDonald's ω（基于 CFA）；R：`lavaan` 拟合单因子 CFA 后用 `semTools::reliability()` 取 omega。脚本的 PAF-ω 用于快速预览，论文正式口径以 CFA-ω 复核为准；多维量表应按因子分别报告 ω，不要把整个量表算一个 ω
+- 若 ω 明显低于 α（罕见），先查反向题是否标对、题目是否非单维（配合 `--efa` 看因子结构）
+
 ### 分半信度（Split-half reliability）
 把量表题目分成两半，看两半得分的一致性，再用 **Spearman-Brown 公式校正**（因为分半后每半题数减半、信度被低估）：
 - **Spearman-Brown 系数**（等长两半）= 2r/(1+r)，r 为两半总分相关；判断标准同 α（≥.70 可接受、≥.80 良好）
 - **Guttman λ4**：不依赖"两半等长/等价"假设的分半下界，2(1−(两半方差和)/总分方差)，与 SB 相互印证
 - **分半方式**：SPSS 默认按题序**前后半**；题数为奇数时两半不等长，脚本另报**奇偶分半**（第1,3,5…题 vs 第2,4,6…题，两半等长，对顺序效应更稳健）
-- **脚本自动输出：** 每个量表在 α 之后自动打印两半 α、两半相关 r、Spearman-Brown、Guttman λ4，并导出"数据名_信度分析.csv"（量表/题数/α/最低CITC/两半α/Spearman-Brown/Guttman λ4/评价）；公式与 numpy 独立实现逐位一致
+- **脚本自动输出：** 每个量表在 α 之后自动打印 McDonald's ω、两半 α、两半相关 r、Spearman-Brown、Guttman λ4，并导出"数据名_信度分析.csv"（量表/题数/α/McDonald's ω/最低CITC/两半α/Spearman-Brown/Guttman λ4/评价）；公式与 numpy 独立实现逐位一致
 - **SPSS/JASP 复核：** SPSS 可靠性分析→模型选"折半"（报两部分 α、Spearman-Brown、Guttman）；JASP：Reliability→Consistency，Item split 选 Half
 - α 与分半都高才说明内部一致性稳健；若 α 高但分半低，常提示题目不是单维（先看因子结构）
 
 ### 论文表述
-"本研究中，XX量表的Cronbach's α系数为.XX，各题CITC在.XX–.XX之间（均>.40），删题后α均未升高；分半信度Spearman-Brown系数为.XX（Guttman λ4=.XX），表明该量表具有良好的内部一致性信度。"
+"本研究中，XX量表的Cronbach's α系数为.XX（McDonald's ω=.XX），各题CITC在.XX–.XX之间（均>.40），删题后α均未升高；分半信度Spearman-Brown系数为.XX（Guttman λ4=.XX），表明该量表具有良好的内部一致性信度。"（评审未要求 ω 时可只报 α 与分半；要求现代指标时把 ω 一并写上）
 
 ### 预试项目分析（决断值 CR / CITC / 删题后α）
 
@@ -105,7 +113,7 @@ python tools/item_analysis.py 预试数据.csv --scales scales.txt --only 孤独
 
 - **组合信度 CR**（Composite Reliability）：CR = (Σλ)² / [(Σλ)² + Σ(1−λ²)]，λ 为该因子各题的标准化载荷。CR≥.70 良好，.60–.70 在探索性研究可接受（Bagozzi & Yi, 1988；Hair 等），<.60 偏低。CR 不像 Cronbach's α 那样假设等载荷，是同源（congeneric）测量模型下更合适的内部一致性指标。**对单因子测量模型，按上式由标准化载荷算出的 CR 与 McDonald's ω（omega）在数学上等价**；多维量表按因子分别算 CR，即各因子的 ω（题项误差不相关、每题只载荷一个因子的标准测量模型下）。审稿人若要求报 ω，可直接用本工具按因子的 CR 报告并注明这一等价关系。
 - **平均方差抽取 AVE**：AVE = Σλ² / n，即各题标准化载荷平方（题项信度/共同度）的均值，表示潜变量解释其指标方差的比例。AVE≥.50 为严格达标（潜变量解释过半测量方差）；.36–.50 属临界，若 CR 良好（≥.70，也有文献用 .60），Fornell & Larcker（1981）认为聚合效度仍可接受，但需在文中说明；<.36 不达标。
-- **区分效度（Fornell & Larcker, 1981）**：每个因子的 **√AVE 应大于它与其它任何因子的相关系数 |r|**。做一个对角为 √AVE、非对角为因子间相关的矩阵即可一眼对照；若某格 |r| ≥ √AVE，说明两个因子区分不足，需检查是否过度重叠（合并因子/删交叉载荷题/重构模型）。更现代的补充指标是 **HTMT**（Henseler 等, 2015，通常 HTMT<.85 保守、<.90 可接受），它需要题项级相关，建议在 CFA 软件里一并报告。
+- **区分效度（Fornell & Larcker, 1981）**：每个因子的 **√AVE 应大于它与其它任何因子的相关系数 |r|**。做一个对角为 √AVE、非对角为因子间相关的矩阵即可一眼对照；若某格 |r| ≥ √AVE，说明两个因子区分不足，需检查是否过度重叠（合并因子/删交叉载荷题/重构模型）。更现代、也更灵敏的指标是 **HTMT（异质-单质比率，Henseler, Ringle & Sarstedt, 2015）**：构念明显不同用保守门槛 **HTMT<.85**，构念相近（如同一大构念下的两个维度）可放宽到 **<.90**；更严格的推断标准是 **Bootstrap 95%CI 上限 < 1**（否则不能拒绝"两构念其实相同"）。Fornell-Larcker 对区分问题不敏感，方法学建议二者至少报告 HTMT；本项目脚本的 `--htmt` 模式可直接由原始问卷数据逐对计算（见下）。
 - 报告时给出每个因子的标准化载荷、CR、AVE、√AVE，以及 Fornell-Larcker 矩阵（或 HTMT 矩阵）；载荷低（|λ|<.50，题项信度 <.25）的题要结合修正指数与题项分析决定删留。
 
 **用本项目脚本一键算（菜单第 13 项 `tools/validity_cr_ave.py`，纯标准库）**：把 CFA 标准化载荷喂给它即得 CR、AVE、√AVE 与 Fornell-Larcker 判定：
@@ -117,6 +125,20 @@ python tools/validity_cr_ave.py --factor "学习投入=0.72,0.68,0.74,0.70" \
 # 题项多用 CSV：载荷表（列：因子,题项,载荷）+ 因子相关方阵；--csv-out 另存结果
 python tools/validity_cr_ave.py --loadings-csv 载荷.csv --corr-csv 因子相关.csv --csv-out 结果目录
 ```
+
+**没有 CFA 载荷、想直接由问卷数据算 HTMT（菜单第 13 项选 2，纯标准库）**：给清洗后的数据与同一份 `scales.txt`（反向题务必标 `(R)`），脚本自动完成反向计分、逐对构念的题项相关比值与 Bootstrap 百分位 95%CI，并导出"数据名_HTMT区分效度.csv"：
+
+```bash
+# 默认 2000 次 Bootstrap（固定种子可复现）；--boot 0 只算点估计
+python tools/validity_cr_ave.py --htmt 数据_cleaned.csv --scales scales.txt
+# 只核对某几个构念
+python tools/validity_cr_ave.py --htmt 数据_cleaned.csv --scales scales.txt --only-scales "学习投入,学业倦怠"
+```
+
+- 算法口径：HTMT = 两构念跨构念题项 |r| 的均值 / √(各自构念内题项 |r| 均值的乘积)；块内平均相关≤0 时直接提示反向题可能没标对
+- 判读输出同时给点估计门槛（.85/.90）与 CI 上限是否 <1；点估计与 CI 任一不过都算区分不足，需结合理论合并构念/删交叉题/重构模型
+- 脚本对 Likert 题用 Pearson 相关（快速预览/教学口径）；有序类别数据的正式 HTMT（polychoric 相关、HTMT2）请在 R `lavaan`+`semTools` 或 SmartPLS 复核
+- 红线同前：**不得为让 HTMT 达标而删题凑数**；不达标如实报告并做模型处理
 
 红线：载荷必须来自你自己的真实 CFA/测量模型输出，**不得为了让 AVE≥.5、√AVE>r 而手改载荷**；不达标就如实报告并按方法学处理（删题/合并因子/补报 HTMT 说明），脚本只做由真实输出出发的换算与对照。
 

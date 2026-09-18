@@ -364,3 +364,22 @@
 - **量表库**：`psychology/scale-library.md` 24→29 小节、9→10 大类，新增 PANAS、IRI-C、GQ-6、GHQ-12、PSQI（新开睡眠与心身健康类），全部小节确定性重编号，硬事实逐条联网核查。
 - **共同方法偏差**：stats-guide 第四节与 data-analysis-auto 第 5 步补程序控制（Podsakoff 等 2003）与 ULMC、标记变量法（Lindell & Whitney 2001），标明 Harman 仅最宽松事后检验与工具边界。
 - **测试与发布**：菜单 12→15 项，工具脚本 13→16 个（含 stats 共 26 实现模块）；`full_e2e.py` 343→**377 项全过**，consistency_check 退出 0（88 CLI 开关/24 csv 后缀无漂移），doubao-skill validate 通过；版本 v1.60（Skill 保持 v1.3）；全门禁绿＋项目外干净副本复验后打 tag。
+
+## 十二、v1.62 优化：现代信效度指标补齐（McDonald's ω ＋ HTMT）
+
+> 启动日期 2026-09-18（晚间自主推进，隔离 worktree 分支 `feat/advance-closed-loop`，基于 v1.61）。起因：JASP 默认同时报告 α 与 McDonald's ω、评审对现代信度指标的要求增多；Fornell-Larcker 被 Henseler 等（2015）证明对区分效度问题不敏感，HTMT 成为当代标准，而 v1.60 工具只能建议学生"去 CFA 软件补报 HTMT"，没装 AMOS/JASP 的学生被卡住。本版在纯标准库内补齐两个指标，正式口径仍引导 CFA 软件复核（不越界、不冒充）。
+
+### 12.1 设计原则（本轮总纲）
+
+1. **填真实缺口，不替代专业软件**：ω 用单因子主因子法（PAF）给快速预览，HTMT 用 Pearson 题项相关给教学/预览口径；两者都明确标注 JASP/lavaan/SmartPLS 的正式复核路径与方法差异（CFA-ω、polychoric HTMT/HTMT2）。
+2. **公式先黄金验证**：PAF-ω 用已知载荷大样本模拟（还原误差<.001）、τ 等价数据 ω≈α 验证；HTMT 用正交/同因子/中等相关三套模拟验证判定方向；夹具锁定数值后 stdlib 实现与 numpy 逐位对齐。
+3. **扩展既有工具而非新增脚本**：ω 进 auto_stats 信度节与 `_信度分析.csv`（学生跑主流程自动得到），HTMT 进 validity_cr_ave 的 `--htmt` 模式与菜单13二选一引导；工具脚本数保持 16、菜单保持 15，降低维护面。
+4. **反作弊红线不放松**：HTMT 不达标要求如实报告并做模型处理，明确禁止删题凑数；ω/HTMT 都只接受真实数据，不提供任何"调整到达标"的入口。
+
+### 12.2 改动清单
+
+- **ω（P0）**：`tools/stats/reliability.py` 新增 `_complete_z_matrix()`、`_paf_one_factor()`（SMC 初值、迭代共同度、Heywood 截断）、`mcdonald_omega()`；auto_stats 信度节逐量表打印 ω 与等级、异常低提示，`_信度分析.csv` 新增 `McDonald_ω` 列；样本/题数不足中文"未算"。
+- **HTMT（P0）**：`validity_cr_ave.py` 新增 `--htmt/--scales/--boot/--seed/--only-scales` 模式（自动反向计分、完整样本、|r| 均值口径、固定种子百分位 Bootstrap、.85/.90 双门槛＋CI 上限<1、块内相关非正守卫），导出 `_HTMT区分效度.csv`；菜单13改模式1/2引导，主屏提示同步。
+- **夹具与测试（P0）**：新增 `tests/test-data/demo_htmt.csv`、`htmt_scales.txt`（正交 4+4 题 n=220）；`full_e2e.py` 390→**404 项全过**（ω 4 项、HTMT 10 项、菜单 1 项；含反向题等价、同因子阴性、三类坏参数守卫）。
+- **文档（P1）**：stats-guide 新增 ω 小节与 HTMT 用法块；data-analysis-auto 流程图/第3步/第4步/质量闸；START、README（版本摘要轮换、断言计数）、QUICKSTART、e2e-test（测试61＋清单17/17b）同步；consistency_check 与 skill validate 退出 0。
+- **范围控制**：本轮不做分层 ω（hierarchical ω/Schmid-Leiman）、HTMT2 与 polychoric 相关（列入后续候选）；doubao-skill 本轮无改动（手机不跑脚本，口径已在 stats-guide 单一信源）。

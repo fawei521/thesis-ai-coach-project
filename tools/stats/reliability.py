@@ -8,11 +8,100 @@ Spearman-Brown 与 Guttman λ4）、量表总分计算与数据集导出。
 """
 
 import csv
+import math
 
 from .dataio import recoded_item_series
+from .linalg import _eigen_sym, invert_matrix
 from .mathx import pearson_r, variance
 
 # ============ 信度分析 ============
+
+# ============ McDonald's ω（现代信度指标）============
+
+def _complete_z_matrix(items_data):
+    """对题列做完整个案(listwise)筛选并 z 标准化，返回 (Z[题][人], n)。
+    样本不足、零方差或题目过少时返回 (None, n)。"""
+    k = len(items_data)
+    if k < 2:
+        return None, 0
+    rows = [i for i in range(len(items_data[0]))
+            if all(c[i] is not None for c in items_data)]
+    n = len(rows)
+    if n < 3:
+        return None, n
+    Z = []
+    for col in items_data:
+        vals = [col[i] for i in rows]
+        m = sum(vals) / n
+        sd = math.sqrt(sum((v - m) ** 2 for v in vals) / (n - 1)) if n > 1 else 0.0
+        if sd == 0:
+            return None, n
+        Z.append([(v - m) / sd for v in vals])
+    return Z, n
+
+
+def _paf_one_factor(R, max_iter=200, tol=1e-9):
+    """单因子主因子法(Principal Axis Factoring)载荷估计。
+
+    共同度初值取 SMC=1−1/diag(R⁻¹)（矩阵奇异时退化为题项最大绝对相关的平方），
+    迭代把 R 对角元替换为共同度后做谱分解、取最大特征对，直至共同度收敛。
+    返回与题同序的单因子载荷（符号统一为载荷和为正）；无法估计返回 None。
+    """
+    k = len(R)
+    inv = invert_matrix(R)
+    if inv is not None:
+        h2 = [min(0.98, max(0.02, 1.0 - 1.0 / inv[i][i])) for i in range(k)]
+    else:
+        h2 = [max((abs(R[i][j]) for j in range(k) if j != i), default=0.5) ** 2
+              for i in range(k)]
+    load = None
+    for _ in range(max_iter):
+        Ru = [row[:] for row in R]
+        for i in range(k):
+            Ru[i][i] = h2[i]
+        eig, vec = _eigen_sym(Ru)
+        lam = eig[0]
+        v = [vec[i][0] for i in range(k)]
+        if sum(v) < 0:
+            v = [-x for x in v]
+        load = [v[i] * math.sqrt(max(lam, 0.0)) for i in range(k)]
+        nh = [min(0.995, max(0.005, x * x)) for x in load]
+        if max(abs(nh[i] - h2[i]) for i in range(k)) < tol:
+            h2 = nh
+            break
+        h2 = nh
+    return load
+
+
+def mcdonald_omega(items_data):
+    """McDonald's ω total（单因子 congeneric 测量模型的组合信度）。
+
+    载荷由主因子法(PAF)在题项相关阵上估计（题项须已反向计分），
+    标准化下误差方差 θ=1−λ²：
+        ω = (Σλ)² / [ (Σλ)² + Σ(1−λ²) ]
+    单因子模型下 ω 与 CR 数学等价；α 是其在本质 τ 等价假设下的特例，
+    通常 ω≥α。返回 None 表示题数(<3)/样本(<10)/零方差/矩阵奇异无法估计。
+    """
+    if len(items_data) < 3:
+        return None
+    Z, n = _complete_z_matrix(items_data)
+    if Z is None or n < 10:
+        return None
+    k = len(Z)
+    R = [[0.0] * k for _ in range(k)]
+    for a in range(k):
+        for b in range(a, k):
+            r = sum(Z[a][i] * Z[b][i] for i in range(n)) / (n - 1)
+            R[a][b] = r
+            R[b][a] = r
+    load = _paf_one_factor(R)
+    if load is None:
+        return None
+    sum_l = sum(load)
+    sum_err = sum(1.0 - x * x for x in load)
+    den = sum_l * sum_l + sum_err
+    return sum_l * sum_l / den if den > 0 else None
+
 
 def cronbach_alpha(items_data):
     """
@@ -141,6 +230,7 @@ def reliability_analysis(matrix, scales_config, item_output=None, rel_output=Non
         # 关键：反向计分后的题目数据
         items_data = recoded_item_series(matrix, conf)
         alpha = cronbach_alpha(items_data)
+        omega = mcdonald_omega(items_data)
 
         kk = len(available)
         ncol = len(items_data[0]) if items_data else 0
@@ -149,6 +239,14 @@ def reliability_analysis(matrix, scales_config, item_output=None, rel_output=Non
         if alpha is not None:
             rating = "优秀" if alpha >= 0.9 else "良好" if alpha >= 0.8 else "可接受" if alpha >= 0.7 else "偏低，需检查"
             print(f"\n{scale_name}（{kk}题{rev_tip}）：α = {alpha:.3f}  [{rating}]")
+            if omega is not None:
+                orate = "优秀" if omega >= .9 else "良好" if omega >= .8 else "可接受" if omega >= .7 else "偏低，需检查"
+                print(f"    McDonald's ω = {omega:.3f}  [{orate}]（单因子主因子法估计；α 的现代替代，"
+                      "与α接近说明单维性好；正式口径以 JASP/lavaan 的 CFA ω 复核）")
+                if omega < alpha - .02:
+                    print("    ⚠ ω 明显低于 α 不常见，请检查反向题是否标对、题目是否非单维（可做 --efa）。")
+            else:
+                print("    McDonald's ω：完整样本不足或相关阵奇异，本次未算（至少需10份完整作答）。")
             print("    题项分析（CITC校正项总相关建议≥.40；删题后α不应高于总α）：")
             min_citc = None
             for idx, it in enumerate(available):
@@ -197,6 +295,7 @@ def reliability_analysis(matrix, scales_config, item_output=None, rel_output=Non
                     print("      ⚠ Spearman-Brown 分半信度<.70，建议结合α与题项分析检查题目同质性")
             results.append({"量表": scale_name, "题数": kk,
                             "Cronbach_alpha": round(alpha, 3),
+                            "McDonald_ω": round(omega, 3) if omega is not None else "",
                             "最低CITC": round(min_citc, 3) if min_citc is not None else "",
                             "分半SpearmanBrown": sb_val, "分半Guttmanλ4": gutt_val,
                             "两半alpha": half_a,
@@ -210,9 +309,7 @@ def reliability_analysis(matrix, scales_config, item_output=None, rel_output=Non
         print(f"\n题项分析表（CITC/删题α）已导出：{item_output}")
     if rel_output and results:
         with open(rel_output, "w", newline="", encoding="utf-8-sig") as f:
-            w = csv.DictWriter(f, fieldnames=["量表", "题数", "Cronbach_alpha",
-                                              "最低CITC", "两半alpha",
-                                              "分半SpearmanBrown", "分半Guttmanλ4", "评价"])
+            w = csv.DictWriter(f, fieldnames=["量表", "题数", "Cronbach_alpha", "McDonald_ω", "最低CITC", "两半alpha", "分半SpearmanBrown", "分半Guttmanλ4", "评价"])
             w.writeheader()
             w.writerows(results)
         print(f"量表信度汇总（α/分半Spearman-Brown/Guttman λ4）已导出：{rel_output}")

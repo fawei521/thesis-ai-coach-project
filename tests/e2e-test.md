@@ -896,6 +896,25 @@ python tests/test_special_columns.py`
 
 ---
 
+## 测试61：McDonald's ω 信度与 HTMT 区分效度（v1.62，菜单第3/13项）
+
+**目的**：α 依赖本质 τ 等价假设、载荷不均时低估信度；Fornell-Larcker 对区分问题不敏感（Henseler 等 2015 的模拟显示其检出率低）。本轮把两个现代测量学指标补齐：auto_stats 信度节自动报 McDonald's ω total；validity_cr_ave.py 新增 `--htmt` 模式，由原始问卷数据直接算 HTMT 与 Bootstrap 95%CI，无需先跑 CFA。
+
+**方法口径**：
+- ω：题项相关阵上单因子主因子法（PAF，SMC 初值 1−1/diag(R⁻¹)、迭代共同度）估载荷 λ，θ=1−λ²，ω=(Σλ)²/[(Σλ)²+Σθ]；单因子模型下与 CR 等价，通常 ω≥α；门槛同 α（.70/.80/.90）。
+- HTMT：跨构念题项 |r| 均值 / √(两构念各自块内题项 |r| 均值的乘积)；构念不同 <.85、构念相近 <.90；Bootstrap 百分位 95%CI 上限<1 为推断标准；块内平均相关≤0 提示反向题未标对。
+
+**黄金对照**（numpy 独立实现，脚本不入库）：①已知载荷（.60–.78）n=20000 模拟，PAF-ω 还原理论 ω 误差<.001；②τ 等价数据 ω≈α（差<1e-4）；③正交双因子 n=4000 HTMT=.024、CI 上限 .059<1，单因子拆分 HTMT=.998、CI 上限 1.014≥1，因子相关 r=.6 时 HTMT≈.60（方向全部正确）；④夹具 `demo_htmt.csv`+`htmt_scales.txt`（正交 4+4 题，n=220，5 点 Likert）锁定 ωA=.744、ωB=.716、HTMT=.088。
+
+**步骤与预期**：
+1. `auto_stats.py tests/test-data/demo_htmt.csv --scales tests/test-data/htmt_scales.txt`：α 之后打印 ω（构念A .744、构念B .716），`demo_htmt_信度分析.csv` 新增 `McDonald_ω` 列；demo_survey 四量表 ω=.930/.926/.939/.934（与 α 差<.005）。
+2. `validity_cr_ave.py --htmt demo_htmt.csv --scales htmt_scales.txt --boot 300`：HTMT=.088、95%CI 上限<.5，判"区分效度成立"，导出 `demo_htmt_HTMT区分效度.csv`（构念A/构念B/完整N/HTMT/CI下限/CI上限/点估计判定/CI判定）。
+3. 反向计分不变性：B 构念题项整体 6−x 反转并在 scales 标 (R)，HTMT 点估计仍为 .088；同因子拆分阴性夹具（固定种子7）HTMT≥.90 且 CI 上限≥1，判"不足/不通过"。
+4. 健壮性：缺 `--scales`、仅 1 个量表、`--boot -1`、数据文件不存在均中文提示退出 1 且无 Traceback；`--boot 0` 只出点估计且总结语不冒称 CI 通过；菜单第13项先选 1（CR/AVE 原流程）/2（HTMT）。
+5. 文档：stats-guide 第二节 ω 小节、第三节 HTMT 用法块，data-analysis-auto 第3/4步与质量闸，START/README/QUICKSTART/菜单提示同步；consistency_check 退出 0。
+
+---
+
 # 脚本回归测试清单（每次改动后执行）
 
 在项目根目录（PowerShell）逐条运行，全部通过才算合格：
@@ -942,7 +961,11 @@ python tools\validity_cr_ave.py --factor "学习投入=0.72,0.68,0.74,0.70" --fa
 python tools\item_analysis.py tests\test-data\demo_survey.csv --scales tests\test-data\demo_scales.txt --only 孤独感
 # 16 自编量表内容效度 CVI（专家评分→I-CVI/κ*/S-CVI；默认在数据旁导出 _内容效度CVI.csv，验毕删）
 python tools\content_cvi.py tests\test-data\demo_cvi.csv
+# 17 McDonald's ω（随 auto_stats 信度节产出，见 _信度分析.csv 的 McDonald_ω 列）
+python tools\auto_stats.py tests\test-data\demo_htmt.csv --scales tests\test-data\htmt_scales.txt
+# 17b HTMT 区分效度（原始数据直算，含 Bootstrap 95%CI；默认导出 _HTMT区分效度.csv，验毕删）
+python tools\validity_cr_ave.py --htmt tests\test-data\demo_htmt.csv --scales tests\test-data\htmt_scales.txt --boot 300
 ```
 
-测试结束后删除 `_t_*` 临时文件、`tests/test-data/_demo_check` 目录，以及在 test-data 旁生成的 `demo_survey_项目分析.csv`、`demo_cvi_内容效度CVI.csv`。（test_special_columns.py 会自清其 `_special*` 临时文件）所有脚本只用Python标准库（模型图需matplotlib），
+测试结束后删除 `_t_*` 临时文件、`tests/test-data/_demo_check` 目录，以及在 test-data 旁生成的 `demo_survey_项目分析.csv`、`demo_cvi_内容效度CVI.csv`、`demo_htmt_*.csv/png`（夹具 `demo_htmt.csv`、`htmt_scales.txt` 保留）。（test_special_columns.py 会自清其 `_special*` 临时文件）所有脚本只用Python标准库（模型图需matplotlib），
 统计数字以SPSS/JASP为准，脚本用于快速预览和教学。

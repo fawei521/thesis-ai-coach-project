@@ -21,7 +21,8 @@
     AVE ≥ .50 严格达标；.36–.50 临界（若 CR 良好，Fornell & Larcker 1981 认为收敛效度尚可，需在文中说明）；<.36 不足。
     区分效度：√AVE > 该因子与其它因子的 |r| 即成立；否则提示两因子区分不足。
     更现代的区分效度指标是 HTMT（Henseler 等, 2015，通常 <.85 保守 / <.90），
-    它需要题项级相关，本工具不计算；建议在 CFA 软件里同时报告 HTMT 作为补充。
+    更现代的区分效度指标是 HTMT（Henseler 等, 2015，通常 <.85 保守 / <.90）：用本工具的
+    --htmt 模式可直接由原始问卷数据（配合 scales.txt）逐对计算并给 Bootstrap 95%CI（上限<1）。
 
 特点：纯 Python 标准库；确定性计算；只做由"真实 CFA 输出"出发的换算，不碰原始问卷数据。
 
@@ -47,6 +48,11 @@ import io
 import math
 import os
 import sys
+import random
+
+# 让本脚本在项目根目录被调用时也能导入 stats 子包（与 item_analysis.py 同款处理）
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+from stats.dataio import parse_scales, read_data, recoded_item_series, to_float_matrix  # noqa: E402
 
 # --- 输出编码守卫：管道/重定向时强制 UTF-8（与 auto_stats.py / effect_size.py 同款）---
 if hasattr(sys.stdout, "reconfigure") and not sys.stdout.isatty():
@@ -327,6 +333,210 @@ def write_csv(path, names, stats, corr, sqrt_map, issues):
     print(f"\n已另存：{path}")
 
 
+# --------------------------- HTMT（由原始题项数据算区分效度）---------------------------
+HTMT_CSV_SUFFIX = "_HTMT区分效度.csv"
+
+
+def _htmt_full_item_matrix(matrix, scales):
+    """汇集所有量表题目（反向计分后），取全部题项完整作答的样本。
+    返回 (量表名顺序, {量表: [题项名]}, 行数据[行][题序], 题项顺序)；样本不足返回 None。"""
+    names = list(scales.keys())
+    items_by_scale, all_items = {}, []
+    for name in names:
+        conf = scales[name]
+        avail = [it for it in conf["items"] if it in matrix]
+        if len(avail) < 2:
+            print(f"⚠ {name}：可用题目不足 2 题，不参与 HTMT 计算。")
+            continue
+        items_by_scale[name] = avail
+        all_items.extend(avail)
+    if len(items_by_scale) < 2:
+        return None
+    n_rows = len(matrix[all_items[0]])
+    complete = [i for i in range(n_rows)
+                if all((matrix[it][i] is not None) for it in all_items)]
+    if len(complete) < 10:
+        return None
+    # 反向计分后的原始取值（保留 Likert 量纲，相关分析对线性变换不敏感）
+    recoded = {}
+    for name in items_by_scale:
+        series = recoded_item_series(matrix, scales[name])
+        for j, it in enumerate([x for x in scales[name]["items"] if x in matrix]):
+            recoded[it] = series[j]
+    rows = [[recoded[it][i] for it in all_items] for i in complete]
+    return list(items_by_scale.keys()), items_by_scale, rows, all_items, len(complete)
+
+
+def _corr_matrix_from_rows(rows, items_index):
+    """对 行×题 的原始数据做 z 标准化并求 Pearson 相关阵（题序同 items_index）。"""
+    n = len(rows)
+    p = len(items_index)
+    cols = [[rows[i][j] for i in range(n)] for j in range(p)]
+    Z = []
+    for col in cols:
+        m = sum(col) / n
+        sd = math.sqrt(sum((v - m) ** 2 for v in col) / (n - 1)) if n > 1 else 0.0
+        Z.append([(v - m) / sd if sd > 0 else 0.0 for v in col])
+    R = [[0.0] * p for _ in range(p)]
+    for a in range(p):
+        R[a][a] = 1.0
+        for b in range(a + 1, p):
+            r = sum(Z[a][i] * Z[b][i] for i in range(n)) / (n - 1) if n > 1 else 0.0
+            R[a][b] = r
+            R[b][a] = r
+    return R
+
+
+def _htmt_from_corr(R, index_map, items_a, items_b):
+    """由题项相关阵算一对构念的 HTMT（Henseler 等 2015，块内/跨块均取 |r| 的均值）。
+    返回 (htmt, 跨块均值, 块内A均值, 块内B均值, 块内A有符号均值, 块内B有符号均值)。"""
+    ia = [index_map[it] for it in items_a]
+    ib = [index_map[it] for it in items_b]
+
+    def within(idx):
+        vals_abs, vals_signed = [], []
+        for u in range(len(idx)):
+            for v in range(u + 1, len(idx)):
+                rr = R[idx[u]][idx[v]]
+                vals_abs.append(abs(rr))
+                vals_signed.append(rr)
+        return (sum(vals_abs) / len(vals_abs) if vals_abs else 0.0,
+                sum(vals_signed) / len(vals_signed) if vals_signed else 0.0)
+
+    cross = []
+    for u in ia:
+        for v in ib:
+            cross.append(abs(R[u][v]))
+    cross_mean = sum(cross) / len(cross)
+    wa_abs, wa_sign = within(ia)
+    wb_abs, wb_sign = within(ib)
+    denom = math.sqrt(wa_abs * wb_abs)
+    htmt = cross_mean / denom if denom > 0 else None
+    return htmt, cross_mean, wa_abs, wb_abs, wa_sign, wb_sign
+
+
+def _htmt_verdict(htmt, ci_hi):
+    """点估计按 .85/.90 双门槛判读，Bootstrap 95%CI 上限须 <1。"""
+    if htmt is None:
+        return "无法计算（块内相关非正，检查反向题）", "—"
+    if htmt < .85:
+        point = "成立（<.85 保守标准）"
+    elif htmt < .90:
+        point = "临界（.85–.90，构念相近时可接受）"
+    else:
+        point = "不足（≥.90，两构念可能重叠）"
+    if ci_hi is None:
+        ci_verdict = "未做Bootstrap"
+    elif ci_hi < 1.0:
+        ci_verdict = f"CI上限{ci_hi:.3f}<1，通过"
+    else:
+        ci_verdict = f"CI上限{ci_hi:.3f}≥1，不通过（不能拒绝两构念相同）"
+    return point, ci_verdict
+
+
+def htmt_report(matrix, scales, data_stem, boot=2000, seed=20260918, csv_out=None,
+                only_scales=None):
+    """由原始问卷数据计算全部量表对的 HTMT 及 Bootstrap 95%CI 并导出。"""
+    if only_scales:
+        wanted = {s.strip() for s in only_scales.replace("，", ",").split(",") if s.strip()}
+        missing = wanted - set(scales)
+        if missing:
+            raise ValueError(f"--only-scales 中的量表不在配置中：{ '、'.join(sorted(missing)) }")
+        scales = {k: v for k, v in scales.items() if k in wanted}
+    packed = _htmt_full_item_matrix(matrix, scales)
+    if packed is None:
+        raise ValueError("可计算 HTMT 的量表不足 2 个，或全部题项完整作答的样本不足 10 份；"
+                         "请检查 scales.txt 题项名与数据列名是否一致、先做数据清洗。")
+    names, items_by_scale, rows, all_items, n = packed
+    if len(names) < 2:
+        raise ValueError("至少需要 2 个各含 2 题以上的量表才能计算 HTMT。")
+    index_map = {it: j for j, it in enumerate(all_items)}
+
+    print("=" * 66)
+    print(f"HTMT 区分效度（Henseler, Ringle & Sarstedt, 2015）｜完整样本 N={n}")
+    print("=" * 66)
+    R0 = _corr_matrix_from_rows(rows, all_items)
+
+    pairs = [(names[i], names[j]) for i in range(len(names)) for j in range(i + 1, len(names))]
+    point = {}
+    for a, b in pairs:
+        htmt, cm, wa, wb, wa_s, wb_s = _htmt_from_corr(
+            R0, index_map, items_by_scale[a], items_by_scale[b])
+        point[(a, b)] = htmt
+        if wa_s <= 0 or wb_s <= 0:
+            print(f"⚠ {a} ↔ {b}：某构念块内题项平均相关≤0（A={wa_s:.3f}, B={wb_s:.3f}），"
+                  "HTMT 不可解释，最常见原因是反向题未在 scales.txt 标 (R)。")
+
+    # Bootstrap 百分位 CI（对行有放回重抽样，固定种子可复现）
+    ci = {}
+    if boot and boot > 0:
+        print(f"Bootstrap 重抽样 {boot} 次（固定种子 {seed}，计算 95% 百分位区间）…")
+        rng = random.Random(seed)
+        boots = {pair: [] for pair in pairs}
+        for _ in range(boot):
+            idx = [rng.randrange(n) for _ in range(n)]
+            resample = [rows[i] for i in idx]
+            Rb = _corr_matrix_from_rows(resample, all_items)
+            for pair in pairs:
+                a, b = pair
+                h, *_ = _htmt_from_corr(Rb, index_map, items_by_scale[a], items_by_scale[b])
+                if h is not None:
+                    boots[pair].append(h)
+        for pair, vals in boots.items():
+            if len(vals) >= 20:
+                vals.sort()
+                ci[pair] = (vals[int(0.025 * len(vals))], vals[min(len(vals) - 1,
+                                                                     int(0.975 * len(vals)))])
+            else:
+                ci[pair] = (None, None)
+
+    print("-" * 66)
+    print(f"{'构念A':<11}{'构念B':<11}{'HTMT':>8}  {'95%CI':>15}  判定")
+    print("-" * 66)
+    out_rows = []
+    n_fail = 0
+    for a, b in pairs:
+        h = point[(a, b)]
+        lo, hi = ci.get((a, b), (None, None))
+        pv, cv = _htmt_verdict(h, hi)
+        if h is not None and (h >= .90 or (hi is not None and hi >= 1.0)):
+            n_fail += 1
+        ci_txt = "—" if lo is None else f"[{lo:.3f}, {hi:.3f}]"
+        h_txt = "无法计算" if h is None else f"{h:.3f}"
+        print(f"{a:<11}{b:<11}{h_txt:>8}  {ci_txt:>15}  {pv}；{cv}")
+        out_rows.append({"构念A": a, "构念B": b, "完整N": n, "HTMT": f"{h:.4f}" if h is not None else "",
+                         "CI下限": f"{lo:.4f}" if lo is not None else "",
+                         "CI上限": f"{hi:.4f}" if hi is not None else "",
+                         "点估计判定": pv, "CI判定": cv})
+    print("-" * 66)
+    if n_fail == 0:
+        if boot and boot > 0:
+            print("✔ 各构念对 HTMT 均低于 .90 且 Bootstrap 95%CI 上限<1，区分效度成立。")
+        else:
+            print("✔ 各构念对 HTMT 点估计均低于 .90（未做 Bootstrap，建议补算 CI，以上限<1 作推断标准）。")
+    else:
+        print("✗ 存在区分效度不足的构念对（HTMT≥.90 或 CI 上限≥1），")
+        print("  应结合理论考虑合并构念、删改交叉题项或重构模型，并在 CFA 软件复核，不得只挑好看的报告。")
+    print("判读：构念明显不同用保守门槛 .85；构念相近可用 .90；更严格的推断标准是 CI 上限<1。")
+    print("说明：本工具对 Likert 题项用 Pearson 相关（预览/教学口径）；有序类别数据的正式")
+    print("      HTMT（polychoric/HTMT2）请在 R lavaan/semTools 或 SmartPLS 中复核。")
+
+    if csv_out is None:
+        csv_out = data_stem + HTMT_CSV_SUFFIX
+    if not csv_out.lower().endswith(".csv"):
+        os.makedirs(csv_out, exist_ok=True)
+        csv_out = os.path.join(csv_out, os.path.basename(data_stem) + HTMT_CSV_SUFFIX)
+    d = os.path.dirname(os.path.abspath(csv_out))
+    os.makedirs(d, exist_ok=True)
+    with open(csv_out, "w", encoding="utf-8-sig", newline="") as f:
+        w = csv.DictWriter(f, fieldnames=["构念A", "构念B", "完整N", "HTMT",
+                                          "CI下限", "CI上限", "点估计判定", "CI判定"])
+        w.writeheader()
+        w.writerows(out_rows)
+    print(f"\n已另存：{csv_out}")
+    print("红线：HTMT 只量化区分效度，不达标须如实报告并做模型处理，不得删题凑数。")
+
+
 # --------------------------- CLI ---------------------------
 def build_parser():
     p = argparse.ArgumentParser(
@@ -344,7 +554,39 @@ def build_parser():
 
 def main():
     parser = build_parser()
+    # HTMT 原始数据模式参数（由原始问卷数据直接算区分效度）
+    parser.add_argument("--htmt", metavar="数据CSV", default=None,
+                        help="HTMT 模式：原始问卷数据 CSV（配合 --scales）")
+    parser.add_argument("--scales", default=None,
+                        help="HTMT 模式必填：量表配置 scales.txt（反向题用 (R) 标记）")
+    parser.add_argument("--boot", type=int, default=2000,
+                        help="HTMT 的 Bootstrap 次数（默认 2000，0=不算 CI）")
+    parser.add_argument("--seed", type=int, default=20260918,
+                        help="HTMT Bootstrap 随机种子（默认固定，可复现）")
+    parser.add_argument("--only-scales", dest="only_scales", default=None,
+                        help="HTMT 模式只分析指定量表（逗号分隔，默认全部量表两两配对）")
     a = parser.parse_args()
+
+    # ---- HTMT 原始数据模式：与 CR/AVE（载荷模式）互斥，单独走一条报告流程 ----
+    if a.htmt:
+        if not a.scales:
+            raise ValueError("HTMT 模式需要 --scales scales.txt（反向题用 (R) 标记）。")
+        scales_path = a.scales
+        if not os.path.exists(scales_path):
+            raise ValueError(f"找不到量表配置文件：{scales_path}")
+        if not os.path.exists(a.htmt):
+            raise ValueError(f"找不到数据文件：{a.htmt}")
+        if a.boot < 0:
+            raise ValueError("--boot 次数不能为负（0 表示不计算置信区间）。")
+        scales = parse_scales(scales_path)
+        if not scales:
+            raise ValueError(f"未能从 {scales_path} 读到任何量表，请检查格式。")
+        headers, data = read_data(a.htmt)
+        matrix = to_float_matrix(headers, data)
+        data_stem = os.path.splitext(a.htmt)[0]
+        htmt_report(matrix, scales, data_stem, boot=a.boot, seed=a.seed,
+                    csv_out=a.csv_out, only_scales=a.only_scales)
+        return
 
     factors = {}
     for spec in a.factor:
