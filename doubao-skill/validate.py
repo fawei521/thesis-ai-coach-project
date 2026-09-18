@@ -33,7 +33,7 @@ REQUIRED_REFERENCES = [
     "mobile-guide.md",
 ]
 REQUIRED_TEMPLATES = ["我的论文进度模板.md"]
-REQUIRED_PERSONALITIES = ["default.md", "strict-ceo.md", "gentle-sister.md", "puppy.md"]
+REQUIRED_PERSONALITIES = ["default.md", "concise-direct.md", "gentle-patient.md", "lively-warm.md"]
 STAGE_COUNT = 12
 
 
@@ -147,7 +147,7 @@ for kw in ("标准", "精简", "关闭", "P0 不包装", "成长型思维"):
     if kw not in enc:
         problems.append(f"encouragement-guide.md 缺少关键内容「{kw}」")
 proto = read("references/coaching-protocol.md")
-for kw in ("12356", "120 或 110", "紧急模式", "P0", "进度", "告知"):
+for kw in ("12356", "120 或 110", "紧急模式", "P0", "进度", "告知", "进度卡更新块"):
     if kw not in proto:
         problems.append(f"coaching-protocol.md 缺少关键内容「{kw}」")
 # 默认自然语气：SKILL 与 proto 不得把角色扮演设为默认
@@ -190,7 +190,7 @@ else:
         if kw not in mg:
             problems.append(f"mobile-guide.md 缺少关键内容「{kw}」")
 for rel, kws in [
-    ("SKILL.md", ("手机做不了", "第 8 阶段只能做一半")),
+    ("SKILL.md", ("手机可做一半", "必须回电脑", "规则优先级")),
     ("stages/stage-8-analysis.md", ("本阶段需要电脑", "JASP")),
     ("stages/stage-7-data.md", ("必须回电脑", "预处理", "清洗")),
     ("references/mobile-guide.md", ("必须回电脑", "手机上做不了")),
@@ -199,6 +199,13 @@ for rel, kws in [
     for kw in kws:
         if kw not in t:
             problems.append(f"{rel} 未写明手机能力边界关键句「{kw}」")
+if "第 8 阶段只能做一半" in skill_text:
+    problems.append("SKILL.md 仍含已废弃的旧边界表述「第 8 阶段只能做一半」")
+# v1.4：AI 正文草稿边界清单必须写明可做/不可做/风险三件事
+_norms = read("references/academic-norms.md")
+for kw in ("AI 可做与不可做", "不可直接提交", "报告风险", "核对清单"):
+    if kw not in _norms:
+        problems.append(f"academic-norms.md 缺少 AI 正文草稿边界关键内容「{kw}」")
 # 手机端不得把电脑专属工具写成可用的必经步骤
 mg_all = (mg or "") + read("references/tools.md")
 if "手机上也能跑 SPSS" in mg_all and "不要相信" not in mg_all:

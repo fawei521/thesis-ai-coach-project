@@ -906,7 +906,7 @@ try:
     check("v12安装方式含保底单文件", "合并单文件" in mg and "thesis-ai-coach-手机版.md" in mg)
     check("v12安装入口标注需核实", "[需核实]" in mg)
     check("v12三处边界一致",
-          "手机做不了" in skm and "第 8 阶段只能做一半" in skm
+          "手机可做一半" in skm and "必须回电脑" in skm
           and "本阶段需要电脑" in tx("doubao-skill/stages/stage-8-analysis.md")
           and "必须回电脑" in tx("doubao-skill/stages/stage-7-data.md")
           and "预处理" in tx("doubao-skill/stages/stage-7-data.md"))
@@ -923,7 +923,7 @@ try:
             check("v12合并单文件可生成", rg.returncode == 0 and tg.exists(), (rg.stderr or "")[-200:])
             stext = tg.read_text(encoding="utf-8") if tg.exists() else ""
             check("v12合并单文件自包含",
-                  all(s in stext for s in ("手机做不了", "引导循环", "阶段 11：答辩准备", "strict-ceo")),
+                  all(s in stext for s in ("手机上做不了", "引导循环", "阶段 11：答辩准备", "concise-direct", "规则优先级")),
                   "len=%d" % len(stext))
             check("v12合并单文件规模合理", len(stext) > 50000, "chars=%d" % len(stext))
             check("v12合并版排除维护者文件", "Skill 行为自测用例" not in stext)
@@ -956,6 +956,39 @@ try:
           (ROOT / "tools" / "literature_cards.py").exists() and "literature_cards.py" in menu and "【10/15】" in menu)
     check("v158卡片接入网页指南且不增类型", "literature_cards.py" in wg and "文献笔记网页" in wg)
     check("v158手机交接单与原生做法", all(s in mg for s in ("设备交接单", "全球学术快报", "literature_cards")))
+
+    # ---- v1.61 补丁集：手机边界修正/规则优先级/语气去人设命名/阈值争议/授权分级/进度卡更新块/AI 正文草稿边界 ----
+    check("v161手机边界两处换电脑",
+          all(s in skm for s in ("手机可全程完成", "手机可做一半", "必须回电脑", "手机起草 + 电脑定稿"))
+          and "第 8 阶段只能做一半" not in skm)
+    check("v161规则优先级入入口", "规则优先级" in skm and "coaching-protocol.md" in skm)
+    for oldnm, newnm in (("gentle-sister", "gentle-patient"),
+                         ("strict-ceo", "concise-direct"),
+                         ("puppy", "lively-warm")):
+        check("v161语气文件改名_" + newnm,
+              (SK / "personalities" / (newnm + ".md")).exists()
+              and not (SK / "personalities" / (oldnm + ".md")).exists())
+    check("v161旧语气名清零(除版本历史)",
+          all(oldnm not in p.read_text(encoding="utf-8")
+              for p in SK.rglob("*.md") if p.name not in ("CHANGELOG.md", "README.md")
+              for oldnm in ("strict-ceo", "gentle-sister", "puppy")))
+    s8 = tx("doubao-skill/stages/stage-8-analysis.md")
+    check("v161统计阈值标争议",
+          "判读标准说明" in s8 and s8.count("阈值因教材而异，结合导师意见") == 4)
+    s4 = tx("doubao-skill/stages/stage-4-scale.md")
+    check("v161授权分级本地化", "授权与使用许可（分级处理）" in s4 and "以本校文件为准" in s4)
+    check("v161进度卡更新块", "进度卡更新块" in skp and "过闸日期" in skp
+          and "进度卡更新块" in tx("core/coach-rules.md"))
+    an = tx("doubao-skill/references/academic-norms.md")
+    check("v161AI正文草稿边界",
+          all(s in an for s in ("AI 可做与不可做", "可编辑的论文正文草稿", "报告风险", "不可直接提交")))
+    check("v161完整版草稿边界同步",
+          "正文可起草、不可代交" in tx("core/coach-rules.md")
+          and "可编辑草稿" in tx("core/coaching-protocol.md")
+          and "可编辑草稿" in tx("workflows/writing-guide.md"))
+    mg2 = tx("doubao-skill/references/mobile-guide.md")
+    check("v161手机截断提示", "只读到一半" in mg2 and "分步喂" in mg2)
+    check("v161完整版获取校验", "核对版本号与校验值" in tx("doubao-skill/references/tools.md"))
 
     # paper_search 纯函数 + collect 注入假 fetcher（离线、确定性）
     try:
