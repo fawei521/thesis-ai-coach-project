@@ -19,7 +19,7 @@
   - 社科问卷常用 Kline 判据：|偏度| < 3 且 |峰度| < 10，即视为不严重偏离正态，可做参数检验；更严格用 |偏度| < 2、|峰度| < 7
   - 偏度标准误 ≈ √(6/N)、峰度标准误 ≈ √(24/N)，偏度/标准误绝对值 > 1.96 表示显著偏态（大样本几乎都会显著，故主要看数值大小而非显著性）
   - 明显偏态时不必硬转正态：相关/回归对轻度偏态稳健，**中介与间接效应直接用 Bootstrap（本工具默认）**，不依赖正态假设
-- 脚本给的是偏度/峰度＋Kline 判据，已能满足多数本科论文的正态性说明；若导师明确要求 Shapiro-Wilk（S-W）/Kolmogorov-Smirnov 正式检验，或要直方图、Q-Q 图，请在 JASP（Descriptives→勾选 Normality tests/Plots）或 SPSS（分析→描述统计→探索→绘图→正态性图与检验）中生成，脚本不替代正式正态检验
+- 脚本现在直接提供正式正态检验：`assumption_check.py`（菜单第18项）给 Shapiro-Wilk W/p、偏度峰度 z 与分组方差齐性，详见下文“参数检验前提：正态性与方差齐性”；直方图、Q-Q 图仍在 JASP（Descriptives→勾选 Normality tests/Plots）或 SPSS（分析→描述统计→探索→绘图→正态性图与检验）生成附图
 - 脚本 `auto_stats.py` 自动输出各量表总分的偏度/峰度与判读（SPSS 调整口径，经 scipy 黄金对照逐位一致），并在"数据名_统计结果.csv"生成**表2：均值M、标准差SD、相关矩阵（下三角，带显著性星号）、对角为 Cronbach's α**，即论文标准"表1 描述统计与相关分析"，可直接整理成三线表
 
 ### 论文表述
@@ -53,6 +53,48 @@ d²=Σ_j n_j(x̄_j−μ̂_j)'Σ̂_j⁻¹(x̄_j−μ̂_j)，df=Σ_j k_j−k），
 **红线**：检验基于连续多元正态假设，Likert 数据结果谨慎解读；任何插补都不得改动
 真实作答；SPSS 缺失值模块报告的是含协方差似然项的完整 Little 统计量（χ² 与 df 会
 与本工具不同），两种口径都合法，论文里注明所用软件/口径即可。
+
+---
+
+### 参数检验前提：正态性与方差齐性（t/ANOVA/回归前）
+
+独立样本 t、方差分析、线性回归等参数检验，方法章通常要交代两个前提：因变量（或各组内
+因变量）近似正态；组间比较时各组方差齐性。
+
+**工具**：`tools/assumption_check.py`（菜单第18项）：
+
+```
+python tools/assumption_check.py 清洗后数据.csv --scales scales.txt
+python tools/assumption_check.py 清洗后数据.csv --scales scales.txt --group 性别
+```
+
+- 给 `--scales` 时按反向计分后的题项计算**量表均分**（仅题项全答的记录纳入，n 如实报告），
+  这正是 t/ANOVA/回归实际使用的因变量；不给 scales 则自动识别数值列（适合直接吃
+  auto_stats 导出的“_量表总分.csv”）；
+- 输出 Shapiro-Wilk W 与 p（Royston AS R94 算法，3≤n≤5000，与 R `shapiro.test`、
+  scipy 同口径，经黄金对照 W 误差 <1e-9）、调整偏度/超额峰度及其 z
+  （SE≈√(6/N)、√(24/N)）与 Kline 判据；
+- 分组时逐组做 Shapiro-Wilk，并给 **Brown-Forsythe 方差齐性检验**（Levene 基于中位数，
+  与 SPSS“基于中位数”一致，比传统 Levene 稳健，经 scipy 黄金对照）；
+- 导出“_前提假设检验.csv”（总体/分组/方差齐性三段）与“_前提假设报告.txt”
+  （含可直接粘进论文的段落）。
+
+**结果怎么用**：
+- Shapiro p≥.05 且 |偏度|<3、|峰度|<10：可认为近似正态，参数检验照常；
+- Shapiro p<.05 但偏度峰度在 Kline 范围内：n≥300 时检验对微小偏离过敏感（离散的量表
+  均分尤其常见），结合 Q-Q 图仍可视为近似正态；若偏度/峰度 z 也极显著（|z|>3.29），
+  建议以 Bootstrap 偏差校正置信区间（如 5000 次）或 Welch 作为主分析并并列报告；
+- |偏度|≥3 或 |峰度|≥10：明显偏离，用 Welch t/Welch ANOVA、Mann-Whitney U/
+  Kruskal-Wallis，或对右偏计数数据做有方法学依据的变换；
+- 方差齐性 p≥.05：等方差 t/ANOVA；p<.05：Welch t / Welch ANOVA（事后 Games-Howell）
+  或非参数检验。
+
+**红线**：
+- Shapiro-Wilk 不显著不等于“证明正态”；大样本下几乎必显著，报告时以偏度峰度数值＋
+  Q-Q 图综合判断，参数检验对轻度偏离稳健（中心极限定理）；
+- Likert **单个题项**是有序分类，不要求正态；正态性针对量表总分/均分；
+- 不得为“通过”检验而删数据、删离群值或反复变换挑 p；变换须有方法学理由并在方法章写明；
+- n>5000 时 Royston 的 p 值口径不稳，工具会提示，此时以偏度峰度/Q-Q 图为准。
 
 ---
 
@@ -292,7 +334,7 @@ Harman 单因子是**最宽松、最弱**的事后检验：它只能排除"极�
 **结果解读要点：**
 - p < .05 才说差异显著；不显著就如实写"无显著差异"，不要硬找
 - 报告格式：t(df)=X.XX, p=.XX, d=.XX；F(dfb,dfw)=X.XX, p=.XX, η²=.XX
-- 前提：t/ANOVA 要求各组近似正态、方差齐性。脚本已自动做 Levene 并在不齐时切换 Welch；正式结果仍建议在 SPSS/JASP 复核（SPSS：独立样本T读"不假定等方差"行；单因素ANOVA→选项→Welch/Brown-Forsythe，事后不齐选 Games-Howell）
+- 前提：t/ANOVA 要求各组近似正态、方差齐性。写方法章前先用菜单第18项 `assumption_check.py` 跑 Shapiro-Wilk 与 Brown-Forsythe（见上文“参数检验前提”）；auto_stats 已自动做 Levene 并在不齐时切换 Welch；正式结果仍建议在 SPSS/JASP 复核（SPSS：独立样本T读"不假定等方差"行；单因素ANOVA→选项→Welch/Brown-Forsythe，事后不齐选 Games-Howell）
 
 **论文表述：**
 "独立样本 t 检验显示，男女生在 XX 上差异不显著（t(df)=X.XX, p=.XX, d=.XX）。单因素方差分析显示，不同年级在 YY 上差异显著（F(dfb,dfw)=X.XX, p<.05, η²=.XX），事后比较表明 X 年级显著高于 Y 年级。"

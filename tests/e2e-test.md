@@ -969,6 +969,22 @@ python tests/test_special_columns.py`
 
 ---
 
+## 测试66：参数检验前提假设（v1.67，assumption_check.py，菜单第18项）
+
+**目的**：补齐 t/ANOVA/回归方法章的正态性与方差齐性前提检验；Shapiro-Wilk 系数必须与权威实现同源并经 scipy 黄金对照，不能凭记忆实现。
+
+**步骤与预期**：
+1. 确定性分组数据（固定种子，X1 两组等方差正态、X2 组B方差 2.6 倍）：总体 X1 的 Shapiro-Wilk W=0.9825、p=.120，不拒绝正态；Brown-Forsythe：X1 F(1,118)=0.057，p=.812 方差齐，X2 F=31.993，p<.001 方差不齐（黄金值，容差见 full_e2e）。
+2. 指数分布（均值 3，n=120）：W=0.8101，p<.001，偏度/峰度 z 极显著但 Kline 内，判读建议以 Bootstrap/Welch 为主分析；对数正态强偏态（偏度 4.2、峰度 21.2）超 Kline 判据，指引 Welch/非参数。
+3. scales 模式按反向计分后题项算量表均分（题项全答才纳入，n 如实）；5 点 Likert 数据 n=100 跑通分组流程。
+4. n>5000：rc=0 且提示 Royston p 值口径不稳、以偏度峰度/Q-Q 图为准；组内 n<3 优雅降级明示"样本不足"；常量列提示无法检验。
+5. 坏输入 rc=1 无 Traceback：文件不存在、空文件、坏 scales（题项不存在）、分组列缺失、仅一组、--alpha 非数字/越界、无参数；GBK 正常读。
+6. 统计正确性（维护者侧 scipy 对照，不入库）：295 组（n=3…4000 × 五种分布）W 最大误差 4.3e-10、p 误差 <8e-9 个数量级；偏度峰度对 scipy 无偏估计 1.4e-14；200 组 Brown-Forsythe 对 scipy.stats.levene(center='median') 误差 2.5e-13；n=3 特例逐位一致。
+7. `python tests/full_e2e.py`：504 项全过；菜单 18 项接线（menu.py 中 /18】 恰好 18 处、无 /17】 残留）；consistency_check、validate、全量 py_compile 全绿。
+8. 红线：输出声明"不显著≠证明正态""Likert 单题不要求正态""不得为通过检验删数据或挑变换"；stats-guide"参数检验前提"小节与 data-analysis-auto 第 6.5 步同步口径。
+
+---
+
 # 脚本回归测试清单（每次改动后执行）
 
 在项目根目录（PowerShell）逐条运行，全部通过才算合格：
@@ -1024,7 +1040,10 @@ python tools\reference_formatter.py --save-template tests\test-data\_t_refs_tpl.
 python tools\reference_formatter.py tests\test-data\_t_refs_tpl.csv
 # 19 缺失值分析与 Little's MCAR（逐题缺失率/模式/χ²；默认导出 _缺失值分析.csv 与 _缺失值报告.txt，验毕删）
 python tools\missing_report.py tests\test-data\demo_survey.csv --scales tests\test-data\demo_scales.txt
+# 20 参数检验前提（Shapiro 正态性/偏度峰度 z；--group 给逐组正态与 Brown-Forsythe；默认导出 _前提假设检验.csv 与 _前提假设报告.txt，验毕删）
+python tools\assumption_check.py tests\test-data\demo_survey.csv --scales tests\test-data\demo_scales.txt
+python tools\assumption_check.py tests\test-data\demo_survey.csv --scales tests\test-data\demo_scales.txt --group 性别
 ```
 
-测试结束后删除 `_t_*` 临时文件、`tests/test-data/_demo_check` 目录，以及在 test-data 旁生成的 `demo_survey_项目分析.csv`、`demo_cvi_内容效度CVI.csv`、`demo_htmt_*.csv/png`、`_t_refs_tpl*` 与各 `_参考文献.txt`、`demo_survey_缺失值分析.csv`、`demo_survey_缺失值报告.txt`（夹具 `demo_htmt.csv`、`htmt_scales.txt` 保留）。（test_special_columns.py 会自清其 `_special*` 临时文件）所有脚本只用Python标准库（模型图需matplotlib），
+测试结束后删除 `_t_*` 临时文件、`tests/test-data/_demo_check` 目录，以及在 test-data 旁生成的 `demo_survey_项目分析.csv`、`demo_cvi_内容效度CVI.csv`、`demo_htmt_*.csv/png`、`_t_refs_tpl*` 与各 `_参考文献.txt`、`demo_survey_缺失值分析.csv`、`demo_survey_缺失值报告.txt`、`demo_survey_前提假设检验.csv`、`demo_survey_前提假设报告.txt`（夹具 `demo_htmt.csv`、`htmt_scales.txt` 保留）。（test_special_columns.py 会自清其 `_special*` 临时文件）所有脚本只用Python标准库（模型图需matplotlib），
 统计数字以SPSS/JASP为准，脚本用于快速预览和教学。

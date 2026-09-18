@@ -12,6 +12,7 @@
 
 | 版本 | 发布日期 | 主题 | 提交 |
 |---|---|---|---|
+| **v1.67** | 2026-09-18 | 参数检验前提假设闭环：新增 assumption_check.py（菜单18，Shapiro-Wilk 正态性 W/p（Royston AS R94，3≤n≤5000，与 R/scipy 同源）＋调整偏度/超额峰度及 z＋Kline 判据；--group 逐组正态＋Brown-Forsythe 方差齐性（Levene 基于中位数）；量表均分自动反向计分；分档给 Welch/Bootstrap/非参数建议，导出 _前提假设检验.csv/_前提假设报告.txt；W 对 scipy 误差 4e-10、p<1e-8 数量级、偏度峰度 1e-14、Levene 2e-13），full_e2e 475→504 项 | 见下方详情 |
 | **v1.66** | 2026-09-18 | 缺失值分析与 Little's MCAR 检验闭环：新增 missing_report.py（菜单17，总/逐题缺失率、缺失模式、成列删除完整样本量；EM 多元正态 ML 估计＋Little(1988) T_MLμ 统计量，与 R naniar::mcar_test/Enders 同口径，df=Σk_j−k；p≥.05 可成列删除、p<.05 指引多重插补/FIML；EM 与 χ² 对 numpy 参照差<2e-8，400 次模拟校准 MCAR 拒绝率 6.5%/MAR 检出 98%），full_e2e 448→475 项 | 见下方详情 |
 | **v1.65** | 2026-09-18 | GB/T 7714 参考文献格式化闭环：新增 reference_formatter.py（菜单16，六类文献[J/M/D/C/N/EB-OL]顺序编码制，吃 paper_search/整理表/13列模板，作者超3人截等/et al、全角与2025姓氏口径开关、缺字段【待补】不伪造、坏输入中文rc1），full_e2e 427→448 项 | 见下方详情 |
 | **v1.64** | 2026-09-18 | 全流程三轮演练健壮性闭环（ROADMAP 挂账"自行走三遍流程收 bug"）：模型图补 direct 二变量直接效应、菜单按变量数自动选型＋scales 文件缺失/题项错配在统计/清洗/项目分析/HTMT 四处统一硬失败（校验下沉 dataio 共享）＋清洗器数值参数中文校验＋效应量 16 处坏参统一 rc=1＋文献整理空文件硬失败，full_e2e 414→427 项 | 见下方详情 |
@@ -94,6 +95,17 @@
 ## 版本详情
 
 > 以下为各版本变更说明，按版本倒序。
+
+**v1.67 参数检验前提假设闭环版（t/ANOVA/回归方法章断档；完整版，doubao-skill 本轮无改动）**
+- **背景**：参数检验（独立样本 t、方差分析、线性回归）方法章普遍要交代正态性与方差齐性两个前提；此前工具箱只有描述统计里的偏度/峰度 Kline 启发式判读，正式的 Shapiro-Wilk 检验要去 SPSS/JASP 跑，auto_stats 的 Levene 也只在差异分析内部自动使用，没有独立的"前提检验＋可粘论文结论"出口。
+- **新增 `tools/assumption_check.py`（菜单第 18 项）**：吃清洗后问卷 CSV（建议带 scales.txt，按反向计分后的题项计算**量表均分**，仅题项全答记录纳入并如实报 n；不给 scales 则自动识别数值列，可直接吃 `_量表总分.csv`），输出每个因变量的 n、M、SD、调整偏度/超额峰度（SPSS 口径）及其 z（SE≈√(6/N)、√(24/N)）、Shapiro-Wilk W/p 与分档判读；`--group 列名` 时逐组做 Shapiro-Wilk，并给 **Brown-Forsythe 方差齐性检验**（Levene 基于中位数，与 SPSS"基于中位数"同口径，复用 stats.compare._levene）；导出 `_前提假设检验.csv`（总体/分组/方差齐性三段式 UTF-8-BOM）与 `_前提假设报告.txt`（含可粘论文段落）。
+- **统计口径（可追溯）**：Shapiro-Wilk 权重用 Royston 对期望正态序次统计量的多项式近似（与 EnvStats `swGofTestStatistic` 逐项核对），p 值用 Royston (1992) AS R94 正态化变换（n=3 精确分布 6/π·(arcsin√W−π/3)，n=4…11 gamma 分支，n≥12 ln n 多项式分支），系数取自 AS R94 公开源码（matrixscience 镜像的 swilk C++ 移植，与 R `src/library/stats/src/swilk.c`、scipy 编译的 swilk.f 同源）；正态分位数用 Acklam 逼近入 stats/mathx.py，极小 p 用 AS66 Mills 比连分式（可算到约 1e-150，不被过早截到 1e-19）。
+- **黄金验证**：295 组（n=3…4000 × 正态/均匀/指数/5点Likert/混合正态）对 scipy.stats.shapiro，W 最大绝对误差 4.3e-10、p 误差 <8e-9 个数量级（远尾一致）；偏度/峰度对 scipy 无偏估计误差 1.4e-14；200 组随机分组 Brown-Forsythe F/p 对 scipy.stats.levene(center='median') 误差 2.5e-13；n=3 三个特例 W/p 逐位一致。
+- **分档判读（辅助而不限制）**：p≥.05 且 Kline 通过→不拒绝正态；p<.05 但 |偏度|<3、|峰度|<10 时，n≥300 提示检验过敏感可视为近似正态、50≤n<300 属轻度偏离参数检验仍稳健、偏度/峰度 |z|>3.29 建议以 Bootstrap 偏差校正区间或 Welch 为主分析；超 Kline 判据才指引 Welch/非参数。方差不齐指引 Welch t/Welch ANOVA（事后 Games-Howell）。
+- **红线**：Shapiro 不显著≠证明正态，大样本几乎必显著，以偏度峰度数值＋Q-Q 图综合判断；Likert 单个题项是有序分类不要求正态（看总分/均分）；不得为"通过"检验删数据、删离群值或反复变换挑 p；n>5000 提示 p 值口径不稳；Q-Q 图/直方图仍在 SPSS/JASP 生成。
+- **健壮性**：常量列/组内 n<3 优雅降级并明示；文件不存在/空文件/坏 scales/题项缺失/分组列不存在/仅一组/坏 alpha/无参统一中文 rc=1；UTF-8/GBK 自适应；纯标准库。
+- **文档**：stats-guide 新增"参数检验前提：正态性与方差齐性"方法学小节并改写旧"脚本不替代正式正态检验"表述、t/ANOVA 节交叉引用；data-analysis-auto 新增第 6.5 步并在总览登记；START/README/AGENTS/QUICKSTART/paper-outline/PROJECT_PLAN §十七/e2e-test 测试66 同步。
+- **测试（P0）**：`full_e2e.py` 475→**504 项全过**（+29：纯标准库/编码守卫/菜单18项与编号制/三处文档接线/分组跑通/X1 W 黄金值/X2 方差不齐黄金 F=31.993/三段式 CSV/报告段落/指数 W 黄金值/z 极显著 Bootstrap 主分析/强偏态超 Kline/scales 均分模式/n>5000 提示/组内 n<3 降级/常量列/八类坏输入 rc1/红线声明）；黄金脚本与 18 组 CLI 端到端场景全绿；consistency_check、validate、全量 py_compile 全绿。
 
 **v1.66 缺失值分析与 Little's MCAR 检验闭环版（数据清洗前方法章断档；完整版，doubao-skill 本轮无改动）**
 - **背景**：清洗器只负责剔除高缺失个案，但方法章要求交代"缺了多少、怎么缺、能否直接删/插补"；SPSS 缺失值分析与 R naniar 的 Little's MCAR 是心理学论文常见报告项，此前工具箱无对应出口。

@@ -113,6 +113,7 @@
 
 ### 4.3 描述性统计与正态性
 - 各变量均值、标准差、偏度峰度
+- 参数检验前提（菜单第18项 assumption_check.py）：各量表总分/均分的 Shapiro-Wilk W、p 与偏度峰度 z；t/ANOVA 分组时附各组正态性与 Brown-Forsythe 方差齐性；大样本 Shapiro 过敏感时结合偏度峰度（|S|<3、|K|<10）与 Q-Q 图综合判断，不通过时用 Welch/Bootstrap/非参数
 - 表1：各变量描述统计
 
 ### 4.4 相关分析与人口学差异

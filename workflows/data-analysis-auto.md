@@ -18,6 +18,7 @@
   → 2. 写 scales.txt（标量表归属和反向题），auto_stats.py 一条命令自动完成：
         反向计分 → 3.信度α/ω → 4.效度(KMO/Bartlett/载荷) → 5.Harman共同方法偏差 → 量表总分
         → 6.描述统计 → 7.相关分析 → 初步回归，并导出三线表和"_量表总分.csv"
+  → 6.5 参数检验前提（assumption_check.py，菜单第18项：Shapiro-Wilk 正态性、偏度峰度 z、分组 Brown-Forsythe 方差齐性，t/ANOVA/回归前跑，给可粘论文段落）
   → 4. 效度检验（脚本自动出KMO/Bartlett/载荷；自编多维量表加 --efa 做完整探索性因子分析；CFA引导JASP）
   → 8. 核心分析：中介/链式中介（auto_stats --mediators 自动出Bootstrap结果，再用JASP/SPSS PROCESS复核）
   → 9. 补充分析：网络分析（R，进阶可选）
@@ -245,6 +246,33 @@ Harman单因子检验：
 
 ---
 
+## 第6.5步：参数检验前提——正态性与方差齐性（自动，t/ANOVA/回归前）
+
+**工具**：`tools/assumption_check.py`（菜单第18项）。第6步只给偏度/峰度启发式判读，
+本工具给正式的 Shapiro-Wilk 检验与分组方差齐性，并生成可粘进方法章的段落：
+
+```
+# 总体正态性（量表均分，自动反向计分）
+python tools/assumption_check.py 清洗后数据.csv --scales scales.txt
+# 组间比较前：逐组正态 + Brown-Forsythe 方差齐性
+python tools/assumption_check.py 清洗后数据.csv --scales scales.txt --group 性别
+# 也可以直接吃第2步导出的量表总分文件（不写 --scales）
+python tools/assumption_check.py 数据名_量表总分.csv --group 年级
+```
+
+- 输出每个因变量的 n、M、SD、偏度/峰度及其 z（SE≈√(6/N)、√(24/N)）、Shapiro-Wilk W/p
+  与分档判读；分组时再给各组结果和 Brown-Forsythe F/p（Levene 基于中位数，与 SPSS
+  “基于中位数”同口径）；导出 `_前提假设检验.csv`（三段式）与 `_前提假设报告.txt`。
+- 判读：p≥.05 且 |偏度|<3、|峰度|<10 → 近似正态，参数检验照常；p<.05 但偏度峰度在
+  Kline 范围内（大样本/离散均分常见）→ 结合 Q-Q 图仍可视为近似正态，建议并列报告
+  Welch/Bootstrap；|偏度|≥3 或 |峰度|≥10 → Welch/非参数；方差不齐 → Welch t/Welch
+  ANOVA（事后 Games-Howell）。
+- 红线：Shapiro 大样本过敏感，不显著≠证明正态；Likert 单个题项不要求正态（看总分/均分）；
+  不得为“通过”检验删数据、删离群值或反复变换挑 p；n>5000 时工具会提示 p 值口径不稳。
+- Q-Q 图/直方图仍在 SPSS（探索→绘图→正态性图与检验）或 JASP 生成附图。
+
+---
+
 ## 第7步：相关分析（自动，已含在第2步）
 
 **工具**：`auto_stats.py --scales scales.txt`
@@ -266,7 +294,7 @@ Harman单因子检验：
 - **3 组及以上 → 单因素 ANOVA**：报 F(dfb,dfw)、p、η²（.01/.06/.14 小中大），并给 Bonferroni 校正事后两两比较
 - 导出 `_差异分析.csv`，可直接整理成"人口学差异分析表"
 - 脚本先做 Levene/Brown-Forsythe 方差齐性检验：方差齐用等方差 t/ANOVA（Bonferroni事后），**不齐自动切换 Welch t / Welch ANOVA**（多组事后改 Games-Howell，在 JASP/SPSS 查看）；`_差异分析.csv` 含方差齐性与 Welch 稳健检验列；正式结果可在 SPSS/JASP 复核
-- **因变量明显偏态/有序等级（如 NSSI、成瘾、频次零膨胀）、正态前提不满足时**：加 `--nonparametric`（菜单第3项选"是"），2组改 **Mann-Whitney U**（报 U/z/p/r），多组改 **Kruskal-Wallis H**（报 H/df/p/ε²，事后用 Dunn，JASP查看），导出 `_差异分析_非参数.csv`；与 scipy 逐位一致。是否需要非参数，先看第4步描述统计的偏度/峰度（|偏度|>3、|峰度|>10 为明显违反）
+- **因变量明显偏态/有序等级（如 NSSI、成瘾、频次零膨胀）、正态前提不满足时**：加 `--nonparametric`（菜单第3项选"是"），2组改 **Mann-Whitney U**（报 U/z/p/r），多组改 **Kruskal-Wallis H**（报 H/df/p/ε²，事后用 Dunn，JASP查看），导出 `_差异分析_非参数.csv`；与 scipy 逐位一致。是否需要非参数，先看第6.5步 `assumption_check.py` 的 Shapiro-Wilk 与偏度/峰度（|偏度|>3、|峰度|>10 为明显违反）
 
 ---
 

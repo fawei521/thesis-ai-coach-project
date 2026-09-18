@@ -459,3 +459,24 @@
 - **文档**：stats-guide 缺失值方法学小节、data-analysis-auto 第 1.5 步（修订 2.3 均值替代旧说法）、START、README、AGENTS、QUICKSTART、e2e-test 测试65、本文件。
 - **测试（P0）**：`full_e2e.py` 448→**475 项全过**（+27）；numpy 黄金模拟与 CLI 16 场景全绿；consistency_check、validate、全量 py_compile 全绿。
 - **范围控制**：doubao-skill 本轮无改动；测试与补丁不入库。
+
+## 十七、v1.67 优化：参数检验前提假设闭环（正态性 / 方差齐性）
+
+> 2026-09-18 晚间自主推进，同分支 `feat/advance-closed-loop`，承接 v1.66，补齐 t/ANOVA/回归方法章的前提检验断档。
+
+### 17.1 背景与做法
+
+1. 参数检验方法章普遍要求报告正态性（Shapiro-Wilk）与组间方差齐性（Levene/Brown-Forsythe）；此前只有描述统计的偏度峰度 Kline 启发式，正式检验要去 SPSS/JASP，auto_stats 的 Levene 也只在差异分析内部自动跑，没有独立的"前提检验＋可粘论文结论"出口。
+2. 算法口径先联网核查：从 EnvStats `swGofTestStatistic.R`（rdrr 镜像）核对 Royston 权重多项式，从 AS R94 公开源码镜像（matrixscience 的 swilk C++ 移植，与 R swilk.c、scipy swilk.f 同源）取得 p 值正态化变换全部系数（c3–c6、g，n=3 精确分布），不凭记忆写系数。
+3. 黄金验证先行：295 组（n=3…4000 × 五种分布）对 scipy.stats.shapiro，W 误差 4.3e-10、p<8e-9 个数量级；偏度峰度对 scipy 无偏估计 1.4e-14；200 组 Brown-Forsythe 对 scipy.stats.levene 误差 2.5e-13。再补 18 组 CLI 场景与 full_e2e 断言，最后接菜单与文档。
+
+### 17.2 改动清单
+
+- **新增 `tools/assumption_check.py`（菜单第 18 项）**：Shapiro-Wilk（Royston AS R94，3≤n≤5000）＋偏度/峰度 z（SE≈√(6/N)、√(24/N)）＋Kline 判据；`--group` 逐组正态＋Brown-Forsythe（复用 stats.compare._levene）；量表均分自动反向计分（题项全答才纳入，如实报 n）；导出 `_前提假设检验.csv`（三段式）与 `_前提假设报告.txt`；坏输入统一中文 rc=1；UTF-8/GBK 自适应；纯标准库。
+- **stats/mathx.py 增补**：`normal_quantile`（Acklam，误差 5e-9）与 `normal_sf`（erfc，2e-16）；工具内另含 AS66 Mills 比连分式远尾函数（极小 p 不被截到 1e-19）。
+- **分档判读（辅助而不限制 AI/学生判断）**：p≥.05＋Kline 通过→不拒绝；p<.05 但 Kline 内按 n≥300/50≤n<300/|z|>3.29 分三档给"近似正态＋稳健性校验/Bootstrap 主分析"建议；超 Kline 才指引 Welch/非参数；方差不齐指引 Welch/Games-Howell。
+- **红线**：不显著≠证明正态、大样本 Shapiro 过敏感、Likert 单题不要求正态、不得为通过检验删数据或挑变换、n>5000 提示口径不稳。
+- **菜单与计数**：菜单 17→18 项（17 处标签同步 /18）；工具脚本 18→19 个；stats 子包模块数不变（mathx 为增补函数）。
+- **文档**：stats-guide 新增"参数检验前提"方法学小节并改写旧表述、t/ANOVA 节交叉引用；data-analysis-auto 新增第 6.5 步与总览行；START、README（版本轮换）、AGENTS、QUICKSTART、paper-outline、e2e-test 测试66、本文件。
+- **测试（P0）**：`full_e2e.py` 475→**504 项全过**（+29）；黄金脚本与 18 组 CLI 场景全绿；consistency_check、validate、全量 py_compile 全绿。
+- **范围控制**：doubao-skill 本轮无改动；测试与补丁不入库。

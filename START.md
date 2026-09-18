@@ -1,6 +1,6 @@
 # Thesis AI Coach — 启动文件
 
-> 版本 v1.66 ｜ 适用：心理学专业本科毕业论文（实证/问卷研究为主）｜ 学生把整个项目文件夹交给AI，AI从本文件开始（最新版本号以 CHANGELOG.md / git tag 为准；另有可安装到豆包的轻量 Skill 版，见 doubao-skill/）
+> 版本 v1.67 ｜ 适用：心理学专业本科毕业论文（实证/问卷研究为主）｜ 学生把整个项目文件夹交给AI，AI从本文件开始（最新版本号以 CHANGELOG.md / git tag 为准；另有可安装到豆包的轻量 Skill 版，见 doubao-skill/）
 
 > 你是AI。你读取到这个文件，说明学生把整个项目包交给了你。
 > 请严格按照以下步骤启动，不要跳过。
@@ -76,6 +76,7 @@
 - `content_cvi.py` — 自编量表内容效度 CVI（专家 1-4 相关性评分，逐条算 I-CVI、机遇校正 κ* 与量表 S-CVI/Ave、S-CVI/UA，给保留/修改/重审建议，导出 `_内容效度CVI.csv`；仅自编/修订量表需要）
 - `reference_formatter.py` — 参考文献格式化（题录 CSV → GB/T 7714-2015 顺序编码制 [n] 列表，支持期刊/专著/学位论文/会议/报纸/电子资源六类，吃 paper_search 导出、文献整理表或自带模板；缺字段标【待补】不伪造，纯标准库、不生成文献）
 - `missing_report.py` — 缺失值分析与 Little's MCAR 检验（预处理后清洗前：逐题缺失率、缺失模式、成列删除完整样本量；EM 估计下按模式算 Little χ²，naniar/Enders 均值项口径；给可直接粘论文的报告段落，导出 `_缺失值分析.csv`/`_缺失值报告.txt`；纯标准库）
+- `assumption_check.py` — 参数检验前提假设（t/ANOVA/回归前：Shapiro-Wilk 正态性 W/p、偏度峰度 z 与 Kline 判据；分组时逐组正态＋Brown-Forsythe 方差齐性；给可粘论文段落，导出 `_前提假设检验.csv`/`_前提假设报告.txt`；Royston AS R94，纯标准库）
 - `webpage_preview.py` — 本地预览学生做的网页（纯标准库静态服务器，浏览器打开，也能给手机看；不做任何上传）
 - `menu.py` — 统一菜单（不想记命令时用）
 
@@ -90,6 +91,8 @@
 **内容效度用法**：自编或重大修订量表，在 EFA/CFA 前请 5～10 名专家对条目按 1-4 评相关性，整理成"第一列专家、其余每列一条目"的 CSV，用菜单第15项（或 content_cvi.py）算 I-CVI、κ*、S-CVI/Ave、S-CVI/UA；引用成熟量表免做。
 **参考文献用法**：定稿整理参考文献时，把 paper_search 导出或第 5 项整理表的 CSV 交给菜单第16项（或 reference_formatter.py），自动按 GB/T 7714-2015 编号著录；没有题录表先加 `--save-template` 生成模板；学校要全角标点选全角，2025 新口径选 `--name-case 2025`；工具只格式化、不生成文献，复制进论文前逐条核对作者年份卷期页码与 DOI。
 **缺失值用法**：预处理后、清洗前把数据 CSV 交给菜单第17项（或 missing_report.py，建议带 scales.txt 只分析题项），拿到逐题缺失率、缺失模式与 Little's MCAR 检验：p≥.05 可成列删除并报告完整 n，p<.05 不要简单删除/均值插补，改用多重插补（SPSS/R mice）或 FIML；检验不显著≠证明 MCAR，Likert 数据谨慎解读。
+
+**前提假设用法**：t 检验、方差分析、回归写方法章前，把清洗后数据（或第3步导出的`_量表总分.csv`）交给菜单第18项（或 assumption_check.py，建议带 scales.txt）：Shapiro-Wilk p≥.05 且 |偏度|<3、|峰度|<10 可认为近似正态；p<.05 但偏度峰度在 Kline 范围内（大样本/离散均分常见）结合 Q-Q 图仍可视为近似正态，并列报告 Welch/Bootstrap；明显偏态用 Welch/非参数。有分组列（如性别、年级）加 `--group 列名`，方差不齐时 auto_stats 已自动切 Welch。红线：大样本 Shapiro 过敏感、Likert 单题不要求正态、不得为通过检验删数据或挑变换。
 
 模板在 `templates/`：问卷模板、论文大纲、AI使用声明、开题报告模板、答辩PPT大纲、**进度卡模板**、**检索记录模板**、**网页范例（4个现成网页，见 `templates/网页范例/`，含问答式统计方法选择器）**。
 
