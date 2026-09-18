@@ -148,15 +148,15 @@ thesis-ai-coach-project/
 └── tests/                    # full_e2e.py 一键全量回归、consistency_check.py 文档↔代码一致性自检、专项测试与测试数据
 ```
 
-> 维护者/接手者：改动后运行 `python tests/full_e2e.py`（约3-5分钟，616 项断言，自动备份恢复测试数据），退出码 0 才算通过；学生日常使用不需要跑。
+> 维护者/接手者：改动后运行 `python tests/full_e2e.py`（约3-5分钟，617 项断言，自动备份恢复测试数据），退出码 0 才算通过；学生日常使用不需要跑。
 
 ## 版本
 
-**当前版本：v1.75**（2026-09-18）路线图挂账维护闭环（完整版；doubao-skill 本轮无改动）
-- **ROADMAP 与实际能力对齐**：把夜间闭环暴露的真实缺口挂进 v1.x 待办（Friedman 三时点非参数＋Nemenyi、polychoric/polyserial 有序相关、分层 ω/Schmid-Leiman、HTMT2、回归诊断扩展 Cook 距离/ΔR²、PPT 导出在制说明），并把"多重插补不内置一键插补"作为已决策项落档（v1.71 教学指引路线），v1.62–v1.74 闭环收成一行指针
-- **维护性质**：纯规划文档维护＋接线断言，无代码、无数值口径变化；full_e2e 612→616 项；consistency/validate/py_compile 全绿
+**当前版本：v1.76**（2026-09-18）文档勘误与行数守卫闭环（完整版；doubao-skill 本轮无改动）
+- **勘误**：v1.75 CHANGELOG 详情中 README 收敛后行数"约 150 行"改为实计 **170 行**（数字必须可追溯）
+- **守卫前移**：README 版本区行数断言从全局 <200 收紧到 ≤180，版本区膨胀提前预警；full_e2e 616→617 项；无代码、无数值口径变化
 
-**上一个版本：v1.74** 论文模板接线维护：paper-outline 方法章/表3 补单样本 t 与回归残差诊断（VIF/D-W/残差正态）规范，START/QUICKSTART 同步；full_e2e 608→612 项；逐条见 CHANGELOG。
+**上一个版本：v1.75** 路线图挂账维护：ROADMAP 补 Friedman/polychoric/分层 ω/HTMT2/回归诊断扩展等真实缺口与 MI 不内置决策，README 版本区收敛；full_e2e 612→616 项；逐条见 CHANGELOG。
 
 **更早版本（v1.64 及以前）的逐版说明全部见
 [CHANGELOG.md](CHANGELOG.md)** —— 本 README 自 v1.57 起只保留当前版本与上一版本的摘要，

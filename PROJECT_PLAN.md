@@ -622,3 +622,11 @@
 - `README.md`：版本区收敛（当前 v1.75 块＋v1.74 一行），计数 616；START/CHANGELOG/e2e-test 测试74 同步。
 - **测试（P0）**：full_e2e 612→**616 项全过**（+4）；consistency、validate、全量 py_compile 全绿。
 - **范围控制**：无代码改动；工具脚本 21、菜单 20 不变；doubao-skill 无改动。
+
+## 二十六、v1.76 文档勘误与行数守卫
+
+> 2026-09-18 晚自主推进，同分支 `feat/advance-closed-loop`，纯文档闭环。
+
+1. v1.75 CHANGELOG 详情行数表述"约 150 行"与实计 170 行不符，违反"数字可追溯"自律，发现即勘误并保留勘误痕迹。
+2. 全局断言只守 README <200 行硬上限，无提前量；新增版本区行数守卫 ≤180，逼近即提示收敛。
+3. full_e2e 616→**617 项全过**（隔离 worktree 验证，避开并行会话在制品）；consistency、validate、全量 py_compile 全绿；无代码改动，工具脚本 21、菜单 20 不变。

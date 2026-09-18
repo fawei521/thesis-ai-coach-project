@@ -1099,6 +1099,17 @@ python tests/test_special_columns.py`
 
 ---
 
+## 测试75：文档勘误与 README 行数守卫（v1.76）
+
+**目的**：数字可追溯；版本区膨胀有提前量。
+
+**步骤与预期**：
+1. CHANGELOG v1.75 详情行数表述为"184→170 行，实计"，不再出现"约 150 行"。
+2. full_e2e 含 README 版本区行数 ≤180 守卫；`python tests/full_e2e.py` 617 项全过。
+3. START/README/CHANGELOG 版本号均为 v1.76；consistency、validate、全量 py_compile 全绿；无代码改动。
+
+---
+
 # 脚本回归测试清单（每次改动后执行）
 
 在项目根目录（PowerShell）逐条运行，全部通过才算合格：
