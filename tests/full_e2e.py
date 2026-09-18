@@ -8,7 +8,7 @@ thesis-ai-coach 全量端到端回归（测试金字塔 L7）。
 退出码 0 = 全部通过；非 0 = 有失败项（见 FAIL 行）。
 运行中会在 tests/test-data 生成并自动清理临时产物，结束时恢复被跟踪的基准样例。
 """
-import os, sys, subprocess, csv, re, shutil, time
+import os, sys, subprocess, csv, re, shutil, time, random, math
 from pathlib import Path
 # --- 输出编码守卫：管道/重定向时强制 UTF-8 ---
 # 中文 Windows 控制台默认 GBK，Python 写真实控制台不受影响，
@@ -442,7 +442,7 @@ try:
     check("coach5多选填空", "多选题" in cr and "scales.txt 时勿列入" in cr)
     check("coach6样本量", "sample_size.py" in cr)
     check("coach7五指标", "低变异" in cr and "注意力检查题答错" in cr)
-    menu = tx("tools/menu.py"); check("menu第8项", "【8/16】" in menu and "sample_size.py" in menu)
+    menu = tx("tools/menu.py"); check("menu第8项", "【8/17】" in menu and "sample_size.py" in menu)
     qs = tx("QUICKSTART.md"); check("QS菜单8", "8. 开题样本量" in qs)
     check("QS流程顺序", qs.find("查文献读文献") < qs.find("开题报告/开题答辩"))
     bad = []
@@ -803,7 +803,7 @@ try:
     check("预览器--list可运行", pl.returncode == 0 and "index.html" in (pl.stdout or ""), (pl.stderr or "")[-200:])
     wdir = ROOT / "我的工作区" / "04-网页"
     check("工作区04-网页就位", wdir.is_dir() and (wdir / "把网页放这里.txt").exists())
-    check("菜单第9项", "【9/16】" in menu and "webpage_preview.py" in menu)
+    check("菜单第9项", "【9/17】" in menu and "webpage_preview.py" in menu)
     check("网页能力已登记到入口",
           "webpage-guide.md" in st and "webpage_preview.py" in st and "webpage-guide.md" in cr)
     check("README登记网页能力", "webpage-guide.md" in rm and "webpage_preview.py" in rm)
@@ -815,12 +815,12 @@ try:
     check("脱敏工具纯标准库", "import csv" in an_src and "matplotlib" not in an_src and "pandas" not in an_src)
     check("脱敏工具有安全开关", all(s in an_src for s in ["--dry-run", "--no-key", "--columns", "--k"]))
     check("脱敏工具另存不改原文件", "_去标识化.csv" in an_src and "同名同路径" in an_src)
-    check("菜单第11项去标识化", "【11/16】" in menu and "anonymize_data.py" in menu and "去标识化" in menu)
-    check("菜单第12项效应量", "【12/16】" in menu and "effect_size.py" in menu and "效应量" in menu)
-    check("菜单第13项效度", "【13/16】" in menu and "validity_cr_ave.py" in menu and "区分效度" in menu)
+    check("菜单第11项去标识化", "【11/17】" in menu and "anonymize_data.py" in menu and "去标识化" in menu)
+    check("菜单第12项效应量", "【12/17】" in menu and "effect_size.py" in menu and "效应量" in menu)
+    check("菜单第13项效度", "【13/17】" in menu and "validity_cr_ave.py" in menu and "区分效度" in menu)
     check("菜单13含HTMT", "HTMT" in menu)
-    check("菜单第14项项目分析", "【14/16】" in menu and "item_analysis.py" in menu and "决断值" in menu)
-    check("菜单第15项内容效度", "【15/16】" in menu and "content_cvi.py" in menu and "CVI" in menu)
+    check("菜单第14项项目分析", "【14/17】" in menu and "item_analysis.py" in menu and "决断值" in menu)
+    check("菜单第15项内容效度", "【15/17】" in menu and "content_cvi.py" in menu and "CVI" in menu)
     check("START登记去标识化", "anonymize_data.py" in st and "去标识化" in st)
     check("QUICKSTART登记第11项", "去标识化" in tx("QUICKSTART.md"))
     check("AI素养接线去标识化工具", "anonymize_data.py" in tx("core/ai-literacy.md"))
@@ -1066,7 +1066,7 @@ try:
     check("v158量表多词检索纪律", "量表检索纪律" in sl and "同义词" in sl and "OR" in sl and "AND" in sl)
     check("v158检索脚本多词开关", all(x in psrc for x in ('--queries', '--source', '--min', 'action="append"')))
     check("v158卡片脚本与菜单项",
-          (ROOT / "tools" / "literature_cards.py").exists() and "literature_cards.py" in menu and "【10/16】" in menu)
+          (ROOT / "tools" / "literature_cards.py").exists() and "literature_cards.py" in menu and "【10/17】" in menu)
     check("v158卡片接入网页指南且不增类型", "literature_cards.py" in wg and "文献笔记网页" in wg)
     check("v158手机交接单与原生做法", all(s in mg for s in ("设备交接单", "全球学术快报", "literature_cards")))
 
@@ -1237,8 +1237,8 @@ try:
     rf_src = tx(rf_tool)
     check("参考文献工具纯标准库", all(s in rf_src for s in ["import csv", "import re"])
           and "pandas" not in rf_src and "requests" not in rf_src)
-    check("菜单第16项参考文献", "【16/16】" in menu and "reference_formatter.py" in menu and "GB/T 7714" in menu)
-    check("菜单标签全部16项制", "/15】" not in menu and menu.count("/16】") == 16)
+    check("菜单第16项参考文献", "【16/17】" in menu and "reference_formatter.py" in menu and "GB/T 7714" in menu)
+    check("菜单标签全部17项制", "/16】" not in menu and menu.count("/17】") == 17)
     check("写作指南接线参考文献工具", "reference_formatter.py" in tx("workflows/writing-guide.md"))
     check("START登记参考文献工具", "reference_formatter.py" in st)
     v65 = new_tmp("v165refs")
@@ -1306,6 +1306,130 @@ try:
     r = run([rf_tool])
     check("v165无参数硬失败", r.returncode != 0 and "题录 CSV" in (r.stdout or ""))
     check("v165红线声明不生成文献", "不生成文献" in rf_src)
+
+
+    # ================= v1.66 缺失值分析与 Little's MCAR =================
+    mr_tool = "tools/missing_report.py"
+    mr_src = tx(mr_tool)
+    check("缺失值工具纯标准库", "pandas" not in mr_src and "numpy" not in mr_src
+          and "import csv" in mr_src)
+    check("缺失值工具编码守卫", "输出编码守卫" in mr_src and "reconfigure" in mr_src)
+    check("菜单第17项缺失值", "【17/17】" in menu and "missing_report.py" in menu and "MCAR" in menu)
+    check("统计指南接线缺失值工具", "missing_report.py" in tx("psychology/stats-guide.md"))
+    check("分析流程接线缺失值工具", "missing_report.py" in tx("workflows/data-analysis-auto.md"))
+    check("START登记缺失值工具", "missing_report.py" in st)
+    v66 = new_tmp("v166missing")
+    K66 = 8
+    LOAD66 = [0.55 + 0.05 * j for j in range(K66)]
+
+    def gen66(n, seed, miss=0.0, mar=False):
+        random.seed(seed)
+        rows = []
+        for _ in range(n):
+            f = random.gauss(0, 1)
+            rows.append([round(LOAD66[j] * f + math.sqrt(1 - LOAD66[j] ** 2) * random.gauss(0, 1), 3)
+                         for j in range(K66)])
+        if miss:
+            for row in rows:
+                for j in range(K66):
+                    if random.random() < miss:
+                        row[j] = ""
+        if mar:
+            cut = sorted(rr[0] for rr in rows)[n // 2]
+            for row in rows:
+                if row[0] < cut:
+                    if random.random() < 0.4:
+                        row[4] = ""
+                    if random.random() < 0.4:
+                        row[5] = ""
+        return rows
+
+    def wcsv66(name, rows, enc="utf-8-sig"):
+        p66 = v66 / name
+        with open(p66, "w", encoding=enc, newline="") as f66:
+            w66 = csv.writer(f66)
+            w66.writerow(["序号"] + [f"Q{j+1}" for j in range(K66)])
+            for i, row in enumerate(rows):
+                w66.writerow([i + 1] + row)
+        return p66
+
+    sc66 = v66 / "scales66.txt"
+    sc66.write_text("总量表:8=" + ",".join(f"Q{j+1}" for j in range(K66)) + "\n", encoding="utf-8")
+
+    rows_mcar = gen66(240, 1660918, miss=0.07)
+    exp_miss = sum(1 for row in rows_mcar for v in row if v == "")
+    exp_complete = sum(1 for row in rows_mcar if all(v != "" for v in row))
+    pats66 = {}
+    for row in rows_mcar:
+        o = tuple(j for j in range(K66) if row[j] != "")
+        pats66[o] = pats66.get(o, 0) + 1
+    exp_df = sum(len(o) for o in pats66) - K66
+    mp = wcsv66("mcar.csv", rows_mcar)
+    r = run([mr_tool, str(mp), "--scales", str(sc66)])
+    out = r.stdout or ""
+    m_chi = re.search(r"χ²\((\d+)\) = ([\d.]+)，([\d.]+)", out)
+    check("v166 MCAR跑通", r.returncode == 0 and m_chi is not None, out[-300:])
+    if m_chi:
+        check("v166 df与手算一致", int(m_chi.group(1)) == exp_df,
+              f"工具 {m_chi.group(1)} vs 手算 {exp_df}")
+        check("v166 χ²黄金值", abs(float(m_chi.group(2)) - 165.839) < 0.5, m_chi.group(2))
+        check("v166 MCAR不拒绝且措辞正确", float(m_chi.group(3)) > 0.05
+              and "未拒绝完全随机缺失" in out)
+    check("v166总缺失格数", f"{exp_miss}/{240 * K66} 格" in out)
+    check("v166完整样本量", f"完整作答 {exp_complete} 份" in out)
+    csv66 = (v66 / "mcar_缺失值分析.csv").read_text(encoding="utf-8-sig")
+    check("v166 CSV三段式", all(s in csv66 for s in ["逐题缺失", "缺失模式", "MCAR 检验"])
+          and "○" in csv66 and "×" in csv66)
+    rep66 = (v66 / "mcar_缺失值报告.txt").read_text(encoding="utf-8")
+    check("v166报告段落", "Little's MCAR 检验" in rep66 and "总缺失率" in rep66)
+    check("v166报告含模式明细", "缺失模式（○=作答 ×=缺失）" in rep66 and "完整作答" in rep66)
+
+    ap = wcsv66("mar.csv", gen66(240, 1660918, mar=True))
+    r = run([mr_tool, str(ap), "--scales", str(sc66)])
+    out_a = r.stdout or ""
+    ma = re.search(r"χ²\((\d+)\) = ([\d.]+)", out_a)
+    check("v166 MAR拒绝并给插补建议", r.returncode == 0 and "拒绝完全随机缺失" in out_a
+          and "多重插补" in out_a)
+    check("v166 MAR黄金值", ma is not None and int(ma.group(1)) == 20
+          and abs(float(ma.group(2)) - 63.698) < 0.5, out_a[-200:])
+
+    fp = wcsv66("full.csv", gen66(120, 1660920))
+    r = run([mr_tool, str(fp), "--scales", str(sc66)])
+    check("v166无缺失不出检验", r.returncode == 0 and "无任何缺失" in (r.stdout or ""))
+
+    rc_rows = gen66(60, 1660920)
+    for row in rc_rows:
+        row[0] = ""
+    cp = wcsv66("colmiss.csv", rc_rows)
+    r = run([mr_tool, str(cp), "--scales", str(sc66)])
+    check("v166整列缺失硬失败", r.returncode != 0 and "全部缺失" in (r.stdout or ""))
+    bad = v66 / "bad.txt"
+    bad.write_text("坏表:8=Q1,不存在题\n", encoding="utf-8")
+    r = run([mr_tool, str(mp), "--scales", str(bad)])
+    check("v166坏量表硬失败", r.returncode != 0)
+    r = run([mr_tool, str(v66 / "nope.csv")])
+    check("v166文件不存在硬失败", r.returncode != 0 and "文件不存在" in (r.stdout or ""))
+    r = run([mr_tool])
+    check("v166无参数硬失败", r.returncode != 0 and "问卷数据 CSV" in (r.stdout or ""))
+    ep66 = v66 / "empty.csv"
+    ep66.write_text("", encoding="utf-8")
+    r = run([mr_tool, str(ep66)])
+    check("v166空文件硬失败", r.returncode != 0 and "没有任何记录行" in (r.stdout or ""))
+    r = run([mr_tool, str(mp), "--scales", str(sc66), "--alpha", "x"])
+    check("v166坏alpha硬失败", r.returncode != 0 and "--alpha" in (r.stdout or ""))
+    gp66 = wcsv66("gbk.csv", rows_mcar, enc="gbk")
+    r = run([mr_tool, str(gp66), "--scales", str(sc66)])
+    check("v166 GBK输入", r.returncode == 0)
+    const_rows = []
+    random.seed(1)
+    for i in range(60):
+        const_rows.append(["" if i % 7 == 0 else 3,
+                           round(random.gauss(0, 1), 2), round(random.gauss(0, 1), 2)])
+    kp66 = wcsv66("const.csv", const_rows)
+    r = run([mr_tool, str(kp66)])
+    check("v166常量列硬失败", r.returncode != 0 and "常量列" in (r.stdout or ""))
+    check("v166红线声明", "检验不能证明 MCAR" in mr_src)
+
 
 finally:
     cleanup()

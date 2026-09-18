@@ -60,6 +60,7 @@
 - `item_analysis.py` — **预试问卷项目分析**（按量表总分取高/低各 27% 逐题做独立样本 t 得决断值 CR，并给均值标准差、CITC 校正项总相关、删题后 α 与保留/讨论删改判定，导出 `_项目分析.csv`；复用 stats 包，纯标准库，CR 经 scipy 黄金核对；只提示不替学生删题）
 - `content_cvi.py` — **自编量表内容效度 CVI**（专家 1-4 相关性评分 → 逐条 I-CVI、机遇校正 κ*、量表 S-CVI/Ave 与 S-CVI/UA，按 Lynn 1986/Polit&Beck 2006 阈值给保留/修改/重审建议，导出 `_内容效度CVI.csv`；纯标准库，仅自编/修订量表需要）
 - `reference_formatter.py` — **参考文献格式化**（题录 CSV → GB/T 7714-2015 顺序编码制 [n] 文本：期刊/专著/学位论文/会议/报纸/电子资源六类，作者超 3 人自动截"等/et al"、欧美著者姓全大写名缩写，支持全角标点与 GB/T 7714-2025 姓氏口径开关，吃 paper_search 导出与文献整理表；缺字段标【待补】不伪造、坏输入中文报错；纯标准库，只格式化不生成文献）
+- `missing_report.py` — **缺失值分析与 Little's MCAR 检验**（预处理后清洗前：总/逐题缺失率、缺失模式、成列删除完整样本量；EM 多元正态估计后按缺失模式算 Little (1988) T_MLμ 统计量，与 R naniar::mcar_test / Enders (2010) 同口径；p≥.05 可成列删除、p<.05 建议多重插补/FIML；给可直接粘论文的段落，导出 `_缺失值分析.csv`/`_缺失值报告.txt`；纯标准库）
 
 **典型数据流水线**：问卷星导出 →（外发前）去标识化 → 预处理 → 清洗 → 一键自动统计（频数/信度/效度/Harman/相关/回归/Bootstrap中介）→ JASP/SPSS复核 → 画模型图
 
@@ -137,7 +138,7 @@ thesis-ai-coach-project/
 ├── 我的工作区/                # 学生自己的文件：01-文献PDF/02-问卷数据/03-分析结果/04-网页 + 我的论文进度.md
 ├── core/                     # AI规则（coach-rules）+ 身份陪伴边界（companionship）+ 引导反馈协议 + 鼓励系统 + AI素养
 ├── workflows/                # 10个阶段工作流手册
-├── tools/                    # 17个脚本（含统一菜单menu.py、重点文献卡片literature_cards.py、网页预览器、去标识化anonymize_data.py、效应量换算effect_size.py、聚合区分效度validity_cr_ave.py、预试项目分析item_analysis.py、内容效度content_cvi.py、参考文献格式化reference_formatter.py）+ stats/ 统计实现包（9个模块）
+├── tools/                    # 18个脚本（含统一菜单menu.py、重点文献卡片literature_cards.py、网页预览器、去标识化anonymize_data.py、效应量换算effect_size.py、聚合区分效度validity_cr_ave.py、预试项目分析item_analysis.py、内容效度content_cvi.py、参考文献格式化reference_formatter.py、缺失值分析missing_report.py）+ stats/ 统计实现包（9个模块）
 ├── psychology/               # 量表/统计/伦理知识库
 ├── templates/                # 问卷/大纲/开题/答辩/进度卡/AI声明模板 + 网页范例/
 └── tests/                    # full_e2e.py 一键全量回归、consistency_check.py 文档↔代码一致性自检、专项测试与测试数据
@@ -147,14 +148,15 @@ thesis-ai-coach-project/
 
 ## 版本
 
-**当前版本：v1.65**（2026-09-18）GB/T 7714 参考文献格式化闭环（完整版；doubao-skill 本轮无改动）
-- **定稿最后一块断档补齐**：新增 `reference_formatter.py`（菜单第 16 项），吃 paper_search 导出、文献整理表或自带 13 列模板 CSV，输出 GB/T 7714-2015 顺序编码制 [n] 参考文献：期刊/专著/学位论文/会议/报纸/电子资源六类，作者超 3 人自动截"等/et al"、欧美著者"姓全大写＋名缩写不带点"，DOI 尾随著录
-- **口径开关与不伪造**：`--fullwidth` 全角标点、`--name-case 2025` 切 GB/T 7714-2025 姓氏首字母大写口径、`--access-date` 电子资源引用日期；缺字段文中标【待补】并逐条警告，文件不存在/空表/无题名列/不可判类型统一中文 rc=1；工具不联网、不生成文献
-- **测试与文档**：黄金用例＋16 组 CLI 端到端场景全过，full_e2e 427→448 项（+21），writing-guide §四重写，菜单 15→16 项、工具脚本 16→17 个
+**当前版本：v1.66**（2026-09-18）缺失值分析与 Little's MCAR 检验闭环（完整版；doubao-skill 本轮无改动）
+- **方法章缺失值断档补齐**：新增 `missing_report.py`（菜单第 17 项），预处理后、清洗前一次算齐总/逐题缺失率、缺失模式分组、成列删除完整样本量，并用 EM（Dempster-Laird-Rubin，ML 除 N）估计多元正态参数后做 Little (1988) MCAR 检验
+- **口径可追溯**：采用 T_MLμ 均值项统计量 d²=Σ_j n_j(x̄_j−μ̂_j)'Σ̂_j⁻¹(x̄_j−μ̂_j)、df=Σ_j k_j−k，与 R `naniar::mcar_test`（源码逐行核对）、misty、Enders (2010) 同口径；注明 SPSS 用含协方差似然项的完整统计量、数值会不同
+- **黄金验证**：纯 Python EM 与 numpy 独立实现 μ/Σ 差 <2e-8、d² 差 1e-8；400 次模拟校准 MCAR 拒绝率 6.5%（名义 5%）、MAR 检出率 98%；df 手算核对；16 组 CLI 场景全过（无缺失/整列缺失/整行缺失/坏参/GBK 等）；full_e2e 448→475 项，菜单 16→17 项、工具脚本 17→18 个
+- **不越界**：只检验与给处理建议，不做插补（拒绝 MCAR 时指引 SPSS 多重插补/R mice/FIML）；检验不显著≠证明 MCAR，Likert 数据谨慎解读，任何处理不得改动真实作答
 
-**上一个版本：v1.64** 全流程三轮演练健壮性闭环：模型图补 direct 二变量类型与菜单自动选型；scales 缺失/题项错配在统计/清洗/项目分析/HTMT 四处统一中文硬失败（校验下沉 dataio）；清洗器数值参数、效应量 16 处坏参、文献整理空文件统一 rc=1；full_e2e 414→427 项；逐条见 CHANGELOG。
+**上一个版本：v1.65** GB/T 7714 参考文献格式化闭环：新增 `reference_formatter.py`（菜单第 16 项），题录 CSV → GB/T 7714-2015 顺序编码制 [n] 文本，六类文献、超 3 作者截"等/et al"、全角与 2025 姓氏口径开关，缺字段标【待补】不伪造；full_e2e 427→448 项；逐条见 CHANGELOG。
 
-**更早版本（v1.63 及以前）的逐版说明全部见
+**更早版本（v1.64 及以前）的逐版说明全部见
 [CHANGELOG.md](CHANGELOG.md)** —— 本 README 自 v1.57 起只保留当前版本与上一版本的摘要，
 不再往下堆积版本正文（同一版本的说明只维护 CHANGELOG 一处，避免两处漂移、README 无限变长）。
 

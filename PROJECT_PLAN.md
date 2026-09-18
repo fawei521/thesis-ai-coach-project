@@ -298,7 +298,7 @@
 | chart_generator.py | 研究模型图/路径系数图 | matplotlib |
 | menu.py | 中文统一菜单（配合「启动工具箱.bat」，支持拖拽） | 标准库 |
 
-> 注：上表为早期快照，实际工具以 `AGENTS.md` 文件地图与 `tools/` 目录为准（v1.57 为 10 个脚本，v1.58 新增 `literature_cards.py` 后为 11 个，v1.59 新增 `anonymize_data.py`、`effect_size.py` 后为 13 个、菜单 12 项；v1.60 新增 `validity_cr_ave.py`、`item_analysis.py`、`content_cvi.py` 后为 16 个、菜单 15 项；v1.65 新增 `reference_formatter.py` 后为 17 个、菜单 16 项）。
+> 注：上表为早期快照，实际工具以 `AGENTS.md` 文件地图与 `tools/` 目录为准（v1.57 为 10 个脚本，v1.58 新增 `literature_cards.py` 后为 11 个，v1.59 新增 `anonymize_data.py`、`effect_size.py` 后为 13 个、菜单 12 项；v1.60 新增 `validity_cr_ave.py`、`item_analysis.py`、`content_cvi.py` 后为 16 个、菜单 15 项；v1.65 新增 `reference_formatter.py` 后为 17 个、菜单 16 项；v1.66 新增 `missing_report.py` 后为 18 个、菜单 17 项）。
 
 ---
 
@@ -438,4 +438,24 @@
 - **菜单与计数**：菜单 15→16 项（15 处步骤标签同步 /16，主屏补提示行）；工具脚本 16→17 个；stats 子包不变。
 - **文档**：writing-guide §四重写、START 工具清单与用法、README 工具清单/目录树/版本轮换、AGENTS 文件地图、paper-outline 参考文献节、e2e-test 测试64、本文件。
 - **测试（P0）**：`full_e2e.py` 427→**448 项全过**（+21）；黄金用例与 CLI 端到端 16 组场景全绿；consistency_check、doubao-skill validate、全量 py_compile 全绿。
+- **范围控制**：doubao-skill 本轮无改动；测试与补丁不入库。
+
+## 十六、v1.66 优化：缺失值分析与 Little's MCAR 检验闭环
+
+> 2026-09-18 晚间自主推进，同分支 `feat/advance-closed-loop`，承接 v1.65 之后的数据准备段断档排查。
+
+### 16.1 背景与做法
+
+1. 清洗器只剔除高缺失个案，方法章还需要"缺失率—缺失模式—机制检验—处理结论"的规范产物，SPSS Missing Values/R naniar 的 Little's MCAR 是常见报告项，工具箱此前无出口。
+2. 先联网核查公式口径，发现存在两个版本：均值项 T_MLμ（naniar/misty/Enders，df=Σk_j−k）与含协方差似然项的完整版（SPSS，df=Σ k_j(k_j+1)/2−k(k+1)/2）。下载 naniar 1.0.0 CRAN 源码逐行核对确认其为均值项版；再用 400 次蒙特卡洛模拟比较三种实现口径：均值项一类错误 6.5%（名义 5%）、MAR 检出 98%，(n−1) 无偏协方差完整版严重保守（0.8%），朴素 LR 完整版反保守（45.8%），据此选定均值项口径并在文档注明 SPSS 差异。
+3. 黄金验证先行（EM 对 numpy 参照、χ²/df 对照、校准模拟、df 手算），再补 16 组 CLI 场景与 full_e2e 断言，最后接菜单与文档。
+
+### 16.2 改动清单
+
+- **新增 `tools/missing_report.py`（菜单第 17 项）**：描述统计＋EM（D-L-R，ML 除 N）＋Little T_MLμ；导出 `_缺失值分析.csv`（三段式）与 `_缺失值报告.txt`（可粘论文段落）；`--scales/--only/--csv-out/--report/--alpha`；无缺失不出检验、整列缺失/Σ 奇异/不收敛/坏输入统一中文 rc=1；UTF-8/GBK 自适应；纯标准库（复用 stats.dataio/linalg/mathx）。
+- **修复的真 bug**：E 步条件回归系数矩阵 Σ_mo 取列误用模式内局部下标（修复后 Σ 误差从 2.30 降到 1.7e-8，MAR 场景恢复收敛）。
+- **边界**：只检验不插补，拒绝 MCAR 时指引 SPSS 多重插补/R mice/FIML；显式声明正态假设、不显著≠证明 MCAR、不得改动真实作答。
+- **菜单与计数**：菜单 16→17 项（16 处标签同步 /17）；工具脚本 17→18 个；stats 子包不变。
+- **文档**：stats-guide 缺失值方法学小节、data-analysis-auto 第 1.5 步（修订 2.3 均值替代旧说法）、START、README、AGENTS、QUICKSTART、e2e-test 测试65、本文件。
+- **测试（P0）**：`full_e2e.py` 448→**475 项全过**（+27）；numpy 黄金模拟与 CLI 16 场景全绿；consistency_check、validate、全量 py_compile 全绿。
 - **范围控制**：doubao-skill 本轮无改动；测试与补丁不入库。

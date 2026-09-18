@@ -954,6 +954,21 @@ python tests/test_special_columns.py`
 
 ---
 
+## 测试65：缺失值分析与 Little's MCAR 检验（v1.66，missing_report.py，菜单第17项）
+
+**目的**：补齐清洗前方法章断档——缺多少、怎么缺、能否直接删。统计口径必须与主流免费软件一致且经模拟校准，不能想当然实现。
+
+**步骤与预期**：
+1. 确定性模拟数据（固定种子的单因子连续数据，7% MCAR 删除）：工具输出总缺失率、逐题缺失率、○/× 缺失模式与完整样本量，数字与独立手算一致；Little 检验 χ²(df) 的 df 与按模式手算的 Σk_j−k 一致（黄金种子：χ²(169)=165.84，p=.554，未拒绝 MCAR，措辞为"可成列删除"）。
+2. MAR 数据（Q1 低分组 Q5/Q6 以 40% 概率缺失）：χ²(20)=63.70，p<.001，拒绝 MCAR 且输出多重插补/FIML 建议，不得给"可直接删除"结论。
+3. 无缺失数据：rc=0、只出描述统计、明确提示"无需 MCAR 检验"；整列全缺失 rc=1 中文提示；整行全缺失剔除计数、只剩完整模式时提示自由度不足。
+4. 坏输入 rc=1 无 Traceback：文件不存在、空文件、无参数、scales 题项不存在、--alpha 非数字/越界；GBK 编码正常读。
+5. 统计正确性（维护者侧 numpy 参照，不入库）：EM 的 μ/Σ 与 numpy 独立实现差 <2e-8、d² 差 <1e-7；MCAR 模拟 200 次拒绝率约 5%（实测 6.5%）、MAR 检出率显著高（实测 98%）；两模式 df 手算=5。
+6. `python tests/full_e2e.py`：475 项全过；菜单 17 项接线（menu.py 中 /17】 恰好 17 处、无 /16】 残留）；consistency_check、validate、全量 py_compile 全绿。
+7. 红线：工具只检验不插补；输出声明"检验不能证明 MCAR""Likert 谨慎解读""不得改动真实作答"；stats-guide 与 data-analysis-auto 第1.5步同步口径，并注明 SPSS 用含协方差项的完整统计量、数值会不同。
+
+---
+
 # 脚本回归测试清单（每次改动后执行）
 
 在项目根目录（PowerShell）逐条运行，全部通过才算合格：
@@ -1007,7 +1022,9 @@ python tools\validity_cr_ave.py --htmt tests\test-data\demo_htmt.csv --scales te
 # 18 参考文献格式化（模板回填/六类著录/全角/2025口径/坏参rc1；默认导出 _参考文献.txt，验毕删）
 python tools\reference_formatter.py --save-template tests\test-data\_t_refs_tpl.csv
 python tools\reference_formatter.py tests\test-data\_t_refs_tpl.csv
+# 19 缺失值分析与 Little's MCAR（逐题缺失率/模式/χ²；默认导出 _缺失值分析.csv 与 _缺失值报告.txt，验毕删）
+python tools\missing_report.py tests\test-data\demo_survey.csv --scales tests\test-data\demo_scales.txt
 ```
 
-测试结束后删除 `_t_*` 临时文件、`tests/test-data/_demo_check` 目录，以及在 test-data 旁生成的 `demo_survey_项目分析.csv`、`demo_cvi_内容效度CVI.csv`、`demo_htmt_*.csv/png`、`_t_refs_tpl*` 与各 `_参考文献.txt`（夹具 `demo_htmt.csv`、`htmt_scales.txt` 保留）。（test_special_columns.py 会自清其 `_special*` 临时文件）所有脚本只用Python标准库（模型图需matplotlib），
+测试结束后删除 `_t_*` 临时文件、`tests/test-data/_demo_check` 目录，以及在 test-data 旁生成的 `demo_survey_项目分析.csv`、`demo_cvi_内容效度CVI.csv`、`demo_htmt_*.csv/png`、`_t_refs_tpl*` 与各 `_参考文献.txt`、`demo_survey_缺失值分析.csv`、`demo_survey_缺失值报告.txt`（夹具 `demo_htmt.csv`、`htmt_scales.txt` 保留）。（test_special_columns.py 会自清其 `_special*` 临时文件）所有脚本只用Python标准库（模型图需matplotlib），
 统计数字以SPSS/JASP为准，脚本用于快速预览和教学。
