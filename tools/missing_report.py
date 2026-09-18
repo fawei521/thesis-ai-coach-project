@@ -274,7 +274,8 @@ def make_paragraph(desc, chi2, df, p, n_patterns, alpha=0.05):
             concl = (f"Little's MCAR 检验 {sig_txt}，p<{alpha:g}，拒绝完全随机缺失（MCAR）假设，"
                      "提示缺失可能与观测到的变量有关（MAR）。不建议简单成列删除或均值插补，"
                      "应优先采用多重插补（SPSS 多重插补/R mice）或全息极大似然 FIML（如 AMOS），"
-                     "并在局限中说明缺失机制与处理方式。")
+                     "并在局限中说明缺失机制与处理方式。SPSS/R/AMOS 的具体操作步骤、Rubin 池化"
+                     "规则与论文报告模板见 psychology/missing-imputation-guide.md。")
         else:
             concl = (f"Little's MCAR 检验 {sig_txt}，p≥{alpha:g}，未拒绝完全随机缺失（MCAR）假设，"
                      f"成列删除后完整样本 {d['complete']} 份可作为主分析样本；"
@@ -377,7 +378,8 @@ def main():
             print("-" * 64)
             print(f"EM {iters} 次迭代收敛；缺失模式 {n_patterns} 种。")
             print(f"Little's MCAR 检验：χ²({df}) = {chi2:.3f}，{fmt_p(p)}")
-            print("  解读：" + ("p<%.2g，拒绝 MCAR，建议多重插补/FIML，不要简单删除或均值插补。" % alpha
+            print("  解读：" + ("p<%.2g，拒绝 MCAR，建议多重插补/FIML，不要简单删除或均值插补；"
+                  "操作步骤见 psychology/missing-imputation-guide.md。" % alpha
                   if p < alpha else "p≥%.2g，未拒绝 MCAR，可成列删除；但不显著≠证明 MCAR，报告缺失率并做敏感性说明。" % alpha))
         else:
             n_patterns = len(groups)

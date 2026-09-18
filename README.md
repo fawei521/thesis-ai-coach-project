@@ -101,6 +101,7 @@ AI 助手可以引导学生做一个**给自己用**的网页，把手里多而�
 
 - `scale-library.md` — 16种心理学常用量表（题数、维度、信度、出处，含AI依赖、NSSI等新主题）
 - `stats-guide.md` — 常用统计方法的SPSS/JASP/PROCESS操作步骤（信效度、共同方法偏差、相关与差异、中介/调节、网络分析、功效分析等）
+- `missing-imputation-guide.md` — MCAR 被拒绝/缺失较多时的多重插补（SPSS MI、R mice）与 FIML（AMOS）照做步骤、Rubin 池化公式、敏感性分析与论文模板
 - `ethics.md` — 研究伦理（知情同意、未成年人、敏感话题）
 
 ## 4种语气风格（默认不套人设）
@@ -147,17 +148,17 @@ thesis-ai-coach-project/
 └── tests/                    # full_e2e.py 一键全量回归、consistency_check.py 文档↔代码一致性自检、专项测试与测试数据
 ```
 
-> 维护者/接手者：改动后运行 `python tests/full_e2e.py`（约3-5分钟，577 项断言，自动备份恢复测试数据），退出码 0 才算通过；学生日常使用不需要跑。
+> 维护者/接手者：改动后运行 `python tests/full_e2e.py`（约3-5分钟，589 项断言，自动备份恢复测试数据），退出码 0 才算通过；学生日常使用不需要跑。
 
 ## 版本
 
-**当前版本：v1.70**（2026-09-18）配对检验效应量与口径增强（完整版；doubao-skill 本轮无改动）
-- **Wilcoxon 效应量补齐**：`paired_compare.py` 的符号秩结果新增 rank-biserial 相关 r_rb=（W+−W−）/（W++W−）（符号同差值方向，|r| .1/.3/.5 小/中/大，与 R `effectsize::rank_biserial`、JASP 同口径），控制台、可粘论文段落与导出 CSV 同步给出
-- **小样本有结口径警示**：n<30 且差值有结（Likert 前后测极常见）时，明示只能走正态近似、p 偏乐观，需以 SPSS/JASP 精确法或蒙特卡洛复核并同时报告配对 t；反向计分越出 1~点数 时 dataio 硬提示（0 起编误用、无效码、0/1 题误配反向）
-- **黄金验证**：600 组模拟（n=4…80 × 连续/Likert 结/偏态/含零差值）r_rb 对 scipy 零误差（8.9e-16），连续性校正 z 同步回归；full_e2e 570→577 项；工具脚本与菜单项数不变（21 个/20 项）
-- **不越界**：r 只作效应量描述，不改变检验选择逻辑；有结小样本不给"精确"假象，明确要求权威软件复核
+**当前版本：v1.71**（2026-09-18）多重插补/FIML 教学指引闭环（完整版；doubao-skill 本轮无改动）
+- **缺失处理"最后一公里"补齐**：新增 `psychology/missing-imputation-guide.md`——缺失机制×缺失率决策树（何时成列删除可接受、何时必须 MI/FIML）、SPSS 多重插补照做步骤（PMM 预测均值匹配、m=20+、自动池化与 PROCESS 不池化的两条出路）、AMOS FIML（勾选估计均值与截距即自动启用＋辅助变量）、R mice 代码模板与 Rubin 池化公式（T=Ū+(1+1/m)B、校正自由度）、MNAR 敏感性分析（delta/tipping point）、方法/结果/局限三章论文模板
+- **接线**：`missing_report.py` 在拒绝 MCAR 的控制台解读与可粘论文段落中直接指向该指南；stats-guide、data-analysis-auto 第1.5步、START 查证表、README 知识库列表同步登记
+- **红线先行**：禁止均值/LOCF/单点回归插补当完整数据、禁止看结果换插补方法、插补模型须含全部分析变量与辅助变量、量表题均替代只作描述性处理、成对删除不推荐；关键菜单/方法经 IBM 官方手册核对（PMM、默认 m=5、AMOS FIML 勾选位置）
+- **验证**：full_e2e 577→589 项（指南内容静态断言＋四处接线＋MAR 场景控制台/报告指引）；consistency（Markdown 41 个）、validate、全量 py_compile 全绿；工具脚本与菜单项数不变（21 个/20 项）
 
-**上一个版本：v1.69** 多重比较校正闭环：新增 `mult_compare.py`（菜单第 20 项），Bonferroni/Holm（FWER）、BH/BY（FDR）四法同列，与 R `p.adjust`/scipy 同口径；3000 组黄金对照零误差；full_e2e 541→570 项；逐条见 CHANGELOG。
+**上一个版本：v1.70** 配对检验效应量与口径增强：`paired_compare.py` 的 Wilcoxon 新增 rank-biserial r 效应量（R effectsize/JASP 同口径，600 组对 scipy 零误差），n<30 有结正态近似 p 偏乐观警示，dataio 反向计分越界硬提示；full_e2e 570→577 项；逐条见 CHANGELOG。
 
 **更早版本（v1.64 及以前）的逐版说明全部见
 [CHANGELOG.md](CHANGELOG.md)** —— 本 README 自 v1.57 起只保留当前版本与上一版本的摘要，

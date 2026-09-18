@@ -122,7 +122,9 @@ python tools/missing_report.py 预处理后数据.csv --scales scales.txt
 判读与处理：
 - **p≥.05（未拒绝 MCAR）**：可成列删除，以完整样本为主分析样本，报告完整 n 与缺失率；
 - **p<.05（拒绝 MCAR）**：提示 MAR，不要简单删除或均值插补；用 SPSS 多重插补/R mice
-  或 FIML（AMOS），方法章写清插补方法、插补次数与敏感性结果；
+  或 FIML（AMOS），方法章写清插补方法、插补次数与敏感性结果；照做步骤（含 Rubin 池化、
+  m 次数建议、PROCESS 不自动池化的处理、敏感性分析与论文模板）见
+  `psychology/missing-imputation-guide.md`；
 - 检验不显著≠证明 MCAR，检验基于多元正态假设，Likert 数据谨慎解读；任何处理都不得改动真实作答。
 
 ---

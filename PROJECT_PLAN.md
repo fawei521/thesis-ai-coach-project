@@ -536,3 +536,20 @@
 - **菜单与计数**：菜单项 20、工具脚本 21 个均不变；full_e2e 570→**577 项全过**（+7）；consistency（21 工具/31 模块/103 开关/29 csv 后缀）、validate、全量 py_compile 全绿。
 - **文档**：stats-guide、data-analysis-auto、START、README（版本轮换）、AGENTS、QUICKSTART、paper-outline、CHANGELOG、e2e-test 测试69、本文件同步。
 - **范围控制**：doubao-skill 本轮无改动；测试与补丁不入库。
+
+## 二十一、v1.71 优化：多重插补/FIML 教学指引闭环（缺失处理最后一公里）
+
+> 2026-09-18 晚自主推进，同分支 `feat/advance-closed-loop`，承接 v1.66 缺失分析与 v1.70，补齐"建议插补之后怎么做"。
+
+### 21.1 背景与做法
+
+1. v1.66 工具在拒绝 MCAR 时只输出"建议多重插补/FIML"，学生缺操作路径；网络教程错误做法（均值插补、LOCF、单点回归当完整数据）泛滥，需要一份可照做、可核对、红线明确的指引。
+2. 坚持"工具只检验不插补"：MI/FIML 涉及模型选择、池化规则与敏感性分析，内置一键插补会让学生在不理解 Rubin 规则时制造虚假精度；改为高质量教学文档＋权威软件操作（SPSS/R/AMOS），AI 带教时按需引用，既辅助又不替代判断。
+3. 事实核查先行：SPSS PMM/默认 m=5/菜单路径、AMOS FIML 勾选位置均查 IBM/SPSS 官方文档确认；池化公式与 m 建议引 Rubin(1987)、Graham et al.(2007)、von Hippel(2018)。
+
+### 21.2 改动清单
+
+- **新增 `psychology/missing-imputation-guide.md`**：决策树、七条红线、SPSS MI（PMM、m、池化与 PROCESS 出路）、AMOS FIML（均值截距/辅助变量）、R mice 模板与 Rubin 公式、MNAR 敏感性、三章论文模板；含与其他专业文档一致的使用约定块与 P0 指针。
+- **接线**：`tools/missing_report.py`（控制台解读＋论文段落指路径）、stats-guide、data-analysis-auto 第1.5步、START 查证表、README 知识库列表。
+- **测试（P0）**：full_e2e 577→**589 项全过**（+12）；v1566 专业文档断言三份→四份；consistency（Markdown 41 个；开发中捕获一处误写的清洗脚本名并改为 data_cleaner.py）、validate、全量 py_compile 全绿。
+- **范围控制**：无新增可执行插补代码，运行时纯标准库约束不变；菜单项 20、工具脚本 21 个不变；doubao-skill 无改动；测试与补丁不入库。

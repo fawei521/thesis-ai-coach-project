@@ -1032,6 +1032,20 @@ python tests/test_special_columns.py`
 
 ---
 
+## 测试70：多重插补/FIML 教学指引（v1.71，psychology/missing-imputation-guide.md）
+
+**目的**：缺失分析拒绝 MCAR 后有可照做的操作出口；指南内容准确、接线完整、不引用幽灵脚本。
+
+**步骤与预期**：
+1. 指南存在且含：缺失机制×缺失率决策树、七条红线（均值/LOCF/单点回归插补、看结果换方法等）、SPSS 多重插补步骤（PMM、m=20+、自动池化/PROCESS 出路）、AMOS FIML（估计均值与截距、辅助变量）、R mice 模板与 Rubin 池化公式（T=Ū+(1+1/m)B）、m 次数文献依据、MNAR 敏感性（delta/tipping point）、方法/结果/局限论文模板。
+2. 指南含与其他专业文档一致的"**使用约定**"块与 core/coaching-protocol.md 指针（v1566 断言覆盖，专业文档现为四份）。
+3. 接线：missing_report.py 拒绝 MCAR 的控制台解读行与论文段落均含 `psychology/missing-imputation-guide.md`；stats-guide、data-analysis-auto 第1.5步、START 查证表、README 知识库列表均登记。
+4. MAR 夹具（n=300，Y 缺失依赖低 X，seed 71）：Little's MCAR 拒绝，控制台与报告均出现指南路径；MCAR/无缺失场景不出现插补指引（按现状回归）。
+5. consistency_check：Markdown 计数 41，指南引用的脚本名全部真实存在（曾捕获一处清洗脚本名误写，已改为 data_cleaner.py）。
+6. `python tests/full_e2e.py`：589 项全过；validate、全量 py_compile 全绿。
+
+---
+
 # 脚本回归测试清单（每次改动后执行）
 
 在项目根目录（PowerShell）逐条运行，全部通过才算合格：

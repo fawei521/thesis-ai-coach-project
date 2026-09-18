@@ -12,6 +12,7 @@
 
 | 版本 | 发布日期 | 主题 | 提交 |
 |---|---|---|---|
+| **v1.71** | 2026-09-18 | 多重插补/FIML 教学指引闭环：新增 psychology/missing-imputation-guide.md（决策树、SPSS MI/PMM、AMOS FIML、R mice＋Rubin 池化公式、MNAR 敏感性、论文模板）；missing_report 拒绝 MCAR 时控制台与论文段落直接指向指南；四处文档接线；full_e2e 577→589 项 | 见下方详情 |
 | **v1.70** | 2026-09-18 | 配对检验效应量与口径增强：paired_compare.py 的 Wilcoxon 新增 rank-biserial r 效应量（(W+−W−)/(W++W−)，R effectsize/JASP 同口径，600 组对 scipy 零误差），控制台/论文段落/CSV 同步；n<30 有结正态近似 p 偏乐观警示；dataio 反向计分越界硬提示；full_e2e 570→577 项 | 见下方详情 |
 | **v1.69** | 2026-09-18 | 多重比较校正闭环：新增 mult_compare.py（菜单20，Bonferroni/Holm 控 FWER、BH/BY 控 FDR，支持 --ps 直给或 CSV 读 p 值列/名称列，四法同列对照并给可粘论文段落，与 R p.adjust/scipy false_discovery_control 同口径；导出 _多重比较校正.csv/_多重比较报告.txt；3000 组随机向量黄金对照 Bonferroni/Holm/BH 零误差、BY ≤4.4e-16），full_e2e 541→570 项 | 见下方详情 |
 | **v1.68** | 2026-09-18 | 配对设计差异检验闭环：新增 paired_compare.py（菜单19，前后测/两条件配对样本 t、Cohen's d_z 及近似95%CI、差值 Shapiro-Wilk 正态前提、Wilcoxon 符号秩（n≤25 无结精确 p，否则结校正/连续性校正 z，SPSS 口径）；单文件宽表与两文件按编号配对（强制 --id，缺一方整对剔除计数）、--group/--level 组内配对、scales 量表均分；导出 _配对检验.csv/_配对检验报告.txt；462 组对 scipy：t 1.8e-15、Wilcoxon 精确 p 零误差、近似 z 1.3e-15），full_e2e 504→541 项 | 见下方详情 |
@@ -98,6 +99,14 @@
 ## 版本详情
 
 > 以下为各版本变更说明，按版本倒序。
+
+**v1.71 多重插补/FIML 教学指引闭环版（缺失处理最后一公里；完整版，doubao-skill 本轮无改动）**
+- **背景**：v1.66 的缺失分析工具在拒绝 MCAR 时只给"建议多重插补/FIML"的结论，学生拿到建议后不知道在 SPSS/R/AMOS 里具体怎么点、m 取多少、PROCESS 不自动池化怎么办、论文怎么写；网络教程口径混杂（均值插补、LOCF 等错误做法常见）。本闭环补齐可照做、可核对、带红线的操作指引，工具本体仍坚持"只检验不插补"，避免学生把插补当一键补全。
+- **新增 `psychology/missing-imputation-guide.md`**：①缺失机制×缺失率决策树（<5% 且 MCAR 可成列删除；5～10%/MAR 上 MI/FIML；>20% 或单变量 >40% 降级结论；MNAR 必须敏感性分析）与量表单题题均替代的适用边界；②七条红线（禁均值/LOCF/单点回归插补、禁看结果换方法、插补模型含全部分析变量与辅助变量、无效码先清洗等）；③SPSS 多重插补菜单步骤（分析→多重插补→填充缺失值；连续/量表变量推荐 PMM 预测均值匹配，插补值取自真实观测、不越量表范围；m 默认 5、建议 20+；支持自动池化的过程与 PROCESS 等不池化时的两条出路）；④AMOS FIML（分析属性→估计→勾选估计均值与截距即自动 FIML；辅助变量纳入）；⑤R mice 代码（mice/pmm、with/pool、lavaan runMI、FIML missing="ml"）与 Rubin 池化公式（Q̄、Ū、B、T=Ū+(1+1/m)B、校正 df）；⑥m 次数依据（Rubin 1987；Graham 2007；von Hippel 2018，m≈缺失率百分数、20～100）；⑦敏感性分析（完整病例对照、m/方法对照、delta/tipping point）；⑧方法/结果/局限三章论文模板。
+- **事实核查**：SPSS PMM 定义、默认插补 5 次、菜单路径经 IBM SPSS Missing Values 官方手册核对；AMOS FIML 勾选位置经 SPSS/Amos 官方说明核对；池化公式与 m 建议引自 Rubin/Graham/von Hippel 经典文献。
+- **接线**：`missing_report.py` 拒绝 MCAR 时控制台解读行与可粘论文段落均追加指南路径；stats-guide 缺失处理处、data-analysis-auto 第 1.5 步、START 查证用资料表（新增一行并调整"最长"说明）、README 专业知识库列表同步登记。
+- **测试（P0）**：`full_e2e.py` 577→**589 项全过**（+12：指南存在/决策与红线/三软件步骤/Rubin 与敏感性/论文模板、缺失工具与三处文档接线、README/START 登记、MAR 夹具 n=300 控制台与报告均含指引）；v1566 专业文档断言由三份更新为四份（新指南同样含使用约定块与 P0 处置指针）；consistency_check（Markdown 40→41 个，开发中捕获并修掉一处误写脚本名 data_clean→data_cleaner）、validate、全量 py_compile 全绿。
+- **范围控制**：不新增可执行插补代码（运行时纯标准库约束与"先理解再插补"的教学定位不变）；doubao-skill 本轮无改动；测试与补丁不入库。
 
 **v1.70 配对检验效应量与口径增强版（非参数结果可解释性；完整版，doubao-skill 本轮无改动）**
 - **背景**：v1.68 的 Wilcoxon 符号秩只给 W+/z/p，学生在论文里报了显著性却没有效应量（评审常问"差异多大"）；Likert 前后测差值几乎必有结，n 小时被迫走正态近似，该口径在小样本偏乐观却无任何提示；反向计分时 0 起编数据误用 1 起编公式会静默毁掉均分/信度，此前无告警。

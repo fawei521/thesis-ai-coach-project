@@ -47,7 +47,7 @@ d²=Σ_j n_j(x̄_j−μ̂_j)'Σ̂_j⁻¹(x̄_j−μ̂_j)，df=Σ_j k_j−k），
 - p≥.05：未拒绝 MCAR，成列删除（listwise deletion）通常可接受，报告完整样本 n；
   但"不显著"不等于证明 MCAR（小样本功效低），仍需报告缺失率并做敏感性说明；
 - p<.05：拒绝 MCAR，不要简单成列删除或均值插补（会有偏、低估标准误），优先
-  多重插补（SPSS 分析→多重插补；R mice）或全息极大似然 FIML（AMOS），并在方法章写明；
+  多重插补（SPSS 分析→多重插补；R mice）或全息极大似然 FIML（AMOS），并在方法章写明；SPSS/R mice/AMOS 的照做步骤、Rubin 池化公式、插补次数 m 建议、敏感性分析与论文模板见 `psychology/missing-imputation-guide.md`；
 - 总缺失率很低（如 <5%）且检验不显著时，成列删除是审稿普遍接受的做法。
 
 **红线**：检验基于连续多元正态假设，Likert 数据结果谨慎解读；任何插补都不得改动

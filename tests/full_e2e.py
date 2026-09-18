@@ -993,7 +993,7 @@ try:
 
     # ---- v1.56.6 专业文档接线 + 行为自测补盲与可追溯走查 ----
     psy = {p.name: p.read_text(encoding="utf-8") for p in (ROOT / "psychology").glob("*.md")}
-    check("v1566专业文档三份", set(psy) == {"ethics.md", "scale-library.md", "stats-guide.md"}, str(set(psy)))
+    check("v1566专业文档四份", set(psy) == {"ethics.md", "scale-library.md", "stats-guide.md", "missing-imputation-guide.md"}, str(set(psy)))
     check("v1566专业文档使用约定指针",
           all("**使用约定**" in t and "core/coaching-protocol.md" in t for t in psy.values()))
     check("v1566伦理危机口径", "12356" in psy["ethics.md"] and "不做临床诊断" in psy["ethics.md"])
@@ -1847,6 +1847,48 @@ try:
     o = r.stdout or ""
     check("v170小样本结警告回归", r.returncode == 0 and "小样本且有" in o and "正态近似" in o
           and "rank-biserial r=" in o)
+
+
+    # ========== v1.71 多重插补/FIML 教学指引 ==========
+    guide71 = ROOT / "psychology" / "missing-imputation-guide.md"
+    check("MI指引文件存在", guide71.exists())
+    g71 = tx("psychology/missing-imputation-guide.md")
+    check("MI指引含决策与红线", "MCAR" in g71 and "成列删除" in g71
+          and "禁止均值" in g71 and "LOCF" in g71)
+    check("MI指引含三软件步骤", ("预测均值匹配" in g71 or "PMM" in g71)
+          and "mice" in g71 and "估计均值与截距" in g71 and "FIML" in g71)
+    check("MI指引含Rubin与敏感性", "Rubin" in g71 and "T = " in g71
+          and "敏感性" in g71 and "MNAR" in g71)
+    check("MI指引含论文模板", "方法章" in g71 and "局限" in g71)
+    mr_src71 = tx("tools/missing_report.py")
+    check("缺失工具指向MI指引", "missing-imputation-guide.md" in mr_src71)
+    check("统计指南指向MI指引", "missing-imputation-guide.md" in tx("psychology/stats-guide.md"))
+    check("流程指向MI指引", "missing-imputation-guide.md" in tx("workflows/data-analysis-auto.md"))
+    check("README登记MI指引", "missing-imputation-guide.md" in open(
+        str(ROOT / "README.md"), encoding="utf-8").read())
+    check("START登记MI指引", "missing-imputation-guide.md" in st)
+    # 功能：MAR 场景控制台与报告段落都给出指南指引
+    d71 = new_tmp("v171mi")
+    mar71 = d71 / "mar.csv"
+    random.seed(71)
+    with open(str(mar71), "w", encoding="utf-8-sig", newline="") as f71:
+        wm = csv.writer(f71)
+        wm.writerow(["id", "X", "Y", "Z"])
+        for i in range(1, 301):
+            x = random.gauss(0, 1)
+            y = 0.8 * x + random.gauss(0, 1)
+            z = random.gauss(0, 1)
+            wm.writerow([i, round(x, 3),
+                         "" if (x < -0.3 and random.random() < 0.3) else round(y, 3),
+                         round(z, 3)])
+    r = run([str(ROOT / "tools" / "missing_report.py"), str(mar71),
+             "--csv-out", str(d71 / "out")])
+    o = r.stdout or ""
+    check("v171 MAR拒绝且指引进控制台", r.returncode == 0 and "拒绝 MCAR" in o
+          and "missing-imputation-guide.md" in o)
+    rpt71 = list((d71 / "out").glob("*报告.txt"))
+    check("v171 报告段落含指引", rpt71 and "missing-imputation-guide.md"
+          in open(str(rpt71[0]), encoding="utf-8").read())
 
 finally:
     cleanup()
