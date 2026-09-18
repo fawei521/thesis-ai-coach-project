@@ -12,6 +12,7 @@
 
 | 版本 | 发布日期 | 主题 | 提交 |
 |---|---|---|---|
+| **v1.73** | 2026-09-18 | 回归残差诊断闭环：auto_stats 回归自动报 Durbin-Watson 与残差 Shapiro-Wilk；shapiro_wilk 下沉 stats/mathx 消除层间倒挂；DW 定义级＋AR(1)/白噪声黄金；full_e2e 600→608 项 | 见下方详情 |
 | **v1.72** | 2026-09-18 | paired_compare 新增单样本模式（--onesample/--constant，对标称常数如 Likert 中值 3 的单样本 t/Wilcoxon/d_z/r，菜单 19 选单样本，支持分组）；300 组对 scipy 零误差；full_e2e 589→600 项 | 见下方详情 |
 | **v1.71** | 2026-09-18 | 多重插补/FIML 教学指引闭环：新增 psychology/missing-imputation-guide.md（决策树、SPSS MI/PMM、AMOS FIML、R mice＋Rubin 池化公式、MNAR 敏感性、论文模板）；missing_report 拒绝 MCAR 时控制台与论文段落直接指向指南；四处文档接线；full_e2e 577→589 项 | 见下方详情 |
 | **v1.70** | 2026-09-18 | 配对检验效应量与口径增强：paired_compare.py 的 Wilcoxon 新增 rank-biserial r 效应量（(W+−W−)/(W++W−)，R effectsize/JASP 同口径，600 组对 scipy 零误差），控制台/论文段落/CSV 同步；n<30 有结正态近似 p 偏乐观警示；dataio 反向计分越界硬提示；full_e2e 570→577 项 | 见下方详情 |
@@ -100,6 +101,14 @@
 ## 版本详情
 
 > 以下为各版本变更说明，按版本倒序。
+
+**v1.73 回归残差诊断闭环（完整版，doubao-skill 本轮无改动）**
+- **缺口**：心理学论文多元回归表常被要求报告 Durbin-Watson（残差独立性）与残差正态性，此前工具只报 VIF 共线性，学生要手点 SPSS 或漏掉这两项；同时 Shapiro-Wilk 实现位于工具层 `assumption_check.py`，stats 统计包无法复用（结构倒挂）。
+- **重构（P1）**：`shapiro_wilk` 连同 Royston AS R94 多项式系数、`_poly`/`_norm_upper` 助手整体下沉到 `stats/mathx.py`（函数体逐行未动），`assumption_check.py` 与 `paired_compare.py` 改为导入；新增 `durbin_watson(residuals)`（DW=Σ(e_i−e_{i-1})²/Σe_i²，n<2/残差常量返回 None）。
+- **功能**：`linear_regression` 末尾新增"残差诊断（回归前提）"块——D-W 数值与三档提示（1.5~2.5 经验区间，明示严格判定查 dL/dU 临界值表、阈值教材不一）、残差 Shapiro-Wilk W/p 与判读；返回字典新增"残差诊断"。auto_stats 两处回归入口自动受益。
+- **黄金验证（P0）**：下沉后 SW 200 组（n=5…89，正态/指数/均匀/含结）对 scipy W 误差 4.6e-10、p 4.6e-9（Royston 近似固有精度，迁移前一致）；DW 定义级用例（常量→0、[1,-1]×10 有限样本→3.8、[1,2,3]→1/7、n<2→None）＋100 组随机序列对 numpy `diff²/Σ²` 零误差＋AR(1,0.8) 序列 DW=0.577 触发正自相关、白噪声 1.77 不报；n=120 双预测变量回归夹具 DW=2.355、残差 W=0.9792/p=.0600 与 numpy OLS＋scipy 逐位一致。
+- **测试（P0）**：full_e2e 600→**608 项全过**（+8：下沉结构断言、DW 手算、SW 可用、回归夹具 R²/F/DW/残差 SW 输出、AR(1) 报警、前提工具迁移回归）；consistency、validate、全量 py_compile 全绿；regress.py 703→压缩至恰好 700 行（硬约束）。
+- **范围控制**：工具脚本 21 个、菜单项 20 不变；doubao-skill 无改动；黄金脚本与补丁不入库。
 
 **v1.72 配对检验扩展单样本模式（完整版，doubao-skill 本轮无改动）**
 - **需求**："这组人的 Likert 均分是否高于中值 3""与常模分是否一致"是高频问题，此前工具只支持配对/独立样本，学生只能用 SPSS 手动点或误用独立样本 t；单样本 t 在数学上等价于 d=x−C 的配对检验，可零风险复用 v1.68/v1.70 的全套机器（差值 Shapiro、d_z 及 CI、Wilcoxon 精确/近似、rank-biserial r、有结小样本警示）。

@@ -571,3 +571,22 @@
 - 文档：stats-guide 新增"单样本：一组分数对标称常数"小节（含"偏离中点≠干预有效"边界）、workflow 6.6、START、README、AGENTS、QUICKSTART、CHANGELOG、e2e-test 测试71。
 - **测试（P0）**：full_e2e 589→**600 项全过**（+11）；consistency、validate、全量 py_compile 全绿；黄金脚本不入库。
 - **范围控制**：工具脚本 21 个、菜单项 20 不变；doubao-skill 无改动；运行时纯标准库约束不变。
+
+## 二十三、v1.73 优化：回归残差诊断闭环（Durbin-Watson＋残差正态，SW 下沉）
+
+> 2026-09-18 晚自主推进，同分支 `feat/advance-closed-loop`，承接 v1.62 ω/HTMT 与 v1.67 前提假设。
+
+### 23.1 背景与做法
+
+1. 心理学论文多元回归表常要求 D-W 与残差正态，此前只报 VIF；手点 SPSS 易漏，且阈值口径（dL/dU vs 经验 1.5~2.5）需要带教提示。
+2. Shapiro-Wilk 原在工具层 assumption_check.py，stats 包复用会造成反向依赖；借本次新增残差正态的契机把 SW 整体下沉 mathx，函数体逐行不动，两个调用方改导入，结构归位。
+3. DW 为定义级统计量，黄金以 numpy diff 口径＋构造序列（常量/交替/AR(1)/白噪声）验证，不引入新依赖；残差 SW 复用已黄金过的 Royston 实现，端到端数值再与 numpy OLS＋scipy 逐位对照。
+
+### 23.2 改动清单
+
+- `tools/stats/mathx.py`：接收 shapiro_wilk（含 AS R94 系数、_poly/_norm_upper）；新增 durbin_watson。
+- `tools/assumption_check.py`：删除下沉块，改从 stats.mathx 导入；`tools/paired_compare.py` 同步改导入。
+- `tools/stats/regress.py`：linear_regression 末尾输出残差诊断块并在返回字典加"残差诊断"；压缩至 700 行硬约束内。
+- 文档：stats-guide 新增"残差独立性（Durbin-Watson）与残差正态"前置小节、workflow 第7步回归说明、START/README/CHANGELOG/e2e-test 测试72。
+- **测试（P0）**：full_e2e 600→**608 项全过**（+8）；consistency、validate、全量 py_compile 全绿；黄金脚本不入库。
+- **范围控制**：工具脚本 21、菜单 20 不变；doubao-skill 无改动；运行时纯标准库约束不变。

@@ -53,9 +53,9 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from stats.dataio import read_data, to_float_matrix  # noqa: E402
 from stats.mathx import (  # noqa: E402
     _rankdata, _tie_term_from_ranks, fmt_p, mean, normal_quantile, normal_sf,
-    stdev, t_p_two_sided,
+    shapiro_wilk, stdev, t_p_two_sided,
 )
-from assumption_check import build_dvs, shapiro_wilk  # noqa: E402
+from assumption_check import build_dvs  # noqa: E402
 
 # --- 输出编码守卫：管道/重定向时强制 UTF-8（与其他工具同款，避免 GBK 崩溃）---
 if hasattr(sys.stdout, "reconfigure") and not sys.stdout.isatty():

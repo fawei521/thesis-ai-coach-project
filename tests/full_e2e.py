@@ -1948,6 +1948,57 @@ try:
              "--csv-out", str(d72 / "p.csv"), "--report", str(d72 / "p.txt")])
     check("v172配对回归", r.returncode == 0 and "配对设计差异检验" in (r.stdout or ""))
 
+
+    # ========== v1.73 Durbin-Watson＋残差正态（SW 下沉 mathx） ==========
+    mathx73 = tx("tools/stats/mathx.py")
+    ass73 = tx("tools/assumption_check.py")
+    reg73 = tx("tools/stats/regress.py")
+    check("SW下沉mathx", "def shapiro_wilk" in mathx73 and "def durbin_watson" in mathx73
+          and "def shapiro_wilk" not in ass73 and "shapiro_wilk" in ass73)
+    d73 = new_tmp("v173dw")
+    reg_csv73 = d73 / "reg.csv"
+    random.seed(17302)
+    with open(str(reg_csv73), "w", encoding="utf-8-sig", newline="") as f73:
+        w73 = csv.writer(f73)
+        w73.writerow(["X1", "X2", "Y"])
+        for _ in range(120):
+            x1 = random.gauss(0, 1); x2 = random.gauss(0, 1)
+            y = 1 + 0.5 * x1 - 0.3 * x2 + random.gauss(0, 1)
+            w73.writerow([round(x1, 3), round(x2, 3), round(y, 3)])
+    # DW 定义级手算
+    sys.path.insert(0, str(ROOT / "tools"))
+    from stats.mathx import durbin_watson as _dw73, shapiro_wilk as _sw73
+    check("v173 DW手算", abs(_dw73([1.0, 2.0, 3.0]) - 2.0 / 14.0) < 1e-12
+          and abs(_dw73([1.0] * 10) - 0.0) < 1e-12
+          and abs(_dw73([1.0, -1.0] * 10) - 3.8) < 1e-12 and _dw73([1.0]) is None)
+    w73h, p73h = _sw73([1.0, 2.0, 3.0, 4.0, 5.0, 6.0])
+    check("v173 SW下沉可用", w73h is not None and 0 < w73h <= 1)
+    r = run([str(ROOT / "tools" / "auto_stats.py"), str(reg_csv73),
+             "--y", "Y", "--x", "X1,X2"])
+    o = r.stdout or ""
+    check("v173回归跑通", r.returncode == 0 and "R²=0.292" in o and "F(2,117) = 24.112" in o)
+    check("v173 DW输出", "Durbin-Watson=2.355" in o and "未见一阶自相关" in o)
+    check("v173残差正态输出", "残差 Shapiro-Wilk：W=0.979，p=.060" in o and "近似正态" in o)
+    # 自相关夹具：DW 必须跌破 1.5 并给正自相关提示
+    ar_csv = d73 / "ar.csv"
+    random.seed(17303)
+    prev = 0.0
+    with open(str(ar_csv), "w", encoding="utf-8-sig", newline="") as f73:
+        w73 = csv.writer(f73)
+        w73.writerow(["X", "Y"])
+        for i in range(120):
+            x = random.gauss(0, 1)
+            prev = 0.8 * prev + random.gauss()
+            w73.writerow([round(x, 3), round(prev + 0.3 * x, 3)])
+    r = run([str(ROOT / "tools" / "auto_stats.py"), str(ar_csv), "--y", "Y", "--x", "X"])
+    o = r.stdout or ""
+    m73 = re.search(r"Durbin-Watson=([0-9.]+)", o)
+    check("v173自相关报警", r.returncode == 0 and m73 is not None and float(m73.group(1)) < 1.5
+          and "正自相关" in o)
+    # 前提检验工具在 SW 迁移后仍正常
+    r = run([str(ROOT / "tools" / "assumption_check.py"), str(reg_csv73), "--only", "X1"])
+    check("v173前提工具回归", r.returncode == 0 and "Shapiro" in (r.stdout or ""))
+
 finally:
     cleanup()
 

@@ -49,124 +49,13 @@ from stats.dataio import (  # noqa: E402
 )
 from stats.compare import _levene  # noqa: E402
 from stats.mathx import (  # noqa: E402
-    fmt_p, mean, normal_quantile, normal_sf, skew_kurt, stdev,
+    fmt_p, mean, normal_quantile, normal_sf, shapiro_wilk, skew_kurt, stdev,
 )
 
 # --- 输出编码守卫：管道/重定向时强制 UTF-8（与其他工具同款，避免 GBK 崩溃）---
 if hasattr(sys.stdout, "reconfigure") and not sys.stdout.isatty():
     sys.stdout.reconfigure(encoding="utf-8", errors="replace")
     sys.stderr.reconfigure(encoding="utf-8", errors="replace")
-
-
-# ================================================================ Shapiro-Wilk
-# Royston AS R94 多项式系数（与 R src/library/stats/src/swilk.c、
-# scipy 编译的 swilk.f、EnvStats::swGofTestStatistic 同源）
-_C1 = [0.0, 0.221157, -0.147981, -2.071190, 4.434685, -2.706056]
-_C2 = [0.0, 0.042981, -0.293762, -1.752461, 5.682633, -3.582633]
-_C3 = [0.5440, -0.39978, 0.025054, -6.714e-4]      # n 4..11：均值
-_C4 = [1.3822, -0.77857, 0.062767, -0.0020322]     # n 4..11：对数标准差
-_C5 = [-1.5861, -0.31082, -0.083751, 0.0038915]    # n≥12：均值（关于 ln n）
-_C6 = [-0.4803, -0.082676, 0.0030302]              # n≥12：对数标准差
-_G = [-2.273, 0.459]                               # n 4..11：gamma 截距
-_P_MIN = 1e-19
-
-
-def _poly(c, x):
-    """常数项在前的系数表的 Horner 求值。"""
-    r = c[-1]
-    for v in reversed(c[:-1]):
-        r = r * x + v
-    return r
-
-
-def _norm_upper(z):
-    """标准正态上尾概率。z≤1.28 用 erfc（双精度）；z>1.28 用 AS66 的
-    Mills 比连分式（与 swilk.f 的 alnorm 同系数），可算到约 1e-150，
-    避免极小 p 被过早截到 1e-19。"""
-    if z <= 1.28:
-        return normal_sf(z)
-    r = 0.398942280385
-    c1, c2, c3, c4, c5, c6 = (-3.8052e-8, 3.98064794e-4, -0.151679116635,
-                              4.8385912808, 0.742380924027, 3.99019417011)
-    d1, d2, d3, d4, d5 = (1.00000615302, 1.98615381364, 5.29330324926,
-                          -15.1508972451, 30.789933034)
-    if z > 18.66:
-        return 0.0
-    return r * math.exp(-0.5 * z * z) / (
-        z + c1 + d1 / (z + c2 + d2 / (z + c3 + d3 / (
-            z + c4 + d4 / (z + c5 + d5 / (z + c6))))))
-
-
-def shapiro_wilk(values):
-    """Shapiro-Wilk 正态性检验，返回 (W, p)；n<3 或常量返回 (None, None)。
-
-    权重用 Royston 对期望正态序次统计量的多项式近似（EnvStats 写法）；
-    p 值用 Royston (1992) 正态化变换（AS R94），n=3 用精确分布。
-    """
-    x = sorted(float(v) for v in values)
-    n = len(x)
-    if n < 3:
-        return None, None
-    xbar = sum(x) / n
-    s2 = sum((v - xbar) ** 2 for v in x) / (n - 1)
-    if s2 <= 0:
-        return None, None
-    # 期望正态序次统计量 m_i = Φ⁻¹((i−3/8)/(n+1/4))
-    m = [normal_quantile((i - 0.375) / (n + 0.25)) for i in range(1, n + 1)]
-    ssm = sum(v * v for v in m)
-    cvec = [v / math.sqrt(ssm) for v in m]
-    a = [0.0] * n
-    if n == 3:
-        # AS R94 特例：权重恰为 ±1/√2（Fortran swilk 的 n==3 分支）
-        a = [math.sqrt(0.5), 0.0, -math.sqrt(0.5)]
-    else:
-        y = 1.0 / math.sqrt(n)
-        a[n - 1] = cvec[n - 1] + _poly(_C1, y)
-        a[0] = -a[n - 1]
-    if n == 3:
-        pass
-    elif n <= 5:
-        phi = (ssm - 2.0 * m[n - 1] ** 2) / (1.0 - 2.0 * a[n - 1] ** 2)
-        for i in range(1, n - 1):
-            a[i] = m[i] / math.sqrt(phi)
-    else:
-        a[n - 2] = cvec[n - 2] + _poly(_C2, y)
-        phi = (ssm - 2.0 * m[n - 1] ** 2 - 2.0 * m[n - 2] ** 2) / \
-              (1.0 - 2.0 * a[n - 1] ** 2 - 2.0 * a[n - 2] ** 2)
-        for i in range(2, n - 2):
-            a[i] = m[i] / math.sqrt(phi)
-        a[1] = -a[n - 2]
-    num = sum(a[i] * x[i] for i in range(n))
-    w = num * num / ((n - 1) * s2)
-    if w > 1.0:
-        w = 1.0
-    w1 = 1.0 - w
-    if w1 <= 0:
-        return w, 1.0
-    if n == 3:
-        # 精确 p：6/π·(arcsin(√W) − π/3)
-        p = (6.0 / math.pi) * (math.asin(math.sqrt(w)) - math.pi / 3.0)
-        return w, min(1.0, max(_P_MIN, p))
-    ylog = math.log(w1)
-    if n <= 11:
-        gamma = _poly(_G, float(n))
-        if ylog >= gamma:
-            p = _P_MIN
-        else:
-            zeta = -math.log(gamma - ylog)
-            mu = _poly(_C3, float(n))
-            sd = math.exp(_poly(_C4, float(n)))
-            p = _norm_upper((zeta - mu) / sd)
-    else:
-        xx = math.log(float(n))
-        mu = _poly(_C5, xx)
-        sd = math.exp(_poly(_C6, xx))
-        p = _norm_upper((ylog - mu) / sd)
-    # n≤11 分支按 AS R94 在 gamma 处截到 1e-19；n≥12 允许报告更小的 p（远尾展开）
-    p = min(1.0, p)
-    if n <= 11:
-        p = max(_P_MIN, p)
-    return w, p
 
 
 # ================================================================ 数据组织

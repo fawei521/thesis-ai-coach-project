@@ -1061,6 +1061,20 @@ python tests/test_special_columns.py`
 
 ---
 
+## 测试72：回归残差诊断与 SW 下沉（v1.73）
+
+**目的**：多元回归自动给 Durbin-Watson 与残差正态；Shapiro-Wilk 下沉后两个调用方零回归。
+
+**步骤与预期**：
+1. 结构：`stats/mathx.py` 含 `shapiro_wilk` 与 `durbin_watson`；`assumption_check.py` 不再定义、改为导入；paired_compare 同步。
+2. 黄金（维护者，不入库）：SW 200 组对 scipy（W 误差 ≤1e-8、p ≤1e-7，Royston 近似固有精度）；DW 常量残差→0、[1,-1]×10→3.8、[1,2,3]→1/7、n<2→None、100 组随机对 numpy diff 口径零误差、AR(1,0.8)→0.577 报警、白噪声≈2 不报。
+3. 回归夹具（n=120，seed 17302，y=1+.5x1−.3x2+ε）：R²=0.292、F(2,117)=24.112、Durbin-Watson=2.355（未见自相关）、残差 W=0.979 p=.060（近似正态），与 numpy OLS＋scipy 逐位一致。
+4. AR(1) 夹具（seed 17303，ρ=.8）：DW<1.5 且输出"正自相关"提示与 dL/dU 查表说明。
+5. 迁移回归：assumption_check 与 paired_compare（含单样本模式）SW 结果不变；regress.py ≤700 行。
+6. `python tests/full_e2e.py`：608 项全过；consistency、validate、全量 py_compile 全绿。
+
+---
+
 # 脚本回归测试清单（每次改动后执行）
 
 在项目根目录（PowerShell）逐条运行，全部通过才算合格：

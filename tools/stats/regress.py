@@ -13,7 +13,7 @@ import math
 import random
 
 from .linalg import _ols_beta, invert_matrix, solve_least_squares
-from .mathx import _z, chi2_sf, f_p_value, fmt_p, mean, pearson_r, sig_mark, spearman_r, stdev, t_p_two_sided
+from .mathx import _z, chi2_sf, durbin_watson, f_p_value, fmt_p, mean, pearson_r, shapiro_wilk, sig_mark, spearman_r, stdev, t_p_two_sided
 from .plots import _plot_simple_slopes
 
 # ============ 相关矩阵、回归、中介与调节 ============
@@ -294,8 +294,22 @@ def linear_regression(matrix, x_cols, y_col):
             vstr = "∞" if v == float("inf") else f"{v:.2f}"
             print(f"{x_cols[j]:<14}{tol:>8.3f}{vstr:>8}  {tag}")
             vif_map[x_cols[j]] = None if v == float("inf") else round(v, 2)
+    # 残差诊断：Durbin-Watson（一阶自相关）＋残差正态性
+    resid = [y[i] - y_hat[i] for i in range(n)]
+    dw, (rw, rp) = durbin_watson(resid), shapiro_wilk(resid)
+    print("\n残差诊断（回归前提）：")
+    if dw is not None:
+        dw_tag = "接近2，未见一阶自相关" if 1.5 <= dw <= 2.5 else ("低于1.5 提示正自相关，请查 DW 临界值表(dL/dU)" if dw < 1.5 else "高于2.5 提示负自相关，请查 DW 临界值表(dL/dU)")
+        print(f"  Durbin-Watson={dw:.3f}：{dw_tag}（1.5~2.5 为常见经验区间，非统一标准）")
+    if rw is not None:
+        ntag = "残差可视为近似正态" if rp >= 0.05 else "残差非正态（大样本结合偏度峰度/Q-Q 图判断）"
+        print(f"  残差 Shapiro-Wilk：W={rw:.3f}，p={fmt_p(rp)}（{ntag}）")
+    diag = {"DW": round(dw, 3) if dw is not None else None,
+            "残差W": round(rw, 4) if rw is not None else None,
+            "残差p": fmt_p(rp) if rp is not None else None}
     return {"R2": round(r2, 3), "调整R2": round(adj_r2, 3),
-            "F": round(f, 3), "p": fmt_p(f_p), "系数": result_rows, "VIF": vif_map}
+            "F": round(f, 3), "p": fmt_p(f_p), "系数": result_rows,
+            "VIF": vif_map, "残差诊断": diag}
 
 
 def moderation_analysis(matrix, x_col, w_col, y_col, reps=5000,
