@@ -19,6 +19,7 @@
         反向计分 → 3.信度α/ω → 4.效度(KMO/Bartlett/载荷) → 5.Harman共同方法偏差 → 量表总分
         → 6.描述统计 → 7.相关分析 → 初步回归，并导出三线表和"_量表总分.csv"
   → 6.5 参数检验前提（assumption_check.py，菜单第18项：Shapiro-Wilk 正态性、偏度峰度 z、分组 Brown-Forsythe 方差齐性，t/ANOVA/回归前跑，给可粘论文段落）
+  → 6.6 配对设计差异（paired_compare.py，菜单第19项：前后测/两条件配对 t、d_z、差值 Shapiro、Wilcoxon 符号秩，干预研究用，给可粘论文段落）
   → 4. 效度检验（脚本自动出KMO/Bartlett/载荷；自编多维量表加 --efa 做完整探索性因子分析；CFA引导JASP）
   → 8. 核心分析：中介/链式中介（auto_stats --mediators 自动出Bootstrap结果，再用JASP/SPSS PROCESS复核）
   → 9. 补充分析：网络分析（R，进阶可选）
@@ -270,6 +271,32 @@ python tools/assumption_check.py 数据名_量表总分.csv --group 年级
 - 红线：Shapiro 大样本过敏感，不显著≠证明正态；Likert 单个题项不要求正态（看总分/均分）；
   不得为“通过”检验删数据、删离群值或反复变换挑 p；n>5000 时工具会提示 p 值口径不稳。
 - Q-Q 图/直方图仍在 SPSS（探索→绘图→正态性图与检验）或 JASP 生成附图。
+
+---
+
+## 第6.6步：配对设计差异——前后测 / 两条件（干预研究用）
+
+同一批被试的**前测与后测**（或实验条件 A/B、配对被试）不独立，差异检验要用配对方法，
+不能用独立样本 t。**工具**：`tools/paired_compare.py`（菜单第19项）。
+
+```
+# 单文件宽表（前/后测列在同一 CSV；有编号列建议显式 --id）
+python tools/paired_compare.py 数据.csv --pairs 前测孤独:后测孤独,前测反刍:后测反刍 --id 编号
+# 只看实验组的前后变化
+python tools/paired_compare.py 数据.csv --pairs 前测X:后测X --group 组别 --level 实验组
+# 前测、后测是两个文件（必须 --id 按编号配对；可配 scales 算量表均分）
+python tools/paired_compare.py 前测.csv 后测.csv --id 编号 --scales scales.txt
+```
+
+- 输出每对变量的配对 n（无法配对者整对剔除并计数）、前/后测均值、差值 M/SD、配对 t(df) 与 p、
+  Cohen's d_z 及近似 95%CI、**差值**的 Shapiro-Wilk（配对 t 的前提是差值正态）、Wilcoxon
+  符号秩（n≤25 无结给精确 p，否则给含结校正/连续性校正的 z，SPSS 口径）；导出
+  `_配对检验.csv` 与 `_配对检验报告.txt`（可粘论文段落）。
+- 判读：差值正态（或大样本）报配对 t 与 d_z；差值明显偏态且样本小报 Wilcoxon。
+- 红线：①配对必须是同一个体，两文件禁止按行顺序硬凑；②3 个及以上时点用重复测量
+  方差分析/线性混合模型，两两比较 Bonferroni 校正（α/k）；③"实验组变化大于对照组"
+  要比较两组**差值**（独立样本 t）或做组别×时点交互作用，只报组内显著不够；
+  ④d_z 用差值标准差，口径不同于独立组 d。
 
 ---
 

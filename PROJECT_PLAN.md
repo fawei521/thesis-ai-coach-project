@@ -480,3 +480,22 @@
 - **文档**：stats-guide 新增"参数检验前提"方法学小节并改写旧表述、t/ANOVA 节交叉引用；data-analysis-auto 新增第 6.5 步与总览行；START、README（版本轮换）、AGENTS、QUICKSTART、paper-outline、e2e-test 测试66、本文件。
 - **测试（P0）**：`full_e2e.py` 475→**504 项全过**（+29）；黄金脚本与 18 组 CLI 场景全绿；consistency_check、validate、全量 py_compile 全绿。
 - **范围控制**：doubao-skill 本轮无改动；测试与补丁不入库。
+
+## 十八、v1.68 优化：配对设计差异检验闭环（前后测 / 两条件）
+
+> 2026-09-18 晚自主推进，同分支 `feat/advance-closed-loop`，承接 v1.67，补齐干预研究的组内变化检验断档。
+
+### 18.1 背景与做法
+
+1. 干预类本科论文（实验组/对照组×前测/后测）普遍要报前后测变化；此前只有 ttest-paired 样本量设计与由 t 反算 d_z 的效应量工具，没有能直接吃前后测数据、给齐配对检验＋前提＋非参数＋论文段落的出口，学生易误用独立样本 t 或只报组内显著。
+2. 算法不凭记忆：配对 t 即差值单样本 t（mathx 已有 t 分布）；Wilcoxon 符号秩零差值剔除、结平均秩，n≤25 无结用 W+ 精确分布（2^n 符号组合动态规划计数），否则用含结校正 σ²=n(n+1)(2n+1)/24−Σ(t³−t)/48 与连续性校正正态近似（SPSS 口径）；差值正态性直接复用 v1.67 的 Shapiro-Wilk。
+3. 黄金验证先行：462 组模拟（n=3…100 × 正态/含结/指数偏态）对 scipy.stats.ttest_rel/wilcoxon，再补 20 组 CLI 场景与 full_e2e 断言，最后接菜单与文档。开发中修掉：read_data 返回二元组误用三元解包、分组列中文走数值矩阵变 None、双文件 --pairs 冒号语义、结果列表与原始行变量同名、精确统计量整数化、scipy 新版双侧统计量取 min(W+,W−) 等问题。
+
+### 18.2 改动清单
+
+- **新增 `tools/paired_compare.py`（菜单第 19 项）**：配对 t＋d_z 近似 CI＋差值 Shapiro-Wilk＋Wilcoxon 符号秩（精确/近似自动切换）；单文件宽表 `--pairs 前:后`（可 `--id`）与两文件 `前测 后测 --id 编号`（强制编号、内连接、独有人员计数）两种口径；`--scales` 两文件量表均分（自动反向计分）；`--group/--level` 组内配对；导出 `_配对检验.csv` 与 `_配对检验报告.txt`；坏输入统一中文 rc=1；UTF-8/GBK 自适应；纯标准库（复用 stats.mathx 与 assumption_check）。
+- **菜单与计数**：菜单 18→19 项（18 处标签同步 /19）；工具脚本 19→20 个；stats 子包模块数不变。
+- **红线**：前提看差值正态；同一个体才能配对（两文件强制 --id）；3+ 时点用重复测量 ANOVA/混合模型、两两比较 Bonferroni；组间变化幅度用差值 t 或组别×时点交互。
+- **文档**：stats-guide 配对设计方法学小节、data-analysis-auto 第 6.6 步与总览行、START、README（版本轮换）、AGENTS、QUICKSTART、paper-outline、e2e-test 测试67、本文件。
+- **测试（P0）**：`full_e2e.py` 504→**541 项全过**（+37）；scipy 黄金（t 1.8e-15、Wilcoxon 精确 p 零误差、近似 z 1.3e-15）与 20 组 CLI 场景全绿；consistency_check、validate、全量 py_compile 全绿。
+- **范围控制**：doubao-skill 本轮无改动；测试与补丁不入库。

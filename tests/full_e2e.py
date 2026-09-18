@@ -442,7 +442,7 @@ try:
     check("coach5多选填空", "多选题" in cr and "scales.txt 时勿列入" in cr)
     check("coach6样本量", "sample_size.py" in cr)
     check("coach7五指标", "低变异" in cr and "注意力检查题答错" in cr)
-    menu = tx("tools/menu.py"); check("menu第8项", "【8/18】" in menu and "sample_size.py" in menu)
+    menu = tx("tools/menu.py"); check("menu第8项", "【8/19】" in menu and "sample_size.py" in menu)
     qs = tx("QUICKSTART.md"); check("QS菜单8", "8. 开题样本量" in qs)
     check("QS流程顺序", qs.find("查文献读文献") < qs.find("开题报告/开题答辩"))
     bad = []
@@ -803,7 +803,7 @@ try:
     check("预览器--list可运行", pl.returncode == 0 and "index.html" in (pl.stdout or ""), (pl.stderr or "")[-200:])
     wdir = ROOT / "我的工作区" / "04-网页"
     check("工作区04-网页就位", wdir.is_dir() and (wdir / "把网页放这里.txt").exists())
-    check("菜单第9项", "【9/18】" in menu and "webpage_preview.py" in menu)
+    check("菜单第9项", "【9/19】" in menu and "webpage_preview.py" in menu)
     check("网页能力已登记到入口",
           "webpage-guide.md" in st and "webpage_preview.py" in st and "webpage-guide.md" in cr)
     check("README登记网页能力", "webpage-guide.md" in rm and "webpage_preview.py" in rm)
@@ -815,12 +815,12 @@ try:
     check("脱敏工具纯标准库", "import csv" in an_src and "matplotlib" not in an_src and "pandas" not in an_src)
     check("脱敏工具有安全开关", all(s in an_src for s in ["--dry-run", "--no-key", "--columns", "--k"]))
     check("脱敏工具另存不改原文件", "_去标识化.csv" in an_src and "同名同路径" in an_src)
-    check("菜单第11项去标识化", "【11/18】" in menu and "anonymize_data.py" in menu and "去标识化" in menu)
-    check("菜单第12项效应量", "【12/18】" in menu and "effect_size.py" in menu and "效应量" in menu)
-    check("菜单第13项效度", "【13/18】" in menu and "validity_cr_ave.py" in menu and "区分效度" in menu)
+    check("菜单第11项去标识化", "【11/19】" in menu and "anonymize_data.py" in menu and "去标识化" in menu)
+    check("菜单第12项效应量", "【12/19】" in menu and "effect_size.py" in menu and "效应量" in menu)
+    check("菜单第13项效度", "【13/19】" in menu and "validity_cr_ave.py" in menu and "区分效度" in menu)
     check("菜单13含HTMT", "HTMT" in menu)
-    check("菜单第14项项目分析", "【14/18】" in menu and "item_analysis.py" in menu and "决断值" in menu)
-    check("菜单第15项内容效度", "【15/18】" in menu and "content_cvi.py" in menu and "CVI" in menu)
+    check("菜单第14项项目分析", "【14/19】" in menu and "item_analysis.py" in menu and "决断值" in menu)
+    check("菜单第15项内容效度", "【15/19】" in menu and "content_cvi.py" in menu and "CVI" in menu)
     check("START登记去标识化", "anonymize_data.py" in st and "去标识化" in st)
     check("QUICKSTART登记第11项", "去标识化" in tx("QUICKSTART.md"))
     check("AI素养接线去标识化工具", "anonymize_data.py" in tx("core/ai-literacy.md"))
@@ -1066,7 +1066,7 @@ try:
     check("v158量表多词检索纪律", "量表检索纪律" in sl and "同义词" in sl and "OR" in sl and "AND" in sl)
     check("v158检索脚本多词开关", all(x in psrc for x in ('--queries', '--source', '--min', 'action="append"')))
     check("v158卡片脚本与菜单项",
-          (ROOT / "tools" / "literature_cards.py").exists() and "literature_cards.py" in menu and "【10/18】" in menu)
+          (ROOT / "tools" / "literature_cards.py").exists() and "literature_cards.py" in menu and "【10/19】" in menu)
     check("v158卡片接入网页指南且不增类型", "literature_cards.py" in wg and "文献笔记网页" in wg)
     check("v158手机交接单与原生做法", all(s in mg for s in ("设备交接单", "全球学术快报", "literature_cards")))
 
@@ -1237,8 +1237,8 @@ try:
     rf_src = tx(rf_tool)
     check("参考文献工具纯标准库", all(s in rf_src for s in ["import csv", "import re"])
           and "pandas" not in rf_src and "requests" not in rf_src)
-    check("菜单第16项参考文献", "【16/18】" in menu and "reference_formatter.py" in menu and "GB/T 7714" in menu)
-    check("菜单标签全部18项制", "/17】" not in menu and menu.count("/18】") == 18)
+    check("菜单第16项参考文献", "【16/19】" in menu and "reference_formatter.py" in menu and "GB/T 7714" in menu)
+    check("菜单标签全部19项制", "/18】" not in menu and menu.count("/19】") == 19)
     check("写作指南接线参考文献工具", "reference_formatter.py" in tx("workflows/writing-guide.md"))
     check("START登记参考文献工具", "reference_formatter.py" in st)
     v65 = new_tmp("v165refs")
@@ -1314,7 +1314,7 @@ try:
     check("缺失值工具纯标准库", "pandas" not in mr_src and "numpy" not in mr_src
           and "import csv" in mr_src)
     check("缺失值工具编码守卫", "输出编码守卫" in mr_src and "reconfigure" in mr_src)
-    check("菜单第17项缺失值", "【17/18】" in menu and "missing_report.py" in menu and "MCAR" in menu)
+    check("菜单第17项缺失值", "【17/19】" in menu and "missing_report.py" in menu and "MCAR" in menu)
     check("统计指南接线缺失值工具", "missing_report.py" in tx("psychology/stats-guide.md"))
     check("分析流程接线缺失值工具", "missing_report.py" in tx("workflows/data-analysis-auto.md"))
     check("START登记缺失值工具", "missing_report.py" in st)
@@ -1437,7 +1437,7 @@ try:
     check("前提工具纯标准库", "pandas" not in ac_src and "numpy" not in ac_src
           and "import csv" in ac_src)
     check("前提工具编码守卫", "输出编码守卫" in ac_src and "reconfigure" in ac_src)
-    check("菜单第18项前提假设", "【18/18】" in menu and "assumption_check.py" in menu
+    check("菜单第18项前提假设", "【18/19】" in menu and "assumption_check.py" in menu
           and "Shapiro" in menu)
     check("统计指南接线前提工具", "assumption_check.py" in tx("psychology/stats-guide.md"))
     check("分析流程接线前提工具", "assumption_check.py" in tx("workflows/data-analysis-auto.md"))
@@ -1545,6 +1545,156 @@ try:
     check("v167无参数硬失败", r.returncode != 0 and "usage" in (r.stdout or ""))
     check("v167红线声明", "凑正态" in ac_src and "不得为了" in ac_src)
 
+
+
+    # ========== v1.68 配对设计差异检验（前后测/两条件） ==========
+    pc_tool = str(ROOT / "tools" / "paired_compare.py")
+    pc_src = tx("tools/paired_compare.py")
+    check("配对工具存在", Path(pc_tool).exists())
+    check("配对工具纯标准库", "pandas" not in pc_src and "numpy" not in pc_src
+          and "import csv" in pc_src)
+    check("配对工具编码守卫", "输出编码守卫" in pc_src and "reconfigure" in pc_src)
+    check("菜单第19项配对检验", "【19/19】" in menu and "paired_compare.py" in menu
+          and "Wilcoxon" in menu)
+    check("统计指南接线配对工具", "paired_compare.py" in tx("psychology/stats-guide.md"))
+    check("分析流程接线配对工具", "paired_compare.py" in tx("workflows/data-analysis-auto.md"))
+    check("START登记配对工具", "paired_compare.py" in st)
+
+    v68 = new_tmp("v168paired")
+
+    def wcsv68(name, headers68, rows68, enc="utf-8-sig"):
+        p68 = v68 / name
+        with open(p68, "w", encoding=enc, newline="") as f68:
+            w68 = csv.writer(f68)
+            w68.writerow(headers68)
+            w68.writerows(rows68)
+        return p68
+
+    def both68(rr):
+        return (rr.stdout or "") + (rr.stderr or "")
+
+    # 宽表夹具：n=60，后测=前测+0.6+小噪声；前30实验组
+    random.seed(16803)
+    pre68 = [random.gauss(3, 1) for _ in range(60)]
+    post68 = [x + 0.6 + random.gauss(0, 0.5) for x in pre68]
+    wide68 = wcsv68("wide.csv", ["编号", "组别", "前测X", "后测X", "同前", "同后"],
+                    [[i + 1, "实验组" if i < 30 else "对照组",
+                      round(pre68[i], 4), round(post68[i], 4),
+                      round(pre68[i], 4), round(pre68[i], 4)] for i in range(60)])
+    r = run([pc_tool, str(wide68), "--pairs", "前测X:后测X"])
+    out68 = both68(r)
+    check("v168基本配对跑通", r.returncode == 0 and "配对 t" in out68
+          and "Wilcoxon" in out68 and "d_z" in out68)
+    mt = re.search(r"配对 t\(59\)=([\d.]+)", out68)
+    check("v168配对t黄金值", mt is not None and abs(float(mt.group(1)) - 9.319) < 0.02,
+          mt.group(1) if mt else "?")
+    mdz = re.search(r"d_z=([\d.]+)", out68)
+    check("v168 d_z黄金值", mdz is not None and abs(float(mdz.group(1)) - 1.203) < 0.01,
+          mdz.group(1) if mdz else "?")
+    mw = re.search(r"差值 Shapiro-Wilk 不显著（p=([\d.]+)）", out68)
+    check("v168差值正态", mw is not None)
+    check("v168 Wilcoxon近似", "z=" in out68 and "连续性校正" in out68)
+    r = run([pc_tool, str(wide68), "--pairs", "前测X:后测X",
+             "--group", "组别", "--level", "实验组"])
+    check("v168分组内配对", r.returncode == 0 and "配对数 n=30" in (r.stdout or ""))
+    csv68 = (v68 / "wide_配对检验.csv").read_text(encoding="utf-8-sig")
+    check("v168 CSV表头", "配对n" in csv68 and "Wilcoxon_p" in csv68 and "差值Shapiro_p" in csv68)
+    rep68 = (v68 / "wide_配对检验报告.txt").read_text(encoding="utf-8")
+    check("v168报告段落", "配对样本 t 检验" in rep68 and "差值近似正态" in rep68)
+    r = run([pc_tool, str(wide68), "--pairs", "同前:同后"])
+    check("v168常量差值优雅降级", r.returncode == 0 and "差值标准差为 0" in (r.stdout or ""))
+
+    # 强偏态差值：Shapiro 显著 → 建议以 Wilcoxon 为准
+    random.seed(16804)
+    skew68 = wcsv68("skew.csv", ["前测Y", "后测Y"],
+                    [[0, round(random.expovariate(1 / 3), 4)] for _ in range(60)])
+    r = run([pc_tool, str(skew68), "--pairs", "前测Y:后测Y"])
+    out_s = both68(r)
+    ms = re.search(r"W=([\d.]+)，", out_s)
+    check("v168偏态差值W黄金值", ms is not None and abs(float(ms.group(1)) - 0.7613) < 0.01,
+          ms.group(1) if ms else "?")
+    check("v168偏态推Wilcoxon", r.returncode == 0 and "建议以 Wilcoxon 为准" in out_s)
+
+    # 小样本精确检验（n=5，无结无零）
+    exact68 = wcsv68("exact.csv", ["a", "b"],
+                     [[0, 1.1], [0, -2.3], [0, 0.7], [0, 3.2], [0, -0.4]])
+    r = run([pc_tool, str(exact68), "--pairs", "a:b"])
+    check("v168精确Wilcoxon", r.returncode == 0 and "精确双侧 p=" in (r.stdout or ""))
+
+    # 两文件 id 配对（打乱+各自多出人）
+    pre_rows68 = [[i + 1, round(pre68[i], 4)] for i in range(60)] + [[801, 2.9]]
+    order68 = list(range(60))
+    random.seed(16805)
+    random.shuffle(order68)
+    post_rows68 = [[j + 1, round(post68[j], 4)] for j in order68] + [[901, 3.1], [902, 3.2]]
+    fpre68 = wcsv68("pre.csv", ["编号", "前测X"], pre_rows68)
+    fpost68 = wcsv68("post.csv", ["编号", "后测X"], post_rows68)
+    r = run([pc_tool, str(fpre68), str(fpost68), "--id", "编号",
+             "--pairs", "前测X:后测X"])
+    out_id = both68(r)
+    check("v168双文件id配对", r.returncode == 0 and "配对数 n=60" in out_id
+          and "前测独有 1 人、后测独有 2 人" in out_id)
+
+    # 两文件 scales（含反向题，各缺 2 人）
+    (v68 / "sc.txt").write_text("积极:5=P1,P2,P3(R)\n", encoding="utf-8")
+    rnd68 = random.Random(16806)
+    def lik68(shift):
+        return [[i, rnd68.randint(2, 5), rnd68.randint(2, 5),
+                 min(5, rnd68.randint(2, 5) + shift)] for i in range(1, 51)]
+    spre68 = wcsv68("s_pre.csv", ["编号", "P1", "P2", "P3"], lik68(0))
+    spost68 = wcsv68("s_post.csv", ["编号", "P1", "P2", "P3"],
+                     [[i, rnd68.randint(2, 5), rnd68.randint(2, 5),
+                       min(5, rnd68.randint(2, 5) + 1)] for i in range(3, 53)])
+    r = run([pc_tool, str(spre68), str(spost68), "--id", "编号",
+             "--scales", str(v68 / "sc.txt")])
+    check("v168双文件scales", r.returncode == 0 and "积极" in (r.stdout or "")
+          and "配对数 n=48" in (r.stdout or ""))
+
+    # n<3 优雅提示
+    tiny68 = wcsv68("tiny.csv", ["a", "b"], [[1, 2], [1.5, 2.5]])
+    r = run([pc_tool, str(tiny68), "--pairs", "a:b"])
+    check("v168配对n<3提示", r.returncode == 0 and "至少需要 3 对" in (r.stdout or ""))
+
+    # 坏输入硬失败
+    r = run([pc_tool, str(v68 / "nope.csv"), "--pairs", "a:b"])
+    check("v168文件不存在", r.returncode != 0 and "找不到文件" in both68(r))
+    r = run([pc_tool, str(wide68)])
+    check("v168缺pairs", r.returncode != 0 and "--pairs" in both68(r))
+    r = run([pc_tool, str(wide68), "--pairs", "前测X"])
+    check("v168 pairs格式", r.returncode != 0 and "前测列:后测列" in both68(r))
+    r = run([pc_tool, str(wide68), "--pairs", "前测X:后测Y"])
+    check("v168列不存在", r.returncode != 0 and "不在数据中" in both68(r))
+    r = run([pc_tool, str(fpre68), str(fpost68), "--pairs", "前测X:后测X"])
+    check("v168双文件缺id", r.returncode != 0 and "--id" in both68(r))
+    r = run([pc_tool, str(wide68), "--pairs", "前测X:后测X", "--group", "组别"])
+    check("v168 group缺level", r.returncode != 0 and "--level" in both68(r))
+    r = run([pc_tool, str(wide68), "--pairs", "前测X:后测X", "--alpha", "0"])
+    check("v168坏alpha", r.returncode != 0 and "alpha" in both68(r))
+    emp68 = v68 / "empty.csv"
+    emp68.write_text("", encoding="utf-8")
+    r = run([pc_tool, str(emp68), "--pairs", "a:b"])
+    check("v168空文件", r.returncode != 0)
+    r = run([pc_tool, str(wide68), "--scales", str(v68 / "sc.txt")])
+    check("v168单文件禁scales", r.returncode != 0 and "不支持 --scales" in both68(r))
+    r = run([pc_tool, str(fpre68), str(fpost68), "--id", "学号",
+             "--pairs", "前测X:后测X"])
+    check("v168 id列缺失", r.returncode != 0 and "编号列" in both68(r))
+    badsc68 = v68 / "badsc.txt"
+    badsc68.write_text("坏表:5=P1,不存在\n", encoding="utf-8")
+    r = run([pc_tool, str(spre68), str(spost68), "--id", "编号",
+             "--scales", str(badsc68)])
+    check("v168坏scales", r.returncode != 0)
+    # GBK 输入
+    gbk68 = v68 / "gbk.csv"
+    gbk68.write_text("编号,前测A,后测A\n" +
+                     "\n".join(f"{i+1},{pre68[i]:.4f},{post68[i]:.4f}" for i in range(60)),
+                     encoding="gbk")
+    r = run([pc_tool, str(gbk68), "--pairs", "前测A:后测A"])
+    check("v168 GBK可读", r.returncode == 0 and "配对 t" in (r.stdout or ""))
+    # 红线
+    check("v168红线同一个体", "配对必须是同一个体" in pc_src)
+    check("v168红线差值前提", "差值" in pc_src and "近似正态" in pc_src)
+    check("v168红线多时点", "重复测量" in pc_src and "交互作用" in pc_src)
 
 finally:
     cleanup()

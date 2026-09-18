@@ -283,6 +283,22 @@ def print_norm_table(title, rows):
 
 
 # ================================================================ 论文段落
+def _rng(vals, fmt):
+    """区间措辞：只有一个变量（或格式化后相同）时写"为 X"，不写"介于 X～X"这种废话。"""
+    lo, hi = fmt(min(vals)), fmt(max(vals))
+    return f"为 {lo}" if lo == hi else f"介于 {lo}～{hi}"
+
+
+def _rng_p(ps):
+    """p 值区间措辞：极小 p 用 <.001 表述，避免写出"介于 <.001～.800"。"""
+    lo, hi = min(ps), max(ps)
+    if hi < 0.001:
+        return "均<.001"
+    if lo < 0.001:
+        return f"最小<.001、最大{fmt_p(hi)}"
+    return _rng(ps, fmt_p)
+
+
 def make_paragraph(overall, grouped, levene_rows, alpha, group_col):
     lines = []
     dv_names = [r["变量"] for r in overall]
@@ -294,10 +310,10 @@ def make_paragraph(overall, grouped, levene_rows, alpha, group_col):
         kurt_vals = [abs(r["峰度"]) for r in overall if r["峰度"] is not None]
         sig = [r for r in sw_rows if r["p"] < alpha]
         seg = (f"对 {('、'.join(dv_names))} 做 Shapiro-Wilk 正态性检验，"
-               f"W 介于 {min(ws):.3f}～{max(ws):.3f}，p 介于 {fmt_p(min(ps))}～{fmt_p(max(ps))}；")
+               f"W {_rng(ws, lambda v: f'{v:.3f}')}，p {_rng_p(ps)}；")
         if skew_vals and kurt_vals:
-            seg += (f"偏度绝对值介于 {min(skew_vals):.2f}～{max(skew_vals):.2f}，"
-                    f"峰度绝对值介于 {min(kurt_vals):.2f}～{max(kurt_vals):.2f}。")
+            seg += (f"偏度绝对值{_rng(skew_vals, lambda v: f'{v:.2f}')}，"
+                    f"峰度绝对值{_rng(kurt_vals, lambda v: f'{v:.2f}')}。")
         if not sig:
             seg += (f"各变量 p 均≥{alpha:g}，未拒绝正态分布假设，"
                     "结合偏度、峰度与 Q-Q 图，可认为近似正态分布。")
@@ -339,6 +355,14 @@ def make_paragraph(overall, grouped, levene_rows, alpha, group_col):
                 f"{'、'.join(r['变量'] for r in ne)} 的 Brown-Forsythe 检验 p<{alpha:g}，"
                 "方差不齐，组间比较采用 Welch t / Welch ANOVA（或 Mann-Whitney U / "
                 "Kruskal-Wallis 非参数检验），不对方差做齐性假设。")
+    dropped_note = [(r["变量"], r.get("排除组别") or []) for r in levene_rows
+                    if r.get("排除组别")]
+    if dropped_note:
+        lines.append(
+            "注：方差齐性检验未纳入组内人数少于 2 的组别（"
+            + "；".join(f"{v}：{'、'.join(g)}" for v, g in dropped_note)
+            + "）。这些记录仍在样本内、未被删除，只是无法参与该检验的离差计算；"
+              "若为分组列漏填或错填所致，应在清洗阶段核对并修正归类。")
     lines.append("注：Shapiro-Wilk 不显著不等于“证明正态”；Likert 单个题项为有序"
                  "分类不要求正态，正态性针对量表总分/均分；未通过检验时不得删改数据"
                  "“凑正态”。")
@@ -381,12 +405,14 @@ def write_csv(path, overall, grouped, levene_rows):
             w.writerow(["未使用 --group，本段为空"])
         w.writerow([])
         w.writerow(["三、Brown-Forsythe 方差齐性检验（Levene 基于中位数）"])
-        w.writerow(["变量", "F", "df1", "df2", "p", "判读"])
+        w.writerow(["变量", "F", "df1", "df2", "p", "未纳入组别", "判读"])
         if levene_rows:
             for r in levene_rows:
                 w.writerow([r["变量"], "" if r["F"] is None else round(r["F"], 4),
                             r["df1"], r["df2"],
-                            "" if r["p"] is None else fmt_p(r["p"]), r["判读"]])
+                            "" if r["p"] is None else fmt_p(r["p"]),
+                            "、".join(r.get("排除组别") or []) or "（全部组别均纳入）",
+                            r["判读"]])
         else:
             w.writerow(["未使用 --group，本段为空"])
 
@@ -509,17 +535,30 @@ def main():
                     grp_vals[g].append(float(series[r]))
             for lv in level_order:
                 grouped.append(normality_row(name, lv, grp_vals[lv], alpha))
-            fstat, pp = _levene([grp_vals[lv] for lv in level_order], center="median")
-            ntot = sum(len(grp_vals[lv]) for lv in level_order)
-            k = len(level_order)
+            # _levene 内部会丢掉组内 n<2 的组，df 必须跟着按实际参与的组算，
+            # 否则报告里 F(df1,df2) 与 p 自相矛盾（p 按参与组算、df 按全部组写）。
+            used = [lv for lv in level_order if len(grp_vals[lv]) >= 2]
+            dropped = [lv for lv in level_order if len(grp_vals[lv]) < 2]
+            n_drop_rows = sum(len(grp_vals[lv]) for lv in dropped)
+            if dropped:
+                print(f"⚠ 「{name}」的方差齐性检验无法纳入组别："
+                      + "、".join(f"{lv}(n={len(grp_vals[lv])})" for lv in dropped)
+                      + f"，共 {n_drop_rows} 份记录未参与该检验（组内少于 2 人算不出离差）；"
+                        "这些记录仍计入组内正态性与总样本，请勿当作已删除。")
+            fstat, pp = _levene([grp_vals[lv] for lv in used], center="median")
+            ntot = sum(len(grp_vals[lv]) for lv in used)
+            k = len(used)
             if fstat is None:
-                levene_rows.append({"变量": name, "F": None, "df1": k - 1,
-                                    "df2": ntot - k, "p": None,
-                                    "判读": "组内无变异/样本不足，无法计算"})
+                reason = ("有效组不足 2 个（其余组人数<2），无法做方差齐性检验" if k < 2
+                          else "组内无变异/样本不足，无法计算")
+                levene_rows.append({"变量": name, "F": None, "df1": max(k - 1, 0),
+                                    "df2": max(ntot - k, 0), "p": None,
+                                    "排除组别": dropped, "判读": reason})
             else:
                 ok = pp >= alpha
                 levene_rows.append({"变量": name, "F": fstat, "df1": k - 1,
                                     "df2": ntot - k, "p": pp,
+                                    "排除组别": dropped,
                                     "判读": ("方差齐性成立" if ok
                                             else "方差不齐，用 Welch/非参数")})
         print_norm_table("二、分组组内正态性", grouped)

@@ -121,16 +121,22 @@ def em_normal(data, k, max_iter=500, tol=1e-7):
     def sub_matrix(idx):
         return [[sig[a][b] for b in idx] for a in idx]
 
+    # 缺失掩码在整个 EM 过程中不变，按缺失模式分组：同一模式的行共用同一个
+    # Σ_oo⁻¹ / B / C_mm，只需各算一次。逐行求逆时 k=30 就要十几秒，
+    # 79 题的真实问卷会跑到不可用；分组后求逆次数从 n 降到模式数。
+    patterns = {}
+    for i, row in enumerate(data):
+        patterns.setdefault(tuple(j for j in range(k) if row[j] is not None), []).append(i)
+    all_idx = list(range(k))
+
     for it in range(1, max_iter + 1):
         T1 = [0.0] * k
         T2 = [[0.0] * k for _ in range(k)]
-        for row in data:
-            o = [j for j in range(k) if row[j] is not None]
-            m = [j for j in range(k) if row[j] is None]
-            fill = list(mu)
-            for j in o:
-                fill[j] = row[j]
-            C = [[0.0] * k for _ in range(k)]
+        for o, rows in patterns.items():
+            o = list(o)
+            oset = set(o)
+            m = [j for j in all_idx if j not in oset]
+            B = C = None
             if m and o:
                 inv_o = invert_matrix(sub_matrix(o))
                 if inv_o is None:
@@ -140,23 +146,33 @@ def em_normal(data, k, max_iter=500, tol=1e-7):
                 # B = Σ_mo Σ_oo⁻¹  (len(m) × len(o))；注意 o[b] 才是全局列号
                 B = [[sum(sig[a][o[b]] * inv_o[b][c] for b in range(len(o)))
                       for c in range(len(o))] for a in m]
-                resid = [row[o[c]] - mu[o[c]] for c in range(len(o))]
-                for ai, a in enumerate(m):
-                    fill[a] = mu[a] + sum(B[ai][c] * resid[c] for c in range(len(o)))
-                # C_mm = Σ_mm − B Σ_om
-                for ai, a in enumerate(m):
-                    for bi, b in enumerate(m):
-                        cross = sum(B[ai][c] * sig[o[c]][b] for c in range(len(o)))
-                        C[a][b] = sig[a][b] - cross
+                # C_mm = Σ_mm − B Σ_om，同一模式下恒定
+                C = [[sig[a][b] - sum(B[ai][c] * sig[o[c]][b] for c in range(len(o)))
+                      for bi, b in enumerate(m)] for ai, a in enumerate(m)]
             elif m and not o:
                 # 整行缺失：填 μ，二阶统计加整个 Σ（该行不提供信息但计入 N）
-                for a in range(k):
-                    for b in range(k):
-                        C[a][b] = sig[a][b]
-            for j in range(k):
-                T1[j] += fill[j]
-                for jj in range(k):
-                    T2[j][jj] += fill[j] * fill[jj] + C[j][jj]
+                C = [row_sig[:] for row_sig in sig]
+            n_pat = len(rows)
+            if C:
+                for ai, a in enumerate(m):
+                    Ta, Ca = T2[a], C[ai]
+                    for bi in range(len(m)):
+                        Ta[m[bi]] += n_pat * Ca[bi]
+            for i in rows:
+                row = data[i]
+                fill = list(mu)
+                for j in o:
+                    fill[j] = row[j]
+                if B is not None:
+                    resid = [row[o[c]] - mu[o[c]] for c in range(len(o))]
+                    for ai, a in enumerate(m):
+                        fill[a] = mu[a] + sum(B[ai][c] * resid[c] for c in range(len(o)))
+                for j in range(k):
+                    fj = fill[j]
+                    T1[j] += fj
+                    Tj = T2[j]
+                    for jj in range(k):
+                        Tj[jj] += fj * fill[jj]
         new_mu = [t / n for t in T1]
         new_sig = [[T2[j][jj] / n - new_mu[j] * new_mu[jj] for jj in range(k)]
                    for j in range(k)]
@@ -238,8 +254,14 @@ def descriptive(data, k, cols):
 def make_paragraph(desc, chi2, df, p, n_patterns, alpha=0.05):
     d = desc
     rates = [c["rate"] * 100 for c in d["per_col"] if c["miss"] > 0]
-    rng_clause = (f"逐题缺失率介于 {min(rates):.1f}%～{max(rates):.1f}%，" if rates
-                  else "各题均无缺失，")
+    if not rates:
+        rng_clause = "各题均无缺失，"
+    elif len(rates) == 1:
+        rng_clause = f"仅 1 题有缺失（缺失率 {rates[0]:.1f}%），"
+    elif min(rates) == max(rates):
+        rng_clause = f"逐题缺失率均为 {rates[0]:.1f}%，"
+    else:
+        rng_clause = f"逐题缺失率介于 {min(rates):.1f}%～{max(rates):.1f}%，"
     base = (f"本研究对 {d['k']} 个分析题项、{d['n']} 份记录做缺失值分析："
             f"缺失单元格 {d['miss_cells']} 个，总缺失率 {d['rate'] * 100:.2f}%，"
             f"完整作答 {d['complete']} 份（{d['complete'] / d['n'] * 100:.1f}%），"
@@ -345,6 +367,9 @@ def main():
     if desc["miss_cells"] > 0:
         if all_missing:
             print(f"  注：{all_missing} 份记录所有分析题项均缺失，已从检验中剔除（不计入任何模式）。")
+        if k > 40:
+            print(f"  提示：本次分析 {k} 个题项，EM 迭代耗时随题项数急剧增长（题项数^4 量级），"
+                  f"可能需要数分钟。只想快点出结果时，用 --only 逐个量表分别跑。")
         mu, sig, iters = em_normal(data, k)
         chi2, df, details, all_missing, n_patterns = little_mcar(data, k, mu, sig)
         if df is not None and df > 0:
