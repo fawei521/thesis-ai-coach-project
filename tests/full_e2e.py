@@ -589,9 +589,11 @@ try:
         "必须查刘俊升2013原文确认总题数"]))
     check("BSMAS六要素", all(s in sl for s in [
         "BSMAS", "Andreassen等, 2016", "显著性+心境改变", "耐受+戒断+冲突+复发", "总分6-30"]))
-    check("量表库编号到29且十大类", "### 28. 基本心理需要" in sl and "### 29. 睡眠质量（PSQI）" in sl
+    check("量表库编号到39且十一大类", "### 36. 基本心理需要" in sl and "### 37. 睡眠质量（PSQI）" in sl
           and "## 九、自我评价、幸福感与基本需要类" in sl and "## 十、睡眠与心身健康类" in sl
-          and "## 七、负性情绪综合筛查" in sl and "## 八、压力、应对与自我调节类" in sl)
+          and "## 七、负性情绪综合筛查" in sl and "## 八、压力、应对与自我调节类" in sl
+          and "## 十一、学习心理与教育情境类" in sl and "### 38. 学习投入（UWES-S）" in sl
+          and "### 39. 学业倦怠（连榕量表 / MBI-SS）" in sl)
     # ---- v1.60 量表库再扩充：5 个高频量表(PANAS/IRI-C/GQ-6/GHQ-12/PSQI)，硬事实逐条锁定（均经联网核查）----
     check("PANAS事实", all(s in sl for s in [
         "PANAS", "Watson, Clark & Tellegen, 1988", "20（正性10+负性10）",
@@ -607,6 +609,38 @@ try:
     check("PSQI事实", all(s in sl for s in [
         "PSQI", "Buysse 等, 1989", "刘贤臣、唐茂芹等, 1999",
         "19 个自评＋5 个他评（仅 18 个自评条目计分）", "总分 0-21"]))
+    # ---- v1.63 量表库三扩：10 个高频量表(29→39组、10→11大类)，硬事实逐条锁定（均经联网核查）----
+    check("GritS事实", all(s in sl for s in [
+        "Grit-S", "Duckworth & Quinn, 2009", "兴趣一致性(4)＋坚持努力(4)",
+        "总分（8-40）", "Li 等, 2018"]))
+    check("IAS事实", all(s in sl for s in [
+        "IAS", "Leary, 1983", "彭纯子等, 2004",
+        "第 3、6、10、15 题为反向计分", "总分 15-75"]))
+    check("ITS事实", all(s in sl for s in [
+        "ITS", "Rotter, 1967", "总分 25-125、中值 75",
+        "约半数题项为反向计分", "特殊信任（对身边人）＋普遍信任"]))
+    check("INCOM事实", all(s in sl for s in [
+        "INCOM", "Gibbons & Buunk, 1999", "王明姬、王垒、施俊琦, 2006",
+        "白学军等, 2013", "6题上行版无反向题", "中文版α约.88、四周重测约.89"]))
+    check("FoMO事实", all(s in sl for s in [
+        "FoMOs", "Przybylski, Murayama, DeHaan & Gladwell, 2013",
+        "李琦、王佳宁、赵思琦、贾彦茹, 2019", "10题求和（10-50）", "8 题二维修订版"]))
+    check("SCSSF事实", all(s in sl for s in [
+        "SCS-SF", "Neff, 2003", "Raes, Pommier, Neff & Van Gucht, 2011",
+        "只用总分、不报告各成分分", "三个负性子量表的题项**反向计分**"]))
+    check("PPQ事实", all(s in sl for s in [
+        "PPQ", "张阔、张赛、董颖红, 2010",
+        "自我效能(7)＋韧性(7)＋希望(6)＋乐观(6)", "总分 26-182", "第 8,10,12,14,25 题"]))
+    check("AAQ2事实", all(s in sl for s in [
+        "AAQ-II", "Bond 等, 2011", "曹静、吉阳、黄峥, 2013",
+        "总分 7-49", "全部同向、无反向题"]))
+    check("UWESS事实", all(s in sl for s in [
+        "UWES-S", "Schaufeli, Martínez, Pinto, Salanova & Bakker, 2002",
+        "方来坛、时勘、张风华, 2008", "李西营、黄荣怀, 2010",
+        "活力(6)＋奉献(5)＋专注(6)"]))
+    check("学业倦怠事实", all(s in sl for s in [
+        "连榕、杨丽娴, 2005", "情绪低落(8)＋行为不当(6)＋成就感低(6)",
+        "总α约.86", "MBI-SS", "不可混用条目或互相替代引用"]))
     po0 = tx("templates/paper-outline.md")
     check("大纲伦理埋点", "监护人书面知情同意" in po0 and "注意力检查题" in po0 and "Bootstrap 5000" in po0)
     check("大纲结果章完整", all(s in po0 for s in ["平行分析", "Games-Howell", "卡方", "简单斜率", "偏态"]))

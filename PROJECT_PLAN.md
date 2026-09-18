@@ -87,7 +87,7 @@
 |---|---|---|
 | START.md | AI启动入口 | ✅ |
 | core/coach-rules.md | 核心规则 | ✅（v1.1需更新） |
-| psychology/scale-library.md | 29 组量表（10 大类，v1.60） | ✅ |
+| psychology/scale-library.md | 39 组量表（11 大类，v1.63） | ✅ |
 | psychology/stats-guide.md | 10种统计方法 | ✅ |
 | psychology/ethics.md | 伦理规范 | ✅ |
 | tools/data_cleaner.py | 数据清洗 | ✅已测试 |
@@ -383,3 +383,20 @@
 - **夹具与测试（P0）**：新增 `tests/test-data/demo_htmt.csv`、`htmt_scales.txt`（正交 4+4 题 n=220）；`full_e2e.py` 390→**404 项全过**（ω 4 项、HTMT 10 项、菜单 1 项；含反向题等价、同因子阴性、三类坏参数守卫）。
 - **文档（P1）**：stats-guide 新增 ω 小节与 HTMT 用法块；data-analysis-auto 流程图/第3步/第4步/质量闸；START、README（版本摘要轮换、断言计数）、QUICKSTART、e2e-test（测试61＋清单17/17b）同步；consistency_check 与 skill validate 退出 0。
 - **范围控制**：本轮不做分层 ω（hierarchical ω/Schmid-Leiman）、HTMT2 与 polychoric 相关（列入后续候选）；doubao-skill 本轮无改动（手机不跑脚本，口径已在 stats-guide 单一信源）。
+
+## 十三、v1.63 优化：高频量表库再扩充（29→39 组、10→11 大类）
+
+> 启动日期 2026-09-18（晚间自主推进，同分支 `feat/advance-closed-loop`，承接 v1.62）。起因：v1.59/v1.60 后量表库覆盖 29 组，但积极品质（坚毅/自我同情/心理资本）、人际过程（交往焦虑/人际信任/社会比较）、新媒体行为（错失焦虑）、ACT 过程变量（经验性回避）与教育情境（学习投入/学业倦怠）仍有高频缺口。
+
+### 13.1 设计原则（本轮总纲）
+
+1. **只补高频成熟量表、不凑数**：每组给齐题数/维度/计分/反向题/中文版/信度六要素，优先本土验证、本科论文实际高频使用的版本（学业倦怠主推连榕 2005 而非直接上 MBI-SS）。
+2. **版本分歧不抹平**：5点/7点锚点、维度题数分配、反向题号有不同记载的，显式写"以所引题本原文为准"，不替学生猜一个版本。
+3. **结构变更脚本化**：插入与重编号由确定性脚本完成（类别锚点插入后全文统一重排 1–39），测试以硬事实字符串锁死，避免手工断号。
+
+### 13.2 改动清单
+
+- **量表库（P0）**：`psychology/scale-library.md` 新增 10 组（Grit-S、IAS、ITS、INCOM 全版＋上行 6 题、FoMOs、SCS/SCS-SF、PPQ、AAQ-II、UWES-S±9、连榕学业倦怠＋MBI-SS 备选），新开"十一、学习心理与教育情境类"，全文重编号 1–39。
+- **测试（P0）**：`full_e2e.py` 404→**414 项全过**（+10 组硬事实断言；编号/大类断言更新为 39/11）。
+- **文档（P1）**：CHANGELOG v1.63 索引与详情、本文件状态表与 §十三、START 版本号、README 版本轮换与断言计数、e2e-test 测试62 同步。
+- **范围控制**：本轮无工具脚本改动（16 脚本/15 菜单项不变）；doubao-skill 本轮无改动（量表选择口径在 stage-4 引用本文件，内容扩充不破坏既有口径）；量表正文不附题目，版权与授权纪律不变。
