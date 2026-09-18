@@ -59,6 +59,7 @@
 - `validity_cr_ave.py` — **聚合/区分效度计算**（模式1：CFA 后由标准化因子载荷算组合信度 CR、平均方差抽取 AVE、√AVE，并结合因子间相关做 Fornell-Larcker 判定，支持手动参数或载荷/相关 CSV，可另存 `_聚合区分效度.csv`；模式2：`--htmt 数据.csv --scales scales.txt` 直接由原始问卷数据算 HTMT 异质-单质比率与 Bootstrap 95%CI，导出 `_HTMT区分效度.csv`；纯标准库，载荷须来自真实 CFA 输出、不得为达标改数）
 - `item_analysis.py` — **预试问卷项目分析**（按量表总分取高/低各 27% 逐题做独立样本 t 得决断值 CR，并给均值标准差、CITC 校正项总相关、删题后 α 与保留/讨论删改判定，导出 `_项目分析.csv`；复用 stats 包，纯标准库，CR 经 scipy 黄金核对；只提示不替学生删题）
 - `content_cvi.py` — **自编量表内容效度 CVI**（专家 1-4 相关性评分 → 逐条 I-CVI、机遇校正 κ*、量表 S-CVI/Ave 与 S-CVI/UA，按 Lynn 1986/Polit&Beck 2006 阈值给保留/修改/重审建议，导出 `_内容效度CVI.csv`；纯标准库，仅自编/修订量表需要）
+- `reference_formatter.py` — **参考文献格式化**（题录 CSV → GB/T 7714-2015 顺序编码制 [n] 文本：期刊/专著/学位论文/会议/报纸/电子资源六类，作者超 3 人自动截"等/et al"、欧美著者姓全大写名缩写，支持全角标点与 GB/T 7714-2025 姓氏口径开关，吃 paper_search 导出与文献整理表；缺字段标【待补】不伪造、坏输入中文报错；纯标准库，只格式化不生成文献）
 
 **典型数据流水线**：问卷星导出 →（外发前）去标识化 → 预处理 → 清洗 → 一键自动统计（频数/信度/效度/Harman/相关/回归/Bootstrap中介）→ JASP/SPSS复核 → 画模型图
 
@@ -136,24 +137,24 @@ thesis-ai-coach-project/
 ├── 我的工作区/                # 学生自己的文件：01-文献PDF/02-问卷数据/03-分析结果/04-网页 + 我的论文进度.md
 ├── core/                     # AI规则（coach-rules）+ 身份陪伴边界（companionship）+ 引导反馈协议 + 鼓励系统 + AI素养
 ├── workflows/                # 10个阶段工作流手册
-├── tools/                    # 16个脚本（含统一菜单menu.py、重点文献卡片literature_cards.py、网页预览器、去标识化anonymize_data.py、效应量换算effect_size.py、聚合区分效度validity_cr_ave.py、预试项目分析item_analysis.py、内容效度content_cvi.py）+ stats/ 统计实现包（9个模块）
+├── tools/                    # 17个脚本（含统一菜单menu.py、重点文献卡片literature_cards.py、网页预览器、去标识化anonymize_data.py、效应量换算effect_size.py、聚合区分效度validity_cr_ave.py、预试项目分析item_analysis.py、内容效度content_cvi.py、参考文献格式化reference_formatter.py）+ stats/ 统计实现包（9个模块）
 ├── psychology/               # 量表/统计/伦理知识库
 ├── templates/                # 问卷/大纲/开题/答辩/进度卡/AI声明模板 + 网页范例/
 └── tests/                    # full_e2e.py 一键全量回归、consistency_check.py 文档↔代码一致性自检、专项测试与测试数据
 ```
 
-> 维护者/接手者：改动后运行 `python tests/full_e2e.py`（约3-5分钟，427 项断言，自动备份恢复测试数据），退出码 0 才算通过；学生日常使用不需要跑。
+> 维护者/接手者：改动后运行 `python tests/full_e2e.py`（约3-5分钟，448 项断言，自动备份恢复测试数据），退出码 0 才算通过；学生日常使用不需要跑。
 
 ## 版本
 
-**当前版本：v1.64**（2026-09-18）全流程三轮演练健壮性闭环（完整版；doubao-skill 本轮无改动）
-- **模型图补 direct**：`chart_generator.py` 新增 2 变量直接效应模型（`--type direct`），菜单按变量数 4/3/2 自动选 chain/simple/direct，变量数与类型不符给交叉引导而不是硬画报错
-- **坏输入不再"假成功"**：scales 文件缺失或题项与数据列不匹配时，自动统计/数据清洗/项目分析/HTMT 四个工具统一中文硬失败（校验下沉 `stats/dataio.py` 共享），杜绝静默按部分题算信度总分；清洗器数值参数改中文校验；效应量 16 处坏参、文献整理空文件统一非零退出码
-- **测试与文档**：按 ROADMAP 挂账完成三轮学生视角演练（标准 29 步＋边界 34 步＋修复后干净重跑与产物链核对），full_e2e 414→427 项（+13 回归断言），CHANGELOG、PROJECT_PLAN、START、e2e-test 同步
+**当前版本：v1.65**（2026-09-18）GB/T 7714 参考文献格式化闭环（完整版；doubao-skill 本轮无改动）
+- **定稿最后一块断档补齐**：新增 `reference_formatter.py`（菜单第 16 项），吃 paper_search 导出、文献整理表或自带 13 列模板 CSV，输出 GB/T 7714-2015 顺序编码制 [n] 参考文献：期刊/专著/学位论文/会议/报纸/电子资源六类，作者超 3 人自动截"等/et al"、欧美著者"姓全大写＋名缩写不带点"，DOI 尾随著录
+- **口径开关与不伪造**：`--fullwidth` 全角标点、`--name-case 2025` 切 GB/T 7714-2025 姓氏首字母大写口径、`--access-date` 电子资源引用日期；缺字段文中标【待补】并逐条警告，文件不存在/空表/无题名列/不可判类型统一中文 rc=1；工具不联网、不生成文献
+- **测试与文档**：黄金用例＋16 组 CLI 端到端场景全过，full_e2e 427→448 项（+21），writing-guide §四重写，菜单 15→16 项、工具脚本 16→17 个
 
-**上一个版本：v1.63** 高频量表库再扩充：scale-library 29→39 组、10→11 大类（坚毅 Grit-S、交往焦虑 IAS、人际信任 ITS、社会比较 INCOM、错失焦虑 FoMOs、自我同情 SCS-SF、积极心理资本 PPQ、经验性回避 AAQ-II、学习投入 UWES-S、学业倦怠；新开学习心理与教育情境类），版本分歧全部标注以题本为准；full_e2e 404→414 项；逐条见 CHANGELOG。
+**上一个版本：v1.64** 全流程三轮演练健壮性闭环：模型图补 direct 二变量类型与菜单自动选型；scales 缺失/题项错配在统计/清洗/项目分析/HTMT 四处统一中文硬失败（校验下沉 dataio）；清洗器数值参数、效应量 16 处坏参、文献整理空文件统一 rc=1；full_e2e 414→427 项；逐条见 CHANGELOG。
 
-**更早版本（v1.62 及以前）的逐版说明全部见
+**更早版本（v1.63 及以前）的逐版说明全部见
 [CHANGELOG.md](CHANGELOG.md)** —— 本 README 自 v1.57 起只保留当前版本与上一版本的摘要，
 不再往下堆积版本正文（同一版本的说明只维护 CHANGELOG 一处，避免两处漂移、README 无限变长）。
 

@@ -940,6 +940,20 @@ python tests/test_special_columns.py`
 
 ---
 
+## 测试64：GB/T 7714 参考文献格式化（v1.65，reference_formatter.py，菜单第16项）
+
+**目的**：补齐 v1.64 产物链核对发现的唯一定稿断档——参考文献著录。工具只做格式化、绝不生成文献，缺字段必须显式标【待补】而不是静默编造。
+
+**步骤与预期**：
+1. `--save-template 模板.csv` 生成 13 列模板（含 4 个示例行）；直接回填运行得 4 条著录：中文期刊四人截"等"且"刊名, 年, 卷(期): 页"正确；英文三作者输出 HENSELER J, RINGLE C M, SINKOVICS R R 且 DOI 尾随；[D] 形如"北京: 某某大学, 2024."；[EB/OL] 形如"(更新日期)[引用日期]. URL"。
+2. paper_search 导出 CSV（标题/作者/年份/期刊会议/DOI 列）直接可吃；literature_organizer 整理表靠"原文出处"自由文本还原被污染题名（中文"作者. 题名. 刊名, 年, 卷(期): 页"与英文 APA 各一例，污染标题串不得残留）。
+3. APA 四作者 "Wang, Y., Li, M., Chen, X., Zhao, L." → WANG Y, LI M, CHEN X, et al；`--name-case 2025` 全名式作者 → Henseler J；`--fullwidth` 时著录点/逗号/冒号与卷期间逗号全部全角；`--no-number` 输出无 [n]。
+4. 坏输入 rc=1 且中文提示、无 Traceback：文件不存在、0 数据行、无题名列、不可判类型、无参数；缺字段（如期刊缺年份刊名）rc=0 但文中标【待补】且控制台逐条警告；GBK 编码文件正常著录。
+5. `python tests/full_e2e.py`：448 项全过；菜单 16 项接线（menu.py 中 /16】 恰好 16 处、无 /15】 残留）；`python tests/consistency_check.py`、`python doubao-skill/validate.py`、全量 py_compile 全绿。
+6. 红线：源码与工具输出均声明"只格式化、不生成文献"；writing-guide §四与 paper-outline 参考文献节同步工具用法。
+
+---
+
 # 脚本回归测试清单（每次改动后执行）
 
 在项目根目录（PowerShell）逐条运行，全部通过才算合格：
@@ -990,7 +1004,10 @@ python tools\content_cvi.py tests\test-data\demo_cvi.csv
 python tools\auto_stats.py tests\test-data\demo_htmt.csv --scales tests\test-data\htmt_scales.txt
 # 17b HTMT 区分效度（原始数据直算，含 Bootstrap 95%CI；默认导出 _HTMT区分效度.csv，验毕删）
 python tools\validity_cr_ave.py --htmt tests\test-data\demo_htmt.csv --scales tests\test-data\htmt_scales.txt --boot 300
+# 18 参考文献格式化（模板回填/六类著录/全角/2025口径/坏参rc1；默认导出 _参考文献.txt，验毕删）
+python tools\reference_formatter.py --save-template tests\test-data\_t_refs_tpl.csv
+python tools\reference_formatter.py tests\test-data\_t_refs_tpl.csv
 ```
 
-测试结束后删除 `_t_*` 临时文件、`tests/test-data/_demo_check` 目录，以及在 test-data 旁生成的 `demo_survey_项目分析.csv`、`demo_cvi_内容效度CVI.csv`、`demo_htmt_*.csv/png`（夹具 `demo_htmt.csv`、`htmt_scales.txt` 保留）。（test_special_columns.py 会自清其 `_special*` 临时文件）所有脚本只用Python标准库（模型图需matplotlib），
+测试结束后删除 `_t_*` 临时文件、`tests/test-data/_demo_check` 目录，以及在 test-data 旁生成的 `demo_survey_项目分析.csv`、`demo_cvi_内容效度CVI.csv`、`demo_htmt_*.csv/png`、`_t_refs_tpl*` 与各 `_参考文献.txt`（夹具 `demo_htmt.csv`、`htmt_scales.txt` 保留）。（test_special_columns.py 会自清其 `_special*` 临时文件）所有脚本只用Python标准库（模型图需matplotlib），
 统计数字以SPSS/JASP为准，脚本用于快速预览和教学。

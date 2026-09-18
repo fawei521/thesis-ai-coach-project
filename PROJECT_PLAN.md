@@ -298,7 +298,7 @@
 | chart_generator.py | 研究模型图/路径系数图 | matplotlib |
 | menu.py | 中文统一菜单（配合「启动工具箱.bat」，支持拖拽） | 标准库 |
 
-> 注：上表为早期快照，实际工具以 `AGENTS.md` 文件地图与 `tools/` 目录为准（v1.57 为 10 个脚本，v1.58 新增 `literature_cards.py` 后为 11 个，v1.59 新增 `anonymize_data.py`、`effect_size.py` 后为 13 个、菜单 12 项；v1.60 新增 `validity_cr_ave.py`、`item_analysis.py`、`content_cvi.py` 后为 16 个、菜单 15 项）。
+> 注：上表为早期快照，实际工具以 `AGENTS.md` 文件地图与 `tools/` 目录为准（v1.57 为 10 个脚本，v1.58 新增 `literature_cards.py` 后为 11 个，v1.59 新增 `anonymize_data.py`、`effect_size.py` 后为 13 个、菜单 12 项；v1.60 新增 `validity_cr_ave.py`、`item_analysis.py`、`content_cvi.py` 后为 16 个、菜单 15 项；v1.65 新增 `reference_formatter.py` 后为 17 个、菜单 16 项）。
 
 ---
 
@@ -419,4 +419,23 @@
 - **测试（P0）**：`full_e2e.py` 414→**427 项全过**（+13 回归断言，2 条旧断言收紧到新契约）；三轮演练 29/29、34/34。
 - **文档（P1）**：CHANGELOG v1.64 索引与详情、本节、START 版本号、README 版本轮换与断言计数、e2e-test 测试63、ROADMAP 三轮演练挂账勾选、paper-outline 信度处补 ω 同步。
 - **范围控制**：工具脚本数/菜单项数不变；doubao-skill 本轮无改动；演练框架与补丁不入库。
-- **挂账**：GB/T 7714 参考文献格式化工具（v1.65 候选，吃 paper_search/整理器题录，纯标准库、零统计风险）。
+- **挂账**：GB/T 7714 参考文献格式化工具——**已在 v1.65 兑现（见 §十五）**。
+
+## 十五、v1.65 优化：GB/T 7714 参考文献格式化闭环
+
+> 2026-09-18 晚间自主推进，同分支 `feat/advance-closed-loop`，承接 v1.64 产物链核对发现的挂账。
+
+### 15.1 背景与做法
+
+1. v1.64 三轮演练后对照论文大纲逐节核对工具出口，唯一定稿断档为参考文献著录。
+2. 先联网核查 GB/T 7714-2015 顺序编码制规则（六类文献格式、作者 1-3 全列/≥4 截前三、欧美著者"姓全大写名缩写不带点"、电子资源 [更新日期][引用日期]、DOI 尾随），并确认 GB/T 7714-2025 已发布、外国作者姓氏改为首字母大写，故以 `--name-case 2015|2025` 同时支持两版口径、默认 2015。
+3. 黄金用例先行（作者解析 10 例、出处尾部解析、污染题名还原、六类著录、全角），再补 CLI 端到端 16 组场景与 full_e2e 断言，最后接菜单与文档。
+
+### 15.2 改动清单
+
+- **新增 `tools/reference_formatter.py`（菜单第 16 项）**：题录 CSV（paper_search 导出/整理表/13 列模板）→ GB/T 7714-2015 [n] 编号文本；[J][M][D][C][N][EB/OL] 六类；作者多格式解析与三人截断；`--fullwidth`/`--no-number`/`--name-case`/`--access-date`/`--save-template`；缺字段【待补】标注＋警告，坏输入中文 rc=1；UTF-8/GBK 自适应；纯标准库、不联网、不生成文献。
+- **整理表污染自愈**：标题列被出处尾部污染时以"原文出处"还原纯题名（中英文各有黄金用例）。
+- **菜单与计数**：菜单 15→16 项（15 处步骤标签同步 /16，主屏补提示行）；工具脚本 16→17 个；stats 子包不变。
+- **文档**：writing-guide §四重写、START 工具清单与用法、README 工具清单/目录树/版本轮换、AGENTS 文件地图、paper-outline 参考文献节、e2e-test 测试64、本文件。
+- **测试（P0）**：`full_e2e.py` 427→**448 项全过**（+21）；黄金用例与 CLI 端到端 16 组场景全绿；consistency_check、doubao-skill validate、全量 py_compile 全绿。
+- **范围控制**：doubao-skill 本轮无改动；测试与补丁不入库。
