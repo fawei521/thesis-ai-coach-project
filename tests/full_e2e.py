@@ -2018,8 +2018,12 @@ try:
     check("v175 MI决策落档", "不内置一键插补" in rm75 and "missing-imputation-guide" in rm75)
     check("v175 ROADMAP无幽灵脚本", "outline_to_ppt" not in rm75 and "pptx_writer" not in rm75)
     rdme75 = tx("README.md")
-    check("v175 README版本区收敛", "当前版本：v1.75" in rdme75 and "上一个版本：v1.74" in rdme75
-          and len(rdme75.splitlines()) < 200)
+    check("v175 README版本区收敛", "更早版本（v1.64 及以前）" in rdme75
+          and "上一个版本：v1." in rdme75 and len(rdme75.splitlines()) < 200)
+
+    # ========== v1.76 文档勘误与行数守卫 ==========
+    check("v176 勘误与行数守卫", "184→170 行，实计" in tx("CHANGELOG.md")
+          and len(tx("README.md").splitlines()) <= 180)
 
     # ========== 并行复核会话交付物：行为锁定（防退回） ==========
     # 1) 前提假设工具：方差齐性的 df 必须按"实际参与的组"算，且小组要显式报出来
