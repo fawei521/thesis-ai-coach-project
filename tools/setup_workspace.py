@@ -49,6 +49,16 @@ LAYOUT = [
 ]
 
 
+# 占位说明文件名（沿用包内 `把…放这里.txt` 命名约定，full_e2e 的白名单按此模式放行）
+PLACEHOLDER = {
+    "05-开题报告": "开题报告与PPT",
+    "06-论文正文": "论文正文",
+    "07-答辩材料": "答辩材料",
+    "08-量表与伦理": "量表授权与伦理材料",
+    "09-导师沟通记录": "导师沟通记录",
+}
+
+
 def main():
     ap = argparse.ArgumentParser(description="补齐 我的工作区/ 的论文全流程目录（只新增不删除）")
     ap.add_argument("--check", action="store_true", help="只检查缺什么，不创建")
@@ -70,7 +80,9 @@ def main():
             missing.append((name, purpose, legacy))
             continue
         d.mkdir(parents=True, exist_ok=True)
-        note = d / "放什么.txt"
+        # 占位说明沿用包内既有命名约定 `把…放这里.txt`：
+        # full_e2e 的"学生数据不入库"白名单按这个模式放行，用别的名字会被判成泄漏。
+        note = d / ("把" + PLACEHOLDER.get(name, name.split("-", 1)[-1]) + "放这里.txt")
         if not note.exists():
             note.write_text(f"{name}\n\n该放：{purpose}\n\n"
                             f"（本目录由 tools/setup_workspace.py 创建；"

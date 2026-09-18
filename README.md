@@ -148,15 +148,18 @@ thesis-ai-coach-project/
 └── tests/                    # full_e2e.py 一键全量回归、consistency_check.py 文档↔代码一致性自检、专项测试与测试数据
 ```
 
-> 维护者/接手者：改动后运行 `python tests/full_e2e.py`（约3-5分钟，617 项断言，自动备份恢复测试数据），退出码 0 才算通过；学生日常使用不需要跑。
+> 维护者/接手者：改动后运行 `python tests/full_e2e.py`（约3-5分钟，632 项断言，自动备份恢复测试数据），退出码 0 才算通过；学生日常使用不需要跑。
 
 ## 版本
 
-**当前版本：v1.76**（2026-09-18）文档勘误与行数守卫闭环（完整版；doubao-skill 本轮无改动）
-- **勘误**：v1.75 CHANGELOG 详情中 README 收敛后行数"约 150 行"改为实计 **170 行**（数字必须可追溯）
-- **守卫前移**：README 版本区行数断言从全局 <200 收紧到 ≤180，版本区膨胀提前预警；full_e2e 616→617 项；无代码、无数值口径变化
+**当前版本：v1.77**（2026-09-18）开题产出物闭环（并行复核会话交付；doubao-skill 本轮无改动）
+- **大纲 → 真 .pptx**：`tools/outline_to_ppt.py` + `templates/opening-ppt-outline.md`（12 页开题结构，
+  照 `workflows/proposal-guide.md` 第四节口径）；**只排版不代写**，内容留【】你自己填
+- **工作区覆盖全流程**：`tools/setup_workspace.py` 把 `我的工作区/` 由 4 个目录补到 9 个
+  （开题报告/论文正文/答辩材料/量表与伦理/导师沟通），只新增不删除、幂等
+- **测试**：+21 条行为锁定钉住本会话前四轮的修复；full_e2e 611→632 项；干净解压副本 632/632
 
-**上一个版本：v1.75** 路线图挂账维护：ROADMAP 补 Friedman/polychoric/分层 ω/HTMT2/回归诊断扩展等真实缺口与 MI 不内置决策，README 版本区收敛；full_e2e 612→616 项；逐条见 CHANGELOG。
+**上一个版本：v1.76** 文档勘误与行数守卫：CHANGELOG 行数表述改实计值，README 版本区行数断言收紧到 ≤180；full_e2e 616→617 项；逐条见 CHANGELOG。
 
 **更早版本（v1.64 及以前）的逐版说明全部见
 [CHANGELOG.md](CHANGELOG.md)** —— 本 README 自 v1.57 起只保留当前版本与上一版本的摘要，

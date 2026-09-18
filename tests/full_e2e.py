@@ -487,11 +487,12 @@ try:
                 "我的工作区/先读我.md", "我的工作区/我的论文进度.md"}
         check("预置文件已入库", want <= tracked, str(sorted(want - tracked)))
         # 反向：学生本人的数据/成果/凭据不得入库（题录 txt、CSV、真实数据）
+        # 白名单用模式而不是逐个文件名：`把…放这里.txt` 是各目录占位说明的统一命名，
+        # 逐个列举会让"新加一个工作区目录"必须先改这条断言（v1.77 踩过）。
+        preset = ("先读我.md", "我的论文进度.md", "检索记录.md")
         leak = [t for t in tracked if t.startswith("我的工作区/")
-                and not (t.endswith("把论文PDF放这里.txt") or t.endswith("把问卷数据放这里.txt")
-                         or t.endswith("把分析结果放这里.txt") or t.endswith("把网页放这里.txt")
-                         or t.endswith("先读我.md") or t.endswith("我的论文进度.md")
-                         or t.endswith("检索记录.md"))]
+                and not (re.match(r"^我的工作区/[^/]+/把.+放这里\.txt$", t)
+                         or t.rsplit("/", 1)[-1] in preset)]
         check("学生数据不入库", not leak, str(sorted(leak)))
     for d in ["01-文献PDF", "02-问卷数据", "03-分析结果"]: check("目录" + d, (ROOT / "我的工作区" / d).is_dir())
     bat = (ROOT / "启动工具箱.bat").read_bytes(); cc = bat.count(b"\r\n"); lo = bat.count(b"\n") - cc
