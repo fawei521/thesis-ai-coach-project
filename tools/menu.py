@@ -530,6 +530,23 @@ def t_paired():
     print("\n【19/20】配对设计差异检验（前后测 / 两条件：配对t＋d_z＋差值正态性＋Wilcoxon）")
     print("  同一批人前测后测有没有变化：配对 t 与非参数 Wilcoxon 符号秩一起给，")
     print("  前提看【差值】正态性，结论与 d_z 效应量可直接粘论文。")
+    mode = input("  检验类型：回车=前后测/两条件配对；输入 1=单样本与常数比较（如 Likert 中值 3、常模分）：").strip()
+    if mode == "1":
+        f = ask_path("  数据 CSV 拖进来，回车：")
+        if not f:
+            return
+        cols = input("  要检验的列（量表均分/题项，逗号分隔，如 孤独感,反刍）：").strip()
+        c = input("  检验常数是多少（Likert 中值常为量表中点，如 5 点量表输入 3）：").strip()
+        if not cols: print("  ✗ 必须给要检验的列。"); return
+        try: float(c)
+        except ValueError: print("  ✗ 检验常数必须是数字。"); return
+        args = [f, "--onesample", cols, "--constant", c]
+        grp = input("  只看某一组（如实验组）吗？输入分组列名（直接回车=不分组）：").strip()
+        lvl = input("  组取值是什么（如 实验组；直接回车=不分组）：").strip() if grp else ""
+        if grp and lvl: args += ["--group", grp, "--level", lvl]
+        run("paired_compare.py", args)
+        print("\n  单样本 t 前提是观测值与常数之差近似正态；Likert 差值常含结，n<30 以 Wilcoxon 精确法复核，效应量看 d_z 与 r。")
+        return
     pre_f = ask_path("  前测（或条件A）数据 CSV 拖进来，回车：")
     if not pre_f:
         return
@@ -652,7 +669,7 @@ def main():
         print("  写定稿整理参考文献（GB/T 7714 自动编号）用 16")
         print("  预处理后清洗前分析缺失值、跑Little MCAR检验用 17")
         print("  t/方差分析/回归前查正态性与方差齐性用 18")
-        print("  前后测/两条件配对差异（配对t、d_z、Wilcoxon符号秩）用 19")
+        print("  配对差异（配对t、d_z、Wilcoxon符号秩）与单样本对标称常数（如 Likert 中值 3）都用 19")
         print("  多组两两比较/多量表/多时点的 p 值校正（Bonferroni/Holm/BH）用 20")
         print("-" * 64)
         for num, name, _ in MENU:

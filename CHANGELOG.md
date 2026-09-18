@@ -12,6 +12,7 @@
 
 | 版本 | 发布日期 | 主题 | 提交 |
 |---|---|---|---|
+| **v1.72** | 2026-09-18 | paired_compare 新增单样本模式（--onesample/--constant，对标称常数如 Likert 中值 3 的单样本 t/Wilcoxon/d_z/r，菜单 19 选单样本，支持分组）；300 组对 scipy 零误差；full_e2e 589→600 项 | 见下方详情 |
 | **v1.71** | 2026-09-18 | 多重插补/FIML 教学指引闭环：新增 psychology/missing-imputation-guide.md（决策树、SPSS MI/PMM、AMOS FIML、R mice＋Rubin 池化公式、MNAR 敏感性、论文模板）；missing_report 拒绝 MCAR 时控制台与论文段落直接指向指南；四处文档接线；full_e2e 577→589 项 | 见下方详情 |
 | **v1.70** | 2026-09-18 | 配对检验效应量与口径增强：paired_compare.py 的 Wilcoxon 新增 rank-biserial r 效应量（(W+−W−)/(W++W−)，R effectsize/JASP 同口径，600 组对 scipy 零误差），控制台/论文段落/CSV 同步；n<30 有结正态近似 p 偏乐观警示；dataio 反向计分越界硬提示；full_e2e 570→577 项 | 见下方详情 |
 | **v1.69** | 2026-09-18 | 多重比较校正闭环：新增 mult_compare.py（菜单20，Bonferroni/Holm 控 FWER、BH/BY 控 FDR，支持 --ps 直给或 CSV 读 p 值列/名称列，四法同列对照并给可粘论文段落，与 R p.adjust/scipy false_discovery_control 同口径；导出 _多重比较校正.csv/_多重比较报告.txt；3000 组随机向量黄金对照 Bonferroni/Holm/BH 零误差、BY ≤4.4e-16），full_e2e 541→570 项 | 见下方详情 |
@@ -99,6 +100,15 @@
 ## 版本详情
 
 > 以下为各版本变更说明，按版本倒序。
+
+**v1.72 配对检验扩展单样本模式（完整版，doubao-skill 本轮无改动）**
+- **需求**："这组人的 Likert 均分是否高于中值 3""与常模分是否一致"是高频问题，此前工具只支持配对/独立样本，学生只能用 SPSS 手动点或误用独立样本 t；单样本 t 在数学上等价于 d=x−C 的配对检验，可零风险复用 v1.68/v1.70 的全套机器（差值 Shapiro、d_z 及 CI、Wilcoxon 精确/近似、rank-biserial r、有结小样本警示）。
+- **CLI**：单文件模式新增 `--onesample 列1,列2 --constant C`（可配 `--group/--level`）；互斥校验四类（缺 constant、constant 无 onesample、列不存在、与两文件/--scales/--id 混用）均 rc=1 中文提示；菜单第19项开头选"单样本"，问答收集列与常数。
+- **呈现**：控制台标题/行/尾注、可粘论文段落（"单样本 t 检验显示…与检验常数 C 相比…"）、CSV 备注（"单样本(vs C)"）按模式切换；CSV 表头与配对模式同构（前测M 列放常数 C），配对模式零回归。
+- **黄金验证（P0）**：300 组模拟（n=5…100，连续/含结，常数随机）对 scipy.stats.ttest_1samp：t 最大误差 4.3e-14、p 1.3e-13、d_z 4.9e-15；Wilcoxon 校正 z 1.8e-15；手工 x=[3,4,5] vs C=3 → t(2)=√3≈1.732、均值差=1。
+- **测试（P0）**：full_e2e 589→**600 项全过**（+11：开关、全样本/分组/手工例跑通与口径、报告与 CSV 备注、四类坏参数、配对回归）；consistency、validate、全量 py_compile 全绿；菜单新增内容受"单文件 ≤700 行"硬约束，同步压缩至恰好 700 行。
+- **教学边界**：stats-guide/workflow 明示"与中值比较只能说明偏离中点，不能声称干预效果"，并交代 Likert 差值多零值/结、n<30 精确法复核、与常模比较须交代常模口径。
+- **范围控制**：工具脚本数 21、菜单项 20 不变；doubao-skill 无改动；测试与补丁不入库。
 
 **v1.71 多重插补/FIML 教学指引闭环版（缺失处理最后一公里；完整版，doubao-skill 本轮无改动）**
 - **背景**：v1.66 的缺失分析工具在拒绝 MCAR 时只给"建议多重插补/FIML"的结论，学生拿到建议后不知道在 SPSS/R/AMOS 里具体怎么点、m 取多少、PROCESS 不自动池化怎么办、论文怎么写；网络教程口径混杂（均值插补、LOCF 等错误做法常见）。本闭环补齐可照做、可核对、带红线的操作指引，工具本体仍坚持"只检验不插补"，避免学生把插补当一键补全。

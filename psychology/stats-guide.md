@@ -382,6 +382,26 @@ python tools/paired_compare.py 前测.csv 后测.csv --id 编号 --scales scales
 - "实验组变化比对照组变化更大"不能只报组内前后测显著：要比较两组**差值**（独立样本 t on 差值）或做 组别×时点 交互作用（混合设计 ANOVA）
 - **论文表述：** "配对样本 t 检验显示，干预后 XX（M=…）较干预前（M=…）显著下降，t(59)=X.XX, p<.001, d_z=.XX（95%CI[.,.]）。"差值不满足正态时改写："因差值呈偏态分布，采用 Wilcoxon 符号秩检验，W+=XX, z=X.XX, p=.XX。"
 
+### 单样本：一组分数对标称常数（单样本 t / Wilcoxon 符号秩）
+研究问题是"这一组人的分数是否偏离某个固定常数"时用**单样本 t 检验**：如 Likert 量表均分是否高于中值 3（5 点量表）、是否与常模分/理论值一致、预试数据是否集中在中点。它在数学上等价于对差值 d=x−C 做配对 t（把常数 C 当作"前测"），所以前提、Wilcoxon 替代、d_z 与 rank-biserial r 的口径与配对检验完全一致（H0：总体均值=C）。
+
+**前提与注意**：
+- 前提仍是**差值 x−C 近似正态**（不是原始分数）；Likert 数据与中值比较时差值大量等于 0（零差值，Wilcoxon 中按规则剔除）且结很多，n<30 时正态近似 p 偏乐观，以 SPSS/JASP 精确法或蒙特卡洛复核
+- 效应量仍报 d_z=均值差/差值SD（即 |M−C|/SD）；非参数报 rank-biserial r
+- 与中值 3 比较只能说明"偏离中点"，**不能**据此声称干预有效（没有对照/前测）；干预效果仍需配对或组间设计
+- 单组与常模比较时，常模本身的样本量与口径要在方法里交代
+
+**工具**：`tools/paired_compare.py --onesample 列 --constant C`（菜单第19项，选"单样本"）：
+```bash
+# 5 点 Likert 量表均分是否高于中值 3
+python tools/paired_compare.py 数据.csv --onesample 孤独感,反刍 --constant 3
+# 只检验实验组
+python tools/paired_compare.py 数据.csv --onesample 孤独感 --constant 3 --group 组别 --level 实验组
+```
+输出与配对模式同构（检验常数、样本 M、差值 M/SD、单样本 t、d_z 及 CI、差值 Shapiro、Wilcoxon 与 r、可粘论文段落），导出文件名仍为 `_配对检验.csv`/`_配对检验报告.txt`，备注列标注"单样本(vs C)"。t/Wilcoxon 经 scipy 300 组黄金对照（t 误差 4.3e-14）。
+
+**论文表述**："单样本 t 检验显示，XX 得分（M=…，SD=…）显著高于量表中值 3，t(n−1)=X.XX, p=.XX, d_z=.XX（95%CI[.,.]）。"差值非正态时改用 Wilcoxon："采用单样本 Wilcoxon 符号秩检验，W+=XX, z=X.XX, p=.XX, r=.XX。"
+
 ### 多重比较校正：Bonferroni / Holm / BH（FDR）/ BY
 同一个研究问题下做了多个检验（一个"家族"：如单因素 ANOVA 后的全部两两比较、多个量表同时做组间比较、相关矩阵里的所有系数、多个时点的配对检验）时，只要检验数够多，哪怕所有零假设都为真，也会出现 p<.05 的假阳性：m 个检验、显著性水平 α，至少一个假阳性的概率最高约 1−(1−α)^m（m=10 时约 40%）。此时要对 p 值做多重比较校正。
 

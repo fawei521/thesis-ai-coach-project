@@ -553,3 +553,21 @@
 - **接线**：`tools/missing_report.py`（控制台解读＋论文段落指路径）、stats-guide、data-analysis-auto 第1.5步、START 查证表、README 知识库列表。
 - **测试（P0）**：full_e2e 577→**589 项全过**（+12）；v1566 专业文档断言三份→四份；consistency（Markdown 41 个；开发中捕获一处误写的清洗脚本名并改为 data_cleaner.py）、validate、全量 py_compile 全绿。
 - **范围控制**：无新增可执行插补代码，运行时纯标准库约束不变；菜单项 20、工具脚本 21 个不变；doubao-skill 无改动；测试与补丁不入库。
+
+## 二十二、v1.72 优化：配对检验扩展单样本模式（对标称常数）
+
+> 2026-09-18 晚自主推进，同分支 `feat/advance-closed-loop`，承接 v1.68/v1.70。
+
+### 22.1 背景与做法
+
+1. "Likert 均分是否高于中值 3""与常模分/理论值是否一致"是本科论文高频问题，此前无工具支持，学生易误用独立样本 t 或手点 SPSS 且漏掉前提检验。
+2. 单样本 t 数学上等价于 d=x−C 的配对检验，直接复用 paired_test（pre=[C]*n、post=x），前提（差值正态）、d_z、Wilcoxon、rank-biserial r、有结警示全套同构，新增面只在 CLI 互斥与呈现条件分支，回归风险可控。
+3. 黄金先行：300 组模拟对 scipy ttest_1samp/wilcoxon 零误差后才动代码。
+
+### 22.2 改动清单
+
+- `tools/paired_compare.py`：argparse 新增 `--onesample`/`--constant` 与四类互斥校验；单文件分支独立单样本循环（支持 --group/--level）；row 增加 mode/constant；print_rows/make_paragraph/write_csv 按模式切换文案，CSV 表头不变、备注标注"单样本(vs C)"。
+- `tools/menu.py`：第19项开头选模式（回车配对/1 单样本），问答收集列与常数；受单文件 ≤700 行硬约束，同步压缩至 700 行。
+- 文档：stats-guide 新增"单样本：一组分数对标称常数"小节（含"偏离中点≠干预有效"边界）、workflow 6.6、START、README、AGENTS、QUICKSTART、CHANGELOG、e2e-test 测试71。
+- **测试（P0）**：full_e2e 589→**600 项全过**（+11）；consistency、validate、全量 py_compile 全绿；黄金脚本不入库。
+- **范围控制**：工具脚本 21 个、菜单项 20 不变；doubao-skill 无改动；运行时纯标准库约束不变。

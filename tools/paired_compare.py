@@ -25,6 +25,10 @@
        python tools/paired_compare.py 前测.csv 后测.csv --id 编号 --scales scales.txt
      给 --scales 时对每个量表按反向计分题项算均分再配对；
      不给 --scales 时用 --pairs 列名:列名（两文件同名列）。
+  3) 单样本（一组分数与固定常数比较，如 Likert 中值 3、常模分；等价于对 x−C
+     做单样本 t / Wilcoxon，复用同一套前提与效应量）：
+       python tools/paired_compare.py 数据.csv --onesample 孤独感,反刍 --constant 3
+     可配 --group/--level 只在某一组内检验。
 
 解释红线：
   - 配对 t 的前提是【差值】近似正态；Shapiro 大样本过敏感，结合偏度峰度/Q-Q 图。
@@ -138,7 +142,7 @@ def paired_test(name, pre, post, alpha=0.05):
     pairs = [(a, b) for a, b in zip(pre, post) if a is not None and b is not None]
     n_input = min(len(pre), len(post))
     n = len(pairs)
-    row = {"name": name, "n_input": n_input, "n": n}
+    row = {"name": name, "n_input": n_input, "n": n, "mode": "paired"}
     if n < 3:
         row["error"] = f"可配对记录仅 {n} 对，至少需要 3 对"
         return row
@@ -242,18 +246,33 @@ def _r_tag(r):
 
 
 def print_rows(rows, alpha):
-    print("配对设计差异检验（差值 d = 后测 − 前测；H0：差值均值=0）")
+    one = bool(rows) and rows[0].get("mode") == "onesample"
+    if one:
+        c0 = rows[0].get("constant")
+        print(f"单样本检验（差值 d = 观测值 − 检验常数 {c0:g}；H0：总体均值={c0:g}）")
+    else:
+        print("配对设计差异检验（差值 d = 后测 − 前测；H0：差值均值=0）")
     print("=" * 78)
     for r in rows:
-        print(f"\n【{r['name']}】配对数 n={r['n']}"
-              + (f"（输入 {r['n_input']} 行，剔除无法配对/缺失 {r['n_input'] - r['n']}）"
-                 if r.get("n_input") and r["n_input"] != r["n"] else ""))
+        if r.get("mode") == "onesample":
+            print(f"\n【{r['name']}】有效 n={r['n']}"
+                  + (f"（输入 {r['n_input']} 行，剔除缺失 {r['n_input'] - r['n']}）"
+                     if r.get("n_input") and r["n_input"] != r["n"] else ""))
+        else:
+            print(f"\n【{r['name']}】配对数 n={r['n']}"
+                  + (f"（输入 {r['n_input']} 行，剔除无法配对/缺失 {r['n_input'] - r['n']}）"
+                     if r.get("n_input") and r["n_input"] != r["n"] else ""))
         if "error" in r:
             print(f"  ✗ {r['error']}")
             continue
-        print(f"  前测 M={fmt(r['m_pre'])}　后测 M={fmt(r['m_post'])}　"
-              f"差值 M={fmt(r['mean_diff'])}（SD={fmt(r['sd_diff'])}）")
-        print(f"  配对 t({r['df']})={fmt(r['t'])}，p={fmt_p(r['p_t'])}；"
+        if r.get("mode") == "onesample":
+            print(f"  检验常数={fmt(r['m_pre'])}　样本 M={fmt(r['m_post'])}　"
+                  f"差值 M={fmt(r['mean_diff'])}（SD={fmt(r['sd_diff'])}）")
+        else:
+            print(f"  前测 M={fmt(r['m_pre'])}　后测 M={fmt(r['m_post'])}　"
+                  f"差值 M={fmt(r['mean_diff'])}（SD={fmt(r['sd_diff'])}）")
+        t_label = "单样本 t" if r.get("mode") == "onesample" else "配对 t"
+        print(f"  {t_label}({r['df']})={fmt(r['t'])}，p={fmt_p(r['p_t'])}；"
               f"d_z={fmt(r['dz'])}（{_dz_tag(r['dz'])}效应），"
               f"{int((1-alpha)*100)}%CI≈[{fmt(r['dz_lo'])}, {fmt(r['dz_hi'])}]")
         sw = ("差值 Shapiro-Wilk 不显著（p=" + fmt_p(r["sw_p"]) + "），差值可视为近似正态"
@@ -278,18 +297,32 @@ def print_rows(rows, alpha):
                           f"（实测可与精确值差近一倍）。请以 JASP/SPSS 精确法或蒙特卡洛复核，"
                           f"并同时报告配对 t 结果，不要只凭这个 p 下结论。")
     print("\n" + "-" * 78)
-    print("提示：差值正态前提满足报配对 t（d_z）；不满足且样本小报 Wilcoxon。"
-          "3+ 时点用重复测量 ANOVA/混合模型；组间变化幅度比较用差值的独立样本 t 或交互作用。")
+    if one:
+        print("提示：差值（观测值−常数）正态前提满足报单样本 t（d_z）；不满足且样本小报 Wilcoxon。"
+              "Likert 与中值比较时常有大量零差值与结，n<30 以 SPSS/JASP 精确法复核。")
+    else:
+        print("提示：差值正态前提满足报配对 t（d_z）；不满足且样本小报 Wilcoxon。"
+              "3+ 时点用重复测量 ANOVA/混合模型；组间变化幅度比较用差值的独立样本 t 或交互作用。")
 
 
 def make_paragraph(rows, alpha):
-    lines = ["配对设计差异检验结果（可粘贴进论文，数字请与 SPSS/JASP 复核）", ""]
+    one = bool(rows) and rows[0].get("mode") == "onesample"
+    lines = [("单样本检验结果" if one else "配对设计差异检验结果")
+             + "（可粘贴进论文，数字请与 SPSS/JASP 复核）", ""]
     for r in rows:
         if "error" in r:
             lines.append(f"· {r['name']}：{r['error']}。")
             continue
         sig = "差异具有统计学意义" if r["p_t"] < alpha else "差异无统计学意义"
         direction = "上升" if r["mean_diff"] > 0 else "下降"
+        if r.get("mode") == "onesample":
+            lines.append(
+                f"· {r['name']}：单样本 t 检验显示，样本均值（M={r['m_post']:.2f}）与检验常数 "
+                f"{r['m_pre']:g} 相比{direction}，t({r['df']})={r['t']:.3f}，{fmt_p(r['p_t'])}，"
+                f"{sig}；Cohen's d_z={r['dz']:.3f}（{_dz_tag(r['dz'])}效应），"
+                f"d_z 的 {int((1-alpha)*100)}%CI≈[{r['dz_lo']:.3f}, {r['dz_hi']:.3f}]（近似）。"
+            )
+            continue
         lines.append(
             f"· {r['name']}：前后测配对样本 t 检验显示，后测（M={r['m_post']:.2f}）较前测"
             f"（M={r['m_pre']:.2f}）{direction}，t({r['df']})={r['t']:.3f}，{fmt_p(r['p_t'])}，"
@@ -316,9 +349,14 @@ def make_paragraph(rows, alpha):
                         f"Wilcoxon 采用含结校正与连续性校正的正态近似而非精确分布，"
                         f"该口径 p 偏乐观，正式结果以 SPSS/JASP 精确法复核为准。）")
     lines.append("")
-    lines.append("注：配对 t 的前提是差值近似正态（非原始分数）；d_z 以差值标准差为分母，"
-                 "口径不同于独立组 d；无法配对的记录已整对剔除。多时点或组间变化幅度比较"
-                 "请用重复测量 ANOVA/混合模型或组别×时点交互作用。")
+    if one:
+        lines.append("注：单样本 t 的前提是观测值与常数之差近似正态（非原始分数）；"
+                     "Likert 数据与常数（如中值）比较时差值常含结，n<30 时以 Wilcoxon 精确法复核为准；"
+                     "缺失记录已剔除。")
+    else:
+        lines.append("注：配对 t 的前提是差值近似正态（非原始分数）；d_z 以差值标准差为分母，"
+                     "口径不同于独立组 d；无法配对的记录已整对剔除。多时点或组间变化幅度比较"
+                     "请用重复测量 ANOVA/混合模型或组别×时点交互作用。")
     return "\n".join(lines)
 
 
@@ -336,6 +374,8 @@ def write_csv(path, rows):
             if not note:
                 note = "差值正态" if r.get("normal_diff") else (
                     "差值非正态，以Wilcoxon为准" if r.get("normal_diff") is False else "")
+                if r.get("mode") == "onesample":
+                    note = f"单样本(vs {r.get('constant'):g})；{note}"
             w.writerow([
                 r["name"], r.get("n", ""),
                 fmt(r.get("m_pre"), 4), fmt(r.get("m_post"), 4),
@@ -359,6 +399,8 @@ def main():
     ap.add_argument("post_file", nargs="?", help="可选：【后测】CSV（两文件模式，必须配 --id）")
     ap.add_argument("--pairs", help="配对列，格式 前测列:后测列，多对用逗号分隔（单文件模式）；"
                                     "两文件模式下可给两文件同名列，逗号分隔")
+    ap.add_argument("--onesample", help="单样本模式：要检验的列，逗号分隔（如 孤独感,反刍）；与 --constant 同用")
+    ap.add_argument("--constant", type=float, help="单样本模式的检验常数（如 Likert 中值 3、常模分）")
     ap.add_argument("--scales", help="scales.txt（两文件模式按题项算量表均分；单文件模式不适用）")
     ap.add_argument("--id", dest="id_col", help="配对编号列名（两文件模式必填；单文件不给则按行配对）")
     ap.add_argument("--group", help="只分析某一组：分组列名（如 组别）")
@@ -370,6 +412,15 @@ def main():
 
     if not (0 < a.alpha < 1):
         print("✗ --alpha 必须在 0 与 1 之间（如 .05）。")
+        sys.exit(1)
+    if a.onesample and a.constant is None:
+        print("✗ 单样本模式必须用 --constant 给检验常数（如 --constant 3）。")
+        sys.exit(1)
+    if a.constant is not None and not a.onesample:
+        print("✗ --constant 只能与 --onesample 同用（单样本模式）。")
+        sys.exit(1)
+    if a.onesample and (a.post_file or a.scales or a.id_col):
+        print("✗ 单样本模式只支持单文件，不能与两文件/--scales/--id 同用。")
         sys.exit(1)
     if not Path(a.input).exists():
         print(f"✗ 找不到文件：{a.input}")
@@ -449,8 +500,35 @@ def main():
             print("✗ 单文件宽表模式不支持 --scales（量表均分请先跑 auto_stats 导出 _量表总分.csv，"
                   "或改用两文件模式）。")
             sys.exit(1)
+        if a.onesample:
+            headers, data_rows = read_data(a.input)
+            matrix = to_float_matrix(headers, data_rows)
+            if a.group:
+                idx = _filter_group(headers, data_rows, a.group, a.level)
+                matrix = {k: [v[i] for i in idx] for k, v in matrix.items()}
+            c = float(a.constant)
+            for col in [s.strip() for s in a.onesample.split(",") if s.strip()]:
+                if col not in matrix:
+                    print(f"✗ 列「{col}」不在数据中，可用列：{ '、'.join(headers[:20]) }")
+                    sys.exit(1)
+                xv = matrix[col]
+                r = paired_test(f"{col}（vs {c:g}）", [c] * len(xv), xv, a.alpha)
+                r["mode"] = "onesample"
+                r["constant"] = c
+                rows.append(r)
+            base = Path(a.input)
+            print_rows(rows, a.alpha)
+            csv_out = a.csv_out or str(base.with_name(base.stem + "_配对检验.csv"))
+            rpt_out = a.report or str(base.with_name(base.stem + "_配对检验报告.txt"))
+            write_csv(csv_out, rows)
+            with io.open(rpt_out, "w", encoding="utf-8", newline="\r\n") as f:
+                f.write(make_paragraph(rows, a.alpha) + "\n")
+            print(f"\n已导出：{csv_out}")
+            print(f"已导出：{rpt_out}")
+            return
         if not a.pairs:
-            print("✗ 单文件模式需要 --pairs 前测列:后测列（多对用逗号分隔）。")
+            print("✗ 单文件模式需要 --pairs 前测列:后测列（多对用逗号分隔），"
+                  "或 --onesample 列 --constant 常数（单样本检验）。")
             sys.exit(1)
         headers, data_rows = read_data(a.input)
         matrix = to_float_matrix(headers, data_rows)

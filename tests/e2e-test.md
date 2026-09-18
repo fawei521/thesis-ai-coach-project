@@ -1046,6 +1046,21 @@ python tests/test_special_columns.py`
 
 ---
 
+## 测试71：配对工具单样本模式（v1.72，paired_compare.py --onesample/--constant）
+
+**目的**：一组分数对标称常数（Likert 中值 3、常模分）的检验可直接跑通，口径与 scipy 一致，配对模式零回归。
+
+**步骤与预期**：
+1. 黄金（维护者，不入库）：300 组 n=5…100 连续/含结数据，对 scipy.stats.ttest_1samp 与 wilcoxon（校正近似），t/p/d_z/z 误差 <1e-12；手工 x=[3,4,5] vs C=3 → t(2)=√3≈1.732、均值差=1。
+2. Likert 夹具（n=80，seed 17202，实验组均值 3.6/对照组 3.0）：`--onesample X --constant 3` → 标题"单样本检验"、行"检验常数=3.000　样本 M=3.3625"、"单样本 t(79)=3.064"、d_z=0.3425；报告含"单样本 t 检验显示"与单样本尾注；CSV 备注含"单样本(vs 3)"。
+3. `--group 组别 --level 实验组` → 有效 n=40、t(39)=5.176、d_z=0.818。
+4. 坏参数：缺 --constant、--constant 无 --onesample、列不存在、与 --scales 混用均 rc≠0 且中文提示。
+5. 配对回归：`--pairs X:X` 标题仍是"配对设计差异检验"。
+6. 菜单 19 选 1 的单样本问答全流程跑通；menu.py 行数 ≤700（硬约束）。
+7. `python tests/full_e2e.py`：600 项全过；consistency、validate、全量 py_compile 全绿。
+
+---
+
 # 脚本回归测试清单（每次改动后执行）
 
 在项目根目录（PowerShell）逐条运行，全部通过才算合格：

@@ -19,7 +19,7 @@
         反向计分 → 3.信度α/ω → 4.效度(KMO/Bartlett/载荷) → 5.Harman共同方法偏差 → 量表总分
         → 6.描述统计 → 7.相关分析 → 初步回归，并导出三线表和"_量表总分.csv"
   → 6.5 参数检验前提（assumption_check.py，菜单第18项：Shapiro-Wilk 正态性、偏度峰度 z、分组 Brown-Forsythe 方差齐性，t/ANOVA/回归前跑，给可粘论文段落）
-  → 6.6 配对设计差异（paired_compare.py，菜单第19项：前后测/两条件配对 t、d_z、差值 Shapiro、Wilcoxon 符号秩，干预研究用，给可粘论文段落）
+  → 6.6 配对设计差异（paired_compare.py，菜单第19项：前后测/两条件配对 t、d_z、差值 Shapiro、Wilcoxon 符号秩；也支持单样本对标称常数如 Likert 中值 3，--onesample/--constant；干预研究用，给可粘论文段落）
   → 6.7 多重比较校正（mult_compare.py，菜单第20项：Bonferroni/Holm 控 FWER、BH/BY 控 FDR，多组两两比较/多量表/相关矩阵的 p 值校正，给可粘论文段落）
   → 4. 效度检验（脚本自动出KMO/Bartlett/载荷；自编多维量表加 --efa 做完整探索性因子分析；CFA引导JASP）
   → 8. 核心分析：中介/链式中介（auto_stats --mediators 自动出Bootstrap结果，再用JASP/SPSS PROCESS复核）
@@ -296,6 +296,9 @@ python tools/paired_compare.py 前测.csv 后测.csv --id 编号 --scales scales
   符号秩（n≤25 无结给精确 p，否则给含结校正/连续性校正的 z，SPSS 口径）与 rank-biserial r 效应量（r_rb=(W+−W−)/(W++W−)，.1/.3/.5 小中大）；n<30 有结时提示正态近似 p 偏乐观、需精确法复核；导出
   `_配对检验.csv` 与 `_配对检验报告.txt`（可粘论文段落）。
 - 判读：差值正态（或大样本）报配对 t 与 d_z；差值明显偏态且样本小报 Wilcoxon。
+- **单样本情形**（一组分数与固定常数比较，如 Likert 均分 vs 中值 3、与常模分比较）：同一工具选单样本模式
+  （`--onesample 列 --constant C`，菜单 19 选 1），前提/效应量口径与配对一致（d=x−C）；
+  注意与中值比较只能说明偏离中点，不能声称干预效果；Likert 差值多零值与结，n<30 以精确法复核。
 - 红线：①配对必须是同一个体，两文件禁止按行顺序硬凑；②3 个及以上时点用重复测量
   方差分析/线性混合模型，两两比较 Bonferroni 校正（α/k）；③"实验组变化大于对照组"
   要比较两组**差值**（独立样本 t）或做组别×时点交互作用，只报组内显著不够；

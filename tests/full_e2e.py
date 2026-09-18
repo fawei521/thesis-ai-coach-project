@@ -1890,6 +1890,64 @@ try:
     check("v171 报告段落含指引", rpt71 and "missing-imputation-guide.md"
           in open(str(rpt71[0]), encoding="utf-8").read())
 
+
+    # ========== v1.72 单样本模式（--onesample/--constant） ==========
+    pc_src72 = tx("tools/paired_compare.py")
+    check("单样本开关在源码", "--onesample" in pc_src72 and "--constant" in pc_src72
+          and '"onesample"' in pc_src72)
+    d72 = new_tmp("v172one")
+    lik72 = d72 / "lik.csv"
+    random.seed(17202)
+    with open(str(lik72), "w", encoding="utf-8-sig", newline="") as f72:
+        w72 = csv.writer(f72)
+        w72.writerow(["id", "组别", "X"])
+        for i in range(1, 81):
+            g = "实验组" if i <= 40 else "对照组"
+            w72.writerow([i, g, max(1, min(5, round(random.gauss(
+                3.6 if g == "实验组" else 3.0, .9))))])
+    # 手工确定性例：x=3,4,5 vs C=3 → t(2)=√3≈1.732
+    hand72 = d72 / "hand.csv"
+    hand72.write_text("X\n3\n4\n5\n", encoding="utf-8-sig")
+
+    r = run([pc_tool, str(lik72), "--onesample", "X", "--constant", "3",
+             "--csv-out", str(d72 / "o.csv"), "--report", str(d72 / "o.txt")])
+    o = r.stdout or ""
+    check("v172单样本跑通", r.returncode == 0 and "单样本检验" in o and "单样本 t(79)=3.064" in o
+          and "检验常数=3.000" in o and "配对设计差异检验" not in o)
+    rpt72 = open(str(d72 / "o.txt"), encoding="utf-8").read()
+    csv72 = open(str(d72 / "o.csv"), encoding="utf-8-sig").read()
+    check("v172报告口径", "单样本 t 检验显示" in rpt72 and "单样本 t 的前提" in rpt72)
+    check("v172 CSV备注", "单样本(vs 3)" in csv72 and "3.0636" in csv72 and "0.3425" in csv72)
+
+    r = run([pc_tool, str(lik72), "--onesample", "X", "--constant", "3",
+             "--group", "组别", "--level", "实验组",
+             "--csv-out", str(d72 / "og.csv"), "--report", str(d72 / "og.txt")])
+    o = r.stdout or ""
+    check("v172单样本分组", r.returncode == 0 and "有效 n=40" in o and "单样本 t(39)=5.176" in o)
+
+    r = run([pc_tool, str(hand72), "--onesample", "X", "--constant", "3",
+             "--csv-out", str(d72 / "h.csv"), "--report", str(d72 / "h.txt")])
+    o = r.stdout or ""
+    check("v172手工t", r.returncode == 0 and "单样本 t(2)=1.732" in o)
+
+    # 坏组合
+    r = run([pc_tool, str(lik72), "--onesample", "X",
+             "--csv-out", str(d72 / "b1.csv")])
+    check("v172缺常数", r.returncode != 0 and "--constant" in ((r.stdout or "") + (r.stderr or "")))
+    r = run([pc_tool, str(lik72), "--constant", "3",
+             "--csv-out", str(d72 / "b2.csv")])
+    check("v172缺onesample", r.returncode != 0 and "--onesample" in ((r.stdout or "") + (r.stderr or "")))
+    r = run([pc_tool, str(lik72), "--onesample", "NOPE", "--constant", "3",
+             "--csv-out", str(d72 / "b3.csv")])
+    check("v172缺列", r.returncode != 0 and "不在数据" in ((r.stdout or "") + (r.stderr or "")))
+    r = run([pc_tool, str(lik72), "--onesample", "X", "--constant", "3", "--scales", "s.txt",
+             "--csv-out", str(d72 / "b4.csv")])
+    check("v172混scales", r.returncode != 0 and "单文件" in ((r.stdout or "") + (r.stderr or "")))
+    # 配对模式回归：标题仍是配对口径
+    r = run([pc_tool, str(lik72), "--pairs", "X:X",
+             "--csv-out", str(d72 / "p.csv"), "--report", str(d72 / "p.txt")])
+    check("v172配对回归", r.returncode == 0 and "配对设计差异检验" in (r.stdout or ""))
+
 finally:
     cleanup()
 

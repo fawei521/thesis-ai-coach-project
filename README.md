@@ -62,7 +62,7 @@
 - `reference_formatter.py` — **参考文献格式化**（题录 CSV → GB/T 7714-2015 顺序编码制 [n] 文本：期刊/专著/学位论文/会议/报纸/电子资源六类，作者超 3 人自动截"等/et al"、欧美著者姓全大写名缩写，支持全角标点与 GB/T 7714-2025 姓氏口径开关，吃 paper_search 导出与文献整理表；缺字段标【待补】不伪造、坏输入中文报错；纯标准库，只格式化不生成文献）
 - `missing_report.py` — **缺失值分析与 Little's MCAR 检验**（预处理后清洗前：总/逐题缺失率、缺失模式、成列删除完整样本量；EM 多元正态估计后按缺失模式算 Little (1988) T_MLμ 统计量，与 R naniar::mcar_test / Enders (2010) 同口径；p≥.05 可成列删除、p<.05 建议多重插补/FIML；给可直接粘论文的段落，导出 `_缺失值分析.csv`/`_缺失值报告.txt`；纯标准库）
 - `mult_compare.py` — **多重比较校正**（Bonferroni/Holm 控制族系错误率 FWER、BH/BY 控制错误发现率 FDR；`--ps` 直给 p 值或读 CSV 的 p 值列（可带名称列），四法同列，与 R `p.adjust`/scipy `false_discovery_control` 同口径；导出 `_多重比较校正.csv`/`_多重比较报告.txt`；纯标准库）
-- `paired_compare.py` — **配对设计差异检验**（前后测/两条件：配对样本 t、Cohen's d_z 及近似95%CI、差值 Shapiro-Wilk、Wilcoxon 符号秩（n≤25 无结精确 p，否则结校正/连续性校正 z，SPSS 口径）与 rank-biserial r 效应量；单文件宽表 `--pairs 前:后` 或两文件 `--id 编号`（可配 scales 算均分），支持 `--group/--level` 组内配对；导出 `_配对检验.csv`/`_配对检验报告.txt`；纯标准库）
+- `paired_compare.py` — **配对设计差异检验**（前后测/两条件：配对样本 t、Cohen's d_z 及近似95%CI、差值 Shapiro-Wilk、Wilcoxon 符号秩（n≤25 无结精确 p，否则结校正/连续性校正 z，SPSS 口径）与 rank-biserial r 效应量；单文件宽表 `--pairs 前:后` 或两文件 `--id 编号`（可配 scales 算均分），支持 `--group/--level` 组内配对；**另支持单样本对标称常数** `--onesample 列 --constant C`（如 Likert 中值 3、常模分，菜单 19 选单样本）；导出 `_配对检验.csv`/`_配对检验报告.txt`；纯标准库）
 - `assumption_check.py` — **参数检验前提假设**（t/ANOVA/回归前：Shapiro-Wilk 正态性 W/p（Royston AS R94，3≤n≤5000，与 R/scipy 同口径）、调整偏度/超额峰度及 z、Kline 判据；`--group` 逐组正态＋Brown-Forsythe 方差齐性（Levene 基于中位数）；p<.05 但偏度峰度在 Kline 内给 Bootstrap/Welch 稳健通道，明显偏态指引非参数；给可粘论文段落，导出 `_前提假设检验.csv`/`_前提假设报告.txt`；纯标准库）
 
 **典型数据流水线**：问卷星导出 →（外发前）去标识化 → 预处理 → 清洗 → 一键自动统计（频数/信度/效度/Harman/相关/回归/Bootstrap中介）→ JASP/SPSS复核 → 画模型图
@@ -148,17 +148,21 @@ thesis-ai-coach-project/
 └── tests/                    # full_e2e.py 一键全量回归、consistency_check.py 文档↔代码一致性自检、专项测试与测试数据
 ```
 
-> 维护者/接手者：改动后运行 `python tests/full_e2e.py`（约3-5分钟，589 项断言，自动备份恢复测试数据），退出码 0 才算通过；学生日常使用不需要跑。
+> 维护者/接手者：改动后运行 `python tests/full_e2e.py`（约3-5分钟，600 项断言，自动备份恢复测试数据），退出码 0 才算通过；学生日常使用不需要跑。
 
 ## 版本
 
-**当前版本：v1.71**（2026-09-18）多重插补/FIML 教学指引闭环（完整版；doubao-skill 本轮无改动）
+**当前版本：v1.72**（2026-09-18）配对检验扩展单样本模式（完整版；doubao-skill 本轮无改动）
+- **单样本检验闭环**：`paired_compare.py` 新增 `--onesample 列 --constant C`（菜单第19项选"单样本"），一组分数对标称常数（Likert 中值 3、常模分、理论值）的单样本 t/Wilcoxon 一次给齐；数学上等价于 d=x−C 的配对检验，前提（差值正态）、d_z、rank-biserial r、有结小样本警示与配对模式完全同构；支持 `--group/--level`，控制台/论文段落/CSV 备注按单样本口径呈现
+- **黄金验证**：300 组模拟（n=5…100，连续/含结）对 scipy `ttest_1samp`/`wilcoxon` 零误差（t 4.3e-14、p 1.3e-13、d_z 4.9e-15、校正 z 1.8e-15）；手工例 x=[3,4,5] vs 3 → t(2)=√3；full_e2e 589→600 项；菜单因 700 行硬约束同步瘦身
+- **边界**：与中值比较只能说明"偏离中点"，不能声称干预效果（文档明示）；坏参数四类互斥校验（缺常数/缺列/混 scales/常数无 onesample）rc=1；配对模式零回归
+
+**上一个版本：v1.71** 多重插补/FIML 教学指引闭环（完整版；doubao-skill 无改动）：
 - **缺失处理"最后一公里"补齐**：新增 `psychology/missing-imputation-guide.md`——缺失机制×缺失率决策树（何时成列删除可接受、何时必须 MI/FIML）、SPSS 多重插补照做步骤（PMM 预测均值匹配、m=20+、自动池化与 PROCESS 不池化的两条出路）、AMOS FIML（勾选估计均值与截距即自动启用＋辅助变量）、R mice 代码模板与 Rubin 池化公式（T=Ū+(1+1/m)B、校正自由度）、MNAR 敏感性分析（delta/tipping point）、方法/结果/局限三章论文模板
 - **接线**：`missing_report.py` 在拒绝 MCAR 的控制台解读与可粘论文段落中直接指向该指南；stats-guide、data-analysis-auto 第1.5步、START 查证表、README 知识库列表同步登记
 - **红线先行**：禁止均值/LOCF/单点回归插补当完整数据、禁止看结果换插补方法、插补模型须含全部分析变量与辅助变量、量表题均替代只作描述性处理、成对删除不推荐；关键菜单/方法经 IBM 官方手册核对（PMM、默认 m=5、AMOS FIML 勾选位置）
 - **验证**：full_e2e 577→589 项（指南内容静态断言＋四处接线＋MAR 场景控制台/报告指引）；consistency（Markdown 41 个）、validate、全量 py_compile 全绿；工具脚本与菜单项数不变（21 个/20 项）
 
-**上一个版本：v1.70** 配对检验效应量与口径增强：`paired_compare.py` 的 Wilcoxon 新增 rank-biserial r 效应量（R effectsize/JASP 同口径，600 组对 scipy 零误差），n<30 有结正态近似 p 偏乐观警示，dataio 反向计分越界硬提示；full_e2e 570→577 项；逐条见 CHANGELOG。
 
 **更早版本（v1.64 及以前）的逐版说明全部见
 [CHANGELOG.md](CHANGELOG.md)** —— 本 README 自 v1.57 起只保留当前版本与上一版本的摘要，
