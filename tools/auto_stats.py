@@ -51,7 +51,8 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
 # ============ 拆分后的实现模块（详见 tools/stats/__init__.py）============
 from stats.compare import chi_square_analysis, group_difference_analysis
-from stats.dataio import numeric_columns, parse_scales, read_data, resolve_col, to_float_matrix
+from stats.dataio import (assert_items_exist, numeric_columns, parse_scales, read_data,
+                           resolve_col, to_float_matrix)
 from stats.desc import data_profile, descriptive, export_three_line_table, frequency_analysis
 from stats.efa import harman_test, validity_analysis
 from stats.plots import _plot_corr_heatmap
@@ -115,7 +116,18 @@ def main():
     if args.profile:
         return
 
-    scales = parse_scales(args.scales) if args.scales else {}
+    scales = {}
+    if args.scales:
+        if not Path(args.scales).exists():
+            print(f"✗ 量表配置文件不存在：{args.scales}")
+            print("  请检查路径（可把文件直接拖进窗口）；不需要量表分析时请去掉 --scales。")
+            sys.exit(1)
+        scales = parse_scales(args.scales)
+        if not scales:
+            print("✗ 未能从 scales.txt 读到任何量表，请检查格式（每行：量表名:点数=题1,题2(R)）。")
+            sys.exit(1)
+        # 题项与数据列必须完全对得上：缺题静默按部分题计分会污染信度与总分
+        assert_items_exist(scales, matrix)
 
     # 人口学/分类变量频数（独立于量表，两个分支都做）
     freq_out = str(path.with_name(path.stem + "_频数表.csv"))

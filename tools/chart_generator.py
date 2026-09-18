@@ -165,14 +165,63 @@ def draw_simple_model(variables, coefficients, output_path, title='研究模型�
     print(f'模型图已保存：{output_path}')
 
 
+def draw_direct_model(variables, coefficients, output_path, title='研究模型图'):
+    """直接效应模型（自变量->因变量，无中介）：2 个变量、1 条路径。"""
+    import matplotlib
+    matplotlib.use('Agg')
+    import matplotlib.pyplot as plt
+    from matplotlib.patches import FancyBboxPatch, FancyArrowPatch
+
+    plt.rcParams['font.sans-serif'] = ['SimHei', 'Microsoft YaHei', 'Arial Unicode MS']
+    plt.rcParams['axes.unicode_minus'] = False
+
+    fig, ax = plt.subplots(figsize=(8, 4))
+    ax.set_xlim(0, 8)
+    ax.set_ylim(0, 4)
+    ax.axis('off')
+
+    positions = [(2, 2), (6, 2)]
+    colors = ['#E8F4FD', '#E8F5E9']
+
+    for i, (var, (x, y)) in enumerate(zip(variables, positions)):
+        box = FancyBboxPatch(
+            (x - 1.0, y - 0.5), 2.0, 1.0,
+            boxstyle="round,pad=0.1",
+            facecolor=colors[i], edgecolor='#333', linewidth=1.5, zorder=2
+        )
+        ax.add_patch(box)
+        ax.text(x, y, var, ha='center', va='center', fontsize=12, zorder=3)
+
+    x1, y1 = positions[0]
+    x2, y2 = positions[1]
+    arrow = FancyArrowPatch(
+        (x1 + 1.0, y1), (x2 - 1.0, y2),
+        arrowstyle='->', mutation_scale=20, color='#333', linewidth=1.5
+    )
+    ax.add_patch(arrow)
+    coef = coefficients[0] if coefficients else 0.0
+    if abs(coef) > 0:
+        sig = '***' if abs(coef) > 0.3 else ('**' if abs(coef) > 0.2 else ('*' if abs(coef) > 0.1 else ''))
+        label = f'β={coef:.2f}{sig}'
+    else:
+        label = 'β=0.00'  # 未填系数时与 chain/simple 一致用 0 占位（main 已打印提示，不伪造显著性）
+    ax.text((x1 + x2) / 2, y1 + 0.45, label, ha='center', va='center', fontsize=10, color='#C62828')
+
+    ax.set_title(title, fontsize=14, pad=16)
+    plt.tight_layout()
+    plt.savefig(output_path, dpi=300, bbox_inches='tight', facecolor='white')
+    plt.close()
+    print(f'模型图已保存：{output_path}')
+
+
 def main():
     parser = argparse.ArgumentParser(description='研究模型图生成工具')
     parser.add_argument('--variables', '-v', required=True,
                         help='变量名，用逗号分隔，如"AI情感依赖,孤独感,反刍思维,NSSI"')
     parser.add_argument('--coefs', '-c', required=False, default=None,
                         help="路径系数，逗号分隔；链式4个依次 a1,d21,b2,c'（X→M1、M1→M2、M2→Y、直接效应，与auto_stats中介输出同名）；不填则先用0占位")
-    parser.add_argument('--type', '-t', choices=['chain', 'simple'], default='chain',
-                        help='模型类型：chain链式中介，simple简单中介')
+    parser.add_argument('--type', '-t', choices=['chain', 'simple', 'direct'], default='chain',
+                        help='模型类型：chain链式中介(4变量)，simple简单中介(3变量)，direct直接效应(2变量)')
     parser.add_argument('--output', '-o', default='model.png', help='输出图片路径')
     parser.add_argument('--title', default='研究模型图', help='图表标题')
     args = parser.parse_args()
@@ -183,21 +232,22 @@ def main():
         sys.exit(1)
 
     variables = [v.strip() for v in args.variables.split(',') if v.strip()]
-    need = 4 if args.type == 'chain' else 3
+    var_need = {'chain': 4, 'simple': 3, 'direct': 2}[args.type]
+    coef_need = {'chain': 4, 'simple': 3, 'direct': 1}[args.type]
     if args.coefs:
         try:
             coefficients = [float(c.strip()) for c in args.coefs.split(',') if c.strip() != '']
         except ValueError:
             print('错误：路径系数必须是数字，用英文逗号分隔，例如 0.2,0.3,0.4,0.1')
             sys.exit(1)
-        if len(coefficients) < need:
-            print(f'提示：只填了{len(coefficients)}个系数，{args.type}模型需要{need}个，缺少的先用0占位。')
-            coefficients += [0.0] * (need - len(coefficients))
-        elif len(coefficients) > need:
-            print(f'提示：填了{len(coefficients)}个系数，{args.type}模型只需{need}个，多余的已忽略。')
-            coefficients = coefficients[:need]
+        if len(coefficients) < coef_need:
+            print(f'提示：只填了{len(coefficients)}个系数，{args.type}模型需要{coef_need}个，缺少的先用0占位。')
+            coefficients += [0.0] * (coef_need - len(coefficients))
+        elif len(coefficients) > coef_need:
+            print(f'提示：填了{len(coefficients)}个系数，{args.type}模型只需{coef_need}个，多余的已忽略。')
+            coefficients = coefficients[:coef_need]
     else:
-        coefficients = [0.0] * need
+        coefficients = [0.0] * coef_need
         print('提示：未填路径系数，已先用0占位；结果出来后可重跑补上系数。')
 
     print('=' * 50)
@@ -212,14 +262,22 @@ def main():
 
     if args.type == 'chain':
         if len(variables) != 4:
-            print('错误：链式中介需要4个变量（自变量,中介1,中介2,因变量）')
+            print('错误：链式中介需要4个变量（自变量,中介1,中介2,因变量）。')
+            print('  只有1个中介（3变量）请用 --type simple；只有自变量和因变量（2变量）请用 --type direct。')
             sys.exit(1)
         draw_mediation_model(variables, coefficients, str(output_path), args.title)
-    else:
+    elif args.type == 'simple':
         if len(variables) != 3:
-            print('错误：简单中介需要3个变量（自变量,中介,因变量）')
+            print('错误：简单中介需要3个变量（自变量,中介,因变量）。')
+            print('  只有自变量和因变量（2变量、无中介）请用 --type direct；2个中介（4变量）请用 --type chain。')
             sys.exit(1)
         draw_simple_model(variables, coefficients, str(output_path), args.title)
+    else:
+        if len(variables) != 2:
+            print('错误：直接效应模型需要2个变量（自变量,因变量）。')
+            print('  含1个中介（3变量）请用 --type simple；含2个中介（4变量）请用 --type chain。')
+            sys.exit(1)
+        draw_direct_model(variables, coefficients, str(output_path), args.title)
 
     print('\n完成！图片分辨率300dpi，可直接插入论文。')
 

@@ -189,8 +189,8 @@ def t_cards():
 
 def t_chart():
     print("\n【6/15】生成研究模型图")
-    print("  链式模型示例变量：AI依赖,孤独感,反刍,NSSI（用英文逗号分隔，4个）")
-    print("  简单模型示例变量：AI依赖,NSSI（2个）")
+    print("  链式中介示例：AI依赖,孤独感,反刍,NSSI（4个，2个中介）")
+    print("  简单中介示例：AI依赖,孤独感,NSSI（3个，1个中介）；直接效应示例：AI依赖,NSSI（2个）")
     vars_ = input("  输入变量名（逗号分隔）：").strip()
     if not vars_:
         print("  未输入，已取消。")
@@ -198,7 +198,13 @@ def t_chart():
     coefs = input("  输入对应路径系数（逗号分隔；还没结果就直接回车，先用0占位出框架图）：").strip() or ""
     out = input("  图片保存成什么文件名？直接回车默认 研究模型图.png：").strip()
     n = len([v for v in vars_.split(",") if v.strip()])
-    mtype = "chain" if n >= 3 else "simple"
+    if n < 2:
+        print("  模型图至少需要 2 个变量（直接效应，如：AI依赖,NSSI）。")
+        return
+    if n > 4:
+        print("  链式模型最多 4 个变量（X、M1、M2、Y）；更多变量请在 JASP 或 PPT 中自行绘制。")
+        return
+    mtype = "chain" if n == 4 else ("simple" if n == 3 else "direct")
     args = ["--variables", vars_, "--type", mtype]
     if coefs:
         args += ["--coefs", coefs]

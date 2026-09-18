@@ -927,6 +927,19 @@ python tests/test_special_columns.py`
 
 ---
 
+## 测试63：全流程三轮演练健壮性闭环（v1.64，菜单3/6/12/13/14 等）
+
+**目的**：落实 ROADMAP 挂账"维护者亲自走三遍流程、收集并修复 bug"。第一轮学生视角标准路径暴露菜单↔模型图工具的契约矛盾；第二轮边界/坏参数暴露一批"报错但退出码为 0/静默退化"的假成功。这类缺陷不崩、不报错数，却会让自动化流水线与学生把失败当成功，必须以退出码与中文提示锁死。
+
+**步骤与预期**：
+1. 三轮演练（维护者侧脚本，不入库）：标准路径 29 步全过；边界/坏参数 34 步（GBK、3% 缺失、n=120/40、无 scales、非参数/Spearman/偏相关/Mahalanobis/EFA、约 15 组坏参）该成功的 rc=0、该失败的 rc=1 且无 Traceback；修复后全新目录干净重跑全绿。
+2. `python tests/full_e2e.py`：427 项全过。新增断言——direct 二变量出图且 simple 误传 2 变量时引导 direct；auto_stats/data_cleaner/item_analysis/HTMT 对 scales 文件缺失与题项错配均 rc=1 且明细中文；清洗器 `--min-seconds abc`/`--max-missing 9` 中文 rc=1；effect_size 坏 n/缺参 rc=1；文献整理空文件 rc=1 且提示 0 篇。
+3. 旧契约收紧：效应量坏参断言由 rc=0 改为 rc=1；整理器空表断言改为 rc=1 且含"没有解析到任何一行文献"。
+4. 架构约束：题项校验只有 `stats/dataio.py` 一份实现（find_missing_items/assert_items_exist），auto_stats.py 保持 <300 行（CLI入口瘦身断言）。
+5. 文档：CHANGELOG v1.64、PROJECT_PLAN §十四、START/README（版本轮换＋427）、ROADMAP 第 10 行勾选、工作流 direct 用法同步；`python tests/consistency_check.py` 与 `python doubao-skill/validate.py` 退出 0。
+
+---
+
 # 脚本回归测试清单（每次改动后执行）
 
 在项目根目录（PowerShell）逐条运行，全部通过才算合格：

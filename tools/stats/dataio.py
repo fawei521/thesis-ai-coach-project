@@ -142,3 +142,20 @@ def recoded_item_series(matrix, conf):
                 col.append(float(v))
         out.append(col)
     return out
+
+
+def find_missing_items(scales, matrix):
+    """scales 配置中在数据矩阵里找不到的题项，返回 [(量表名, 题项名), ...]。"""
+    return [(name, it) for name, cfg in scales.items() for it in cfg["items"] if it not in matrix]
+
+
+def assert_items_exist(scales, matrix):
+    """题项与数据列必须完全对得上：缺题时打印明细并以非零码退出。
+    缺题静默按部分题计分会污染信度与总分，是问卷数据最常见的隐性错误来源。"""
+    missing = find_missing_items(scales, matrix)
+    if missing:
+        print("✗ scales.txt 中以下题项在数据列里找不到（常见：列名拼写/题号不一致、用错数据版本）：")
+        for name, it in missing:
+            print(f"    量表「{name}」：{it}")
+        print("  请核对 scales.txt 与数据表头一致后重跑，不能在题项缺失时静默按部分题计分。")
+        sys.exit(1)

@@ -268,7 +268,11 @@ def main():
     # 读取文献（带表头的CSV按列解析；纯文本按行启发式解析，自动兼容UTF-8/GBK）
     literatures = load_literatures(input_path)
     if literatures is None:
-        return
+        # load_literatures 已打印具体原因（CSV 无标题列/编码无法识别），这里只保证失败有非零退出码
+        sys.exit(1)
+    if len(literatures) == 0:
+        print('✗ 文件里没有读到任何文献条目（0 篇）：请检查文件内容是否为空、每行是否含一条文献。')
+        sys.exit(1)
 
     print(f'\n读取文献：{len(literatures)}篇')
 

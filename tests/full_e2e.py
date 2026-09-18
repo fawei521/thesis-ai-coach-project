@@ -257,7 +257,7 @@ try:
     check("效应量CramersV", esv.returncode == 0 and "Cramér's V = √(χ²/(N·df_min)) = 0.175" in esv.stdout
           and "φ(phi) = √(χ²/N) = 0.175" in esv.stdout)
     esbad = run(["tools/effect_size.py", "r", "--r", "0.9", "--n", "2"])
-    check("效应量坏参守卫", esbad.returncode == 0 and "Traceback" not in (esbad.stdout or "")
+    check("效应量坏参守卫", esbad.returncode == 1 and "Traceback" not in (esbad.stdout or "")
           and "n>3" in (esbad.stdout or ""))
     # ---- 聚合/区分效度 validity_cr_ave.py（纯标准库；CR/AVE 公式已用 numpy 黄金对照）----
     vca_src = tx("tools/validity_cr_ave.py")
@@ -703,7 +703,7 @@ try:
         empty_csv = lit_tmp / "empty.csv"
         empty_csv.write_text("序号,标题,作者\n1,,\n", encoding="utf-8")
         r = run(["tools/literature_organizer.py", str(empty_csv), "-o", str(lit_tmp / "o3.csv")])
-        check("整理器空表不静默", r.returncode != 0 or "读取文献：0篇" not in (r.stdout or ""),
+        check("整理器空表不静默", r.returncode == 1 and "没有解析到任何一行文献" in (r.stdout or ""),
               (r.stdout or "")[-200:])
     finally:
         shutil.rmtree(lit_tmp, ignore_errors=True)
@@ -1181,6 +1181,57 @@ try:
         check("v158literature_cards端到端", False, repr(_ce))
     finally:
         shutil.rmtree(card_tmp, ignore_errors=True)
+
+    # ---- v1.64 全流程三轮演练健壮性回归（详见 e2e-test 测试63）----
+    # 1) 模型图 direct 二变量直接效应（旧版菜单引导 2 变量却只支持 3/4 变量，必报错）
+    cg = "tools/chart_generator.py"
+    d_png = new_tmp("v164chart") / "direct.png"
+    r = run([cg, "-v", "AI依赖,NSSI", "-c", "0.32", "-t", "direct", "-o", str(d_png)])
+    check("v164模型图direct二变量", r.returncode == 0 and d_png.exists() and d_png.stat().st_size > 5000,
+          (r.stderr or "")[-200:])
+    r = run([cg, "-v", "AI依赖,NSSI", "-t", "simple", "-o", str(d_png)])
+    check("v164模型图误型引导direct",
+          r.returncode != 0 and "direct" in (r.stdout or "") and "Traceback" not in (r.stderr or ""))
+    # 2) scales 文件缺失/题项与数据不匹配必须硬失败，不得静默退化成全量/部分题分析
+    v64 = new_tmp("v164scales")
+    bad_sc = v64 / "bad_scales.txt"
+    bad_sc.write_text("虚构量表:5=Z1,Z2,Z3\n", encoding="utf-8")
+    miss_sc = v64 / "nope.txt"
+    for tag, argv in [
+        ("auto_stats", ["tools/auto_stats.py", str(TD / "demo_survey.csv"), "--scales", str(miss_sc)]),
+        ("cleaner", ["tools/data_cleaner.py", str(TD / "demo_survey.csv"), "--scales", str(miss_sc)]),
+    ]:
+        r = run(argv, 200)
+        check(f"v164 {tag} scales缺失硬失败",
+              r.returncode != 0 and "不存在" in (r.stdout or "")
+              and "Traceback" not in ((r.stdout or "") + (r.stderr or "")))
+    for tag, argv in [
+        ("auto_stats", ["tools/auto_stats.py", str(TD / "demo_survey.csv"), "--scales", str(bad_sc)]),
+        ("cleaner", ["tools/data_cleaner.py", str(TD / "demo_survey.csv"), "--scales", str(bad_sc)]),
+        ("item", ["tools/item_analysis.py", str(TD / "demo_survey.csv"), "--scales", str(bad_sc)]),
+        ("htmt", ["tools/validity_cr_ave.py", "--htmt", str(TD / "demo_survey.csv"),
+                  "--scales", str(bad_sc), "--boot", "30"]),
+    ]:
+        r = run(argv, 200)
+        check(f"v164 {tag} 题项不匹配硬失败",
+              r.returncode != 0 and "找不到" in ((r.stdout or "") + (r.stderr or ""))
+              and "Traceback" not in ((r.stdout or "") + (r.stderr or "")))
+    # 3) 清洗器数值参数给非数字/越界值：中文报错、非零退出（不要 argparse 英文 usage）
+    r = run(["tools/data_cleaner.py", str(TD / "demo_survey.csv"), "--min-seconds", "abc"])
+    check("v164清洗非数字参数中文报错",
+          r.returncode != 0 and "数字" in (r.stdout or "") and "Traceback" not in (r.stderr or ""))
+    r = run(["tools/data_cleaner.py", str(TD / "demo_survey.csv"), "--max-missing", "9"])
+    check("v164清洗参数越界中文报错", r.returncode != 0 and "不合理" in (r.stdout or ""))
+    # 4) 效应量工具参数校验失败必须非零退出（旧版只 print 叉号然后 return，进程仍 0）
+    r = run(["tools/effect_size.py", "r", "--r", "0.3", "--n", "1"])
+    check("v164效应量坏参非零退出", r.returncode != 0 and "n>3" in (r.stdout or ""))
+    r = run(["tools/effect_size.py", "d", "--m1", "10", "--n1", "30", "--m2", "9", "--n2", "30"])
+    check("v164效应量缺参非零退出", r.returncode != 0 and "sd1" in (r.stdout or ""))
+    # 5) 文献整理：空文件/读取失败必须非零退出（旧版静默导出空整理表并报成功）
+    empty_lit = v64 / "empty.txt"
+    empty_lit.write_text("", encoding="utf-8")
+    r = run(["tools/literature_organizer.py", str(empty_lit)])
+    check("v164文献整理空文件硬失败", r.returncode != 0 and "0 篇" in (r.stdout or ""))
 finally:
     cleanup()
 

@@ -52,7 +52,8 @@ import random
 
 # 让本脚本在项目根目录被调用时也能导入 stats 子包（与 item_analysis.py 同款处理）
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-from stats.dataio import parse_scales, read_data, recoded_item_series, to_float_matrix  # noqa: E402
+from stats.dataio import (find_missing_items, parse_scales, read_data,  # noqa: E402
+                           recoded_item_series, to_float_matrix)
 
 # --- 输出编码守卫：管道/重定向时强制 UTF-8（与 auto_stats.py / effect_size.py 同款）---
 if hasattr(sys.stdout, "reconfigure") and not sys.stdout.isatty():
@@ -583,6 +584,11 @@ def main():
             raise ValueError(f"未能从 {scales_path} 读到任何量表，请检查格式。")
         headers, data = read_data(a.htmt)
         matrix = to_float_matrix(headers, data)
+        _missing = find_missing_items(scales, matrix)
+        if _missing:
+            detail = "；".join(f"{n}:{it}" for n, it in _missing[:15])
+            more = "…" if len(_missing) > 15 else ""
+            raise ValueError(f"scales.txt 中以下题项在数据列里找不到：{detail}{more}，请核对题项名与数据表头。")
         data_stem = os.path.splitext(a.htmt)[0]
         htmt_report(matrix, scales, data_stem, boot=a.boot, seed=a.seed,
                     csv_out=a.csv_out, only_scales=a.only_scales)

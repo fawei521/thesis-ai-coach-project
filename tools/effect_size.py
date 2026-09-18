@@ -102,13 +102,12 @@ def _footer():
 def cohens_d_from_means(a):
     for nm in ("m1", "sd1", "n1", "m2", "sd2", "n2"):
         if getattr(a, nm) is None:
-            print(f"✗ 缺少参数 --{nm}")
-            return
+            raise ValueError(f"缺少参数 --{nm}")
     m1, sd1, n1, m2, sd2, n2 = a.m1, a.sd1, a.n1, a.m2, a.sd2, a.n2
     if n1 < 2 or n2 < 2:
-        print("✗ 每组样本量需 ≥2"); return
+        raise ValueError("每组样本量需 ≥2")
     if sd1 <= 0 or sd2 <= 0:
-        print("✗ 标准差必须为正数"); return
+        raise ValueError("标准差必须为正数")
     df = n1 + n2 - 2
     sp2 = ((n1 - 1) * sd1 ** 2 + (n2 - 1) * sd2 ** 2) / df
     sp = math.sqrt(sp2)
@@ -138,9 +137,9 @@ def _report_d(d, n1, n2, df, sp=None, source="", ci=95):
 # ---------------- d 由独立样本 t 值 ----------------
 def cohens_d_from_t(a):
     if a.t is None or a.n1 is None or a.n2 is None:
-        print("✗ 需要 --t、--n1、--n2"); return
+        raise ValueError("需要 --t、--n1、--n2")
     if a.n1 < 2 or a.n2 < 2:
-        print("✗ 每组样本量需 ≥2"); return
+        raise ValueError("每组样本量需 ≥2")
     n1, n2, t = a.n1, a.n2, a.t
     d = t * math.sqrt(1.0 / n1 + 1.0 / n2)   # 独立样本 t 与 d 的精确关系
     df = n1 + n2 - 2
@@ -151,7 +150,7 @@ def cohens_d_from_t(a):
 def paired_d(a):
     n = a.n
     if n is None or n < 2:
-        print("✗ 需要 --n 且 ≥2"); return
+        raise ValueError("需要 --n 且 ≥2")
     if a.t is not None:
         dz = a.t / math.sqrt(n)
         src = f"配对 t={a.t:.3f}（d_z=t/√n）"
@@ -159,7 +158,7 @@ def paired_d(a):
         dz = a.mean_diff / a.sd_diff
         src = "前后差值均值 / 差值标准差"
     else:
-        print("✗ 请提供 --t 或同时提供 --mean-diff 与 --sd-diff（且差值标准差>0）"); return
+        raise ValueError("请提供 --t 或同时提供 --mean-diff 与 --sd-diff（且差值标准差>0）")
     df = n - 1
     se = math.sqrt(1.0 / n + dz ** 2 / (2.0 * n))   # 近似 SE
     zc = _z(a.ci)
@@ -175,9 +174,9 @@ def paired_d(a):
 # ---------------- 相关 r（Fisher z 置信区间 + 换算 d）----------------
 def report_r(r, n, ci, source=""):
     if n is None or n <= 3:
-        print("✗ 求相关的置信区间需要 n>3"); return
+        raise ValueError("求相关的置信区间需要 n>3")
     if not -1.0 < r < 1.0:
-        print("✗ r 必须在 (-1,1) 之间"); return
+        raise ValueError("r 必须在 (-1,1) 之间")
     zf = math.atanh(r)                 # Fisher z
     se = 1.0 / math.sqrt(n - 3)
     zc = _z(ci)
@@ -195,13 +194,13 @@ def report_r(r, n, ci, source=""):
 
 def r_from_args(a):
     if a.r is None or a.n is None:
-        print("✗ 需要 --r 与 --n"); return
+        raise ValueError("需要 --r 与 --n")
     report_r(a.r, a.n, a.ci)
 
 
 def r_from_t(a):
     if a.t is None or a.df is None or a.df <= 0:
-        print("✗ 需要 --t 与 --df（df>0）"); return
+        raise ValueError("需要 --t 与 --df（df>0）")
     t, df = a.t, a.df
     r = math.copysign(math.sqrt(t ** 2 / (t ** 2 + df)), t)
     n = a.n if a.n is not None else df + 2   # 简单 Pearson：检验 df=N-2
@@ -212,7 +211,7 @@ def r_from_t(a):
 def eta(a):
     if a.F is None or a.df1 is None or a.df2 is None:
         if a.ss_between is None or a.ss_within is None:
-            print("✗ 请提供 --F --df1 --df2，或提供 --ss-between --ss-within（及 --df1 --df2）"); return
+            raise ValueError("请提供 --F --df1 --df2，或提供 --ss-between --ss-within（及 --df1 --df2）")
     _header("方差分析效应量")
     if a.F is not None and a.df1 is not None and a.df2 is not None and a.df2 > 0:
         peta = (a.F * a.df1) / (a.F * a.df1 + a.df2)
@@ -236,10 +235,10 @@ def eta(a):
 # ---------------- 卡方效应量 ----------------
 def cramers_v(a):
     if a.chi2 is None or a.n is None or a.rows is None or a.cols is None:
-        print("✗ 需要 --chi2 --n --rows --cols"); return
+        raise ValueError("需要 --chi2 --n --rows --cols")
     chi2, n, r, c = a.chi2, a.n, a.rows, a.cols
     if n <= 0 or r < 2 or c < 2:
-        print("✗ n 需为正，行数/列数需 ≥2"); return
+        raise ValueError("n 需为正，行数/列数需 ≥2")
     dfmin = min(r - 1, c - 1)
     v = math.sqrt(chi2 / (n * dfmin))
     phi = math.sqrt(chi2 / n)
@@ -258,14 +257,14 @@ def convert(a):
     _header("r ↔ d 互转（等价换算，bivariate 关系）")
     if a.r is not None:
         if not -1 < a.r < 1:
-            print("✗ r 必须在 (-1,1) 之间"); return
+            raise ValueError("r 必须在 (-1,1) 之间")
         d = 2 * a.r / math.sqrt(1 - a.r ** 2)
         print(f"r = {a.r:.3f}  →  d = 2r/√(1-r²) = {d:.3f}（{tag_d(d)}）")
     elif a.d is not None:
         r = a.d / math.sqrt(a.d ** 2 + 4)
         print(f"d = {a.d:.3f}  →  r = d/√(d²+4) = {r:.3f}（{tag_r(r)}）")
     else:
-        print("✗ 请提供 --r 或 --d"); return
+        raise ValueError("请提供 --r 或 --d")
     print("注意：该换算基于等价的二变量关系假设，仅用于跨研究效应量粗比，勿替代原始检验。")
     _footer()
 
@@ -334,6 +333,7 @@ def main():
         a.func(a)
     except ValueError as e:
         print(f"✗ {e}")
+        sys.exit(1)
 
 
 if __name__ == "__main__":

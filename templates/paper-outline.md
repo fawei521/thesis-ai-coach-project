@@ -93,7 +93,7 @@
 
 ### 3.4 数据处理
 - 使用 SPSS（及免费的 JASP）、PROCESS 宏进行统计
-- 描述统计、信度（Cronbach's α、分半）与效度（KMO/Bartlett、因子载荷，自编量表做 EFA）
+- 描述统计、信度（Cronbach's α、McDonald's ω、分半）与效度（KMO/Bartlett、因子载荷，自编量表做 EFA）
 - 相关、人口学差异（t/ANOVA/卡方，必要时非参数检验）
 - 中介/调节效应采用 Bootstrap（重复抽样 5000 次），以 95% 置信区间是否含 0 判断显著性
 
@@ -106,7 +106,7 @@
 - 第一因子解释率=__%
 
 ### 4.2 信效度检验
-- 各量表 Cronbach's α、分半信度（Spearman-Brown）
+- 各量表 Cronbach's α、McDonald's ω、分半信度（Spearman-Brown）
 - KMO、Bartlett 球形检验、题项因子载荷；自编/修订量表报告完整 EFA（因子数依据含平行分析）、累计方差解释率
 - （如做）验证性因子分析 CFA 拟合指标
 

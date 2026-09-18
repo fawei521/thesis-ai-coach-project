@@ -322,6 +322,13 @@ python tools/chart_generator.py --variables "AI情感依赖,孤独感,反刍思�
   --coefs "0.32,0.45,0.28,0.15" --type chain --output 模型图.png
 ```
 
+只有 X→Y 两个变量、没有中介的直接效应模型，用 `--type direct`（菜单会按变量数自动选型）：
+```
+python tools/chart_generator.py --variables "AI情感依赖,NSSI" --coefs "0.32" --type direct --output 模型图.png
+```
+三种模型按变量数对应：**2 个变量 direct（1 条直接路径）、3 个 simple（简单中介）、4 个 chain（链式中介）**；
+变量数与 `--type` 对不上时脚本不硬画，会提示该用哪种类型。
+
 - `--coefs` **必须是数字**（写成 `a,b1,b2,c'` 这类字母会报错退出），且**按路径顺序**给：
   链式 4 个依次是 **a1**（X→M1）、**d21**（M1→M2）、**b2**（M2→Y）、**c'**（直接效应）——
   与 `_中介效应.csv` 里的路径名同名（PROCESS 模型6 口径），照着抄不会错位。

@@ -279,12 +279,12 @@ def main():
     parser = argparse.ArgumentParser(description='问卷数据清洗工具')
     parser.add_argument('input', help='输入CSV文件路径')
     parser.add_argument('--output', '-o', help='输出文件路径（默认：输入文件名_cleaned.csv）')
-    parser.add_argument('--min-seconds', type=float, default=30, help='最短答题时间（秒），默认30')
-    parser.add_argument('--longstring', type=int, default=10,
+    parser.add_argument('--min-seconds', default='30', help='最短答题时间（秒），默认30')
+    parser.add_argument('--longstring', default='10',
                         help='长直线判定：连续多少题选同一项判无效，默认10')
-    parser.add_argument('--low-sd', type=float, default=0.3,
+    parser.add_argument('--low-sd', default='0.3',
                         help='个体作答SD低于该值判为低变异（几乎没读题），设0关闭，默认0.3')
-    parser.add_argument('--max-missing', type=float, default=0.2,
+    parser.add_argument('--max-missing', default='0.2',
                         help='作答列缺失率超过该比例（0-1）判无效，默认0.2即两成')
     parser.add_argument('--attention', default='',
                         help='注意力检查题，格式 "列名关键词=正确答案;第二题=答案"，如 "本题请选3=3;认真作答选2=2"')
@@ -294,6 +294,20 @@ def main():
     input_path = Path(args.input)
     if not input_path.exists():
         print(f'错误：文件不存在 {args.input}')
+        sys.exit(1)
+
+    # 数值参数手工校验（argparse 自带 type 报错是英文 usage，学生看不懂）
+    try:
+        args.min_seconds = float(args.min_seconds)
+        args.longstring = int(args.longstring)
+        args.low_sd = float(args.low_sd)
+        args.max_missing = float(args.max_missing)
+    except (TypeError, ValueError):
+        print('✗ 参数要写成数字：--min-seconds 秒数、--longstring 连续题数（整数）、'
+              '--low-sd 与 --max-missing 为小数。')
+        sys.exit(1)
+    if args.min_seconds < 0 or args.longstring < 1 or args.low_sd < 0 or not (0 <= args.max_missing <= 1):
+        print('✗ 参数取值不合理：--min-seconds≥0、--longstring≥1、--low-sd≥0、--max-missing 在 0 到 1 之间。')
         sys.exit(1)
 
     output_path = Path(args.output) if args.output else input_path.with_name(
@@ -310,7 +324,20 @@ def main():
     print(f'\n读取数据：{len(headers)}列，{len(data)}行')
 
     # 确定作答列
-    scale_items = parse_scales(args.scales)
+    scale_items = set()
+    if args.scales:
+        if not Path(args.scales).exists():
+            print(f'✗ 量表配置文件不存在：{args.scales}')
+            print('  不需要按量表聚焦质量判断时请去掉 --scales（将启发式识别作答题）。')
+            sys.exit(1)
+        scale_items = parse_scales(args.scales)
+        missing_items = sorted(scale_items - {h or '' for h in headers})
+        if missing_items:
+            show = missing_items[:15]
+            more = '…' if len(missing_items) > 15 else ''
+            print(f'✗ scales.txt 中 {len(missing_items)} 个题项在数据列里找不到：{show}{more}')
+            print('  请核对 scales.txt 与数据表头一致后重跑（常见：列名拼写/题号不一致、用错数据版本）。')
+            sys.exit(1)
     if scale_items:
         response_cols = [j for j, h in enumerate(headers) if h in scale_items]
         print(f'按 scales.txt 识别 {len(response_cols)} 道量表作答题（质量指标只针对这些题）')

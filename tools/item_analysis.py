@@ -40,7 +40,8 @@ if hasattr(sys.stdout, "reconfigure") and not sys.stdout.isatty():
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
-from stats.dataio import parse_scales, read_data, recoded_item_series, to_float_matrix  # noqa: E402
+from stats.dataio import (assert_items_exist, parse_scales, read_data,  # noqa: E402
+                           recoded_item_series, to_float_matrix)
 from stats.mathx import fmt_p, mean, pearson_r, stdev, t_p_two_sided  # noqa: E402
 from stats.reliability import cronbach_alpha  # noqa: E402
 
@@ -218,6 +219,8 @@ def main(argv=None):
 
     headers, data = read_data(args.data)
     matrix = to_float_matrix(headers, data)
+
+    assert_items_exist(scales, matrix)
 
     print("=" * 64)
     print("问卷预试项目分析（决断值CR / CITC / 删题后α）")
