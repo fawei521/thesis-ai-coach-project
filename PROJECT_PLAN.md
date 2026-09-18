@@ -590,3 +590,19 @@
 - 文档：stats-guide 新增"残差独立性（Durbin-Watson）与残差正态"前置小节、workflow 第7步回归说明、START/README/CHANGELOG/e2e-test 测试72。
 - **测试（P0）**：full_e2e 600→**608 项全过**（+8）；consistency、validate、全量 py_compile 全绿；黄金脚本不入库。
 - **范围控制**：工具脚本 21、菜单 20 不变；doubao-skill 无改动；运行时纯标准库约束不变。
+
+## 二十四、v1.74 维护：论文模板接线（单样本与回归残差诊断进入产出链）
+
+> 2026-09-18 晚自主推进，同分支 `feat/advance-closed-loop`，纯文档接线闭环。
+
+### 24.1 背景与做法
+
+1. v1.72/v1.73 的新能力只接到工具与 stats-guide 层，paper-outline/START/QUICKSTART 未同步，学生照模板写方法章会漏掉单样本口径与回归残差前提。
+2. 本闭环无代码、无数值变化，只做产出链接线与接线断言，是"检查维护旧内容"的例行收口。
+
+### 24.2 改动清单
+
+- `templates/paper-outline.md`：4.4 补单样本 t/Wilcoxon 场景、报告项与边界；4.5 表3 规范补 VIF/D-W/残差正态与 Bootstrap 退路。
+- START（auto_stats 能力＋版本号）、QUICKSTART 第3步、README（612 项/版本块）、CHANGELOG、e2e-test 测试73。
+- **测试（P0）**：full_e2e 608→**612 项全过**（+4 接线断言）；consistency、validate、全量 py_compile 全绿。
+- **范围控制**：工具脚本 21、菜单 20 不变；doubao-skill 无改动。

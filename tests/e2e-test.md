@@ -1075,6 +1075,18 @@ python tests/test_special_columns.py`
 
 ---
 
+## 测试73：论文模板接线维护（v1.74，单样本与回归残差诊断进产出链）
+
+**目的**：新能力同步到学生写方法章实际照抄的模板与入口文档，不留"工具能跑但模板没写"的断档。
+
+**步骤与预期**：
+1. `templates/paper-outline.md` 4.4 含单样本 t（--onesample/--constant、菜单19选单样本、报告 t(df)/p/d_z、非正态 Wilcoxon 报 r）与"偏离中点≠干预效果"边界。
+2. paper-outline 4.5 表3 规范含容差/VIF、Durbin-Watson（dL/dU 严格判定）、残差 Shapiro-Wilk 与 Bootstrap 退路。
+3. START.md auto_stats 能力描述含 Durbin-Watson 与残差正态；QUICKSTART 第3步含回归诊断与单样本入口。
+4. `python tests/full_e2e.py`：612 项全过；consistency、validate、全量 py_compile 全绿；无代码改动。
+
+---
+
 # 脚本回归测试清单（每次改动后执行）
 
 在项目根目录（PowerShell）逐条运行，全部通过才算合格：

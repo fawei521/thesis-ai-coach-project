@@ -148,11 +148,14 @@ thesis-ai-coach-project/
 └── tests/                    # full_e2e.py 一键全量回归、consistency_check.py 文档↔代码一致性自检、专项测试与测试数据
 ```
 
-> 维护者/接手者：改动后运行 `python tests/full_e2e.py`（约3-5分钟，608 项断言，自动备份恢复测试数据），退出码 0 才算通过；学生日常使用不需要跑。
+> 维护者/接手者：改动后运行 `python tests/full_e2e.py`（约3-5分钟，612 项断言，自动备份恢复测试数据），退出码 0 才算通过；学生日常使用不需要跑。
 
 ## 版本
 
-**当前版本：v1.73**（2026-09-18）回归残差诊断闭环（完整版；doubao-skill 本轮无改动）
+**当前版本：v1.74**（2026-09-18）论文模板接线维护闭环（完整版；doubao-skill 本轮无改动）
+- **新能力接进论文产出链**：v1.72 单样本检验与 v1.73 回归残差诊断此前只在工具/统计指南层接线，本闭环把它们写进 `templates/paper-outline.md` 方法章与表3规范（单样本 t 的适用场景与"偏离中点≠干预效果"边界、回归表注须交代 VIF/Durbin-Watson/残差正态及 Bootstrap 退路）、START 工具能力描述、QUICKSTART 第3步
+- **维护性质**：无新代码、无数值口径变化，纯文档接线＋回归断言，确保学生照着模板写方法章时不会漏掉新前提指标；full_e2e 608→612 项（+4 接线断言），consistency/validate/py_compile 全绿
+
 - **Durbin-Watson＋残差正态**：`auto_stats.py` 多元回归末尾自动给 D-W（残差一阶自相关，0~4 接近 2 独立；1.5~2.5 经验区间提示＋明示严格判定查 dL/dU 表）与残差 Shapiro-Wilk（轻度非正态稳健、小样本偏态走 Bootstrap）；结果进回归返回字典，论文回归表的两项残差前提不再缺
 - **Shapiro-Wilk 下沉重构**：`shapiro_wilk` 自 `assumption_check.py` 下沉到 `stats/mathx.py`（连同 Royston AS R94 系数与私有助手），前提工具、配对工具改为导入复用，消除"stats 包反向依赖工具层"的结构倒挂；函数体逐行未动，200 组对 scipy 回归 W 误差 4.6e-10（Royston 多项式近似固有精度）
 - **黄金验证**：DW 定义级（常量残差→0、交替序列有限样本 3.8、手算 [1,2,3]→1/7、100 组随机序列对 numpy diff 口径零误差、AR(1) 序列 0.577 报警、白噪声 1.77）；n=120 回归夹具 DW=2.355、残差 W=0.979/p=.060 与 numpy OLS＋scipy 逐位一致；AR(1) 夹具自动触发正自相关提示

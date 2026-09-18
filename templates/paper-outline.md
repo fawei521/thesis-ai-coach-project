@@ -121,12 +121,12 @@
 - 表2：各变量相关矩阵（下三角，对角为 α）
 - 人口学差异：性别/是否独生等二分类用独立样本 t（不齐用 Welch t），年级等多组用单因素 ANOVA（不齐用 Welch＋Games-Howell；偏态用 Mann-Whitney/Kruskal-Wallis）
 - 分类变量间关联用卡方独立性检验（报告 χ²、p、Cramér's V）
-- 干预/纵向设计：同一批人的前后测或两条件用配对样本 t（报告 t(n−1)、p、Cohen's d_z 及 95%CI；菜单第19项 paired_compare.py，前提看差值 Shapiro-Wilk，差值偏态用 Wilcoxon 符号秩并报 rank-biserial r）；3+ 时点用重复测量 ANOVA/混合模型（两两比较 Bonferroni）；'实验组变化更大'报组别×时点交互或两组差值的独立样本 t，不能只报组内前后测显著
+- 干预/纵向设计：同一批人的前后测或两条件用配对样本 t（报告 t(n−1)、p、Cohen's d_z 及 95%CI；菜单第19项 paired_compare.py，前提看差值 Shapiro-Wilk，差值偏态用 Wilcoxon 符号秩并报 rank-biserial r）；3+ 时点用重复测量 ANOVA/混合模型（两两比较 Bonferroni）；'实验组变化更大'报组别×时点交互或两组差值的独立样本 t，不能只报组内前后测显著；一组分数对标称常数（如 Likert 中值 3、常模分/理论值）用单样本 t（菜单第19项选单样本，--onesample/--constant，报告 t(n−1)、p、d_z；差值非正态用单样本 Wilcoxon 报 r），但'与中值有差异'只能说明偏离中点、不能声称干预效果
 - 多重检验（多组两两比较、多个量表同时比较、相关矩阵、多个时点配对检验）报告校正后 p：确证性用 Holm（或 Bonferroni）控族系错误率，探索性、检验数多用 BH 控错误发现率（菜单第20项 mult_compare.py，与 R p.adjust 同口径）；校正方法分析前选定，原始 p 与校正后 p 同报，校正后不显著也是结果；等方差且各组 n 相近的 ANOVA 全两两比较优先 Tukey HSD
 
 ### 4.5 链式中介效应检验（如有调节另列 4.6）
 - PROCESS模型6结果，Bootstrap 5000次
-- 表3：回归分析结果
+- 表3：回归分析结果（正文或表注交代回归前提诊断：容差/VIF（VIF<5）、Durbin-Watson（接近 2 为残差独立，严格判定查 dL/dU 临界值表）、残差 Shapiro-Wilk；三项均由 auto_stats 回归末尾自动给出，残差明显非正态且样本小时报告 Bootstrap CI）
 - 表4：中介效应分解（各路径间接效应、Boot SE、95% CI）
 - 图1：研究模型图（标注路径系数）
 - 若含调节（模型1）：报告中心化交互项、简单斜率（±1SD）与简单斜率图；有调节的中介用模型7/14/15

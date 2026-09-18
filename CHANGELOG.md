@@ -12,6 +12,7 @@
 
 | 版本 | 发布日期 | 主题 | 提交 |
 |---|---|---|---|
+| **v1.74** | 2026-09-18 | 论文模板接线维护：paper-outline 方法章/表3 补单样本 t 与回归残差诊断（VIF/DW/残差正态）规范，START/QUICKSTART 同步；full_e2e 608→612 项 | 见下方详情 |
 | **v1.73** | 2026-09-18 | 回归残差诊断闭环：auto_stats 回归自动报 Durbin-Watson 与残差 Shapiro-Wilk；shapiro_wilk 下沉 stats/mathx 消除层间倒挂；DW 定义级＋AR(1)/白噪声黄金；full_e2e 600→608 项 | 见下方详情 |
 | **v1.72** | 2026-09-18 | paired_compare 新增单样本模式（--onesample/--constant，对标称常数如 Likert 中值 3 的单样本 t/Wilcoxon/d_z/r，菜单 19 选单样本，支持分组）；300 组对 scipy 零误差；full_e2e 589→600 项 | 见下方详情 |
 | **v1.71** | 2026-09-18 | 多重插补/FIML 教学指引闭环：新增 psychology/missing-imputation-guide.md（决策树、SPSS MI/PMM、AMOS FIML、R mice＋Rubin 池化公式、MNAR 敏感性、论文模板）；missing_report 拒绝 MCAR 时控制台与论文段落直接指向指南；四处文档接线；full_e2e 577→589 项 | 见下方详情 |
@@ -101,6 +102,12 @@
 ## 版本详情
 
 > 以下为各版本变更说明，按版本倒序。
+
+**v1.74 论文模板接线维护闭环（完整版，doubao-skill 本轮无改动）**
+- **背景**：v1.72 单样本检验、v1.73 回归残差诊断上线后，工具层与 stats-guide 已接线，但学生真正照着写方法章的 `templates/paper-outline.md`、START 能力清单与 QUICKSTART 流程没有同步，属于"能力到了产出链断了"的维护缺口（用户明确要求闭环维护旧内容）。
+- **改动**：①paper-outline 4.4 配对设计条目补单样本 t 适用场景（Likert 中值/常模分/理论值）、报告项（t(df)、p、d_z；非正态单样本 Wilcoxon 报 r）与"偏离中点≠干预效果"边界；②4.5 表3 规范补回归前提诊断交代（容差/VIF<5、Durbin-Watson 接近 2 与 dL/dU 严格判定、残差 Shapiro-Wilk、残差非正态且小样本报 Bootstrap CI），注明三项 auto_stats 自动给出；③START auto_stats 能力描述补 DW/残差正态；④QUICKSTART 第3步补回归诊断与单样本入口。
+- **测试（P0）**：full_e2e 608→**612 项全过**（+4：outline 两处接线、START/QUICKSTART 各一处）；consistency、validate、全量 py_compile 全绿。
+- **范围控制**：无代码改动、无数值口径变化；工具脚本 21、菜单 20 不变；doubao-skill 无改动。
 
 **v1.73 回归残差诊断闭环（完整版，doubao-skill 本轮无改动）**
 - **缺口**：心理学论文多元回归表常被要求报告 Durbin-Watson（残差独立性）与残差正态性，此前工具只报 VIF 共线性，学生要手点 SPSS 或漏掉这两项；同时 Shapiro-Wilk 实现位于工具层 `assumption_check.py`，stats 统计包无法复用（结构倒挂）。

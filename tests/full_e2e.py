@@ -1999,6 +1999,17 @@ try:
     r = run([str(ROOT / "tools" / "assumption_check.py"), str(reg_csv73), "--only", "X1"])
     check("v173前提工具回归", r.returncode == 0 and "Shapiro" in (r.stdout or ""))
 
+
+    # ========== v1.74 论文模板接线（单样本/回归残差诊断进产出链） ==========
+    outline74 = tx("templates/paper-outline.md")
+    check("v174模板单样本接线", "--onesample" in outline74 and "单样本 t" in outline74
+          and "偏离中点" in outline74)
+    check("v174模板回归诊断接线", "Durbin-Watson" in outline74 and "残差 Shapiro-Wilk" in outline74
+          and "VIF" in outline74)
+    check("v174 START接线", "Durbin-Watson残差独立性" in tx("START.md"))
+    quick74 = tx("QUICKSTART.md")
+    check("v174 QUICKSTART接线", "Durbin-Watson" in quick74 and "单样本" in quick74)
+
 finally:
     cleanup()
 

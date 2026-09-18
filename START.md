@@ -1,6 +1,6 @@
 # Thesis AI Coach — 启动文件
 
-> 版本 v1.73 ｜ 适用：心理学专业本科毕业论文（实证/问卷研究为主）｜ 学生把整个项目文件夹交给AI，AI从本文件开始（最新版本号以 CHANGELOG.md / git tag 为准；另有可安装到豆包的轻量 Skill 版，见 doubao-skill/）
+> 版本 v1.74 ｜ 适用：心理学专业本科毕业论文（实证/问卷研究为主）｜ 学生把整个项目文件夹交给AI，AI从本文件开始（最新版本号以 CHANGELOG.md / git tag 为准；另有可安装到豆包的轻量 Skill 版，见 doubao-skill/）
 
 > 你是AI。你读取到这个文件，说明学生把整个项目包交给了你。
 > 请严格按照以下步骤启动，不要跳过。
@@ -64,7 +64,7 @@
 - `wjx_preprocess.py` — 问卷星原始答卷预处理（中文表头/文本选项/"2分3秒"用时 → 标准数字表，附列映射报告供核对）
 - `anonymize_data.py` — 数据去标识化（**把数据发给AI/上传/给外校前先跑**：自动假名化或删除姓名、学号、手机、邮箱、身份证、微信/QQ、IP、住址等直接标识符，并对性别/年级/专业/生源组合做 k-匿名风险体检；只读原文件、另存新文件，绝不改原数据；可生成单独保管的"假名对照表"用于前后测配对）
 - `data_cleaner.py` — 问卷数据清洗（注意力检查题/长直线/低变异SD/高缺失/时长过短，导出清洗后数据＋剔除明细报告）
-- `auto_stats.py` — 自动统计（人口学频数表、反向计分、Cronbach's α+McDonald's ω(单因子主因子法PAF)+逐题CITC/删题α题项分析+分半信度(前后半/奇偶,Spearman-Brown/Guttman λ4,_信度分析.csv含ω列)、结构效度KMO/Bartlett/因子载荷、`--efa`完整探索性因子分析(多因子+Varimax旋转+Horn平行分析定因子数+自动碎石图)、共同方法偏差Harman、量表总分、描述统计(偏度/峰度正态性)、M/SD/相关/α对角整合三线表并自动出相关矩阵下三角热图(系数+显著性星号,对角α,_相关热图.png)、人口学差异(Levene方差齐性+独立样本t/Welch t/单因素ANOVA/Welch ANOVA+效应量+Bonferroni事后，不齐提示Games-Howell；`--nonparametric`偏态/有序时改Mann-Whitney U/Kruskal-Wallis H非参数检验)、`--spearman`秩相关、`--partial "性别,年级"`控制混淆后的偏相关矩阵，自动人口学交叉卡方χ²/Cramér's V(分类×分类,期望频数不足提示Fisher)、多元回归(含容差/VIF共线性诊断)、Bootstrap中介模型4/6、调节效应模型1(--moderator，中心化交互项+±1SD简单斜率+Bootstrap CI+简单斜率图)，导出可直接进PROCESS复核的量表总分数据集）
+- `auto_stats.py` — 自动统计（人口学频数表、反向计分、Cronbach's α+McDonald's ω(单因子主因子法PAF)+逐题CITC/删题α题项分析+分半信度(前后半/奇偶,Spearman-Brown/Guttman λ4,_信度分析.csv含ω列)、结构效度KMO/Bartlett/因子载荷、`--efa`完整探索性因子分析(多因子+Varimax旋转+Horn平行分析定因子数+自动碎石图)、共同方法偏差Harman、量表总分、描述统计(偏度/峰度正态性)、M/SD/相关/α对角整合三线表并自动出相关矩阵下三角热图(系数+显著性星号,对角α,_相关热图.png)、人口学差异(Levene方差齐性+独立样本t/Welch t/单因素ANOVA/Welch ANOVA+效应量+Bonferroni事后，不齐提示Games-Howell；`--nonparametric`偏态/有序时改Mann-Whitney U/Kruskal-Wallis H非参数检验)、`--spearman`秩相关、`--partial "性别,年级"`控制混淆后的偏相关矩阵，自动人口学交叉卡方χ²/Cramér's V(分类×分类,期望频数不足提示Fisher)、多元回归(含容差/VIF共线性诊断+Durbin-Watson残差独立性+残差Shapiro正态诊断)、Bootstrap中介模型4/6、调节效应模型1(--moderator，中心化交互项+±1SD简单斜率+Bootstrap CI+简单斜率图)，导出可直接进PROCESS复核的量表总分数据集）
 - `generate_demo_data.py` — 生成结构真实的模拟问卷数据（内置链式中介、含反向题，没收回问卷前练手用，严禁写进论文）
 - `paper_search.py` — 英文学术文献检索（OpenAlex/Semantic Scholar免费API）；支持多组近义词（`--query` 重复 / `--queries "词1;词2"`）、`--source all` 双源、`--min 90` 逐词翻页去重凑齐约90篇候选池
 - `literature_organizer.py` — 文献去重、分类、导出（可直接吃 paper_search/知网导出的 CSV，UTF-8/GBK 都行）
