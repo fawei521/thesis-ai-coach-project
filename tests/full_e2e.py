@@ -2016,7 +2016,13 @@ try:
     check("v175 ROADMAP缺口挂账", all(k in rm75 for k in
           ("Friedman", "polychoric", "Schmid-Leiman", "HTMT2", "Cook", "PPT")))
     check("v175 MI决策落档", "不内置一键插补" in rm75 and "missing-imputation-guide" in rm75)
-    check("v175 ROADMAP无幽灵脚本", "outline_to_ppt" not in rm75 and "pptx_writer" not in rm75)
+    # 原写法是"ROADMAP 不得提到 outline_to_ppt / pptx_writer"（当时它们尚未入库，
+    # 禁令等价于防幽灵引用）。两个脚本已提交进仓库，禁令过时且会反向逼人把它们从
+    # 文档里删掉。换成它本要表达的不变量：ROADMAP 点名的 .py 必须真实存在。
+    ghost75 = [s for s in sorted(set(re.findall(r"([A-Za-z0-9_]+\.py)", rm75)))
+               if not any((ROOT / d / s).exists()
+                          for d in ("tools", "tools/stats", "tests", "doubao-skill"))]
+    check("v175 ROADMAP引用的脚本都存在", not ghost75, str(ghost75))
     rdme75 = tx("README.md")
     check("v175 README版本区收敛", "更早版本（v1.64 及以前）" in rdme75
           and "上一个版本：v1." in rdme75 and len(rdme75.splitlines()) < 200)
