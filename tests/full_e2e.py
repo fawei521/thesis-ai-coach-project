@@ -442,7 +442,7 @@ try:
     check("coach5多选填空", "多选题" in cr and "scales.txt 时勿列入" in cr)
     check("coach6样本量", "sample_size.py" in cr)
     check("coach7五指标", "低变异" in cr and "注意力检查题答错" in cr)
-    menu = tx("tools/menu.py"); check("menu第8项", "【8/19】" in menu and "sample_size.py" in menu)
+    menu = tx("tools/menu.py"); check("menu第8项", "【8/20】" in menu and "sample_size.py" in menu)
     qs = tx("QUICKSTART.md"); check("QS菜单8", "8. 开题样本量" in qs)
     check("QS流程顺序", qs.find("查文献读文献") < qs.find("开题报告/开题答辩"))
     bad = []
@@ -803,7 +803,7 @@ try:
     check("预览器--list可运行", pl.returncode == 0 and "index.html" in (pl.stdout or ""), (pl.stderr or "")[-200:])
     wdir = ROOT / "我的工作区" / "04-网页"
     check("工作区04-网页就位", wdir.is_dir() and (wdir / "把网页放这里.txt").exists())
-    check("菜单第9项", "【9/19】" in menu and "webpage_preview.py" in menu)
+    check("菜单第9项", "【9/20】" in menu and "webpage_preview.py" in menu)
     check("网页能力已登记到入口",
           "webpage-guide.md" in st and "webpage_preview.py" in st and "webpage-guide.md" in cr)
     check("README登记网页能力", "webpage-guide.md" in rm and "webpage_preview.py" in rm)
@@ -815,12 +815,12 @@ try:
     check("脱敏工具纯标准库", "import csv" in an_src and "matplotlib" not in an_src and "pandas" not in an_src)
     check("脱敏工具有安全开关", all(s in an_src for s in ["--dry-run", "--no-key", "--columns", "--k"]))
     check("脱敏工具另存不改原文件", "_去标识化.csv" in an_src and "同名同路径" in an_src)
-    check("菜单第11项去标识化", "【11/19】" in menu and "anonymize_data.py" in menu and "去标识化" in menu)
-    check("菜单第12项效应量", "【12/19】" in menu and "effect_size.py" in menu and "效应量" in menu)
-    check("菜单第13项效度", "【13/19】" in menu and "validity_cr_ave.py" in menu and "区分效度" in menu)
+    check("菜单第11项去标识化", "【11/20】" in menu and "anonymize_data.py" in menu and "去标识化" in menu)
+    check("菜单第12项效应量", "【12/20】" in menu and "effect_size.py" in menu and "效应量" in menu)
+    check("菜单第13项效度", "【13/20】" in menu and "validity_cr_ave.py" in menu and "区分效度" in menu)
     check("菜单13含HTMT", "HTMT" in menu)
-    check("菜单第14项项目分析", "【14/19】" in menu and "item_analysis.py" in menu and "决断值" in menu)
-    check("菜单第15项内容效度", "【15/19】" in menu and "content_cvi.py" in menu and "CVI" in menu)
+    check("菜单第14项项目分析", "【14/20】" in menu and "item_analysis.py" in menu and "决断值" in menu)
+    check("菜单第15项内容效度", "【15/20】" in menu and "content_cvi.py" in menu and "CVI" in menu)
     check("START登记去标识化", "anonymize_data.py" in st and "去标识化" in st)
     check("QUICKSTART登记第11项", "去标识化" in tx("QUICKSTART.md"))
     check("AI素养接线去标识化工具", "anonymize_data.py" in tx("core/ai-literacy.md"))
@@ -1066,7 +1066,7 @@ try:
     check("v158量表多词检索纪律", "量表检索纪律" in sl and "同义词" in sl and "OR" in sl and "AND" in sl)
     check("v158检索脚本多词开关", all(x in psrc for x in ('--queries', '--source', '--min', 'action="append"')))
     check("v158卡片脚本与菜单项",
-          (ROOT / "tools" / "literature_cards.py").exists() and "literature_cards.py" in menu and "【10/19】" in menu)
+          (ROOT / "tools" / "literature_cards.py").exists() and "literature_cards.py" in menu and "【10/20】" in menu)
     check("v158卡片接入网页指南且不增类型", "literature_cards.py" in wg and "文献笔记网页" in wg)
     check("v158手机交接单与原生做法", all(s in mg for s in ("设备交接单", "全球学术快报", "literature_cards")))
 
@@ -1237,8 +1237,8 @@ try:
     rf_src = tx(rf_tool)
     check("参考文献工具纯标准库", all(s in rf_src for s in ["import csv", "import re"])
           and "pandas" not in rf_src and "requests" not in rf_src)
-    check("菜单第16项参考文献", "【16/19】" in menu and "reference_formatter.py" in menu and "GB/T 7714" in menu)
-    check("菜单标签全部19项制", "/18】" not in menu and menu.count("/19】") == 19)
+    check("菜单第16项参考文献", "【16/20】" in menu and "reference_formatter.py" in menu and "GB/T 7714" in menu)
+    check("菜单标签全部20项制", "/19】" not in menu and menu.count("/20】") == 20)
     check("写作指南接线参考文献工具", "reference_formatter.py" in tx("workflows/writing-guide.md"))
     check("START登记参考文献工具", "reference_formatter.py" in st)
     v65 = new_tmp("v165refs")
@@ -1314,7 +1314,7 @@ try:
     check("缺失值工具纯标准库", "pandas" not in mr_src and "numpy" not in mr_src
           and "import csv" in mr_src)
     check("缺失值工具编码守卫", "输出编码守卫" in mr_src and "reconfigure" in mr_src)
-    check("菜单第17项缺失值", "【17/19】" in menu and "missing_report.py" in menu and "MCAR" in menu)
+    check("菜单第17项缺失值", "【17/20】" in menu and "missing_report.py" in menu and "MCAR" in menu)
     check("统计指南接线缺失值工具", "missing_report.py" in tx("psychology/stats-guide.md"))
     check("分析流程接线缺失值工具", "missing_report.py" in tx("workflows/data-analysis-auto.md"))
     check("START登记缺失值工具", "missing_report.py" in st)
@@ -1437,7 +1437,7 @@ try:
     check("前提工具纯标准库", "pandas" not in ac_src and "numpy" not in ac_src
           and "import csv" in ac_src)
     check("前提工具编码守卫", "输出编码守卫" in ac_src and "reconfigure" in ac_src)
-    check("菜单第18项前提假设", "【18/19】" in menu and "assumption_check.py" in menu
+    check("菜单第18项前提假设", "【18/20】" in menu and "assumption_check.py" in menu
           and "Shapiro" in menu)
     check("统计指南接线前提工具", "assumption_check.py" in tx("psychology/stats-guide.md"))
     check("分析流程接线前提工具", "assumption_check.py" in tx("workflows/data-analysis-auto.md"))
@@ -1554,7 +1554,7 @@ try:
     check("配对工具纯标准库", "pandas" not in pc_src and "numpy" not in pc_src
           and "import csv" in pc_src)
     check("配对工具编码守卫", "输出编码守卫" in pc_src and "reconfigure" in pc_src)
-    check("菜单第19项配对检验", "【19/19】" in menu and "paired_compare.py" in menu
+    check("菜单第19项配对检验", "【19/20】" in menu and "paired_compare.py" in menu
           and "Wilcoxon" in menu)
     check("统计指南接线配对工具", "paired_compare.py" in tx("psychology/stats-guide.md"))
     check("分析流程接线配对工具", "paired_compare.py" in tx("workflows/data-analysis-auto.md"))
@@ -1695,6 +1695,97 @@ try:
     check("v168红线同一个体", "配对必须是同一个体" in pc_src)
     check("v168红线差值前提", "差值" in pc_src and "近似正态" in pc_src)
     check("v168红线多时点", "重复测量" in pc_src and "交互作用" in pc_src)
+
+
+    # ========== v1.69 多重比较校正（Bonferroni/Holm/BH/BY） ==========
+    mc_tool = str(ROOT / "tools" / "mult_compare.py")
+    mc_src = tx("tools/mult_compare.py")
+    check("多重校正工具存在", Path(mc_tool).exists())
+    check("多重校正纯标准库", "pandas" not in mc_src and "numpy" not in mc_src
+          and "import csv" in mc_src)
+    check("多重校正编码守卫", "输出编码守卫" in mc_src and "reconfigure" in mc_src)
+    check("菜单第20项多重校正", "【20/20】" in menu and "mult_compare.py" in menu
+          and "Bonferroni" in menu and "Holm" in menu)
+    check("统计指南接线多重校正", "mult_compare.py" in tx("psychology/stats-guide.md"))
+    check("分析流程接线多重校正", "mult_compare.py" in tx("workflows/data-analysis-auto.md"))
+    check("START登记多重校正", "mult_compare.py" in st)
+
+    v69 = new_tmp("v169mc")
+    out69 = v69 / "mc.csv"
+    rpt69 = v69 / "mc.txt"
+    common_out = ["--csv-out", str(out69), "--report", str(rpt69)]
+
+    def both69(rr):
+        return (rr.stdout or "") + (rr.stderr or "")
+
+    # R p.adjust 经典向量：bonf=.05/.10/.15/.20/.25，holm 尾部累积 .09，BH 全 .05
+    r = run([mc_tool, "--ps", ".01,.02,.03,.04,.05", "--method", "bonferroni"] + common_out)
+    o = both69(r)
+    check("v169 bonf经典值", r.returncode == 0 and ".050" in o and ".250" in o and ".150" in o)
+    r = run([mc_tool, "--ps", ".01,.02,.03,.04,.05", "--method", "holm"] + common_out)
+    o = both69(r)
+    check("v169 holm默认", r.returncode == 0 and "Holm" in o and "显著 0/5" in o)
+    r = run([mc_tool, "--ps", ".01,.02,.03,.04,.05", "--method", "bh"] + common_out)
+    check("v169 bh经典", r.returncode == 0 and "显著 0/5" in (r.stdout or "")
+          and ".050" in (r.stdout or ""))
+    r = run([mc_tool, "--ps", ".001,.008,.039,.041,.042,.06,.1,.25,.37,.49,.82",
+             "--method", "all"] + common_out)
+    o = both69(r)
+    check("v169四法全列", r.returncode == 0 and all(s in o for s in
+          ["Bonferroni", "Holm", "BH", "BY"]))
+    r = run([mc_tool, "--ps", ".01,.04", "--names", "性别差异,年级差异"] + common_out)
+    check("v169名称列", r.returncode == 0 and "性别差异" in (r.stdout or "")
+          and "年级差异" in (r.stdout or ""))
+
+    # CSV 模式
+    def wcsv69(name, text, enc="utf-8-sig"):
+        pp = v69 / name
+        pp.write_text(text, encoding=enc)
+        return pp
+    res69 = wcsv69("res.csv", "对比,p值\n男-女,.002\n低-高,.033\n中-高,.12\n")
+    r = run([mc_tool, str(res69), "--pcol", "p值", "--namecol", "对比"] + common_out)
+    check("v169 csv模式", r.returncode == 0 and "男-女" in (r.stdout or "")
+          and "中-高" in (r.stdout or ""))
+    gbk69 = wcsv69("gbk.csv", "对比,p值\n男女,.001\n年级,.06\n", enc="gbk")
+    r = run([mc_tool, str(gbk69), "--pcol", "p值", "--namecol", "对比"] + common_out)
+    check("v169 gbk", r.returncode == 0 and "男女" in (r.stdout or ""))
+    badrow69 = wcsv69("badrow.csv", "name,p\na,.01\nb,NA\n")
+    r = run([mc_tool, str(badrow69), "--pcol", "p"] + common_out)
+    check("v169坏p行", r.returncode != 0 and "不是数字" in both69(r))
+    empty69 = wcsv69("empty.csv", "")
+    r = run([mc_tool, str(empty69), "--pcol", "p"] + common_out)
+    check("v169空csv", r.returncode != 0)
+
+    # 坏输入
+    r = run([mc_tool, "--ps", ".01,abc"] + common_out)
+    check("v169非数字p", r.returncode != 0 and "数字" in both69(r))
+    r = run([mc_tool, "--ps", ".01,1.2"] + common_out)
+    check("v169越界p", r.returncode != 0 and "0～1" in both69(r))
+    r = run([mc_tool, "--ps", ".01"] + common_out)
+    check("v169单个p", r.returncode != 0 and "至少需要 2 个" in both69(r))
+    r = run([mc_tool])
+    check("v169无来源", r.returncode != 0 and "--ps" in both69(r))
+    r = run([mc_tool, "--ps", ".01,.02", "--names", "a"] + common_out)
+    check("v169名称不符", r.returncode != 0 and "不一致" in both69(r))
+    r = run([mc_tool, str(res69), "--pcol", "不存在"] + common_out)
+    check("v169 csv缺列", r.returncode != 0 and "不在 CSV" in both69(r))
+    r = run([mc_tool, str(v69 / "nope.csv"), "--pcol", "p"] + common_out)
+    check("v169 csv无文件", r.returncode != 0 and "找不到文件" in both69(r))
+    r = run([mc_tool, str(res69)] + common_out)
+    check("v169 csv无pcol", r.returncode != 0 and "--pcol" in both69(r))
+    r = run([mc_tool, "--ps", ".01,.02", "--alpha", "x"] + common_out)
+    check("v169坏alpha", r.returncode != 0)
+    r = run([mc_tool, "--ps", ".01,.02", "--alpha", "2"] + common_out)
+    check("v169 alpha越界", r.returncode != 0 and "alpha" in both69(r))
+
+    # 产物与红线
+    csv69 = out69.read_text(encoding="utf-8-sig")
+    rpt69_txt = rpt69.read_text(encoding="utf-8")
+    check("v169产物齐全", "BH_FDR校正q" in csv69 and "Holm校正p" in csv69
+          and "多重比较校正" in rpt69_txt)
+    check("v169报告红线", "分析前确定" in rpt69_txt and "校正后不显著也是结果" in rpt69_txt)
+    check("v169源码红线", "不能三种都跑" in mc_src and "一个家族" in mc_src
+          and "校正后不显著也是结果" in mc_src)
 
 finally:
     cleanup()

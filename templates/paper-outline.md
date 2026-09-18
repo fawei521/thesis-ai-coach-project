@@ -122,6 +122,7 @@
 - 人口学差异：性别/是否独生等二分类用独立样本 t（不齐用 Welch t），年级等多组用单因素 ANOVA（不齐用 Welch＋Games-Howell；偏态用 Mann-Whitney/Kruskal-Wallis）
 - 分类变量间关联用卡方独立性检验（报告 χ²、p、Cramér's V）
 - 干预/纵向设计：同一批人的前后测或两条件用配对样本 t（报告 t(n−1)、p、Cohen's d_z 及 95%CI；菜单第19项 paired_compare.py，前提看差值 Shapiro-Wilk，差值偏态用 Wilcoxon 符号秩）；3+ 时点用重复测量 ANOVA/混合模型（两两比较 Bonferroni）；'实验组变化更大'报组别×时点交互或两组差值的独立样本 t，不能只报组内前后测显著
+- 多重检验（多组两两比较、多个量表同时比较、相关矩阵、多个时点配对检验）报告校正后 p：确证性用 Holm（或 Bonferroni）控族系错误率，探索性、检验数多用 BH 控错误发现率（菜单第20项 mult_compare.py，与 R p.adjust 同口径）；校正方法分析前选定，原始 p 与校正后 p 同报，校正后不显著也是结果；等方差且各组 n 相近的 ANOVA 全两两比较优先 Tukey HSD
 
 ### 4.5 链式中介效应检验（如有调节另列 4.6）
 - PROCESS模型6结果，Bootstrap 5000次

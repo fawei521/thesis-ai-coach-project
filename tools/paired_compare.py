@@ -253,6 +253,11 @@ def print_rows(rows, alpha):
                 print(f"  Wilcoxon 符号秩：W+={fmt(w['w_plus'],1)}，W−={fmt(w['w_minus'],1)}，"
                       f"z={fmt(w['z'])}（连续性校正），双侧 p={fmt_p(w['p'])}"
                       f"（n={w['n']}，结 {w['n_ties']} 组、零差值 {w['n_zero']} 个）")
+                if w["n"] < 30 and w["n_ties"] > 0:
+                    print(f"  ⚠ 小样本且有 {w['n_ties']} 组结（|差值|相等，Likert 前后测极常见）："
+                          f"有结时精确分布不再适用、只能走正态近似，此口径 p 偏乐观"
+                          f"（实测可与精确值差近一倍）。请以 JASP/SPSS 精确法或蒙特卡洛复核，"
+                          f"并同时报告配对 t 结果，不要只凭这个 p 下结论。")
     print("\n" + "-" * 78)
     print("提示：差值正态前提满足报配对 t（d_z）；不满足且样本小报 Wilcoxon。"
           "3+ 时点用重复测量 ANOVA/混合模型；组间变化幅度比较用差值的独立样本 t 或交互作用。")
@@ -284,6 +289,11 @@ def make_paragraph(rows, alpha):
                     f"  差值 Shapiro-Wilk 检验显著（W={r['sw_W']:.3f}，{fmt_p(r['sw_p'])}），"
                     f"差值不满足正态前提；Wilcoxon 符号秩检验 z={w['z']:.3f}，"
                     f"双侧 p={fmt_p(w['p'])}，结论以非参数检验为准。")
+                if w["n"] < 30 and w["n_ties"] > 0:
+                    lines.append(
+                        f"  （口径说明：因存在 {w['n_ties']} 组结且 n={w['n']}，"
+                        f"Wilcoxon 采用含结校正与连续性校正的正态近似而非精确分布，"
+                        f"该口径 p 偏乐观，正式结果以 SPSS/JASP 精确法复核为准。）")
     lines.append("")
     lines.append("注：配对 t 的前提是差值近似正态（非原始分数）；d_z 以差值标准差为分母，"
                  "口径不同于独立组 d；无法配对的记录已整对剔除。多时点或组间变化幅度比较"

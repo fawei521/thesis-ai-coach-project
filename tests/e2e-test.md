@@ -1001,6 +1001,22 @@ python tests/test_special_columns.py`
 
 ---
 
+## 测试68：多重比较校正（v1.69，mult_compare.py，菜单第20项）
+
+**目的**：多组两两比较/多量表/相关矩阵/多时点配对检验的 p 值校正口径必须与 R `p.adjust`、scipy `false_discovery_control` 一致，FWER 与 FDR 方法不能混用，临界值不能因浮点翻转。
+
+**步骤与预期**：
+1. R 经典向量 `--ps .01,.02,.03,.04,.05`：Bonferroni=.05/.10/.15/.20/.25；Holm=.05/.08/.09/.09/.09（前缀累积到尾）；BH 全 .05（恰在边界，α=.05 下显著 0/5）；BY 全 .1142（.05×调和数 2.2833）。
+2. R 11 向量（.001…0.82，含 ties 场景）`--method all`：四法结果与 R p.adjust 逐位一致；显著项汇总数正确。
+3. CSV 模式：含"对比,p值"的 UTF-8-BOM 与 GBK 文件均能读，`--namecol` 名称进表与报告；空行跳过、非数字 p 行报错 rc≠0。
+4. 坏输入 rc≠0 无 Traceback：p 非数字、p 越界（>1/<0）、仅 1 个 p、无来源、`--names` 数不符、CSV 缺 `--pcol`、pcol 列不存在、文件不存在、空 CSV、坏 alpha（argparse rc=2）、alpha 越界。
+5. 产物：CSV 含四法校正 p 列与四列显著判定（UTF-8-BOM 可直接 Excel）；报告含"校正方法在分析前确定""校正后不显著也是结果"红线。
+6. 统计正确性（维护者侧 scipy/R 对照，不入库）：3000 组随机向量（m=2…65，含 ties/0/1）Bonferroni/Holm/BH 零误差、BY ≤4.4e-16。
+7. `python tests/full_e2e.py`：570 项全过；菜单 20 项接线（menu.py 中 /20】 恰好 20 处、无 /19】 残留）；consistency_check、validate、全量 py_compile 全绿。
+8. 红线：输出与文档声明"家族范围与方法分析前确定、不得挑最宽松的""原始 p 与校正后 p 同报""校正后不显著也是结果""Tukey HSD 适用场景指引 SPSS"；stats-guide 多重比较小节与 data-analysis-auto 第 6.7 步同步。
+
+---
+
 # 脚本回归测试清单（每次改动后执行）
 
 在项目根目录（PowerShell）逐条运行，全部通过才算合格：
@@ -1061,7 +1077,9 @@ python tools\assumption_check.py tests\test-data\demo_survey.csv --scales tests\
 python tools\assumption_check.py tests\test-data\demo_survey.csv --scales tests\test-data\demo_scales.txt --group 性别
 # 21 配对设计差异（前后测配对 t/d_z/差值 Shapiro/Wilcoxon 符号秩；默认导出 _配对检验.csv 与 _配对检验报告.txt，验毕删）
 python tools\paired_compare.py tests\test-data\demo_survey.csv --pairs X1:X2
+# 22 多重比较校正（Bonferroni/Holm/BH/BY；--ps 默认把 _多重比较校正.csv 与 _多重比较报告.txt 落在项目根，验毕删）
+python tools\mult_compare.py --ps .002,.033,.12,.31 --method all
 ```
 
-测试结束后删除 `_t_*` 临时文件、`tests/test-data/_demo_check` 目录，以及在 test-data 旁生成的 `demo_survey_项目分析.csv`、`demo_cvi_内容效度CVI.csv`、`demo_htmt_*.csv/png`、`_t_refs_tpl*` 与各 `_参考文献.txt`、`demo_survey_缺失值分析.csv`、`demo_survey_缺失值报告.txt`、`demo_survey_前提假设检验.csv`、`demo_survey_前提假设报告.txt`、`demo_survey_配对检验.csv`、`demo_survey_配对检验报告.txt`（夹具 `demo_htmt.csv`、`htmt_scales.txt` 保留）。（test_special_columns.py 会自清其 `_special*` 临时文件）所有脚本只用Python标准库（模型图需matplotlib），
+测试结束后删除 `_t_*` 临时文件、`tests/test-data/_demo_check` 目录，以及在 test-data 旁生成的 `demo_survey_项目分析.csv`、`demo_cvi_内容效度CVI.csv`、`demo_htmt_*.csv/png`、`_t_refs_tpl*` 与各 `_参考文献.txt`、`demo_survey_缺失值分析.csv`、`demo_survey_缺失值报告.txt`、`demo_survey_前提假设检验.csv`、`demo_survey_前提假设报告.txt`、`demo_survey_配对检验.csv`、`demo_survey_配对检验报告.txt`，以及 --ps 模式落在项目根的 `_多重比较校正.csv`、`_多重比较报告.txt`（夹具 `demo_htmt.csv`、`htmt_scales.txt` 保留）。（test_special_columns.py 会自清其 `_special*` 临时文件）所有脚本只用Python标准库（模型图需matplotlib），
 统计数字以SPSS/JASP为准，脚本用于快速预览和教学。

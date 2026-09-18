@@ -61,6 +61,7 @@
 - `content_cvi.py` — **自编量表内容效度 CVI**（专家 1-4 相关性评分 → 逐条 I-CVI、机遇校正 κ*、量表 S-CVI/Ave 与 S-CVI/UA，按 Lynn 1986/Polit&Beck 2006 阈值给保留/修改/重审建议，导出 `_内容效度CVI.csv`；纯标准库，仅自编/修订量表需要）
 - `reference_formatter.py` — **参考文献格式化**（题录 CSV → GB/T 7714-2015 顺序编码制 [n] 文本：期刊/专著/学位论文/会议/报纸/电子资源六类，作者超 3 人自动截"等/et al"、欧美著者姓全大写名缩写，支持全角标点与 GB/T 7714-2025 姓氏口径开关，吃 paper_search 导出与文献整理表；缺字段标【待补】不伪造、坏输入中文报错；纯标准库，只格式化不生成文献）
 - `missing_report.py` — **缺失值分析与 Little's MCAR 检验**（预处理后清洗前：总/逐题缺失率、缺失模式、成列删除完整样本量；EM 多元正态估计后按缺失模式算 Little (1988) T_MLμ 统计量，与 R naniar::mcar_test / Enders (2010) 同口径；p≥.05 可成列删除、p<.05 建议多重插补/FIML；给可直接粘论文的段落，导出 `_缺失值分析.csv`/`_缺失值报告.txt`；纯标准库）
+- `mult_compare.py` — **多重比较校正**（Bonferroni/Holm 控制族系错误率 FWER、BH/BY 控制错误发现率 FDR；`--ps` 直给 p 值或读 CSV 的 p 值列（可带名称列），四法同列，与 R `p.adjust`/scipy `false_discovery_control` 同口径；导出 `_多重比较校正.csv`/`_多重比较报告.txt`；纯标准库）
 - `paired_compare.py` — **配对设计差异检验**（前后测/两条件：配对样本 t、Cohen's d_z 及近似95%CI、差值 Shapiro-Wilk、Wilcoxon 符号秩（n≤25 无结精确 p，否则结校正/连续性校正 z，SPSS 口径）；单文件宽表 `--pairs 前:后` 或两文件 `--id 编号`（可配 scales 算均分），支持 `--group/--level` 组内配对；导出 `_配对检验.csv`/`_配对检验报告.txt`；纯标准库）
 - `assumption_check.py` — **参数检验前提假设**（t/ANOVA/回归前：Shapiro-Wilk 正态性 W/p（Royston AS R94，3≤n≤5000，与 R/scipy 同口径）、调整偏度/超额峰度及 z、Kline 判据；`--group` 逐组正态＋Brown-Forsythe 方差齐性（Levene 基于中位数）；p<.05 但偏度峰度在 Kline 内给 Bootstrap/Welch 稳健通道，明显偏态指引非参数；给可粘论文段落，导出 `_前提假设检验.csv`/`_前提假设报告.txt`；纯标准库）
 
@@ -140,22 +141,22 @@ thesis-ai-coach-project/
 ├── 我的工作区/                # 学生自己的文件：01-文献PDF/02-问卷数据/03-分析结果/04-网页 + 我的论文进度.md
 ├── core/                     # AI规则（coach-rules）+ 身份陪伴边界（companionship）+ 引导反馈协议 + 鼓励系统 + AI素养
 ├── workflows/                # 10个阶段工作流手册
-├── tools/                    # 20个脚本（含统一菜单menu.py、重点文献卡片literature_cards.py、网页预览器、去标识化anonymize_data.py、效应量换算effect_size.py、聚合区分效度validity_cr_ave.py、预试项目分析item_analysis.py、内容效度content_cvi.py、参考文献格式化reference_formatter.py、缺失值分析missing_report.py、前提假设assumption_check.py、配对检验paired_compare.py）+ stats/ 统计实现包（9个模块）
+├── tools/                    # 21个脚本（含统一菜单menu.py、重点文献卡片literature_cards.py、网页预览器、去标识化anonymize_data.py、效应量换算effect_size.py、聚合区分效度validity_cr_ave.py、预试项目分析item_analysis.py、内容效度content_cvi.py、参考文献格式化reference_formatter.py、缺失值分析missing_report.py、前提假设assumption_check.py、配对检验paired_compare.py、多重校正mult_compare.py）+ stats/ 统计实现包（9个模块）
 ├── psychology/               # 量表/统计/伦理知识库
 ├── templates/                # 问卷/大纲/开题/答辩/进度卡/AI声明模板 + 网页范例/
 └── tests/                    # full_e2e.py 一键全量回归、consistency_check.py 文档↔代码一致性自检、专项测试与测试数据
 ```
 
-> 维护者/接手者：改动后运行 `python tests/full_e2e.py`（约3-5分钟，541 项断言，自动备份恢复测试数据），退出码 0 才算通过；学生日常使用不需要跑。
+> 维护者/接手者：改动后运行 `python tests/full_e2e.py`（约3-5分钟，570 项断言，自动备份恢复测试数据），退出码 0 才算通过；学生日常使用不需要跑。
 
 ## 版本
 
-**当前版本：v1.68**（2026-09-18）配对设计差异检验闭环（完整版；doubao-skill 本轮无改动）
-- **干预研究断档补齐**：新增 `paired_compare.py`（菜单第 19 项），前后测/两条件一次算齐配对样本 t、Cohen's d_z 及近似 95%CI、**差值** Shapiro-Wilk 正态前提、Wilcoxon 符号秩（n≤25 无结给精确 p，否则给含结校正/连续性校正的正态近似 z，与 SPSS 同口径）；支持单文件宽表与两文件按编号配对（缺一方整对剔除并计数）、`--group/--level` 组内配对、scales 量表均分
-- **黄金验证**：462 组模拟（n=3…100 × 正态/含结/偏态）对 scipy：配对 t 误差 1.8e-15、d_z 3e-16、Wilcoxon 精确 p 零误差、近似 z 1.3e-15；20 组 CLI 场景全过；full_e2e 504→541 项，菜单 18→19 项、工具脚本 19→20 个
-- **不越界**：配对必须是同一个体（两文件强制 --id，禁止按行硬凑）；前提看差值而非原始分数；3+ 时点指引重复测量 ANOVA/混合模型（两两比较 Bonferroni），"实验组变化更大"指引差值 t 或组别×时点交互，避免把组内显著误当组间效应
+**当前版本：v1.69**（2026-09-18）多重比较校正闭环（完整版；doubao-skill 本轮无改动）
+- **多重检验断档补齐**：新增 `mult_compare.py`（菜单第 20 项），对同一研究问题"家族"内的一组原始 p 值一次给齐 Bonferroni、Holm 逐步法（同控 FWER，Holm 一致强于 Bonferroni，默认推荐）、Benjamini-Hochberg（控 FDR，探索性/检验数多）、Benjamini-Yekutieli（任意相关下控 FDR）四种校正 p 与显著判定；支持 `--ps` 直给或读 CSV 的 p 值列（可带检验名称列）
+- **黄金验证**：3000 组随机向量（含结、0、1）对 R `p.adjust` 独立实现与 scipy `false_discovery_control`：Bonferroni/Holm/BH 零误差、BY ≤4.4e-16；临界值运算顺序与 scipy 对齐避免 .05 浮点翻转；20 组 CLI 场景全过；full_e2e 541→570 项，菜单 19→20 项、工具脚本 20→21 个
+- **不越界**：家族范围与校正方法要求分析前确定（不能几种都跑挑最宽松的），原始 p 与校正后 p 必须同报，校正后不显著也是结果；Tukey HSD 更适合的等方差全两两比较场景明确指引 SPSS，工具只做 p 值校正不替学生挑结果
 
-**上一个版本：v1.67** 参数检验前提假设闭环：新增 `assumption_check.py`（菜单第 18 项），Shapiro-Wilk（Royston AS R94，与 R/scipy 同源）＋偏度峰度 z＋Kline 判据，`--group` 逐组正态与 Brown-Forsythe 方差齐性；295 组黄金对照 W 误差 4e-10；full_e2e 475→504 项；逐条见 CHANGELOG。
+**上一个版本：v1.68** 配对设计差异检验闭环：新增 `paired_compare.py`（菜单第 19 项），前后测/两条件配对样本 t、Cohen's d_z 及近似 95%CI、差值 Shapiro-Wilk、Wilcoxon 符号秩（n≤25 无结精确 p，否则结校正/连续性校正 z，SPSS 口径），单文件宽表与两文件强制 `--id` 配对；462 组对 scipy：t 1.8e-15、精确 p 零误差；full_e2e 504→541 项；逐条见 CHANGELOG。
 
 **更早版本（v1.64 及以前）的逐版说明全部见
 [CHANGELOG.md](CHANGELOG.md)** —— 本 README 自 v1.57 起只保留当前版本与上一版本的摘要，

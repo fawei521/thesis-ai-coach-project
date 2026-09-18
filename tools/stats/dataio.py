@@ -129,6 +129,7 @@ def recoded_item_series(matrix, conf):
     likert = conf.get("likert", 5)
     reverse = conf.get("reverse", {})
     out = []
+    escaped = {}
     for it in conf["items"]:
         if it not in matrix:
             continue
@@ -137,10 +138,24 @@ def recoded_item_series(matrix, conf):
             if v is None:
                 col.append(None)
             elif reverse.get(it):
-                col.append(float(likert + 1 - v))
+                rv = float(likert + 1 - v)
+                if not 1.0 <= rv <= likert:
+                    escaped.setdefault(it, set()).add(v)
+                col.append(rv)
             else:
                 col.append(float(v))
         out.append(col)
+    if escaped:
+        # likert+1-v 只在题目从 1 起编时成立；0 起编或混入无效码会静默毁掉
+        # 均分/信度/中介结果，所以这里硬提示（正向题的 0/1 计分不触发，避免误报）。
+        show = list(escaped.items())[:5]
+        print("⚠ 反向计分越界，请核对编码起点（下面这些题反向后落在 "
+              f"1~{likert} 之外，说明公式用错了刻度）：")
+        for it, vs in show:
+            print(f"    题项「{it}」原始值 {sorted(vs)[:6]}")
+        print("  常见原因：① 数据是 0 起编（如 0~6 表示 7 点），应先在 scales.txt "
+              "把点数写对或重编码为 1~7；② 混入了 99/77 之类无效码；③ 题项实际是"
+              " 0/1 计数题却被当成 Likert 反向题。全部量表结果在此之前不可用。")
     return out
 
 

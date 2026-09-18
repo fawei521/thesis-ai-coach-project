@@ -12,6 +12,7 @@
 
 | 版本 | 发布日期 | 主题 | 提交 |
 |---|---|---|---|
+| **v1.69** | 2026-09-18 | 多重比较校正闭环：新增 mult_compare.py（菜单20，Bonferroni/Holm 控 FWER、BH/BY 控 FDR，支持 --ps 直给或 CSV 读 p 值列/名称列，四法同列对照并给可粘论文段落，与 R p.adjust/scipy false_discovery_control 同口径；导出 _多重比较校正.csv/_多重比较报告.txt；3000 组随机向量黄金对照 Bonferroni/Holm/BH 零误差、BY ≤4.4e-16），full_e2e 541→570 项 | 见下方详情 |
 | **v1.68** | 2026-09-18 | 配对设计差异检验闭环：新增 paired_compare.py（菜单19，前后测/两条件配对样本 t、Cohen's d_z 及近似95%CI、差值 Shapiro-Wilk 正态前提、Wilcoxon 符号秩（n≤25 无结精确 p，否则结校正/连续性校正 z，SPSS 口径）；单文件宽表与两文件按编号配对（强制 --id，缺一方整对剔除计数）、--group/--level 组内配对、scales 量表均分；导出 _配对检验.csv/_配对检验报告.txt；462 组对 scipy：t 1.8e-15、Wilcoxon 精确 p 零误差、近似 z 1.3e-15），full_e2e 504→541 项 | 见下方详情 |
 | **v1.67** | 2026-09-18 | 参数检验前提假设闭环：新增 assumption_check.py（菜单18，Shapiro-Wilk 正态性 W/p（Royston AS R94，3≤n≤5000，与 R/scipy 同源）＋调整偏度/超额峰度及 z＋Kline 判据；--group 逐组正态＋Brown-Forsythe 方差齐性（Levene 基于中位数）；量表均分自动反向计分；分档给 Welch/Bootstrap/非参数建议，导出 _前提假设检验.csv/_前提假设报告.txt；W 对 scipy 误差 4e-10、p<1e-8 数量级、偏度峰度 1e-14、Levene 2e-13），full_e2e 475→504 项 | 见下方详情 |
 | **v1.66** | 2026-09-18 | 缺失值分析与 Little's MCAR 检验闭环：新增 missing_report.py（菜单17，总/逐题缺失率、缺失模式、成列删除完整样本量；EM 多元正态 ML 估计＋Little(1988) T_MLμ 统计量，与 R naniar::mcar_test/Enders 同口径，df=Σk_j−k；p≥.05 可成列删除、p<.05 指引多重插补/FIML；EM 与 χ² 对 numpy 参照差<2e-8，400 次模拟校准 MCAR 拒绝率 6.5%/MAR 检出 98%），full_e2e 448→475 项 | 见下方详情 |
@@ -96,6 +97,16 @@
 ## 版本详情
 
 > 以下为各版本变更说明，按版本倒序。
+
+**v1.69 多重比较校正闭环版（多检验假阳性膨胀断档；完整版，doubao-skill 本轮无改动）**
+- **背景**：多组两两比较、多个量表同时比较、相关矩阵、多个时点配对检验等场景下，"有一个 p<.05 就显著"会让假阳性随检验数膨胀（m=10 时族系假阳性最高约 40%）；工具箱此前只有 auto_stats 内部的 Bonferroni 事后，没有能对任意一组 p 值统一校正、并区分 FWER/FDR 口径的独立出口，学生容易漏校正或在 SPSS 各对话框里得到不一致的结果。
+- **新增 `tools/mult_compare.py`（菜单第 20 项）**：四种方法同列——Bonferroni（min(1,m·p)，最保守）、Holm 逐步法（排序后 (m−i+1)·p 前缀累积取大，同控 FWER 且一致不弱于 Bonferroni，默认推荐）、Benjamini-Hochberg 逐步法（控 FDR，探索性/检验数多）、Benjamini-Yekutieli（除以调和数 c(m)，任意相关结构下控 FDR）；每种给校正后 p 与 α 下显著判定、显著项汇总，并给可粘论文段落；导出 `_多重比较校正.csv`（四法校正 p＋四列显著判定，UTF-8-BOM）与 `_多重比较报告.txt`。
+- **两种输入**：`--ps .002,.033,.12`（可 `--names` 命名）直接给 p；或把 CSV 作为位置参数加 `--pcol p值列`（可 `--namecol 名称列`），自动跳过空值；`--method bonferroni/holm/bh/by/all`、`--alpha` 可调。
+- **黄金验证**：R `p.adjust` 经典向量（.01…05 与 11 向量含结）逐位一致；3000 组随机向量（m=2…65，含 ties/0/1）对 R 口径独立实现与 scipy.stats.false_discovery_control（BH/BY）：Bonferroni/Holm/BH 零误差、BY ≤4.4e-16；发现并对齐了临界值运算顺序（先 m/i 再乘 p，与 scipy 一致），避免 .05 边界因浮点被误判显著；20 组 CLI 端到端场景全过。
+- **方法学红线（写进输出与文档）**："家族"范围与校正方法必须分析前确定，禁止几种都跑挑最宽松的报；原始 p 与校正后 p（或校正阈值）一起报告；校正后不显著也是结果，不得删并检验；等方差、各组 n 相近的 ANOVA 全两两比较 Tukey HSD 更合适（指引 SPSS 事后比较），本工具用于计划比较、跨方法汇总与 SPSS 不支持的场景。
+- **健壮性**：p 越界/非数字、少于 2 个 p、无来源、CSV 缺 pcol/文件不存在/空文件、名称数不符、坏 alpha 等统一中文提示（argparse 错误 rc=2，业务错误 rc=1）；UTF-8/GBK 自适应；纯标准库（复用 stats.dataio/mathx）。
+- **文档**：stats-guide 新增"多重比较校正"方法学小节（FWER vs FDR、家族界定、报告规范）；data-analysis-auto 新增第 6.7 步与总览行；START、README（版本轮换）、AGENTS（21 脚本）、QUICKSTART（菜单20）、paper-outline、PROJECT_PLAN §十九、e2e-test 测试68 同步。
+- **测试（P0）**：`full_e2e.py` 541→**570 项全过**（+29：纯标准库/编码守卫/菜单20项与编号制/三处文档接线/R 经典向量四法黄金值/四法全列/名称/CSV 与 GBK/13 类坏输入/产物表头/报告与源码红线）；黄金脚本与 20 组 CLI 场景全绿；consistency_check、validate、全量 py_compile 全绿。
 
 **v1.68 配对设计差异检验闭环版（干预研究前后测断档；完整版，doubao-skill 本轮无改动）**
 - **背景**：干预类本科论文（实验组/对照组×前测/后测）普遍要报前后测变化，但工具箱此前只有样本量设计（ttest-paired）与由 t 值反算 d_z 的效应量工具，没有能直接吃前后测数据、一次给齐配对检验＋前提＋非参数＋可粘论文段落的出口；学生容易误用独立样本 t（破坏配对信息）或只报组内显著就宣称干预有效。

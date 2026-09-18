@@ -63,7 +63,7 @@ def pause():
 
 
 def t_preprocess():
-    print("\n【1/19】问卷星数据预处理")
+    print("\n【1/20】问卷星数据预处理")
     print("  用途：把问卷星下载的原始表，转成后面能统计的标准数字表。")
     f = ask_path("  把问卷星导出的原始CSV拖进来，回车：")
     if not f:
@@ -72,7 +72,7 @@ def t_preprocess():
 
 
 def t_clean():
-    print("\n【2/19】问卷数据清洗（找无效问卷）")
+    print("\n【2/20】问卷数据清洗（找无效问卷）")
     f = ask_path("  把（预处理后的）数据CSV拖进来，回车：")
     if not f:
         return
@@ -91,7 +91,7 @@ def t_clean():
 
 
 def t_stats():
-    print("\n【3/19】自动统计分析")
+    print("\n【3/20】自动统计分析")
     print("  自动完成：人口学频数表、反向计分、信度α与McDonald's ω、结构效度(KMO/Bartlett/载荷)、")
     print("  共同方法偏差Harman、量表总分、描述统计、相关、回归、")
     print("  Bootstrap中介（模型4/6），并导出三线表和频数表。")
@@ -134,7 +134,7 @@ def t_stats():
 
 
 def t_search():
-    print("\n【4/19】检索英文学术文献（需要联网，免费，不用账号）")
+    print("\n【4/20】检索英文学术文献（需要联网，免费，不用账号）")
     print("  建议每个概念给 2-4 个同义/近义词，用分号 ; 隔开（概念内 OR、概念间 AND）。")
     print("  例：AI dependence;AI attachment;chatbot reliance")
     kw = input("  输入英文检索词（多个近义词用 ; 隔开；至少给一个）：").strip()
@@ -157,7 +157,7 @@ def t_search():
 
 
 def t_lit():
-    print("\n【5/19】文献去重与分类")
+    print("\n【5/20】文献去重与分类")
     print("  可拖入的有两种：① 每行一篇的 txt；② 第 4 项检索导出的标准 CSV（含 标题/作者 表头）。")
     print("  也可以直接拖知网导出的题录 txt。")
     f = ask_path("  把文献文件拖进来，回车：")
@@ -167,7 +167,7 @@ def t_lit():
 
 
 def t_cards():
-    print("\n【10/19】生成重点文献卡片网页（手机友好，挑精读用）")
+    print("\n【10/20】生成重点文献卡片网页（手机友好，挑精读用）")
     print("  吃第 4 项检索导出的 CSV、第 5 项的整理表（可多个，UTF-8/GBK 都行），")
     print("  自动去重、按 精读标记/被引/近年/相关度 选出重点，生成单个 HTML。")
     raw = input("  把一个或多个文献 CSV/整理表拖进来（多个用分号 ; 隔开），回车：").strip()
@@ -188,7 +188,7 @@ def t_cards():
 
 
 def t_chart():
-    print("\n【6/19】生成研究模型图")
+    print("\n【6/20】生成研究模型图")
     print("  链式中介示例：AI依赖,孤独感,反刍,NSSI（4个，2个中介）")
     print("  简单中介示例：AI依赖,孤独感,NSSI（3个，1个中介）；直接效应示例：AI依赖,NSSI（2个）")
     vars_ = input("  输入变量名（逗号分隔）：").strip()
@@ -213,7 +213,7 @@ def t_chart():
 
 
 def t_demo():
-    print("\n【7/19】生成演示数据（还没收回问卷时，先拿它练手）")
+    print("\n【7/20】生成演示数据（还没收回问卷时，先拿它练手）")
     print("  会生成一份内置链式中介结构、含反向题的模拟数据，")
     print("  用来跑通第3步统计流程。模拟数据严禁写进真实论文。")
     out = input("  保存到哪个文件夹？可直接拖入一个文件夹，回车默认放进 我的工作区\\02-问卷数据：").strip().strip('"').strip("'")
@@ -224,7 +224,7 @@ def t_demo():
 
 
 def t_power():
-    print("\n【8/19】开题样本量 / 功效估算（G*Power 等价，回答要发多少份）")
+    print("\n【8/20】开题样本量 / 功效估算（G*Power 等价，回答要发多少份）")
     print("  1 相关分析（Pearson r）")
     print("  2 多元回归总体 R²（检验整组预测变量）")
     print("  3 多元回归 R² 增量（检验新增变量，如交互项）")
@@ -261,7 +261,7 @@ def t_power():
 
 
 def t_preview():
-    print("\n【9/19】预览我做的网页（本地预览，不上传任何东西）")
+    print("\n【9/20】预览我做的网页（本地预览，不上传任何东西）")
     print("  把你做的网页放进「我的工作区\\04-网页」，这里用浏览器打开它。")
     print("  还没有网页？对你的 AI 助手说：")
     print("     「我想做一个网页，你读一下 workflows/webpage-guide.md 带我做一个。」")
@@ -278,7 +278,7 @@ def t_preview():
 
 
 def t_anonymize():
-    print("\n【11/19】数据去标识化（发给AI/上传/给外校前，隐去姓名学号手机等）")
+    print("\n【11/20】数据去标识化（发给AI/上传/给外校前，隐去姓名学号手机等）")
     print("  自动识别并假名化/删除姓名、学号、手机、邮箱、身份证、微信/QQ、IP、住址等，")
     print("  并对性别/年级/专业/生源等组合做 k-匿名风险体检；只读原文件、另存新文件，绝不改原数据。")
     f = ask_path("  把要外发的原始数据CSV拖进来，回车：")
@@ -311,7 +311,7 @@ def _ask_num(prompt, kind=float):
 
 
 def t_effect():
-    print("\n【12/19】效应量换算与复核（写结果时，由 t/F/χ²/r 或均值标准差算效应量）")
+    print("\n【12/20】效应量换算与复核（写结果时，由 t/F/χ²/r 或均值标准差算效应量）")
     print("  论文不能只报 p 值，还要报效应量及（能给时）置信区间。选你手上已有的结果：")
     print("   1 两组均值/标准差/n → Cohen's d、Hedges' g")
     print("   2 已知 t 值 → d（独立两组）或配对 d_z")
@@ -372,7 +372,7 @@ def t_effect():
 
 
 def t_validity():
-    print("\n【13/19】聚合/区分效度")
+    print("\n【13/20】聚合/区分效度")
     print("  1 由 CFA 标准化载荷算 CR、AVE、√AVE 与 Fornell-Larcker（做完验证性因子分析后）")
     print("  2 由原始问卷数据直接算 HTMT（更现代的区分效度，含 Bootstrap 95%CI，不用先跑 CFA）")
     mode = input("  输入 1 或 2（直接回车默认 1）：").strip()
@@ -431,7 +431,7 @@ def t_validity():
 
 
 def t_itemanalysis():
-    print("\n【14/19】预试问卷项目分析（决断值CR + CITC + 删题后α，决定删改哪些题）")
+    print("\n【14/20】预试问卷项目分析（决断值CR + CITC + 删题后α，决定删改哪些题）")
     print("  用于预试数据：按量表总分取高/低各27%，逐题做独立样本t（决断值CR），")
     print("  并给校正项总相关 CITC、删题后α与均值标准差，导出项目分析表。")
     print("  scales.txt 与第3项同一个，反向题必须用 (R) 标对。")
@@ -450,7 +450,7 @@ def t_itemanalysis():
 
 
 def t_cvi():
-    print("\n【15/19】自编量表内容效度 CVI（专家相关性评分 → I-CVI/κ*/S-CVI）")
+    print("\n【15/20】自编量表内容效度 CVI（专家相关性评分 → I-CVI/κ*/S-CVI）")
     print("  自编或修订量表，请 5～10 名专家对每个条目按 1-4 评相关性（3/4=相关）。")
     print("  表格：第一列专家、其余每列一个条目（Excel 另存为 UTF-8 CSV）。")
     f = ask_path("  把专家评分CSV拖进来，回车：")
@@ -465,7 +465,7 @@ def t_cvi():
 
 
 def t_refs():
-    print("\n【16/19】参考文献格式化（题录CSV → GB/T 7714-2015 编号列表，可直接粘进论文）")
+    print("\n【16/20】参考文献格式化（题录CSV → GB/T 7714-2015 编号列表，可直接粘进论文）")
     print("  吃第4项检索导出或第5项文献整理表的 CSV；期刊/专著/学位论文/会议/报纸/网页都支持。")
     tpl = input("  还没有题录表？输入 y 先在当前文件夹生成空白模板（直接回车=用已有CSV）：").strip().lower()
     if tpl == "y":
@@ -486,7 +486,7 @@ def t_refs():
 
 
 def t_missing():
-    print("\n【17/19】缺失值分析与 Little's MCAR 检验（缺多少/怎么缺/能不能直接删）")
+    print("\n【17/20】缺失值分析与 Little's MCAR 检验（缺多少/怎么缺/能不能直接删）")
     print("  建议用第1项预处理后、第2项清洗前的数据跑一次（交代原始缺失）；")
     print("  工具给逐题缺失率、缺失模式、Little χ² 检验和可直接粘进方法章的段落。")
     f = ask_path("  把预处理后的问卷数据CSV拖进来，回车：")
@@ -505,7 +505,7 @@ def t_missing():
 
 
 def t_assumption():
-    print("\n【18/19】参数检验前提假设检验（正态性 / 方差齐性）")
+    print("\n【18/20】参数检验前提假设检验（正态性 / 方差齐性）")
     print("  t 检验、方差分析、回归前跑：Shapiro-Wilk＋偏度峰度判正态，")
     print("  分组时再给 Brown-Forsythe 方差齐性，结论可直接粘进方法章。")
     f = ask_path("  把清洗后的问卷数据CSV（或量表总分CSV）拖进来，回车：")
@@ -527,7 +527,7 @@ def t_assumption():
 
 
 def t_paired():
-    print("\n【19/19】配对设计差异检验（前后测 / 两条件：配对t＋d_z＋差值正态性＋Wilcoxon）")
+    print("\n【19/20】配对设计差异检验（前后测 / 两条件：配对t＋d_z＋差值正态性＋Wilcoxon）")
     print("  同一批人前测后测有没有变化：配对 t 与非参数 Wilcoxon 符号秩一起给，")
     print("  前提看【差值】正态性，结论与 d_z 效应量可直接粘论文。")
     pre_f = ask_path("  前测（或条件A）数据 CSV 拖进来，回车：")
@@ -573,6 +573,45 @@ def t_paired():
     print("  组间变化幅度比较要做差值的独立样本 t 或组别×时点交互，不能只报组内显著。")
 
 
+def t_multcomp():
+    print("\n【20/20】多重比较校正（Bonferroni / Holm / BH-FDR / BY-FDR）")
+    print("  同一家族做了多个检验（多组两两比较、多量表、多时点、相关矩阵）时，")
+    print("  把一组原始 p 值统一校正，给校正后 p 与可粘论文的结论（与 R p.adjust 同口径）。")
+    src = input("  p 值在 CSV 里（输入 y）还是直接手输一串（直接回车）？[y/N]：").strip().lower()
+    args = []
+    if src in ("y", "yes", "是", "1"):
+        f = ask_path("  含 p 值列的 CSV（如差异分析导出）拖进来，回车：")
+        if not f:
+            return
+        args.append(f)
+        pcol = input("  p 值列的列名（如 p值、p、Sig.）：").strip()
+        if not pcol:
+            print("  ✗ 必须指定 p 值列名。")
+            return
+        args += ["--pcol", pcol]
+        ncol = input("  有检验名称列就输入列名（如 对比，直接回车=不要）：").strip()
+        if ncol:
+            args += ["--namecol", ncol]
+    else:
+        ps = input("  输入原始 p 值，逗号分隔（如 .002,.033,.12）：").strip()
+        if not ps:
+            print("  ✗ 没有输入 p 值。")
+            return
+        args += ["--ps", ps]
+        names = input("  给每个检验起个名？逗号分隔（直接回车=用检验1/2/…）：").strip()
+        if names:
+            args += ["--names", names]
+    print("  校正方法：1=Holm（默认，控FWER且比Bonferroni强）；2=Bonferroni（最保守）；")
+    print("            3=BH-FDR（探索性/检验多，控错误发现率）；4=BY-FDR（相关结构稳健）；")
+    print("            直接回车=Holm；输入 all=四种全列对照。")
+    m = input("  选择：").strip().lower()
+    args += ["--method", {"1": "holm", "2": "bonferroni", "3": "bh",
+                          "4": "by", "all": "all"}.get(m, "holm")]
+    run("mult_compare.py", args)
+    print("\n  校正方法要在看结果前定，不能挑最宽松的报；原始 p 与校正后 p 一起报告；")
+    print("  校正后不显著也是结果。")
+
+
 MENU = [
     ("1", "问卷星数据预处理（原始答卷 → 标准数字表）", t_preprocess),
     ("2", "问卷数据清洗（识别无效问卷）", t_clean),
@@ -593,6 +632,7 @@ MENU = [
     ("17", "缺失值分析与Little MCAR检验（逐题缺失率/缺失模式/χ²，给可粘论文的结论）", t_missing),
     ("18", "参数检验前提假设（Shapiro正态性/偏度峰度/Brown-Forsythe方差齐性，给可粘论文结论）", t_assumption),
     ("19", "配对设计差异检验（前后测配对t/d_z/差值正态性/Wilcoxon符号秩，给可粘论文结论）", t_paired),
+    ("20", "多重比较校正（Bonferroni/Holm/BH-FDR/BY-FDR，多组两两比较/多量表校正p值）", t_multcomp),
 ]
 
 
@@ -613,6 +653,7 @@ def main():
         print("  预处理后清洗前分析缺失值、跑Little MCAR检验用 17")
         print("  t/方差分析/回归前查正态性与方差齐性用 18")
         print("  前后测/两条件配对差异（配对t、d_z、Wilcoxon符号秩）用 19")
+        print("  多组两两比较/多量表/多时点的 p 值校正（Bonferroni/Holm/BH）用 20")
         print("-" * 64)
         for num, name, _ in MENU:
             print(f"  {num}. {name}")

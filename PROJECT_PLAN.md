@@ -499,3 +499,22 @@
 - **文档**：stats-guide 配对设计方法学小节、data-analysis-auto 第 6.6 步与总览行、START、README（版本轮换）、AGENTS、QUICKSTART、paper-outline、e2e-test 测试67、本文件。
 - **测试（P0）**：`full_e2e.py` 504→**541 项全过**（+37）；scipy 黄金（t 1.8e-15、Wilcoxon 精确 p 零误差、近似 z 1.3e-15）与 20 组 CLI 场景全绿；consistency_check、validate、全量 py_compile 全绿。
 - **范围控制**：doubao-skill 本轮无改动；测试与补丁不入库。
+
+## 十九、v1.69 优化：多重比较校正闭环（Bonferroni / Holm / BH / BY）
+
+> 2026-09-18 晚自主推进，同分支 `feat/advance-closed-loop`，承接 v1.68，补齐多检验场景的 p 值校正断档。
+
+### 19.1 背景与做法
+
+1. 多组两两比较、多量表同时比较、相关矩阵、多个时点配对检验等"一个家族多个检验"的场景，假阳性随检验数膨胀（m=10、全零假设为真时族系假阳性最高约 40%）；此前只有 auto_stats 内部 Bonferroni 事后，没有能对任意一组 p 值统一校正、区分 FWER/FDR 的独立出口。
+2. 算法不凭记忆、与权威软件同口径：Bonferroni=min(1,m·p)；Holm 逐步法（排序后 (m−i+1)·p 前缀累积取大，R p.adjust("holm")）；BH 逐步法（从大到小 p·m/i 后缀累积取小，R p.adjust("BH")/scipy false_discovery_control）；BY 在 BH 基础上除以调和数 c(m)=Σ1/i。黄金对照中发现临界值运算顺序会影响浮点判定（m·p/i 在 p=.03、m=5、i=3 时得 0.049999999999999996，而 scipy 的 p·(m/i) 得 .05），已按 scipy 顺序对齐，.05 边界不再误翻。
+3. 黄金验证先行：R p.adjust 经典向量逐位一致，3000 组随机向量（m=2…65，含 ties/0/1）对 R 口径独立实现与 scipy：Bonferroni/Holm/BH 零误差、BY ≤4.4e-16；再补 20 组 CLI 场景与 full_e2e 断言，最后接菜单（第 20 项）与全套文档。
+
+### 19.2 改动清单
+
+- **新增 `tools/mult_compare.py`（菜单第 20 项）**：四法校正 p＋显著判定同列、显著项汇总、可粘论文段落；`--ps` 直给（可 `--names`）或 CSV 位置参数＋`--pcol`（可 `--namecol`）；`--method bonferroni/holm/bh/by/all`（默认 holm）、`--alpha`；导出 `_多重比较校正.csv` 与 `_多重比较报告.txt`；坏输入统一中文提示；UTF-8/GBK；纯标准库（复用 stats.dataio/mathx）。
+- **菜单与计数**：菜单 19→20 项（19 处标签同步 /20）；工具脚本 20→21 个；stats 子包模块数不变。
+- **红线**：家族范围与方法分析前确定、不得挑最宽松的报；原始 p 与校正后 p 同报；校正后不显著也是结果；等方差全两两比较优先 Tukey HSD（指引 SPSS），本工具用于计划比较与跨方法汇总。
+- **文档**：stats-guide 多重比较校正方法学小节、data-analysis-auto 第 6.7 步与总览行、START、README（版本轮换）、AGENTS、QUICKSTART、paper-outline、e2e-test 测试68、本文件。
+- **测试（P0）**：`full_e2e.py` 541→**570 项全过**（+29）；scipy/R 黄金（Bonferroni/Holm/BH 零误差、BY ≤4.4e-16）与 20 组 CLI 场景全绿；consistency_check、validate、全量 py_compile 全绿。
+- **范围控制**：doubao-skill 本轮无改动；测试与补丁不入库。

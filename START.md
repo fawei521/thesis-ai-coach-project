@@ -1,6 +1,6 @@
 # Thesis AI Coach — 启动文件
 
-> 版本 v1.68 ｜ 适用：心理学专业本科毕业论文（实证/问卷研究为主）｜ 学生把整个项目文件夹交给AI，AI从本文件开始（最新版本号以 CHANGELOG.md / git tag 为准；另有可安装到豆包的轻量 Skill 版，见 doubao-skill/）
+> 版本 v1.69 ｜ 适用：心理学专业本科毕业论文（实证/问卷研究为主）｜ 学生把整个项目文件夹交给AI，AI从本文件开始（最新版本号以 CHANGELOG.md / git tag 为准；另有可安装到豆包的轻量 Skill 版，见 doubao-skill/）
 
 > 你是AI。你读取到这个文件，说明学生把整个项目包交给了你。
 > 请严格按照以下步骤启动，不要跳过。
@@ -77,6 +77,7 @@
 - `reference_formatter.py` — 参考文献格式化（题录 CSV → GB/T 7714-2015 顺序编码制 [n] 列表，支持期刊/专著/学位论文/会议/报纸/电子资源六类，吃 paper_search 导出、文献整理表或自带模板；缺字段标【待补】不伪造，纯标准库、不生成文献）
 - `missing_report.py` — 缺失值分析与 Little's MCAR 检验（预处理后清洗前：逐题缺失率、缺失模式、成列删除完整样本量；EM 估计下按模式算 Little χ²，naniar/Enders 均值项口径；给可直接粘论文的报告段落，导出 `_缺失值分析.csv`/`_缺失值报告.txt`；纯标准库）
 - `assumption_check.py` — 参数检验前提假设（t/ANOVA/回归前：Shapiro-Wilk 正态性 W/p、偏度峰度 z 与 Kline 判据；分组时逐组正态＋Brown-Forsythe 方差齐性；给可粘论文段落，导出 `_前提假设检验.csv`/`_前提假设报告.txt`；Royston AS R94，纯标准库）
+- `mult_compare.py` — 多重比较校正（Bonferroni/Holm 控族系错误率 FWER、BH/BY 控错误发现率 FDR；支持 --ps 直给或 CSV 读 p 值列（可带检验名称），四法同列对照，与 R p.adjust/scipy 同口径；给可粘论文段落，导出 `_多重比较校正.csv`/`_多重比较报告.txt`；纯标准库）
 - `paired_compare.py` — 配对设计差异检验（前后测/两条件：配对样本 t、Cohen's d_z 及近似95%CI、差值 Shapiro-Wilk、Wilcoxon 符号秩（n≤25 无结给精确 p，否则结校正/连续性校正 z）；支持单文件宽表与两文件按编号配对（缺一方剔除并计数）、组内配对；给可粘论文段落，导出 `_配对检验.csv`/`_配对检验报告.txt`；纯标准库）
 - `webpage_preview.py` — 本地预览学生做的网页（纯标准库静态服务器，浏览器打开，也能给手机看；不做任何上传）
 - `menu.py` — 统一菜单（不想记命令时用）
@@ -94,6 +95,8 @@
 **缺失值用法**：预处理后、清洗前把数据 CSV 交给菜单第17项（或 missing_report.py，建议带 scales.txt 只分析题项），拿到逐题缺失率、缺失模式与 Little's MCAR 检验：p≥.05 可成列删除并报告完整 n，p<.05 不要简单删除/均值插补，改用多重插补（SPSS/R mice）或 FIML；检验不显著≠证明 MCAR，Likert 数据谨慎解读。
 
 **前提假设用法**：t 检验、方差分析、回归写方法章前，把清洗后数据（或第3步导出的`_量表总分.csv`）交给菜单第18项（或 assumption_check.py，建议带 scales.txt）：Shapiro-Wilk p≥.05 且 |偏度|<3、|峰度|<10 可认为近似正态；p<.05 但偏度峰度在 Kline 范围内（大样本/离散均分常见）结合 Q-Q 图仍可视为近似正态，并列报告 Welch/Bootstrap；明显偏态用 Welch/非参数。有分组列（如性别、年级）加 `--group 列名`，方差不齐时 auto_stats 已自动切 Welch。红线：大样本 Shapiro 过敏感、Likert 单题不要求正态、不得为通过检验删数据或挑变换。
+
+**多重校正用法**：多组两两比较、多个量表同时比较、相关矩阵、多个时点配对检验等“一个家族多个检验”的场景，用菜单第20项（或 mult_compare.py）：手上是一串 p 值就 `--ps .002,.033,.12 --method holm`，p 值在导出的 CSV 里就 `数据.csv --pcol p值 --namecol 对比`。确证性比较默认 Holm（比 Bonferroni 强且同控 FWER），探索性、检验数多用 BH（控 FDR）；方法要分析前定、原始 p 与校正 p 一起报、校正后不显著也是结果。
 
 **配对差异用法**：干预研究的前后测（或两条件、配对被试）用菜单第19项（或 paired_compare.py）：同一文件给 `--pairs 前测列:后测列`，前后测是两个文件时必须给 `--id 编号`（可配 scales.txt 算量表均分），只看实验组加 `--group 组别 --level 实验组`。工具同时给配对 t/d_z 与 Wilcoxon：前提是**差值**近似正态，差值偏态且样本小以 Wilcoxon 为准；3 个及以上时点用重复测量 ANOVA/混合模型（两两比较 Bonferroni 校正），“实验组变化更大”要比较两组差值或做组别×时点交互，不能只报组内显著。
 

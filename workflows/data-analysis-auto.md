@@ -20,6 +20,7 @@
         → 6.描述统计 → 7.相关分析 → 初步回归，并导出三线表和"_量表总分.csv"
   → 6.5 参数检验前提（assumption_check.py，菜单第18项：Shapiro-Wilk 正态性、偏度峰度 z、分组 Brown-Forsythe 方差齐性，t/ANOVA/回归前跑，给可粘论文段落）
   → 6.6 配对设计差异（paired_compare.py，菜单第19项：前后测/两条件配对 t、d_z、差值 Shapiro、Wilcoxon 符号秩，干预研究用，给可粘论文段落）
+  → 6.7 多重比较校正（mult_compare.py，菜单第20项：Bonferroni/Holm 控 FWER、BH/BY 控 FDR，多组两两比较/多量表/相关矩阵的 p 值校正，给可粘论文段落）
   → 4. 效度检验（脚本自动出KMO/Bartlett/载荷；自编多维量表加 --efa 做完整探索性因子分析；CFA引导JASP）
   → 8. 核心分析：中介/链式中介（auto_stats --mediators 自动出Bootstrap结果，再用JASP/SPSS PROCESS复核）
   → 9. 补充分析：网络分析（R，进阶可选）
@@ -297,6 +298,27 @@ python tools/paired_compare.py 前测.csv 后测.csv --id 编号 --scales scales
   方差分析/线性混合模型，两两比较 Bonferroni 校正（α/k）；③"实验组变化大于对照组"
   要比较两组**差值**（独立样本 t）或做组别×时点交互作用，只报组内显著不够；
   ④d_z 用差值标准差，口径不同于独立组 d。
+
+---
+
+## 第6.7步：多重比较校正——多组两两比较 / 多量表 / 相关矩阵
+
+同一个研究问题（一个"家族"）下做了多个检验时，假阳性概率随检验数膨胀，需对原始 p 值统一校正。
+**工具**：`tools/mult_compare.py`（菜单第20项，与 R `p.adjust` / scipy 同口径）。
+
+```
+# 手上已有一串 p 值（如 SPSS 事后比较、多个配对检验的 p）
+python tools/mult_compare.py --ps .002,.033,.12,.31 --method holm
+# 差异分析/相关矩阵导出的 CSV 里有 p 值列
+python tools/mult_compare.py 差异分析.csv --pcol p值 --namecol 对比 --method all
+```
+
+- 输出四种校正后 p 与显著判定：Bonferroni（p×m，最保守）、Holm（逐步法，同控 FWER 且更强，**默认推荐**）、
+  BH（控错误发现率 FDR，探索性/检验数多时用）、BY（检验间任意相关也控 FDR，更保守）；导出
+  `_多重比较校正.csv` 与 `_多重比较报告.txt`（可粘论文段落）。
+- 红线：①家族范围与校正方法**分析前确定**，不能几种都跑挑最宽松的；②原始 p 与校正后 p 一起报告；
+  ③校正后不显著也是结果，不得删并检验；④ANOVA 等方差且各组 n 相近的全部两两比较，Tukey HSD 比
+  Bonferroni 更合适（SPSS 事后比较里直接选），本工具用于计划比较、跨方法汇总或 SPSS 不支持的场景。
 
 ---
 
