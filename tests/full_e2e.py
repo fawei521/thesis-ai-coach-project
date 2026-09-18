@@ -2018,12 +2018,115 @@ try:
     check("v175 MI决策落档", "不内置一键插补" in rm75 and "missing-imputation-guide" in rm75)
     check("v175 ROADMAP无幽灵脚本", "outline_to_ppt" not in rm75 and "pptx_writer" not in rm75)
     rdme75 = tx("README.md")
-    check("v175 README版本区收敛", "更早版本（v1.64 及以前）" in rdme75
-          and "上一个版本：v1." in rdme75 and len(rdme75.splitlines()) < 200)
+    check("v175 README版本区收敛", "当前版本：v1.75" in rdme75 and "上一个版本：v1.74" in rdme75
+          and len(rdme75.splitlines()) < 200)
 
-    # ========== v1.76 文档勘误与行数守卫 ==========
-    check("v176 勘误与行数守卫", "184→170 行，实计" in tx("CHANGELOG.md")
-          and len(tx("README.md").splitlines()) <= 180)
+    # ========== 并行复核会话交付物：行为锁定（防退回） ==========
+    # 1) 前提假设工具：方差齐性的 df 必须按"实际参与的组"算，且小组要显式报出来
+    v76 = new_tmp("v176guard")
+    g76 = v76 / "g.csv"
+    with open(g76, "w", encoding="utf-8-sig", newline="") as f76:
+        w76 = csv.writer(f76)
+        w76.writerow(["序号", "性别", "A1", "A2", "A3"])
+        for i in range(40):
+            lv = "男" if i % 2 == 0 else ("女" if i < 38 else "未填")
+            w76.writerow([i + 1, lv, 2 + (i % 5), 3 + (i % 4), 2 + (i % 3)])
+    s76 = v76 / "s.txt"
+    s76.write_text("总量表:3=A1,A2,A3\n", encoding="utf-8")
+    r = run(["tools/assumption_check.py", str(g76), "--scales", str(s76), "--group", "性别"])
+    o76 = r.stdout or ""
+    c76 = rt(v76 / "g_前提假设检验.csv")
+    row76 = [ln for ln in c76.split("三、")[-1].splitlines() if ln.startswith("总量表,")]
+    df1_76 = int(row76[0].split(",")[2]) if row76 and row76[0].split(",")[2].isdigit() else -99
+    check("v176 小组被警告且进CSV", r.returncode == 0 and "未纳入组别" in c76
+          and "未填" in o76 and "未填" in c76, o76[-200:])
+    check("v176 df按实际参与组算", df1_76 == 1, f"读到 df1={df1_76}，两组参与应为 1")
+    check("v176 单变量段落不写介于", "介于" not in o76)
+    check("v176 声明记录未被删除", "未被删除" in o76 or "请勿当作已删除" in o76)
+
+    # 2) 反向计分越界守卫：0 起编要报警，1 起编与 0/1 正向不得误报
+    def _mk76(fn, vals, cols=3):
+        p = v76 / fn
+        with open(p, "w", encoding="utf-8-sig", newline="") as fh:
+            w = csv.writer(fh)
+            w.writerow(["序号"] + [f"Q{j+1}" for j in range(cols)])
+            for i, v in enumerate(vals):
+                w.writerow([i + 1] + [v] * cols)
+        return p
+    cfg7 = v76 / "seven.txt"
+    cfg7.write_text("七点:7=Q1(R),Q2,Q3\n", encoding="utf-8")
+    for fn, vals, want in (("z.csv", [0, 1, 2, 3, 4, 5, 6, 1, 5, 3], True),
+                           ("o.csv", [1, 2, 3, 4, 5, 6, 7, 1, 5, 4], False)):
+        rr = run(["tools/assumption_check.py", str(_mk76(fn, vals)), "--scales", str(cfg7)])
+        hit = "反向计分越界" in (rr.stdout or "")
+        check("v176 反向计分守卫(0起编报警)" if want else "v176 反向计分守卫(1起编不误报)",
+              rr.returncode == 0 and hit == want, rr.stdout[-160:])
+    cfgb = v76 / "bin.txt"
+    cfgb.write_text("计数:5=Q1,Q2,Q3\n", encoding="utf-8")
+    rr = run(["tools/assumption_check.py", str(_mk76("b.csv", [0, 1, 0, 1, 1, 0, 1, 0, 1, 0])),
+              "--scales", str(cfgb)])
+    check("v176 0/1正向计分不误报", rr.returncode == 0 and "反向计分越界" not in (rr.stdout or ""))
+
+    # 3) 大纲 → PPT：解析、坏输入硬失败、依赖缺失优雅降级
+    op76 = "tools/outline_to_ppt.py"
+    check("PPT工具声明只排版不代写", "只排版" in tx(op76) or "不替你写一个字" in tx(op76))
+    check("PPT开题模板存在且自述用法",
+          (ROOT / "templates" / "opening-ppt-outline.md").exists()
+          and "outline_to_ppt.py" in tx("templates/opening-ppt-outline.md"))
+    good76 = v76 / "大纲.md"
+    good76.write_text("# 测试题目\n副标题：开题\n\n## 第1页：背景\n- 一级要点\n"
+                      "  - 二级要点\n\n## 第2页：方法\n> 讲稿：这页讲方法\n- 甲\n\n"
+                      "## 第3页：表\n| 变量 | 量表 |\n| --- | --- |\n| X | AIED |\n",
+                      encoding="utf-8")
+    rr = run([op76, str(good76), "--dry-run"])
+    check("PPT大纲解析出4页(含封面)", rr.returncode == 0 and "解析到 4 页" in (rr.stdout or ""),
+          (rr.stdout or "")[-200:])
+    bad76 = v76 / "坏图.md"
+    bad76.write_text("# T\n\n## 第1页：图\n![题注](根本没有.png)\n", encoding="utf-8")
+    rr = run([op76, str(bad76)])
+    check("PPT坏图片路径硬失败", rr.returncode != 0
+          and "Traceback" not in (rr.stdout or "") + (rr.stderr or ""))
+    bad76b = v76 / "缺括号.md"
+    bad76b.write_text("# T\n\n## 第1页：图\n![题注】\n", encoding="utf-8")
+    rr = run([op76, str(bad76b)])
+    check("PPT图片语法缺路径硬失败", rr.returncode != 0 and "图片语法不完整" in (rr.stdout or ""))
+    try:
+        import pptx  # noqa: F401
+        outp = v76 / "x.pptx"
+        rr = run([op76, str(good76), "-o", str(outp)])
+        import zipfile
+        okp = rr.returncode == 0 and outp.exists() and zipfile.is_zipfile(str(outp))
+        if okp:
+            # 必须显式 close：Windows 上句柄没释放就删不掉，会让收尾的
+            # "测试临时文件残留"自检报 x.pptx 残留（踩过，别改成 with 以外的写法）
+            zz = zipfile.ZipFile(str(outp))
+            try:
+                pts = re.findall(r'PartName="([^"]+)"', zz.read("[Content_Types].xml").decode())
+                okp = zz.testzip() is None and len(pts) == len(set(pts))
+            finally:
+                zz.close()
+        check("PPT真生成且包结构合法", okp, (rr.stdout or "")[-200:])
+    except ImportError:
+        rr = run([op76, str(good76)])
+        check("PPT缺依赖时优雅降级", rr.returncode != 0 and "python-pptx" in (rr.stdout or "")
+              and "Traceback" not in (rr.stderr or ""))
+
+    # 4) 工作区补齐：只新增、幂等、绝不删除已有
+    wsroot = v76 / "proj"
+    ws76 = wsroot / "我的工作区"
+    (ws76 / "01-文献PDF").mkdir(parents=True)
+    (ws76 / "01-文献PDF" / "学生的旧文件.txt").write_text("别动我", encoding="utf-8")
+    rr = run(["tools/setup_workspace.py", "--root", str(wsroot)])
+    dirs76 = sorted(p.name for p in ws76.iterdir() if p.is_dir())
+    check("工作区补齐新建5个目录", rr.returncode == 0 and len(dirs76) == 9
+          and "05-开题报告" in dirs76, str(dirs76))
+    check("工作区补齐不动旧文件",
+          (ws76 / "01-文献PDF" / "学生的旧文件.txt").read_text(encoding="utf-8") == "别动我")
+    rr2 = run(["tools/setup_workspace.py", "--root", str(wsroot)])
+    check("工作区补齐幂等", "没有新建" in (rr2.stdout or ""))
+    rr3 = run(["tools/setup_workspace.py", "--root", str(wsroot), "--check"])
+    check("工作区--check只报告不创建", rr3.returncode == 0 and "齐全" in (rr3.stdout or ""))
+
 
 finally:
     cleanup()

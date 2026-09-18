@@ -16,3 +16,5 @@
 
 matplotlib>=3.5    # 碎石图、相关矩阵热图、调节效应简单斜率图、研究模型图
 numpy>=1.20        # 仅"相关矩阵热图"的矩阵渲染需要（plots.py 内部延迟导入）
+python-pptx>=0.6.21  # 生成 .pptx（开题报告/答辩汇报）；未装时 tools/pptx_writer.available()
+                     # 返回 False，调用方退回 markdown 大纲并给出安装提示，不影响任何数值结果
