@@ -1,6 +1,9 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-"""菜单处理器 · 文献与产出组：检索、文献整理、重点卡片、模型图、演示数据、样本量、网页预览、参考文献格式化。"""
+"""菜单处理器 · 文献与产出组：检索、文献整理、重点卡片、模型图、演示数据、样本量、网页预览、
+参考文献格式化、大纲排 PPT、工作区补齐。"""
+
+from pathlib import Path
 
 from menu_io import ask_path, run
 
@@ -12,7 +15,7 @@ if hasattr(_sys.stdout, "reconfigure") and not _sys.stdout.isatty():
 
 
 def t_search():
-    print("\n【4/20】检索英文学术文献（需要联网，免费，不用账号）")
+    print("\n【4/22】检索英文学术文献（需要联网，免费，不用账号）")
     print("  建议每个概念给 2-4 个同义/近义词，用分号 ; 隔开（概念内 OR、概念间 AND）。")
     print("  例：AI dependence;AI attachment;chatbot reliance")
     kw = input("  输入英文检索词（多个近义词用 ; 隔开；至少给一个）：").strip()
@@ -35,7 +38,7 @@ def t_search():
 
 
 def t_lit():
-    print("\n【5/20】文献去重与分类")
+    print("\n【5/22】文献去重与分类")
     print("  可拖入的有两种：① 每行一篇的 txt；② 第 4 项检索导出的标准 CSV（含 标题/作者 表头）。")
     print("  也可以直接拖知网导出的题录 txt。")
     f = ask_path("  把文献文件拖进来，回车：")
@@ -45,7 +48,7 @@ def t_lit():
 
 
 def t_cards():
-    print("\n【10/20】生成重点文献卡片网页（手机友好，挑精读用）")
+    print("\n【10/22】生成重点文献卡片网页（手机友好，挑精读用）")
     print("  吃第 4 项检索导出的 CSV、第 5 项的整理表（可多个，UTF-8/GBK 都行），")
     print("  自动去重、按 精读标记/被引/近年/相关度 选出重点，生成单个 HTML。")
     raw = input("  把一个或多个文献 CSV/整理表拖进来（多个用分号 ; 隔开），回车：").strip()
@@ -66,7 +69,7 @@ def t_cards():
 
 
 def t_chart():
-    print("\n【6/20】生成研究模型图")
+    print("\n【6/22】生成研究模型图")
     print("  链式中介示例：AI依赖,孤独感,反刍,NSSI（4个，2个中介）")
     print("  简单中介示例：AI依赖,孤独感,NSSI（3个，1个中介）；直接效应示例：AI依赖,NSSI（2个）")
     vars_ = input("  输入变量名（逗号分隔）：").strip()
@@ -91,7 +94,7 @@ def t_chart():
 
 
 def t_demo():
-    print("\n【7/20】生成演示数据（还没收回问卷时，先拿它练手）")
+    print("\n【7/22】生成演示数据（还没收回问卷时，先拿它练手）")
     print("  会生成一份内置链式中介结构、含反向题的模拟数据，")
     print("  用来跑通第3步统计流程。模拟数据严禁写进真实论文。")
     out = input("  保存到哪个文件夹？可直接拖入一个文件夹，回车默认放进 我的工作区\\02-问卷数据：").strip().strip('"').strip("'")
@@ -102,7 +105,7 @@ def t_demo():
 
 
 def t_power():
-    print("\n【8/20】开题样本量 / 功效估算（G*Power 等价，回答要发多少份）")
+    print("\n【8/22】开题样本量 / 功效估算（G*Power 等价，回答要发多少份）")
     print("  1 相关分析（Pearson r）")
     print("  2 多元回归总体 R²（检验整组预测变量）")
     print("  3 多元回归 R² 增量（检验新增变量，如交互项）")
@@ -138,7 +141,7 @@ def t_power():
 
 
 def t_preview():
-    print("\n【9/20】预览我做的网页（本地预览，不上传任何东西）")
+    print("\n【9/22】预览我做的网页（本地预览，不上传任何东西）")
     print("  把你做的网页放进「我的工作区\\04-网页」，这里用浏览器打开它。")
     print("  还没有网页？对你的 AI 助手说：")
     print("     「我想做一个网页，你读一下 workflows/webpage-guide.md 带我做一个。」")
@@ -155,7 +158,7 @@ def t_preview():
 
 
 def t_refs():
-    print("\n【16/20】参考文献格式化（题录CSV → GB/T 7714-2015 编号列表，可直接粘进论文）")
+    print("\n【16/22】参考文献格式化（题录CSV → GB/T 7714-2015 编号列表，可直接粘进论文）")
     print("  吃第4项检索导出或第5项文献整理表的 CSV；期刊/专著/学位论文/会议/报纸/网页都支持。")
     tpl = input("  还没有题录表？输入 y 先在当前文件夹生成空白模板（直接回车=用已有CSV）：").strip().lower()
     if tpl == "y":
@@ -172,3 +175,36 @@ def t_refs():
         args += ["--name-case", "2025"]
     run("reference_formatter.py", args)
     print("\n  工具只做格式化、不生成文献；复制进论文前逐条核对作者、年份、卷期页码与 DOI。")
+
+
+def t_ppt():
+    print("\n【21/22】把大纲排成 PPT（开题/答辩汇报 .pptx，只排版不代写）")
+    print("  吃一份纯文本大纲：# 大标题、## 第N页：标题、- 要点（行首两个空格升二级）、")
+    print("  | 竖线写表格、![题注](图.png) 整页插图、> 讲稿：写进演讲者备注（不上屏）。")
+    print("  内容全部你自己写，工具一个字也不替你写。")
+    print("  还没有大纲？先拷模板：templates\\opening-ppt-outline.md（12 页开题结构，把【】换成你的内容）")
+    f = ask_path("  把你的大纲 .md 拖进来（直接回车=我的工作区\\05-开题报告\\我的开题大纲.md）：",
+                 must_exist=False) or "我的工作区/05-开题报告/我的开题大纲.md"
+    if not Path(f).exists():
+        print("  ✗ 没找到大纲：" + f)
+        print("    把 templates\\opening-ppt-outline.md 拷成上面这个路径、填好【】再回来跑这一项。")
+        return
+    args = [f]
+    if input("  先只自检大纲、不出文件？输入 y=只自检（直接回车=直接生成）：").strip().lower() in ("y", "yes", "是", "1"):
+        run("outline_to_ppt.py", args + ["--dry-run"])
+        print("\n  自检只验大纲结构与图片路径，排版效果以生成的 .pptx 实开一遍为准。")
+        return
+    out = ask_path("  输出 .pptx 存哪儿？（直接回车=与大纲同名同目录）：", must_exist=False)
+    if out:
+        args += ["-o", out]
+    run("outline_to_ppt.py", args)
+    print("\n  这一步需要 python-pptx（未装时工具会给出安装提示并退回大纲本身，不会崩）。")
+    print("  生成后自己放映一遍：中文字体由各台机器的 Office 主题决定，不合适就在 PPT 里统一改字体。")
+
+
+def t_workspace():
+    print("\n【22/22】检查并补齐「我的工作区」九个目录（文献/问卷/结果/网页/开题/正文/答辩/量表伦理/导师沟通）")
+    print("  只新增缺的目录，绝不重命名、移动、删除你已有的东西；重复跑没有副作用。")
+    mode = input("  只想看看缺什么、先不动手？输入 c=只检查（直接回车=补齐）：").strip().lower()
+    run("setup_workspace.py", ["--check"] if mode in ("c", "check", "检查") else [])
+    print("\n  补齐之后，每个阶段的产出都放进对应目录，你自己和 AI 都按同一套目录找东西。")

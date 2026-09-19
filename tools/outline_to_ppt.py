@@ -20,7 +20,7 @@
       - 这是空白，也是本研究的出发点        ← 行首两个空格 = 二级
     | 变量 | 量表 | 题数 |
     | X | AIED | 5 |
-    ![图1 研究技术路线](我的工作区/02-开题报告/模型图.png)
+    ![图1 研究技术路线](我的工作区/05-开题报告/模型图.png)
 
     ## 第2页：研究问题与假设     ← 只有一行标题的页 = 节标题页
 规则：
@@ -168,6 +168,32 @@ def parse_outline(text, src_name=""):
     return meta, pages
 
 
+def resolve_image(ref):
+    """把大纲里的图片引用解析成真实路径：绝对路径、相对当前目录、相对 我的工作区/ 三种写法都收。"""
+    p = Path(ref)
+    if not p.is_absolute():
+        p = Path.cwd() / p
+    if not p.exists():
+        cand = Path("我的工作区") / ref
+        p = cand if cand.exists() else p
+    return p
+
+
+def check_images(pages):
+    """校验每页图片引用真实存在且是 PNG。--dry-run 与正式生成**必须走同一套判定**，
+    否则自检说"通过"、真跑却硬失败，自检就变成误导（v1.80 修的就是这个）。"""
+    for i, pg in enumerate(pages, 1):
+        if pg["kind"] != "picture" or not pg["image"]:
+            continue
+        p = resolve_image(pg["image"])
+        if not p.exists():
+            die(f"第{i}页的图片找不到：{pg['image']}\n"
+                f"  技术路线图/模型图请先生成（菜单第6项或 tools/chart_generator.py），再回填这个路径。")
+        if p.suffix.lower() != ".png":
+            die(f"第{i}页只支持 PNG，读到 {p.suffix}。"
+                f" 用 chart_generator 导出时加 --format png，或先转成 PNG。")
+
+
 def build(meta, pages, out_path):
     pr = W.Presentation(title=meta["title"] or "报告",
                         author=" / ".join(x for x in (meta["presenter"],) if x) or "",
@@ -192,20 +218,9 @@ def build(meta, pages, out_path):
                          font_sz=14 if len(rows) <= 8 else 12)
             made["table"] += 1
         elif kind == "picture":
-            p = Path(pg["image"])
-            if not p.is_absolute():
-                p = Path.cwd() / p
-            if not p.exists():
-                cand = Path("我的工作区") / pg["image"]
-                p = cand if cand.exists() else p
-            if not p.exists():
-                die(f"第{i}页的图片找不到：{pg['image']}\n"
-                    f"  技术路线图/模型图请先生成（菜单第10项或 tools/chart_generator.py），"
-                    f"再回填这个路径。")
-            if p.suffix.lower() != ".png":
-                die(f"第{i}页只支持 PNG，读到 {p.suffix}。"
-                    f" 用 chart_generator 导出时加 --format png，或先转成 PNG。")
-            pr.add_picture(pg["title"], str(p), caption=pg["caption"], notes=note)
+            # 路径与格式判定已在 check_images() 里统一做过（--dry-run 与正式生成共用同一把尺子）
+            pr.add_picture(pg["title"], str(resolve_image(pg["image"])),
+                           caption=pg["caption"], notes=note)
             made["picture"] += 1
         elif not pg["items"]:
             pr.add_section(pg["title"], notes=note)
@@ -247,6 +262,7 @@ def main():
     meta, pages = parse_outline(text, src.name)
     print(f"解析到 {len(pages)} 页（封面{'有' if meta['title'] else '无'}，"
           f"页面比例 {meta['ratio']}）")
+    check_images(pages)
     if args.dry_run:
         for i, pg in enumerate(pages, 1):
             bits = []

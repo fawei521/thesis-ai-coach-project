@@ -22,11 +22,12 @@ if hasattr(sys.stdout, "reconfigure") and not sys.stdout.isatty():
     sys.stdout.reconfigure(encoding="utf-8", errors="replace")
     sys.stderr.reconfigure(encoding="utf-8", errors="replace")
 
-# 共用交互件在 menu_io.py；20 个处理器按"数据与统计""文献与产出"两组分放
+# 共用交互件在 menu_io.py；22 个处理器按"数据与统计""文献与产出"两组分放
 # menu_data.py / menu_lit.py。拆分的直接原因：本文件此前正好撞在单文件 700 行门禁上，
 # 新工具要进菜单必须先腾出地方（加一项会把 full_e2e 弄红）。
 from menu_io import pause
-from menu_lit import t_search, t_lit, t_cards, t_chart, t_demo, t_power, t_preview, t_refs
+from menu_lit import (t_search, t_lit, t_cards, t_chart, t_demo, t_power, t_preview, t_refs,
+                      t_ppt, t_workspace)
 from menu_data import (t_preprocess, t_clean, t_stats, t_anonymize, t_effect, t_validity,
                        t_itemanalysis, t_cvi, t_missing, t_assumption, t_paired, t_multcomp)
 
@@ -52,6 +53,8 @@ MENU = [
     ("18", "参数检验前提假设（Shapiro正态性/偏度峰度/Brown-Forsythe方差齐性，给可粘论文结论）", t_assumption),
     ("19", "配对设计差异检验（前后测配对t/d_z/差值正态性/Wilcoxon符号秩，给可粘论文结论）", t_paired),
     ("20", "多重比较校正（Bonferroni/Holm/BH-FDR/BY-FDR，多组两两比较/多量表校正p值）", t_multcomp),
+    ("21", "把大纲排成 PPT（开题/答辩汇报 .pptx，只排版不代写）", t_ppt),
+    ("22", "检查并补齐「我的工作区」九个目录（开题到答辩全流程归档）", t_workspace),
 ]
 
 
@@ -73,6 +76,7 @@ def main():
         print("  t/方差分析/回归前查正态性与方差齐性用 18")
         print("  配对差异（配对t、d_z、Wilcoxon符号秩）与单样本对标称常数（如 Likert 中值 3）都用 19")
         print("  多组两两比较/多量表/多时点的 p 值校正（Bonferroni/Holm/BH）用 20")
+        print("  开题/答辩要上台：写好大纲用 21 排成 .pptx；目录没建好先用 22 补齐我的工作区")
         print("-" * 64)
         for num, name, _ in MENU:
             print(f"  {num}. {name}")

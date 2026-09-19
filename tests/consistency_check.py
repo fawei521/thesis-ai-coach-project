@@ -193,6 +193,13 @@ def main():
             if not (ROOT / ws_ref.rstrip("/")).exists():
                 problems.append(f"[{rel}] 引用了不存在的工作区路径 {ws_ref}")
 
+        # 5b. 命令示例与图片语法里嵌的"我的工作区/NN-目录"也必须真实存在。
+        #     上面那条只认整段被反引号包住的路径，`python tools/x.py 我的工作区/02-开题报告/a.md`
+        #     这类会从缝里漏过去——学生照着敲就撞"目录不存在"（v1.77 的 PPT 模板就这么错过一次）。
+        for seg in set(re.findall(r"我的工作区/(\d{2}-[0-9A-Za-z一-鿿-]+)", text)):
+            if not (ROOT / "我的工作区" / seg).is_dir():
+                problems.append(f"[{rel}] 引用了不存在的工作区目录 我的工作区/{seg}")
+
     # 汇总打印（去重排序）
     problems = sorted(set(problems))
     print("=" * 56)

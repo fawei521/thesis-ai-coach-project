@@ -445,7 +445,7 @@ try:
     # 菜单实现拆成 menu.py（入口与菜单表）+ menu_io/menu_data/menu_lit（交互件与两组处理器），
     # 断言一律看合并文本，免得每拆一次就要改一批断言。
     menu = "\n".join(tx("tools/" + p.name) for p in sorted((ROOT / "tools").glob("menu*.py")))
-    check("menu第8项", "【8/20】" in menu and "sample_size.py" in menu)
+    check("menu第8项", "【8/22】" in menu and "sample_size.py" in menu)
     qs = tx("QUICKSTART.md"); check("QS菜单8", "8. 开题样本量" in qs)
     check("QS流程顺序", qs.find("查文献读文献") < qs.find("开题报告/开题答辩"))
     bad = []
@@ -807,7 +807,7 @@ try:
     check("预览器--list可运行", pl.returncode == 0 and "index.html" in (pl.stdout or ""), (pl.stderr or "")[-200:])
     wdir = ROOT / "我的工作区" / "04-网页"
     check("工作区04-网页就位", wdir.is_dir() and (wdir / "把网页放这里.txt").exists())
-    check("菜单第9项", "【9/20】" in menu and "webpage_preview.py" in menu)
+    check("菜单第9项", "【9/22】" in menu and "webpage_preview.py" in menu)
     check("网页能力已登记到入口",
           "webpage-guide.md" in st and "webpage_preview.py" in st and "webpage-guide.md" in cr)
     check("README登记网页能力", "webpage-guide.md" in rm and "webpage_preview.py" in rm)
@@ -819,12 +819,12 @@ try:
     check("脱敏工具纯标准库", "import csv" in an_src and "matplotlib" not in an_src and "pandas" not in an_src)
     check("脱敏工具有安全开关", all(s in an_src for s in ["--dry-run", "--no-key", "--columns", "--k"]))
     check("脱敏工具另存不改原文件", "_去标识化.csv" in an_src and "同名同路径" in an_src)
-    check("菜单第11项去标识化", "【11/20】" in menu and "anonymize_data.py" in menu and "去标识化" in menu)
-    check("菜单第12项效应量", "【12/20】" in menu and "effect_size.py" in menu and "效应量" in menu)
-    check("菜单第13项效度", "【13/20】" in menu and "validity_cr_ave.py" in menu and "区分效度" in menu)
+    check("菜单第11项去标识化", "【11/22】" in menu and "anonymize_data.py" in menu and "去标识化" in menu)
+    check("菜单第12项效应量", "【12/22】" in menu and "effect_size.py" in menu and "效应量" in menu)
+    check("菜单第13项效度", "【13/22】" in menu and "validity_cr_ave.py" in menu and "区分效度" in menu)
     check("菜单13含HTMT", "HTMT" in menu)
-    check("菜单第14项项目分析", "【14/20】" in menu and "item_analysis.py" in menu and "决断值" in menu)
-    check("菜单第15项内容效度", "【15/20】" in menu and "content_cvi.py" in menu and "CVI" in menu)
+    check("菜单第14项项目分析", "【14/22】" in menu and "item_analysis.py" in menu and "决断值" in menu)
+    check("菜单第15项内容效度", "【15/22】" in menu and "content_cvi.py" in menu and "CVI" in menu)
     check("START登记去标识化", "anonymize_data.py" in st and "去标识化" in st)
     check("QUICKSTART登记第11项", "去标识化" in tx("QUICKSTART.md"))
     check("AI素养接线去标识化工具", "anonymize_data.py" in tx("core/ai-literacy.md"))
@@ -1092,7 +1092,7 @@ try:
     check("v158量表多词检索纪律", "量表检索纪律" in sl and "同义词" in sl and "OR" in sl and "AND" in sl)
     check("v158检索脚本多词开关", all(x in psrc for x in ('--queries', '--source', '--min', 'action="append"')))
     check("v158卡片脚本与菜单项",
-          (ROOT / "tools" / "literature_cards.py").exists() and "literature_cards.py" in menu and "【10/20】" in menu)
+          (ROOT / "tools" / "literature_cards.py").exists() and "literature_cards.py" in menu and "【10/22】" in menu)
     check("v158卡片接入网页指南且不增类型", "literature_cards.py" in wg and "文献笔记网页" in wg)
     check("v158手机交接单与原生做法", all(s in mg for s in ("设备交接单", "全球学术快报", "literature_cards")))
 
@@ -1266,8 +1266,20 @@ try:
     rf_src = tx(rf_tool)
     check("参考文献工具纯标准库", all(s in rf_src for s in ["import csv", "import re"])
           and "pandas" not in rf_src and "requests" not in rf_src)
-    check("菜单第16项参考文献", "【16/20】" in menu and "reference_formatter.py" in menu and "GB/T 7714" in menu)
-    check("菜单标签全部20项制", "/19】" not in menu and menu.count("/20】") == 20)
+    check("菜单第16项参考文献", "【16/22】" in menu and "reference_formatter.py" in menu and "GB/T 7714" in menu)
+    # 菜单标签：编号须 1..N 连续、分母须统一等于项数。
+    # 不再把 N 硬编码进断言（历史上每次加项都要改一批 "全部20项制" 式断言，是维护地雷）。
+    labels = re.findall(r"【(\d+)/(\d+)】", menu)
+    check("菜单标签编号连续且分母等于项数",
+          bool(labels) and {d for _, d in labels} == {str(len(labels))}
+          and sorted(int(n) for n, _ in labels) == list(range(1, len(labels) + 1)),
+          "项数=%d 分母=%s" % (len(labels), sorted({d for _, d in labels})))
+    MENU_N = len(labels)
+    # v1.80：v1.77 交付的两件工具接进菜单（此前被 700 行门禁挡在命令行里）
+    check("菜单第21项排PPT且声明不代写",
+          "【21/22】" in menu and "outline_to_ppt.py" in menu and "一个字也不替你写" in menu)
+    check("菜单第22项补齐工作区且带只检查模式",
+          "【22/22】" in menu and "setup_workspace.py" in menu and '"--check"' in menu)
     check("写作指南接线参考文献工具", "reference_formatter.py" in tx("workflows/writing-guide.md"))
     check("START登记参考文献工具", "reference_formatter.py" in st)
     v65 = new_tmp("v165refs")
@@ -1343,7 +1355,7 @@ try:
     check("缺失值工具纯标准库", "pandas" not in mr_src and "numpy" not in mr_src
           and "import csv" in mr_src)
     check("缺失值工具编码守卫", "输出编码守卫" in mr_src and "reconfigure" in mr_src)
-    check("菜单第17项缺失值", "【17/20】" in menu and "missing_report.py" in menu and "MCAR" in menu)
+    check("菜单第17项缺失值", "【17/22】" in menu and "missing_report.py" in menu and "MCAR" in menu)
     check("统计指南接线缺失值工具", "missing_report.py" in tx("psychology/stats-guide.md"))
     check("分析流程接线缺失值工具", "missing_report.py" in tx("workflows/data-analysis-auto.md"))
     check("START登记缺失值工具", "missing_report.py" in st)
@@ -1466,7 +1478,7 @@ try:
     check("前提工具纯标准库", "pandas" not in ac_src and "numpy" not in ac_src
           and "import csv" in ac_src)
     check("前提工具编码守卫", "输出编码守卫" in ac_src and "reconfigure" in ac_src)
-    check("菜单第18项前提假设", "【18/20】" in menu and "assumption_check.py" in menu
+    check("菜单第18项前提假设", "【18/22】" in menu and "assumption_check.py" in menu
           and "Shapiro" in menu)
     check("统计指南接线前提工具", "assumption_check.py" in tx("psychology/stats-guide.md"))
     check("分析流程接线前提工具", "assumption_check.py" in tx("workflows/data-analysis-auto.md"))
@@ -1583,7 +1595,7 @@ try:
     check("配对工具纯标准库", "pandas" not in pc_src and "numpy" not in pc_src
           and "import csv" in pc_src)
     check("配对工具编码守卫", "输出编码守卫" in pc_src and "reconfigure" in pc_src)
-    check("菜单第19项配对检验", "【19/20】" in menu and "paired_compare.py" in menu
+    check("菜单第19项配对检验", "【19/22】" in menu and "paired_compare.py" in menu
           and "Wilcoxon" in menu)
     check("统计指南接线配对工具", "paired_compare.py" in tx("psychology/stats-guide.md"))
     check("分析流程接线配对工具", "paired_compare.py" in tx("workflows/data-analysis-auto.md"))
@@ -1733,7 +1745,7 @@ try:
     check("多重校正纯标准库", "pandas" not in mc_src and "numpy" not in mc_src
           and "import csv" in mc_src)
     check("多重校正编码守卫", "输出编码守卫" in mc_src and "reconfigure" in mc_src)
-    check("菜单第20项多重校正", "【20/20】" in menu and "mult_compare.py" in menu
+    check("菜单第20项多重校正", "【20/22】" in menu and "mult_compare.py" in menu
           and "Bonferroni" in menu and "Holm" in menu)
     check("统计指南接线多重校正", "mult_compare.py" in tx("psychology/stats-guide.md"))
     check("分析流程接线多重校正", "mult_compare.py" in tx("workflows/data-analysis-auto.md"))
@@ -2125,6 +2137,10 @@ try:
     rr = run([op76, str(bad76)])
     check("PPT坏图片路径硬失败", rr.returncode != 0
           and "Traceback" not in (rr.stdout or "") + (rr.stderr or ""))
+    # --dry-run 说"通过"而正式生成却硬失败，自检就成了误导（v1.80 修的正是这条）
+    rr = run([op76, str(bad76), "--dry-run"])
+    check("PPT自检与生成同口径拒坏图", rr.returncode != 0 and "图片找不到" in (rr.stdout or ""),
+          (rr.stdout or "")[-160:])
     bad76b = v76 / "缺括号.md"
     bad76b.write_text("# T\n\n## 第1页：图\n![题注】\n", encoding="utf-8")
     rr = run([op76, str(bad76b)])
@@ -2181,15 +2197,15 @@ try:
          "print(len(menu.MENU), all(callable(f) for _, _, f in menu.MENU), "
          "menu.MENU[0][0], menu.MENU[-1][0], defs == wired, sorted(defs - wired))"],
         capture_output=True, text=True, encoding="utf-8", errors="replace", timeout=120)
-    check("v179菜单表20项全部可调用且无漏接处理器",
-          (imp79.stdout or "").strip() == "20 True 1 20 True []",
+    check("v179菜单表项数与标签一致且无漏接处理器",
+          (imp79.stdout or "").strip() == "%d True 1 %d True []" % (MENU_N, MENU_N),
           ((imp79.stdout or "") + (imp79.stderr or ""))[-200:])
-    # 拆完必须还能跑：喂一个"0"退出，主菜单要把 20 项全部列出来（编号 1-20 一项不能少）
+    # 拆完必须还能跑：喂一个"0"退出，主菜单要把 1..N 每一项都列出来，一项不能少
     mk79 = subprocess.run([sys.executable, "tools/menu.py"], input="0\n", capture_output=True,
                           text=True, encoding="utf-8", errors="replace", timeout=120)
     body79 = mk79.stdout or ""
-    check("v179菜单可运行且列全20项",
-          mk79.returncode == 0 and all(("\n  %d. " % i) in body79 for i in range(1, 21)),
+    check("v179菜单可运行且列全各项",
+          mk79.returncode == 0 and all(("\n  %d. " % i) in body79 for i in range(1, MENU_N + 1)),
           ((body79 or "") + (mk79.stderr or ""))[-200:])
 
 

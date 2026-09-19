@@ -142,26 +142,24 @@ thesis-ai-coach-project/
 ├── 我的工作区/                # 学生自己的文件：01-文献PDF/02-问卷数据/03-分析结果/04-网页 + 我的论文进度.md
 ├── core/                     # AI规则（coach-rules）+ 身份陪伴边界（companionship）+ 引导反馈协议 + 鼓励系统 + AI素养
 ├── workflows/                # 10个阶段工作流手册
-├── tools/                    # 21个脚本（含统一菜单menu.py、重点文献卡片literature_cards.py、网页预览器、去标识化anonymize_data.py、效应量换算effect_size.py、聚合区分效度validity_cr_ave.py、预试项目分析item_analysis.py、内容效度content_cvi.py、参考文献格式化reference_formatter.py、缺失值分析missing_report.py、前提假设assumption_check.py、配对检验paired_compare.py、多重校正mult_compare.py）+ stats/ 统计实现包（9个模块）
+├── tools/                    # 23个可调脚本（含统一菜单、重点文献卡片literature_cards.py、网页预览器、去标识化anonymize_data.py、效应量换算effect_size.py、聚合区分效度validity_cr_ave.py、预试项目分析item_analysis.py、内容效度content_cvi.py、参考文献格式化reference_formatter.py、缺失值分析missing_report.py、前提假设assumption_check.py、配对检验paired_compare.py、多重校正mult_compare.py、大纲排PPT outline_to_ppt.py、工作区补齐setup_workspace.py）+ 菜单实现 menu_io/menu_data/menu_lit + stats/ 统计实现包（9个模块）
 ├── psychology/               # 量表/统计/伦理知识库
 ├── templates/                # 问卷/大纲/开题/答辩/进度卡/AI声明模板 + 网页范例/
 └── tests/                    # full_e2e.py 一键全量回归、consistency_check.py 文档↔代码一致性自检、专项测试与测试数据
 ```
 
-> 维护者/接手者：改动后运行 `python tests/full_e2e.py`（约3-5分钟，640 项断言，自动备份恢复测试数据），退出码 0 才算通过；学生日常使用不需要跑。
+> 维护者/接手者：改动后运行 `python tests/full_e2e.py`（约3-5分钟，643 项断言，自动备份恢复测试数据），退出码 0 才算通过；学生日常使用不需要跑。
 
 ## 版本
 
-**当前版本：v1.79**（2026-09-19）菜单拆分，解除"新工具进不了菜单"的接线门禁（学生看到的菜单一字未变）
-- `menu.py` 此前恰好 700 行撞单文件上限，v1.77 的大纲→PPT 与工作区补齐两个工具因此只能走命令行
-- 现拆为入口 `menu.py` ＋ `menu_io.py`（交互件）＋ `menu_data.py`（数据统计 12 项）＋ `menu_lit.py`（文献产出 8 项），
-  同输入抓菜单输出与拆分前**逐字节一致**
-- **测试**：18 条菜单断言改为统一读 `tools/menu*.py` 合并文本；+4 条结构不变量（真 import 核对 20 项、
-  处理器定义集与挂接集相等、入口 <200 行、喂 `0` 真跑须列全 1–20）；full_e2e 636→640 项
+**当前版本：v1.80**（2026-09-19）开题产出物接进菜单：第 21 项把大纲排成 `.pptx`、第 22 项补齐 `我的工作区/`
+- 菜单 20→22 项（1–20 编号不动，文档里的旧引用继续有效）；项数断言改为从标签自数，加项不再要改一批断言
+- 修两处真实缺陷：`outline_to_ppt --dry-run` 不查图片存在性（自检说通过、真跑却失败）；
+  PPT 模板把开题目录写成 `02-开题报告`（应为 `05-`，02 是问卷数据），并给一致性自检补上这类路径的守卫
+- **测试**：第 21/22 项真跑走完整交互；full_e2e 640→643 项
 
-**上一个版本：v1.78** 手机合并单文件构建链路闭环：`build_mobile_single.py` 默认输出改到 `doubao-skill/` 内
-（过去按当前目录解析，从仓库根跑会把产物写进仓库根且永不受 `validate.py` 检查）、自检提示给可执行命令、
-`consistency_check.py` 修两处误报；+2 行为锁定；full_e2e 632→636 项；逐条见 CHANGELOG。
+**上一个版本：v1.79** 菜单拆成入口 + `menu_io`/`menu_data`/`menu_lit`（解除 `menu.py` 700 行接线门禁），
+拆分前后同输入抓菜单输出逐字节一致；+4 条结构不变量（真 import 核对处理器定义集=挂接集）；643 项前为 640 项。
 
 **更早版本（v1.64 及以前）的逐版说明全部见
 [CHANGELOG.md](CHANGELOG.md)** —— 本 README 自 v1.57 起只保留当前版本与上一版本的摘要，
