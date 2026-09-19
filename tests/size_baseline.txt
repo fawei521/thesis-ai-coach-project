@@ -1,0 +1,38 @@
+# 存量超标文件冻结清单（棘轮：只减不增）
+# 生成命令：python tests/size_ratchet.py --write   —— 不要手改数字
+# 格式：<行数>	<相对路径>；文件降到 ≤220 行后会被移出，此后按新文件上限管。
+# 不在此表 = 新文件，一律 ≤220 行硬闸。记账类（CHANGELOG/PROJECT_PLAN/e2e-test/full_e2e）
+# 由 tests/size_ratchet.py 的 LEDGER 豁免：它们每版必须追加，靠“重复只写一遍 + 历史移包外”瘦身。
+# 注：tests/full_e2e.py 拆分落地后，应从 LEDGER 移出并纳入本表或直接达标。
+395	core/coach-rules.md
+240	doubao-skill/validate.py
+316	psychology/scale-library.md
+638	psychology/stats-guide.md
+231	tests/consistency_check.py
+467	tools/anonymize_data.py
+483	tools/assumption_check.py
+297	tools/auto_stats.py
+286	tools/chart_generator.py
+225	tools/content_cvi.py
+411	tools/data_cleaner.py
+340	tools/effect_size.py
+255	tools/item_analysis.py
+508	tools/literature_cards.py
+297	tools/literature_organizer.py
+402	tools/menu_data.py
+428	tools/missing_report.py
+312	tools/mult_compare.py
+295	tools/outline_to_ppt.py
+583	tools/paired_compare.py
+421	tools/paper_search.py
+333	tools/pptx_writer.py
+490	tools/reference_formatter.py
+429	tools/sample_size.py
+450	tools/stats/compare.py
+446	tools/stats/efa.py
+422	tools/stats/mathx.py
+334	tools/stats/reliability.py
+631	tools/validity_cr_ave.py
+292	tools/webpage_preview.py
+483	tools/wjx_preprocess.py
+492	workflows/data-analysis-auto.md

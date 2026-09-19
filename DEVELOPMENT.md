@@ -71,15 +71,22 @@
 - **菜单加一项的正确姿势**（v1.79 起菜单是四件套，别再往一个文件里堆）：
   在对应分组模块（`tools/menu_data.py` 数据统计组 / `tools/menu_lit.py` 文献产出组）写 `t_xxx` 处理器
   → 在 `tools/menu.py` 的 `MENU` 表挂一行 → 所有处理器里的标签分母 `【N/20】` 同步改成新总数。
-  四份菜单文件都必须带输出编码守卫（`全部脚本有编码守卫` 覆盖 `tools/*.py`），且单文件不得超 700 行。
+  四份菜单文件都必须带输出编码守卫（`全部脚本有编码守卫` 覆盖 `tools/*.py`），且受文件尺寸棘轮管
+  （见下条：新文件 ≤220 行，存量冻结只减不增）。
   计数不用到处改：`菜单标签编号连续且分母等于项数` 与 `v179菜单表项数与标签一致…` 两条断言
   从标签里自己数出项数（v1.80 起加项不再需要改断言里的数字，只改标签分母）。
 - **版本历史只有一个来源**：`CHANGELOG.md`（单文件 · 日期标签）。`README.md` / `PROJECT_PLAN.md` / `ROADMAP.md` 只保留当前版本指针，不重复维护版本清单，避免同一版本手改四处造成漂移。
+- **文件尺寸棘轮（拆分批1 起，`python tests/size_ratchet.py` 判 0 才算过）**：
+  不在 `tests/size_baseline.txt` 里的文件一律 **≤220 行**（`tools/**/*.py`、`tests/*.py`、`doubao-skill/*.py` 与全部 `*.md`）；
+  超标的存量文件按现值冻结在清单里，**只准减不准增**；某个文件降到 ≤220 后跑 `--write` 把它移出清单，棘轮自动收紧。
+  记账类（`CHANGELOG.md` / `PROJECT_PLAN.md` / `tests/e2e-test.md` / `tests/full_e2e.py`）**不套行数闸**——
+  它们每版必须追加，靠"同一件事只写一遍 + 历史移包外"治理；构建产物 `doubao-skill/thesis-ai-coach-手机版.md` 豁免（单文件即产品形态）。
+  距 220 不足 15% 的文件会打 `WARN`，让下一个人在**撞线之前**拆，而不是像 `menu.py`/`regress.py` 那样撞死了才动。
 - 说明"脚本结果用于快速预览/教学，正式口径以 JASP/SPSS 复核为准"的边界（适用时）。
 - **门**：一个不懂的 AI 只读文档就能正确调用并解读结果。
 
 ### 阶段 G — 发布 Release（打包验证）
-1. `python -m py_compile` 全部脚本；跑 `python doubao-skill/validate.py`（轻量 Skill 子包自检）；跑 `python tests/full_e2e.py` 一键全量回归（用例清单与历史见 `tests/e2e-test.md`，已含 Skill 自检与其阴性测试）。
+1. `python -m py_compile` 全部脚本；跑 `python doubao-skill/validate.py`（轻量 Skill 子包自检）；跑 `python tests/size_ratchet.py`（文件尺寸棘轮，拆完记得 `--write` 刷新清单）；跑 `python tests/full_e2e.py` 一键全量回归（用例清单与历史见 `tests/e2e-test.md`，已含 Skill 自检与其阴性测试）。
 2. 更新版本号（语义化：新增功能 minor，修复 patch），三处保持一致：`CHANGELOG.md` 顶部新增该版本条目、`START.md` 顶部版本行、git tag；README 的"当前版本"同步；然后 commit、打 tag。
 3. `git archive` 打包到**全新临时目录解压**，在副本里再跑一遍 `python tests/full_e2e.py`（不是在开发目录）。
 4. 核对：文件齐全、中文文件名正常、启动器（GBK+CRLF）正常、演示数据/工作区就位、无 `__pycache__`/临时文件/学生真实数据入库。
@@ -155,6 +162,7 @@
 - [ ] 菜单/工作流/指南/README/START/测试/版本记录全部同步
 - [ ] 全脚本 py_compile 通过、`python tests/full_e2e.py` 全绿
 - [ ] `python tests/consistency_check.py` 退出码 0（文档命令/开关/导出与代码一致）
+- [ ] `python tests/size_ratchet.py` 退出码 0；本轮拆完已 `--write` 刷新冻结清单（存量只减不增）
 - [ ] `python doubao-skill/validate.py` 退出码 0；轻量版口径与完整版一致；镜像已同步、Skill CHANGELOG 已追加
 - [ ] 全新解压副本里 `python tests/full_e2e.py` PASS，启动器中文正常
 - [ ] 无密码/凭据/学生数据/临时文件入库

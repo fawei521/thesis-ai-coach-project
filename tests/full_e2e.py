@@ -650,7 +650,7 @@ try:
     check("大纲结果章完整", all(s in po0 for s in ["平行分析", "Games-Howell", "卡方", "简单斜率", "偏态"]))
     sg = tx("psychology/stats-guide.md")
     # v1.53.1：auto_stats 已拆为 tools/stats/ 包，实现函数按所属模块核对（不再只看 CLI 入口）
-    acmp = tx("tools/stats/compare.py"); areg = tx("tools/stats/regress.py")
+    acmp = tx("tools/stats/compare.py"); areg = tx("tools/stats/regression.py")
     check("stats能力真实", "Welch" in sg and "_welch_anova" in acmp and "_levene" in acmp and "_welch_t" in acmp)
     check("GamesHowell引导JASP", "Games-Howell" in sg and "JASP" in sg)
     check("正态性边界引导JASP", "Shapiro-Wilk" in sg and "Q-Q" in sg and "JASP" in sg)
@@ -744,6 +744,29 @@ try:
     check("原大文件已分解", not any(len(p.read_text(encoding="utf-8").splitlines()) > 700
                                  for p in list((ROOT / "tools").glob("*.py")) + list(stats_pkg.glob("*.py"))))
     check("sample_size复用路径已更新", "from stats.mathx import" in tx("tools/sample_size.py"))
+    # ========== 大文件拆分（第一批）：尺寸棘轮与 regress 五件套接线 ==========
+    sr = subprocess.run([sys.executable, "tests/size_ratchet.py"], capture_output=True,
+                        text=True, encoding="utf-8", errors="replace", timeout=120)
+    check("尺寸棘轮检查通过", sr.returncode == 0,
+          (sr.stdout or "")[-400:] + (sr.stderr or "")[-200:])
+    srn = subprocess.run([sys.executable, "tests/size_ratchet.py", "--selftest"], capture_output=True,
+                         text=True, encoding="utf-8", errors="replace", timeout=120)
+    check("尺寸棘轮尺子不空转", srn.returncode == 0 and "阴性自测通过" in (srn.stdout or ""),
+          (srn.stdout or "")[-250:])
+    check("存量冻结清单已入库且非空", (ROOT / "tests" / "size_baseline.txt").is_file()
+          and any(not l.startswith("#") and l.strip()
+                  for l in tx("tests/size_baseline.txt").splitlines()))
+    check("统计拆分五件套齐全", all((ROOT / "tools" / "stats" / (m + ".py")).is_file()
+                                   for m in ["correlation", "regression", "mediation",
+                                             "moderation", "outliers"]))
+    fac82 = tx("tools/stats/regress.py")
+    check("拆分后历史入口仅再导出且六个公开函数仍可导入",
+          all(("from .%s import" % m) in fac82 for m in ["correlation", "mediation", "moderation",
+                                                         "outliers", "regression"])
+          and all(fn in fac82 for fn in ["correlation_matrix", "partial_correlation_analysis",
+                                         "linear_regression", "mediation_analysis",
+                                         "moderation_analysis", "mahalanobis_outliers"])
+          and len(fac82.splitlines()) < 40, "lines=%d" % len(fac82.splitlines()))
     check("一致性检查覆盖子包", "rglob" in tx("tests/consistency_check.py"))
     # auto_stats 拆包后必须能被 runpy.run_path 调用：runpy 不把脚本目录加入 sys.path，
     # 少了显式 sys.path 引导就会 ModuleNotFoundError: stats（tests/test_graceful_degradation.py 走的正是这条路）
@@ -1993,9 +2016,12 @@ try:
     # ========== v1.73 Durbin-Watson＋残差正态（SW 下沉 mathx） ==========
     mathx73 = tx("tools/stats/mathx.py")
     ass73 = tx("tools/assumption_check.py")
-    reg73 = tx("tools/stats/regress.py")
+    reg73 = tx("tools/stats/regression.py")
+    # 拆分批1：残差诊断随 regress.py 拆分落到 regression.py，这里按所属模块核对
+    #（原先 reg73 只读不用，是死变量——现在真正断上）
     check("SW下沉mathx", "def shapiro_wilk" in mathx73 and "def durbin_watson" in mathx73
-          and "def shapiro_wilk" not in ass73 and "shapiro_wilk" in ass73)
+          and "def shapiro_wilk" not in ass73 and "shapiro_wilk" in ass73
+          and "durbin_watson(resid)" in reg73 and "shapiro_wilk(resid)" in reg73)
     d73 = new_tmp("v173dw")
     reg_csv73 = d73 / "reg.csv"
     random.seed(17302)
