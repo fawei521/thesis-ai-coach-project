@@ -13,7 +13,7 @@ if hasattr(_sys.stdout, "reconfigure") and not _sys.stdout.isatty():
 
 
 def t_preprocess():
-    print("\n【1/22】问卷星数据预处理")
+    print("\n【1/23】问卷星数据预处理")
     print("  用途：把问卷星下载的原始表，转成后面能统计的标准数字表。")
     f = ask_path("  把问卷星导出的原始CSV拖进来，回车：")
     if not f:
@@ -22,7 +22,7 @@ def t_preprocess():
 
 
 def t_clean():
-    print("\n【2/22】问卷数据清洗（找无效问卷）")
+    print("\n【2/23】问卷数据清洗（找无效问卷）")
     f = ask_path("  把（预处理后的）数据CSV拖进来，回车：")
     if not f:
         return
@@ -41,7 +41,7 @@ def t_clean():
 
 
 def t_stats():
-    print("\n【3/22】自动统计分析")
+    print("\n【3/23】自动统计分析")
     print("  自动完成：人口学频数表、反向计分、信度α与McDonald's ω、结构效度(KMO/Bartlett/载荷)、")
     print("  共同方法偏差Harman、量表总分、描述统计、相关、回归、")
     print("  Bootstrap中介（模型4/6），并导出三线表和频数表。")
@@ -84,7 +84,7 @@ def t_stats():
 
 
 def t_anonymize():
-    print("\n【11/22】数据去标识化（发给AI/上传/给外校前，隐去姓名学号手机等）")
+    print("\n【11/23】数据去标识化（发给AI/上传/给外校前，隐去姓名学号手机等）")
     print("  自动识别并假名化/删除姓名、学号、手机、邮箱、身份证、微信/QQ、IP、住址等，")
     print("  并对性别/年级/专业/生源等组合做 k-匿名风险体检；只读原文件、另存新文件，绝不改原数据。")
     f = ask_path("  把要外发的原始数据CSV拖进来，回车：")
@@ -105,7 +105,7 @@ def t_anonymize():
 
 
 def t_effect():
-    print("\n【12/22】效应量换算与复核（写结果时，由 t/F/χ²/r 或均值标准差算效应量）")
+    print("\n【12/23】效应量换算与复核（写结果时，由 t/F/χ²/r 或均值标准差算效应量）")
     print("  论文不能只报 p 值，还要报效应量及（能给时）置信区间。选你手上已有的结果：")
     print("   1 两组均值/标准差/n → Cohen's d、Hedges' g")
     print("   2 已知 t 值 → d（独立两组）或配对 d_z")
@@ -166,7 +166,7 @@ def t_effect():
 
 
 def t_validity():
-    print("\n【13/22】聚合/区分效度")
+    print("\n【13/23】聚合/区分效度")
     print("  1 由 CFA 标准化载荷算 CR、AVE、√AVE 与 Fornell-Larcker（做完验证性因子分析后）")
     print("  2 由原始问卷数据直接算 HTMT（更现代的区分效度，含 Bootstrap 95%CI，不用先跑 CFA）")
     mode = input("  输入 1 或 2（直接回车默认 1）：").strip()
@@ -225,7 +225,7 @@ def t_validity():
 
 
 def t_itemanalysis():
-    print("\n【14/22】预试问卷项目分析（决断值CR + CITC + 删题后α，决定删改哪些题）")
+    print("\n【14/23】预试问卷项目分析（决断值CR + CITC + 删题后α，决定删改哪些题）")
     print("  用于预试数据：按量表总分取高/低各27%，逐题做独立样本t（决断值CR），")
     print("  并给校正项总相关 CITC、删题后α与均值标准差，导出项目分析表。")
     print("  scales.txt 与第3项同一个，反向题必须用 (R) 标对。")
@@ -244,7 +244,7 @@ def t_itemanalysis():
 
 
 def t_cvi():
-    print("\n【15/22】自编量表内容效度 CVI（专家相关性评分 → I-CVI/κ*/S-CVI）")
+    print("\n【15/23】自编量表内容效度 CVI（专家相关性评分 → I-CVI/κ*/S-CVI）")
     print("  自编或修订量表，请 5～10 名专家对每个条目按 1-4 评相关性（3/4=相关）。")
     print("  表格：第一列专家、其余每列一个条目（Excel 另存为 UTF-8 CSV）。")
     f = ask_path("  把专家评分CSV拖进来，回车：")
@@ -259,7 +259,7 @@ def t_cvi():
 
 
 def t_missing():
-    print("\n【17/22】缺失值分析与 Little's MCAR 检验（缺多少/怎么缺/能不能直接删）")
+    print("\n【17/23】缺失值分析与 Little's MCAR 检验（缺多少/怎么缺/能不能直接删）")
     print("  建议用第1项预处理后、第2项清洗前的数据跑一次（交代原始缺失）；")
     print("  工具给逐题缺失率、缺失模式、Little χ² 检验和可直接粘进方法章的段落。")
     f = ask_path("  把预处理后的问卷数据CSV拖进来，回车：")
@@ -278,7 +278,7 @@ def t_missing():
 
 
 def t_assumption():
-    print("\n【18/22】参数检验前提假设检验（正态性 / 方差齐性）")
+    print("\n【18/23】参数检验前提假设检验（正态性 / 方差齐性）")
     print("  t 检验、方差分析、回归前跑：Shapiro-Wilk＋偏度峰度判正态，")
     print("  分组时再给 Brown-Forsythe 方差齐性，结论可直接粘进方法章。")
     f = ask_path("  把清洗后的问卷数据CSV（或量表总分CSV）拖进来，回车：")
@@ -300,7 +300,7 @@ def t_assumption():
 
 
 def t_paired():
-    print("\n【19/22】配对设计差异检验（前后测 / 两条件：配对t＋d_z＋差值正态性＋Wilcoxon）")
+    print("\n【19/23】配对设计差异检验（前后测 / 两条件：配对t＋d_z＋差值正态性＋Wilcoxon）")
     print("  同一批人前测后测有没有变化：配对 t 与非参数 Wilcoxon 符号秩一起给，")
     print("  前提看【差值】正态性，结论与 d_z 效应量可直接粘论文。")
     mode = input("  检验类型：回车=前后测/两条件配对；输入 1=单样本与常数比较（如 Likert 中值 3、常模分）：").strip()
@@ -364,7 +364,7 @@ def t_paired():
 
 
 def t_multcomp():
-    print("\n【20/22】多重比较校正（Bonferroni / Holm / BH-FDR / BY-FDR）")
+    print("\n【20/23】多重比较校正（Bonferroni / Holm / BH-FDR / BY-FDR）")
     print("  同一家族做了多个检验（多组两两比较、多量表、多时点、相关矩阵）时，")
     print("  把一组原始 p 值统一校正，给校正后 p 与可粘论文的结论（与 R p.adjust 同口径）。")
     src = input("  p 值在 CSV 里（输入 y）还是直接手输一串（直接回车）？[y/N]：").strip().lower()

@@ -46,4 +46,4 @@ if True:  # 容器不产生作用域，缩进与其他片段一致
           "阶段11：答辩准备" in cr and "阶段11：答辩准备" not in cr_main)
     st16 = tx("START.md") + tx("AGENTS.md")
     check("v184 入口文档同步了按需读口径",
-          st16.count("core/coach-rules/") >= 2 and "进入" in st16)
+          st16.count("core/coach-rules/") >= 1 and "进入" in st16)

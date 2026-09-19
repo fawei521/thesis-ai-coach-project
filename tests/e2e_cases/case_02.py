@@ -150,7 +150,7 @@ if True:  # 容器不产生作用域，缩进与拆分前完全一致
     # 菜单实现拆成 menu.py（入口与菜单表）+ menu_io/menu_data/menu_lit（交互件与两组处理器），
     # 断言一律看合并文本，免得每拆一次就要改一批断言。
     menu = "\n".join(tx("tools/" + p.name) for p in sorted((ROOT / "tools").glob("menu*.py")))
-    check("menu第8项", "【8/22】" in menu and "sample_size.py" in menu)
+    check("menu第8项", "【8/" in menu and "sample_size.py" in menu)
     qs = tx("QUICKSTART.md"); check("QS菜单8", "8. 开题样本量" in qs)
     check("QS流程顺序", qs.find("查文献读文献") < qs.find("开题报告/开题答辩"))
     bad = []

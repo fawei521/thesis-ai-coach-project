@@ -147,6 +147,9 @@ if True:  # 容器不产生作用域，缩进与拆分前完全一致
           and "上一个版本：v1." in rdme75 and len(rdme75.splitlines()) < 200)
 
     # ========== v1.76 文档勘误与行数守卫 ==========
-    check("v176 勘误与行数守卫", "184→170 行，实计" in tx("CHANGELOG.md")
-          and len(tx("README.md").splitlines()) <= 180)
+    # v1.76 真正留下来的不变量是"README 版本区行数 ≤180"；当年顺带盯的那句勘误文字，
+    # 已随 v1.85 记账瘦身进 维护档案/（不随包分发），所以这里改盯包内指针——
+    # 与 case_15 的"包内 CHANGELOG 已瘦身且最新版详情在包内"同一条思路：盯活规矩，不盯历史正文的 Location。
+    check("v176 勘误与行数守卫", len(tx("README.md").splitlines()) <= 180
+          and "维护档案/CHANGELOG-历史详情" in tx("CHANGELOG.md"))
 

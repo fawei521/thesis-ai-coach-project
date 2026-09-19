@@ -22,8 +22,12 @@ if True:  # 容器不产生作用域，缩进与拆分前完全一致
     rows83 = [l for l in chg83.splitlines() if re.match(r"^\| \*\*v[\d.]+\*\* \|", l)]
     check("包内 CHANGELOG 索引仍全量", len(rows83) >= 93 and "| **v1.0** |" in chg83
           and "_发布包" in chg83, "rows=%d" % len(rows83))
-    check("包内 CHANGELOG 已瘦身且关键事实未丢", len(chg83.splitlines()) < 320
-          and "184→170 行，实计" in chg83, "lines=%d" % len(chg83.splitlines()))
+    # 原来盯的是某版详情里一句写死的字面量——详情一归档就得手动换哨兵。改成真实不变量：
+    # 包内 CHANGELOG 必须 <320 行、**最新那一版必须在包内留有详情块**、指向档案的指针仍在。
+    _latest82 = rows83[0].split("|")[1].strip().strip("*")
+    check("包内 CHANGELOG 已瘦身且最新版详情在包内", len(chg83.splitlines()) < 320
+          and ("**" + _latest82 + " ") in chg83 and "维护档案/CHANGELOG-历史详情" in chg83,
+          "lines=%d latest=%s" % (len(chg83.splitlines()), _latest82))
     check("最新索引行主题不超过40字", len(rows83[0].split("|")[3].strip()) <= 40,
           "%d 字：%s" % (len(rows83[0].split("|")[3].strip()), rows83[0][:60]))
     pp83 = tx("PROJECT_PLAN.md")

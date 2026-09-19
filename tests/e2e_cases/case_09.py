@@ -13,7 +13,7 @@ if True:  # 容器不产生作用域，缩进与拆分前完全一致
     check("缺失值工具纯标准库", "pandas" not in mr_src and "numpy" not in mr_src
           and "import csv" in mr_src)
     check("缺失值工具编码守卫", "输出编码守卫" in mr_src and "reconfigure" in mr_src)
-    check("菜单第17项缺失值", "【17/22】" in menu and "missing_report.py" in menu and "MCAR" in menu)
+    check("菜单第17项缺失值", "【17/" in menu and "missing_report.py" in menu and "MCAR" in menu)
     check("统计指南接线缺失值工具", "missing_report.py" in tx("psychology/stats-guide.md"))
     check("分析流程接线缺失值工具", "missing_report.py" in tx("workflows/data-analysis-auto.md"))
     check("START登记缺失值工具", "missing_report.py" in st)

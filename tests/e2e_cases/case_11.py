@@ -14,7 +14,7 @@ if True:  # 容器不产生作用域，缩进与拆分前完全一致
     check("配对工具纯标准库", "pandas" not in pc_src and "numpy" not in pc_src
           and "import csv" in pc_src)
     check("配对工具编码守卫", "输出编码守卫" in pc_src and "reconfigure" in pc_src)
-    check("菜单第19项配对检验", "【19/22】" in menu and "paired_compare.py" in menu
+    check("菜单第19项配对检验", "【19/" in menu and "paired_compare.py" in menu
           and "Wilcoxon" in menu)
     check("统计指南接线配对工具", "paired_compare.py" in tx("psychology/stats-guide.md"))
     check("分析流程接线配对工具", "paired_compare.py" in tx("workflows/data-analysis-auto.md"))

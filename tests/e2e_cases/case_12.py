@@ -14,7 +14,7 @@ if True:  # 容器不产生作用域，缩进与拆分前完全一致
     check("多重校正纯标准库", "pandas" not in mc_src and "numpy" not in mc_src
           and "import csv" in mc_src)
     check("多重校正编码守卫", "输出编码守卫" in mc_src and "reconfigure" in mc_src)
-    check("菜单第20项多重校正", "【20/22】" in menu and "mult_compare.py" in menu
+    check("菜单第20项多重校正", "【20/" in menu and "mult_compare.py" in menu
           and "Bonferroni" in menu and "Holm" in menu)
     check("统计指南接线多重校正", "mult_compare.py" in tx("psychology/stats-guide.md"))
     check("分析流程接线多重校正", "mult_compare.py" in tx("workflows/data-analysis-auto.md"))

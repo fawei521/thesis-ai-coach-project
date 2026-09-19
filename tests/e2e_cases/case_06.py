@@ -130,7 +130,7 @@ if True:  # 容器不产生作用域，缩进与拆分前完全一致
     check("v158量表多词检索纪律", "量表检索纪律" in sl and "同义词" in sl and "OR" in sl and "AND" in sl)
     check("v158检索脚本多词开关", all(x in psrc for x in ('--queries', '--source', '--min', 'action="append"')))
     check("v158卡片脚本与菜单项",
-          (ROOT / "tools" / "literature_cards.py").exists() and "literature_cards.py" in menu and "【10/22】" in menu)
+          (ROOT / "tools" / "literature_cards.py").exists() and "literature_cards.py" in menu and "【10/" in menu)
     check("v158卡片接入网页指南且不增类型", "literature_cards.py" in wg and "文献笔记网页" in wg)
     check("v158手机交接单与原生做法", all(s in mg for s in ("设备交接单", "全球学术快报", "literature_cards")))
 

@@ -12,7 +12,7 @@ if True:  # 容器不产生作用域，缩进与拆分前完全一致
     rf_src = tx(rf_tool)
     check("参考文献工具纯标准库", all(s in rf_src for s in ["import csv", "import re"])
           and "pandas" not in rf_src and "requests" not in rf_src)
-    check("菜单第16项参考文献", "【16/22】" in menu and "reference_formatter.py" in menu and "GB/T 7714" in menu)
+    check("菜单第16项参考文献", "【16/" in menu and "reference_formatter.py" in menu and "GB/T 7714" in menu)
     # 菜单标签：编号须 1..N 连续、分母须统一等于项数。
     # 不再把 N 硬编码进断言（历史上每次加项都要改一批 "全部20项制" 式断言，是维护地雷）。
     labels = re.findall(r"【(\d+)/(\d+)】", menu)
@@ -23,9 +23,9 @@ if True:  # 容器不产生作用域，缩进与拆分前完全一致
     MENU_N = len(labels)
     # v1.80：v1.77 交付的两件工具接进菜单（此前被 700 行门禁挡在命令行里）
     check("菜单第21项排PPT且声明不代写",
-          "【21/22】" in menu and "outline_to_ppt.py" in menu and "一个字也不替你写" in menu)
+          "【21/" in menu and "outline_to_ppt.py" in menu and "一个字也不替你写" in menu)
     check("菜单第22项补齐工作区且带只检查模式",
-          "【22/22】" in menu and "setup_workspace.py" in menu and '"--check"' in menu)
+          "【22/" in menu and "setup_workspace.py" in menu and '"--check"' in menu)
     check("写作指南接线参考文献工具", "reference_formatter.py" in tx("workflows/writing-guide.md"))
     check("START登记参考文献工具", "reference_formatter.py" in st)
     v65 = new_tmp("v165refs")

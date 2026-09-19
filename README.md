@@ -142,19 +142,19 @@ thesis-ai-coach-project/
 ├── 我的工作区/                # 学生自己的文件：01-文献PDF/02-问卷数据/03-分析结果/04-网页 + 我的论文进度.md
 ├── core/                     # AI规则（coach-rules + 下沉细则 coach-rules/）+ 身份陪伴边界（companionship）+ 引导反馈协议 + 鼓励系统 + AI素养
 ├── workflows/                # 10个阶段工作流手册
-├── tools/                    # 23个可调脚本（含统一菜单、重点文献卡片literature_cards.py、网页预览器、去标识化anonymize_data.py、效应量换算effect_size.py、聚合区分效度validity_cr_ave.py、预试项目分析item_analysis.py、内容效度content_cvi.py、参考文献格式化reference_formatter.py、缺失值分析missing_report.py、前提假设assumption_check.py、配对检验paired_compare.py、多重校正mult_compare.py、大纲排PPT outline_to_ppt.py、工作区补齐setup_workspace.py）+ 菜单实现 menu_io/menu_data/menu_lit + stats/ 统计实现包（9个模块）
+├── tools/                    # 24个可调脚本（含统一菜单、重点文献卡片literature_cards.py、网页预览器、去标识化anonymize_data.py、效应量换算effect_size.py、聚合区分效度validity_cr_ave.py、预试项目分析item_analysis.py、内容效度content_cvi.py、参考文献格式化reference_formatter.py、缺失值分析missing_report.py、前提假设assumption_check.py、配对检验paired_compare.py、多重校正mult_compare.py、大纲排PPT outline_to_ppt.py、工作区补齐setup_workspace.py、开题就绪度自检proposal_readiness.py）+ 菜单实现 menu_io/menu_data/menu_lit/menu_thesis + stats/ 统计实现包（9个模块）
 ├── psychology/               # 量表/统计/伦理知识库
 ├── templates/                # 问卷/大纲/开题/答辩/进度卡/AI声明模板 + 网页范例/
 └── tests/                    # full_e2e.py 一键全量回归（断言主体在 e2e_cases/ 主题片段）、consistency_check.py 文档↔代码一致性、size_ratchet.py 文件尺寸棘轮、专项测试与测试数据
 ```
 
-> 维护者/接手者：改动后运行 `python tests/full_e2e.py`（约3-5分钟，676 项断言，自动备份恢复测试数据），退出码 0 才算通过；学生日常使用不需要跑。
+> 维护者/接手者：改动后运行 `python tests/full_e2e.py`（约3-5分钟，685 项断言，自动备份恢复测试数据），退出码 0 才算通过；学生日常使用不需要跑。
 
 ## 版本
 
-**当前版本：v1.84**（2026-09-19）必读瘦身收尾：`core/coach-rules.md` 的 12 阶段工作流 / 8 类常见错误 / 工具调用规范三节下沉到 `core/coach-rules/` 改按需读，主手册 395→216 行、28.9KB→14.3KB（正文一字未改，拼回逐行全等）；AI 每轮少读约 14KB，学生侧命令与产出零影响；full_e2e 664→676 项
+**当前版本：v1.85**（2026-09-19）新增**开题就绪度自检**（`proposal_readiness.py`／菜单第 23 项）：读你的开题大纲＋进度卡，按 `workflows/proposal-guide.md` 的口径分四档报**缺项/矛盾/风险/提示**（八节缺不缺、【】换没换、模型图在不在、进度卡与大纲对不对得上、未成年人知情同意、横断写强因果、脚本名混进正文、样本量与量表信息），**只报问题、一个字都不替你写、不改任何文件**；full_e2e 676→685 项
 
-**上一个版本：v1.83** 三本账瘦身：历史正文移入仓库内 `维护档案/`（git 完整追踪、发布包不携带），包内仍留**全量版本索引**与用例编号索引；新规矩：索引行的主题列 ≤40 字、细节只在详情区写一次；full_e2e 655→664 项
+**上一个版本：v1.84** 必读瘦身收尾：`core/coach-rules.md` 的 12 阶段工作流 / 8 类常见错误 / 工具调用规范三节下沉到 `core/coach-rules/` 改按需读，主手册 395→216 行、28.9KB→14.3KB（正文一字未改，拼回逐行全等）；AI 每轮少读约 14KB，学生侧命令与产出零影响；full_e2e 664→676 项
 
 **更早版本（v1.64 及以前）的逐版说明全部见
 [CHANGELOG.md](CHANGELOG.md)** —— 本 README 自 v1.57 起只保留当前版本与上一版本的摘要，
