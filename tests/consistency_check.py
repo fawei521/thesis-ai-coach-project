@@ -125,7 +125,7 @@ def main():
         rel = md.relative_to(ROOT)
         # 学生自由工作区：文件由学生自己命名，不由工具保证，不做导出一致性核对
         # doubao-skill 独立分发子包，由其 validate.py 自检，不纳入完整版核对
-        if rel.parts[0] == "doubao-skill":
+        if rel.parts[0] in ("doubao-skill", "维护档案"):   # 档案＝历史快照，不参与文档↔代码核对
             continue
         is_workspace = rel.parts[0] == "我的工作区"
         text = md.read_text(encoding="utf-8", errors="replace")

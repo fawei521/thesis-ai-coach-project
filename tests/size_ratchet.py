@@ -10,7 +10,8 @@
   2. 在存量清单里的文件        → 不得超过清单记录的行数（只减不增）；
                                 一旦降到 ≤220，必须跑 --write 把它移出清单（棘轮收紧）。
   3. 记账类文件（LEDGER：CHANGELOG/PROJECT_PLAN/e2e-test）→ 不套行数闸：它们每版必须
-                                追加，用"同一件事只写一遍 + 历史移包外"治理，行数闸反而逼出为拆而拆。
+                                追加，靠"重复只写一遍 + 正文移入 维护档案/"治理。
+  4. 维护档案/ 整目录豁免：v1.83 起历史正文归档在这里（git 追踪、export-ignore 不进包）。
   4. 用量超过适用上限的 85%    → 打 WARN 不判红，让下一个人在**撞线之前**去拆。
 
 扫描范围：tools/**/*.py、tests/**/*.py（含 e2e_cases 片段）、doubao-skill/*.py、全部 *.md。
@@ -44,6 +45,7 @@ LEDGER = {
     "tests/e2e-test.md": "用例台账只增不减",
 }
 PY_DIRS = ["tools", "tests", "doubao-skill"]   # 三个目录都递归扫描（含 tools/stats、tests/e2e_cases）
+SKIP_DIRS = {"维护档案"}                       # 历史快照目录：本性就长，拆它没有意义（见其 README）
 
 
 def line_count(path):
@@ -59,13 +61,14 @@ def scan(root):
         if not os.path.isdir(base):
             continue
         for dirpath, dirnames, filenames in os.walk(base):
-            dirnames[:] = [x for x in dirnames if x != "__pycache__"]
+            dirnames[:] = [x for x in dirnames if x != "__pycache__" and x not in SKIP_DIRS]
             for fn in filenames:
                 if fn.endswith(".py"):
                     full = os.path.join(dirpath, fn)
                     out[os.path.relpath(full, root).replace("\\", "/")] = line_count(full)
     for dirpath, dirnames, filenames in os.walk(root):
-        dirnames[:] = [x for x in dirnames if x not in (".git", "__pycache__")]
+        dirnames[:] = [x for x in dirnames
+                       if x not in (".git", "__pycache__") and x not in SKIP_DIRS]
         for fn in filenames:
             if not fn.endswith(".md"):
                 continue

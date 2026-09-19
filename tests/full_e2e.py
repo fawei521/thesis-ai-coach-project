@@ -168,6 +168,7 @@ FRAGMENTS = [
     "case_12.py",  # v1.69 多重比较校正（Bonferroni/Holm/BH/BY
     "case_13.py",  # v1.72 单样本模式（--onesample/--constant
     "case_14.py",  # 并行复核会话交付物：行为锁定（防退回） ==========
+    "case_15.py",  # v1.83 记账归档
 ]
 
 try:

@@ -3,7 +3,7 @@
 # 格式：<行数>	<相对路径>；文件降到 ≤220 行后会被移出，此后按新文件上限管。
 # 不在此表 = 新文件，一律 ≤220 行硬闸。记账类（CHANGELOG/PROJECT_PLAN/e2e-test/full_e2e）
 # 由 tests/size_ratchet.py 的 LEDGER 豁免：它们每版必须追加，靠“重复只写一遍 + 历史移包外”瘦身。
-# 注：tests/full_e2e.py 拆分落地后，应从 LEDGER 移出并纳入本表或直接达标。
+# tests/full_e2e.py 已在 v1.82 拆成壳 + 顺序片段（207 行），不再豁免。
 395	core/coach-rules.md
 240	doubao-skill/validate.py
 316	psychology/scale-library.md

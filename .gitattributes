@@ -1,3 +1,6 @@
 # Windows 启动器为 GBK 编码 + CRLF 行尾（中文 cmd 原生格式），禁止 git 做任何转换
 *.bat -text
 *.cmd -text
+
+# 维护档案：git 完整留档，但不进学生拿到的发布包
+维护档案/** export-ignore
