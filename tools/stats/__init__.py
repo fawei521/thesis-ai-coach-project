@@ -15,7 +15,7 @@
   mediation   Bootstrap 中介分析（模型4/6）
   moderation  调节效应（模型1，简单斜率与斜率图）
   outliers    Mahalanobis D² 多元异常值筛查
-  regress     上述五者的历史入口，仅再导出（拆分批1 由 700 行的实现拆分而来）
+  regress     上述五者的历史入口，仅再导出（v1.82 由 700 行的实现拆分而来）
 
 CLI 入口仍是 tools/auto_stats.py，用法完全不变。
 """

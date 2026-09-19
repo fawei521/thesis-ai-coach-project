@@ -3,7 +3,7 @@
 
 中心化交互项、简单斜率（W=均值±1SD，解析 SE + Bootstrap 百分位 CI 复核）、
 简单斜率图导出。
-由 tools/stats/regress.py 拆分而来（拆分批1 大文件拆分），函数体逐行未改动。
+由 tools/stats/regress.py 拆分而来（v1.82 大文件拆分），函数体逐行未改动。
 """
 
 import math

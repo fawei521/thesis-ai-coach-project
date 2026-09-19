@@ -9,11 +9,11 @@
   1. 不在存量清单里的文件      → 必须 ≤220 行（新账不欠）。
   2. 在存量清单里的文件        → 不得超过清单记录的行数（只减不增）；
                                 一旦降到 ≤220，必须跑 --write 把它移出清单（棘轮收紧）。
-  3. 记账类文件（见 LEDGER）   → 不套行数闸：每版必须追加，用"同一件事只写一遍 +
-                                历史移包外"治理，用行数闸反而逼出为拆而拆的分册。
+  3. 记账类文件（LEDGER：CHANGELOG/PROJECT_PLAN/e2e-test）→ 不套行数闸：它们每版必须
+                                追加，用"同一件事只写一遍 + 历史移包外"治理，行数闸反而逼出为拆而拆。
   4. 用量超过适用上限的 85%    → 打 WARN 不判红，让下一个人在**撞线之前**去拆。
 
-扫描范围：tools/**/*.py、tests/*.py、doubao-skill/*.py、全部 *.md。
+扫描范围：tools/**/*.py、tests/**/*.py（含 e2e_cases 片段）、doubao-skill/*.py、全部 *.md。
 豁免：doubao-skill/thesis-ai-coach-手机版.md —— build_mobile_single.py 的构建产物，
       "单文件"就是手机版的产品形态，拆它下次构建就被覆盖。
 
@@ -42,9 +42,8 @@ LEDGER = {
     "CHANGELOG.md": "版本史唯一来源，每版必须追加",
     "PROJECT_PLAN.md": "计划与规格，随版本追加",
     "tests/e2e-test.md": "用例台账只增不减",
-    "tests/full_e2e.py": "AGENTS.md 规定新能力必须加断言；其拆分单列一批（见 size_baseline.txt 注）",
 }
-PY_DIRS = [("tools", True), ("tests", False), ("doubao-skill", False)]
+PY_DIRS = ["tools", "tests", "doubao-skill"]   # 三个目录都递归扫描（含 tools/stats、tests/e2e_cases）
 
 
 def line_count(path):
@@ -55,23 +54,16 @@ def line_count(path):
 def scan(root):
     """返回 {相对路径: 行数}，只收受管文件。"""
     out = {}
-    for d, recurse in PY_DIRS:
+    for d in PY_DIRS:
         base = os.path.join(root, d)
         if not os.path.isdir(base):
             continue
-        if recurse:
-            for sub in sorted(os.listdir(base)):
-                if sub.endswith(".py"):
-                    out[os.path.join(d, sub).replace("\\", "/")] = line_count(os.path.join(base, sub))
-            for sub in sorted(os.listdir(os.path.join(base, "stats"))) if os.path.isdir(
-                    os.path.join(base, "stats")) else []:
-                if sub.endswith(".py"):
-                    rel = "tools/stats/" + sub
-                    out[rel] = line_count(os.path.join(base, "stats", sub))
-        else:
-            for sub in sorted(os.listdir(base)):
-                if sub.endswith(".py"):
-                    out[os.path.join(d, sub).replace("\\", "/")] = line_count(os.path.join(base, sub))
+        for dirpath, dirnames, filenames in os.walk(base):
+            dirnames[:] = [x for x in dirnames if x != "__pycache__"]
+            for fn in filenames:
+                if fn.endswith(".py"):
+                    full = os.path.join(dirpath, fn)
+                    out[os.path.relpath(full, root).replace("\\", "/")] = line_count(full)
     for dirpath, dirnames, filenames in os.walk(root):
         dirnames[:] = [x for x in dirnames if x not in (".git", "__pycache__")]
         for fn in filenames:
@@ -137,7 +129,7 @@ def write_baseline(sizes):
         "# 格式：<行数>\t<相对路径>；文件降到 ≤%d 行后会被移出，此后按新文件上限管。\n"
         "# 不在此表 = 新文件，一律 ≤%d 行硬闸。记账类（CHANGELOG/PROJECT_PLAN/e2e-test/full_e2e）\n"
         "# 由 tests/size_ratchet.py 的 LEDGER 豁免：它们每版必须追加，靠“重复只写一遍 + 历史移包外”瘦身。\n"
-        "# 注：tests/full_e2e.py 拆分落地后，应从 LEDGER 移出并纳入本表或直接达标。\n" % (LIMIT_NEW, LIMIT_NEW))
+        "# tests/full_e2e.py 已在 v1.82 拆成壳 + 顺序片段（207 行），不再豁免。\n" % (LIMIT_NEW, LIMIT_NEW))
     body = "".join("%d\t%s\n" % (n, rel) for rel, n in rows)
     with io.open(BASELINE, "w", encoding="utf-8", newline="\r\n") as f:
         f.write(head + body)

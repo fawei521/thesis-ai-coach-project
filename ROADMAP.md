@@ -12,6 +12,7 @@
 - [ ] 信度深化：分层 ω、总 ω 与 Schmid-Leiman（高阶因子）；区分效度补 HTMT2
 - [ ] 回归诊断扩展：残差图、影响点（Cook 距离/杠杆值）、分层回归 ΔR² 显著性
 - [x] 论文 PPT 一键导出接入菜单与文档——v1.77 落工具、v1.79 拆菜单腾位置、**v1.80 接第 21/22 项并同步 START/QUICKSTART/proposal-guide**
+- [ ] **大文件拆分后续批次**（v1.82 已拆统计包与回归套件）：`stats-guide.md`/`data-analysis-auto.md`/`coach-rules.md`/`scale-library.md` 四份按 220 硬拆（保留原名做目录页）；CHANGELOG 索引行去重与历史正文移包外、`PROJECT_PLAN.md` 第 305–737 行归档、`e2e-test.md` 按编号分册；其余 28 个存量 `.py` 随改动逐个降（棘轮已锁死增长）
 - [ ] **Skill 轻量版口径追平完整版**：`doubao-skill` 的口径同步点停在 v1.61，完整版已到 v1.81
   （其间量表库扩到 39 组、新增 ω/HTMT/CVI/项目分析、多重比较校正、缺失处理指引等口径）；
   手机版与技能独立包目前只反映 v1.61 的规则，需逐节核对后出 Skill v1.5

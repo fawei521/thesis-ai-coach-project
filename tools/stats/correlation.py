@@ -3,7 +3,7 @@
 
 Pearson/Spearman 相关矩阵（带显著性标记）；偏相关（控制一组变量后的净相关，
 相关矩阵求逆法 r_ij·Z = −Pij/√(Pii·Pjj)，df = n−2−k）。
-由 tools/stats/regress.py 拆分而来（拆分批1 大文件拆分），函数体逐行未改动。
+由 tools/stats/regress.py 拆分而来（v1.82 大文件拆分），函数体逐行未改动。
 """
 
 import csv

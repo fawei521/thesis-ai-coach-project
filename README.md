@@ -145,20 +145,18 @@ thesis-ai-coach-project/
 ├── tools/                    # 23个可调脚本（含统一菜单、重点文献卡片literature_cards.py、网页预览器、去标识化anonymize_data.py、效应量换算effect_size.py、聚合区分效度validity_cr_ave.py、预试项目分析item_analysis.py、内容效度content_cvi.py、参考文献格式化reference_formatter.py、缺失值分析missing_report.py、前提假设assumption_check.py、配对检验paired_compare.py、多重校正mult_compare.py、大纲排PPT outline_to_ppt.py、工作区补齐setup_workspace.py）+ 菜单实现 menu_io/menu_data/menu_lit + stats/ 统计实现包（9个模块）
 ├── psychology/               # 量表/统计/伦理知识库
 ├── templates/                # 问卷/大纲/开题/答辩/进度卡/AI声明模板 + 网页范例/
-└── tests/                    # full_e2e.py 一键全量回归、consistency_check.py 文档↔代码一致性自检、专项测试与测试数据
+└── tests/                    # full_e2e.py 一键全量回归（断言主体在 e2e_cases/ 主题片段）、consistency_check.py 文档↔代码一致性、size_ratchet.py 文件尺寸棘轮、专项测试与测试数据
 ```
 
-> 维护者/接手者：改动后运行 `python tests/full_e2e.py`（约3-5分钟，643 项断言，自动备份恢复测试数据），退出码 0 才算通过；学生日常使用不需要跑。
+> 维护者/接手者：改动后运行 `python tests/full_e2e.py`（约3-5分钟，655 项断言，自动备份恢复测试数据），退出码 0 才算通过；学生日常使用不需要跑。
 
 ## 版本
 
-**当前版本：v1.81**（2026-09-19）开题 PPT 的中文字体写进主题
-- 过去生成的 `.pptx` 里东亚字体槽是空的，中文用哪套字体全看打开它的那台机器（自己电脑雅黑、机房可能宋体，版式就抖）
-- 现在 `save()` 把主题里的 latin/ea/cs 统一写死（默认微软雅黑）；`--cn-font 宋体` 按学校口径换，`--cn-font none` 保持模板默认，菜单第 21 项会直接问
-- **测试**：+4 条（默认值/指定值/none 确实不动/改字体后包仍可回读且不越页）；full_e2e 643→647 项
+**当前版本：v1.82**（2026-09-19）大文件拆分第一批：统计包与回归套件、文件尺寸棘轮
+- `tools/stats/regress.py`（700 行撞死门禁上限）拆成相关/回归/中介/调节/异常值五个模块；`tests/full_e2e.py`（2270 行）拆成壳 + 14 个主题片段。**学生侧命令、CLI 开关、导出文件名全部不变**，并用只读副本对照跑证明输出逐字节一致
+- 新增 `tests/size_ratchet.py`：新文件 ≤220 行、存量超标文件冻结只减不增，防“先撞死再拆”重演；回归 647→655 项全绿
 
-**上一个版本：v1.80** 菜单接进第 21 项（大纲排 `.pptx`）与第 22 项（补齐 `我的工作区/`），菜单 20→22 项、
-项数断言改自数；修 `--dry-run` 不查图片存在性与 PPT 模板里写错的目录号；full_e2e 640→643 项；逐条见 CHANGELOG。
+**上一个版本：v1.81** 开题 PPT 的中文字体写进主题（`save()` 统一改写 latin/ea/cs 字体槽，`--cn-font` 按学校口径换、`none` 保持模板默认）；full_e2e 643→647 项；逐条见 CHANGELOG。
 
 **更早版本（v1.64 及以前）的逐版说明全部见
 [CHANGELOG.md](CHANGELOG.md)** —— 本 README 自 v1.57 起只保留当前版本与上一版本的摘要，

@@ -3,7 +3,7 @@
 
 简单中介（模型4）与链式中介（模型6）的 Bootstrap 百分位 95%CI；
 路径系数与间接效应分解、完全/部分中介判定。
-由 tools/stats/regress.py 拆分而来（拆分批1 大文件拆分），函数体逐行未改动。
+由 tools/stats/regress.py 拆分而来（v1.82 大文件拆分），函数体逐行未改动。
 """
 
 import csv

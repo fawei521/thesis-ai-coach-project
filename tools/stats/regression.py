@@ -3,7 +3,7 @@
 
 最小二乘多元回归（β/SE/t/p/R²/调整 R²/F）、VIF 与容差共线性诊断、
 残差 Durbin-Watson 与 Shapiro-Wilk 正态性诊断。
-由 tools/stats/regress.py 拆分而来（拆分批1 大文件拆分），函数体逐行未改动。
+由 tools/stats/regress.py 拆分而来（v1.82 大文件拆分），函数体逐行未改动。
 """
 
 import math

@@ -3,7 +3,7 @@
 
 D² 距离与 χ² 临界值（纯标准库二分求分位）、只标记不删除的处理原则提示、
 明细 CSV 导出。
-由 tools/stats/regress.py 拆分而来（拆分批1 大文件拆分），函数体逐行未改动。
+由 tools/stats/regress.py 拆分而来（v1.82 大文件拆分），函数体逐行未改动。
 """
 
 import csv
