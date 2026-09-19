@@ -30,6 +30,10 @@ TOOLS = ROOT / "tools"
 # 通用/文档示意开关，不属于某个脚本但允许出现在文档里
 SWITCH_WHITELIST = {"--help", "-h", "--outdir", "-o", "--version"}
 
+# 构建产物：由脚本生成、被 .gitignore 排除，因此**干净解压副本里必然不存在**。
+# 文档引用它们是正确的（要告诉维护者产物在哪），不能当悬空链接报漂移。
+BUILD_ARTIFACT_REFS = {"doubao-skill/thesis-ai-coach-手机版.md"}
+
 
 def tool_switches(py_path: Path):
     """用 AST 解析某脚本 argparse add_argument 的长开关。"""
@@ -171,6 +175,8 @@ def main():
         md_refs |= set(re.findall(r"`([^`\n\s]+\.md)`", text))
         for ref in md_refs:
             if ref.startswith(("http", "<")) or "*" in ref:
+                continue
+            if ref in BUILD_ARTIFACT_REFS:
                 continue
             if not doc_exists(md, ref):
                 problems.append(f"[{rel}] 引用了不存在的文档 {ref}")
