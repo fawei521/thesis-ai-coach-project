@@ -442,7 +442,10 @@ try:
     check("coach5多选填空", "多选题" in cr and "scales.txt 时勿列入" in cr)
     check("coach6样本量", "sample_size.py" in cr)
     check("coach7五指标", "低变异" in cr and "注意力检查题答错" in cr)
-    menu = tx("tools/menu.py"); check("menu第8项", "【8/20】" in menu and "sample_size.py" in menu)
+    # 菜单实现拆成 menu.py（入口与菜单表）+ menu_io/menu_data/menu_lit（交互件与两组处理器），
+    # 断言一律看合并文本，免得每拆一次就要改一批断言。
+    menu = "\n".join(tx("tools/" + p.name) for p in sorted((ROOT / "tools").glob("menu*.py")))
+    check("menu第8项", "【8/20】" in menu and "sample_size.py" in menu)
     qs = tx("QUICKSTART.md"); check("QS菜单8", "8. 开题样本量" in qs)
     check("QS流程顺序", qs.find("查文献读文献") < qs.find("开题报告/开题答辩"))
     bad = []
@@ -2162,6 +2165,32 @@ try:
     check("工作区补齐幂等", "没有新建" in (rr2.stdout or ""))
     rr3 = run(["tools/setup_workspace.py", "--root", str(wsroot), "--check"])
     check("工作区--check只报告不创建", rr3.returncode == 0 and "齐全" in (rr3.stdout or ""))
+
+    # ========== v1.79 菜单拆分：结构不变量（防"搬完家忘了接线"） ==========
+    check("v179菜单模块齐全", all((ROOT / "tools" / n).exists()
+                                  for n in ("menu_io.py", "menu_data.py", "menu_lit.py")))
+    check("v179菜单入口瘦身", len(tx("tools/menu.py").splitlines()) < 200,
+          "lines=%d" % len(tx("tools/menu.py").splitlines()))
+    # 用真实 import 核对菜单表，而不是再匹配一遍文本：处理器搬家后文本匹配抓不到
+    # "某个 t_xxx 定义了却没进 MENU 表"（那正是拆分最容易犯的错）
+    imp79 = subprocess.run(
+        [sys.executable, "-c",
+         "import sys; sys.path.insert(0, 'tools'); import menu, menu_data, menu_lit; "
+         "wired = {f.__name__ for _, _, f in menu.MENU}; "
+         "defs = {n for m in (menu_data, menu_lit) for n in dir(m) if n.startswith('t_')};"
+         "print(len(menu.MENU), all(callable(f) for _, _, f in menu.MENU), "
+         "menu.MENU[0][0], menu.MENU[-1][0], defs == wired, sorted(defs - wired))"],
+        capture_output=True, text=True, encoding="utf-8", errors="replace", timeout=120)
+    check("v179菜单表20项全部可调用且无漏接处理器",
+          (imp79.stdout or "").strip() == "20 True 1 20 True []",
+          ((imp79.stdout or "") + (imp79.stderr or ""))[-200:])
+    # 拆完必须还能跑：喂一个"0"退出，主菜单要把 20 项全部列出来（编号 1-20 一项不能少）
+    mk79 = subprocess.run([sys.executable, "tools/menu.py"], input="0\n", capture_output=True,
+                          text=True, encoding="utf-8", errors="replace", timeout=120)
+    body79 = mk79.stdout or ""
+    check("v179菜单可运行且列全20项",
+          mk79.returncode == 0 and all(("\n  %d. " % i) in body79 for i in range(1, 21)),
+          ((body79 or "") + (mk79.stderr or ""))[-200:])
 
 
 finally:

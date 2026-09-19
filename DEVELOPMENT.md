@@ -67,7 +67,12 @@
 - **门**：测试清单全绿，关键数值与黄金来源偏差在容差内并记录。
 
 ### 阶段 D — 文档 Document（让人会用）
-- 同步：菜单 `menu.py`、对应 `workflows/*.md`、`psychology/stats-guide.md`（报告口径与 JASP 复核步骤）、`START.md` 工具清单、`README.md`、`QUICKSTART.md`（如影响学生）、`tests/e2e-test.md` 用例、**`CHANGELOG.md` 版本记录**。
+- 同步：菜单、对应 `workflows/*.md`、`psychology/stats-guide.md`（报告口径与 JASP 复核步骤）、`START.md` 工具清单、`README.md`、`QUICKSTART.md`（如影响学生）、`tests/e2e-test.md` 用例、**`CHANGELOG.md` 版本记录**。
+- **菜单加一项的正确姿势**（v1.79 起菜单是四件套，别再往一个文件里堆）：
+  在对应分组模块（`tools/menu_data.py` 数据统计组 / `tools/menu_lit.py` 文献产出组）写 `t_xxx` 处理器
+  → 在 `tools/menu.py` 的 `MENU` 表挂一行 → 所有处理器里的标签分母 `【N/20】` 同步改成新总数
+  → `tests/full_e2e.py` 的 `菜单标签全部20项制` 断言同改。
+  四份菜单文件都必须带输出编码守卫（`全部脚本有编码守卫` 覆盖 `tools/*.py`），且单文件不得超 700 行。
 - **版本历史只有一个来源**：`CHANGELOG.md`（单文件 · 日期标签）。`README.md` / `PROJECT_PLAN.md` / `ROADMAP.md` 只保留当前版本指针，不重复维护版本清单，避免同一版本手改四处造成漂移。
 - 说明"脚本结果用于快速预览/教学，正式口径以 JASP/SPSS 复核为准"的边界（适用时）。
 - **门**：一个不懂的 AI 只读文档就能正确调用并解读结果。
