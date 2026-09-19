@@ -124,7 +124,7 @@ def main():
         # 跳过 .user_skills 等目录外内容（rglob 已限定 ROOT）
         rel = md.relative_to(ROOT)
         # 学生自由工作区：文件由学生自己命名，不由工具保证，不做导出一致性核对
-        # doubao-skill 独立分发子包，由其 validate.py 自检，不纳入完整版核对
+        # doubao-skill 独立分发子包，由其 validate.py 自检，不纳入完整版核对；跨包硬口径见 tests/skill_sync_check.py
         if rel.parts[0] in ("doubao-skill", "维护档案"):   # 档案＝历史快照，不参与文档↔代码核对
             continue
         is_workspace = rel.parts[0] == "我的工作区"

@@ -18,7 +18,7 @@ if True:  # 容器不产生作用域，缩进与拆分前完全一致
         check("v161语气文件改名_" + newnm,
               (SK / "personalities" / (newnm + ".md")).exists()
               and not (SK / "personalities" / (oldnm + ".md")).exists())
-    # 合并单文件是构建产物（.gitignore 已排除），过期由 validate.py 的同步检查抓，
+    # 合并单文件是生成物（v1.88 起入库随包分发，内容＝各源文件原样拼接），过期由 validate.py 的同步检查抓，
     # 不在这里当源码问题报——否则一条"旧语气名"能把人引到完全错的方向。
     check("v161旧语气名清零(除版本历史)",
           all(oldnm not in p.read_text(encoding="utf-8")

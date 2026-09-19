@@ -148,7 +148,8 @@
 `doubao-skill/` 是可安装到豆包技能目录的**独立分发子包**（Skill 自有语义化版本，记录在 `doubao-skill/CHANGELOG.md`，每条注明对应的完整版版本）。
 
 - **单一权威源**：只改项目内 `doubao-skill/`；安装位 `.user_skills/thesis-ai-coach/` 是镜像，发布时整目录覆盖同步，不在镜像位直接改。
-- **独立门禁**：轻量版有自己的 `validate.py`（frontmatter、必备文件、阶段编号连续性、三闸 checkbox、内部链接、鼓励默认开关、安全口径、占位残留）；`tests/consistency_check.py` 将该目录列为独立命名空间跳过，不做完整版文档↔代码核对。
+- **独立门禁**：轻量版有自己的 `validate.py`（frontmatter、必备文件、阶段编号连续性、三闸 checkbox、内部链接、鼓励默认开关、安全口径、占位残留、**手机合并单文件在位且与源同步**——缺件即判红，因为发布包只装 git 跟踪文件，而那份文件就是手机侧的交付物）；`tests/consistency_check.py` 将该目录列为独立命名空间跳过，不做完整版文档↔代码核对。
+- **跨包口径同源**：`python tests/skill_sync_check.py`（配 `--selftest` 阴性自测）——两侧用同一条正则抽取六项硬口径逐项比对，并钉住"学生可见文件不得手写完整版版本号、轻量版不得自称超前、落后不得超过 `MAX_LAG` 个 minor"。**改任何一条硬口径都要两侧同改并重跑它**。
 - **口径一致**：轻量版的硬数字（样本量、清洗五指标、Harman、Bootstrap、热线、伦理流程、答辩问题数等）必须与完整版同源；任一侧改动都要追平另一侧，并在两边 CHANGELOG 留痕。
 - **不虚构工具**：轻量版不含脚本，不得描述或假装运行自动化工具；需要自动化时指引完整版。
 - **行为变更先写自测**：引导行为的改动同步更新 `doubao-skill/references/self-test.md`（该文件是测试计划，不是已通过证据；实际行为以 full_e2e 断言与人工走查为准）。
@@ -169,7 +170,7 @@
 - [ ] 全脚本 py_compile 通过、`python tests/full_e2e.py` 全绿
 - [ ] `python tests/consistency_check.py` 退出码 0（文档命令/开关/导出与代码一致）
 - [ ] `python tests/size_ratchet.py` 退出码 0；本轮拆完已 `--write` 刷新冻结清单（存量只减不增）
-- [ ] `python doubao-skill/validate.py` 退出码 0；轻量版口径与完整版一致；镜像已同步、Skill CHANGELOG 已追加
+- [ ] `python doubao-skill/validate.py` 退出码 0；`python tests/skill_sync_check.py` 退出码 0（轻量版口径与完整版一致，机检）；镜像已同步、Skill CHANGELOG 已追加
 - [ ] 全新解压副本里 `python tests/full_e2e.py` PASS，启动器中文正常
 - [ ] 无密码/凭据/学生数据/临时文件入库
 - [ ] ROADMAP、PROJECT_PLAN、tag、zip 一致

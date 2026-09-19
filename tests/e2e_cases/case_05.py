@@ -163,6 +163,18 @@ if True:  # 容器不产生作用域，缩进与拆分前完全一致
         if not rmtree_retry(neg):
             print("WARN 阴性测试临时目录未能删除（请手动清理）：" + str(neg))
     check("一致性检查跳过Skill子包", "doubao-skill" in tx("tests/consistency_check.py"))
+    # ---- v1.88 跨包守卫：两侧硬口径必须同源（合并单文件在位由 validate.py 缺件判红兜底）----
+    ss = run(["tests/skill_sync_check.py"], 120)
+    check("v188跨包口径同源核对0", ss.returncode == 0, (ss.stdout or "")[-400:])
+    s2 = run(["tests/skill_sync_check.py", "--selftest"], 120)
+    check("v188跨包守卫抓得到变异", s2.returncode == 0 and "全部被抓" in (s2.stdout or ""),
+          (s2.stdout or "")[-300:])
+    if (ROOT / ".git").exists():               # 发布副本没有 .git，自然跳过（同 case_17 口径）
+        # 必须带 -c core.quotePath=false：git 默认把非 ASCII 路径转义成八进制（\346\211\213…），不加会误报"没入库"（v1.88 踩到）
+        gl = subprocess.run(["git", "-c", "core.quotePath=false", "ls-files", "doubao-skill"],
+                            capture_output=True, text=True,
+                            encoding="utf-8", timeout=60, cwd=str(ROOT)).stdout.replace("\\", "/")
+        check("v188手机合并单文件已入库随包", "doubao-skill/thesis-ai-coach-手机版.md" in gl, gl[:100])
 
     # ---- v1.56 本体反馈协议+鼓励系统（学习成熟技能范式：强制基准/分级/门禁/行为自测）----
     cp_path = ROOT / "core" / "coaching-protocol.md"

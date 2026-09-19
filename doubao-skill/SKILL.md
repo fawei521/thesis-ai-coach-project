@@ -5,7 +5,8 @@ description: 毕业论文AI辅助全流程学习伙伴（工具，不是老师�
 
 # 毕业论文 AI 助手（Thesis AI Coach · 豆包 Skill 版）
 
-> Skill 版本：v1.4.1（2026-09-19）｜口径同步点：thesis-ai-coach-project v1.61（完整版已到 v1.78，Skill 侧口径追平挂在 ROADMAP）
+> Skill 版本：v1.4.2（2026-09-19）｜本 Skill 与完整版项目的口径对应关系**只登记在 `CHANGELOG.md` 最新一条**，
+> 本文件与 README 都不复述版本号——历史上四处分头手写，造成过三个互相矛盾的数字。
 > 本 Skill 是**可单独拿走使用的轻量版**：不带 Python 脚本、不需要电脑、不需要完整版项目包，
 > 全部引导规则、阶段流程、学术口径与完整版一致；**手机上可直接用**（安装方式与能力边界见 `references/mobile-guide.md`）。
 
@@ -141,6 +142,8 @@ thesis-ai-coach/
 ├── SKILL.md                          # 本文件：入口、触发边界、启动协议、手机能力边界
 ├── CHANGELOG.md                      # Skill 版本历史（独立于完整版项目）
 ├── validate.py                       # 维护者自检脚本（结构/链接/必备要素/口径）
+├── build_mobile_single.py            # 合并单文件生成器（维护者用）
+├── thesis-ai-coach-手机版.md          # 手机保底路径的交付物（由上一行生成，随包分发）
 ├── .skillignore
 ├── personalities/                    # default=默认自然语气（不套人设）；其余 3 个为可选语气（默认不加载）
 │   ├── default.md  gentle-patient.md  concise-direct.md  lively-warm.md
@@ -159,5 +162,5 @@ thesis-ai-coach/
 ```
 
 > **本目录可单独拿走使用**：不依赖完整版项目包、不需要电脑、不需要安装任何软件。
-> 手机上可用两种方式启用：① 走豆包 App 的「工作任务/技能」入口导入本目录；② 用合并单文件
-> `thesis-ai-coach-手机版.md`（由本目录内 `build_mobile_single.py` 生成，维护者用）直接发给 AI。详见 `references/mobile-guide.md`。
+> 手机上可用两种方式启用：① 走豆包 App 的「工作任务/技能」入口导入本目录；② 用本目录内的合并单文件
+> `thesis-ai-coach-手机版.md`（随包提供；源文件改动后由 `build_mobile_single.py` 重新生成）直接发给 AI。详见 `references/mobile-guide.md`。

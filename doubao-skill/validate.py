@@ -8,12 +8,15 @@ thesis-ai-coach 豆包 Skill 结构自检（轻量版自己的 L7 门禁）。
 退出码 0 = 全部通过；1 = 发现问题（打印清单）。
 
 检查项：
-  1. SKILL.md frontmatter（name 与目录名一致、description 非空且含触发词）
+  1. SKILL.md frontmatter（name 必须是 thesis-ai-coach＝桌面安装位目录名，不是本源码目录名 doubao-skill；
+     description 非空且含触发词）
   2. 必备文件齐全（语气/阶段/参考资料）
   3. 阶段文件编号 0-11 连续，且含准入、准出与三闸 checkbox
   4. 全部 md 的内部 .md 引用（链接与反引号）真实存在
   5. 鼓励系统默认打开且可关闭、安全口径存在
   6. 无 TODO/TBD/待补充 等占位残留
+  7. 手机能力边界多处一致、AI 正文草稿边界齐备
+  8. 手机合并单文件在位且与源同步（缺件即 FAIL——它是手机侧唯一"一定能用"的交付物）
 """
 import re
 import sys
@@ -27,11 +30,9 @@ if hasattr(sys.stdout, "reconfigure"):
 ROOT = Path(__file__).resolve().parent
 problems = []
 
-REQUIRED_REFERENCES = [
-    "coaching-protocol.md", "companionship.md", "encouragement-guide.md", "stage-checklist.md",
-    "ai-basics.md", "tools.md", "academic-norms.md", "faq.md", "self-test.md",
-    "mobile-guide.md",
-]
+REQUIRED_REFERENCES = ["coaching-protocol.md", "companionship.md", "encouragement-guide.md",
+                       "stage-checklist.md", "ai-basics.md", "tools.md", "academic-norms.md",
+                       "faq.md", "self-test.md", "mobile-guide.md"]
 REQUIRED_TEMPLATES = ["我的论文进度模板.md"]
 REQUIRED_PERSONALITIES = ["default.md", "concise-direct.md", "gentle-patient.md", "lively-warm.md"]
 STAGE_COUNT = 12
@@ -40,10 +41,6 @@ STAGE_COUNT = 12
 def read(rel):
     p = ROOT / rel
     return p.read_text(encoding="utf-8", errors="replace") if p.exists() else ""
-
-
-def md_files():
-    return sorted(ROOT.rglob("*.md"))
 
 
 # 1. frontmatter -------------------------------------------------------
@@ -131,7 +128,7 @@ def ref_exists(md_path: Path, ref: str):
     return any(c.exists() for c in cands) or Path(ref).name in name_index
 
 
-for md in md_files():
+for md in sorted(ROOT.rglob("*.md")):
     text = md.read_text(encoding="utf-8")
     refs = re.findall(r"\]\(([^)\s#]+\.md)(?:#[^)]*)?\)", text)
     refs += re.findall(r"`([^`\n\s]+\.md)`", text)
@@ -171,7 +168,7 @@ for i in range(STAGE_COUNT):
 # 只认真正的"没写完"标记。**不要**把 \bXXX\b、【】这类**模板填空位**算作残留——
 # 模板里本来就该留空让学生填，误报会让维护者免疫真问题。
 PLACEHOLDER = re.compile(r"TODO|TBD|待补充|待完善|FIXME")
-for md in md_files():
+for md in sorted(ROOT.rglob("*.md")):
     if md.name == "self-test.md":
         continue  # 测试用例文件本身需要描述"检查什么"，含占位符字样属正常
     text = md.read_text(encoding="utf-8")
@@ -211,12 +208,14 @@ mg_all = (mg or "") + read("references/tools.md")
 if "手机上也能跑 SPSS" in mg_all and "不要相信" not in mg_all:
     problems.append("mobile-guide/tools 提到了「手机上也能跑 SPSS」，未同时否定")
 
-# 8. 合并单文件：生成器存在；若产物已在目录内，必须与源同步 -------
-_builder = ROOT / "build_mobile_single.py"
+# 8. 手机合并单文件：缺件与过期都判红——它是手机侧唯一"一定能用"的交付物，也是发布包必备件
+_builder, _single = ROOT / "build_mobile_single.py", ROOT / "thesis-ai-coach-手机版.md"
 if not _builder.exists():
     problems.append("缺少 build_mobile_single.py（手机合并单文件生成器）")
-_single = ROOT / "thesis-ai-coach-手机版.md"
-if _single.exists():
+elif not _single.exists():
+    problems.append("缺少合并单文件 thesis-ai-coach-手机版.md → 跑 python doubao-skill/build_mobile_single.py"
+                    "（手机保底路径就靠这一份文件，缺它等于手机学生没东西可发）")
+else:
     import subprocess
     r = subprocess.run([sys.executable, str(_builder), "--check", "--out", str(_single)],
                        capture_output=True, text=True, encoding="utf-8", errors="replace", timeout=60)
@@ -228,7 +227,7 @@ if _single.exists():
 print("=" * 56)
 print("thesis-ai-coach Skill 结构自检")
 print("=" * 56)
-print(f"Markdown {len(md_files())} 个；阶段文件 {len(stage_files)} 个。")
+print(f"Markdown {len(list(ROOT.rglob('*.md')))} 个；阶段文件 {len(stage_files)} 个。")
 problems = sorted(set(problems))
 if problems:
     print(f"\n发现 {len(problems)} 处问题：")

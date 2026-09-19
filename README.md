@@ -145,16 +145,16 @@ thesis-ai-coach-project/
 ├── tools/                    # 24个可调脚本（含统一菜单、重点文献卡片literature_cards.py、网页预览器、去标识化anonymize_data.py、效应量换算effect_size.py、聚合区分效度validity_cr_ave.py、预试项目分析item_analysis.py、内容效度content_cvi.py、参考文献格式化reference_formatter.py、缺失值分析missing_report.py、前提假设assumption_check.py、配对检验paired_compare.py、多重校正mult_compare.py、大纲排PPT outline_to_ppt.py、工作区补齐setup_workspace.py、开题就绪度自检proposal_readiness.py）+ 菜单实现 menu_io/menu_data/menu_lit/menu_thesis + stats/ 统计实现包（9个模块）
 ├── psychology/               # 量表/统计/伦理知识库
 ├── templates/                # 问卷/大纲/开题/答辩/进度卡/AI声明模板 + 网页范例/
-└── tests/                    # full_e2e.py 一键全量回归（断言主体在 e2e_cases/ 主题片段）、consistency_check.py 文档↔代码一致性、size_ratchet.py 文件尺寸棘轮、专项测试与测试数据
+└── tests/                    # full_e2e.py 一键全量回归（断言主体在 e2e_cases/ 主题片段）、consistency_check.py 文档↔代码一致性、skill_sync_check.py 轻量版跨包口径、size_ratchet.py 文件尺寸棘轮、专项测试与测试数据
 ```
 
-> 维护者/接手者：改动后运行 `python tests/full_e2e.py`（约3-5分钟，689 项断言，自动备份恢复测试数据），退出码 0 才算通过；学生日常使用不需要跑。
+> 维护者/接手者：改动后运行 `python tests/full_e2e.py`（约 3-5 分钟，自动备份恢复测试数据；条数看它最后一行，别在文档里抄），退出码 0 才算通过；学生日常使用不需要跑。
 
 ## 版本
 
-**当前版本：v1.87**（2026-09-19）第一轮**真人走查**暴露的 8 处缺陷全修：进度卡隐私闸（包内基线必须是空白模板）、就绪度自检三处口径（进度卡取值净化 / 假设"空即报" / PPT 与报告体双口径）、两处误伤（同一张图报两遍、一致性守卫误判学生工作区）、排 PPT 前先警告还有几处【】没换并按页列出。学生侧命令不变
+**当前版本：v1.88**（2026-09-19）修掉**手机侧一条发不出去的承诺**：轻量版 README 说合并单文件"保底一定能用"，但它被 `.gitignore` 当构建产物排除、而发布包由 `git archive` 生成 → 两个发布 zip 里都没有它；现改为入库随包分发，并把 `validate.py` 的"缺件照报通过"改成缺件判红。新增跨包守卫 `tests/skill_sync_check.py`：两侧六项硬口径逐项比对 + 版本自述只留一处（过去四处各写一遍已漂成三个数字）。**学生侧命令与规则文本零变化**
 
-**上一个版本：v1.86**（2026-09-19）修掉一处**维护者侧的假失败**：输出编码守卫原先带 `and not sys.stdout.isatty()` 条件，而 `nul`/`/dev/null` 是字符设备、`isatty()` 在那里为真 → 守卫被跳过、退回 GBK，打印 `↔`/`χ²` 就崩，看起来像"检查器报错却没有任何内容"。现改为**无条件生效**（真控制台实测编码本就是 UTF-8，此改动对双击 bat 的学生零影响），并钉了 4 条断言；顺带对齐 `menu.py` 的分册注释。full_e2e 685→689 项
+**上一个版本：v1.87**（2026-09-19）第一轮**真人走查**暴露的 8 处缺陷全修：进度卡隐私闸（包内基线必须是空白模板）、就绪度自检三处口径（进度卡取值净化 / 假设"空即报" / PPT 与报告体双口径）、两处误伤（同一张图报两遍、一致性守卫误判学生工作区）、排 PPT 前先警告还有几处【】没换并按页列出
 
 **更早版本（v1.64 及以前）的逐版说明全部见
 [CHANGELOG.md](CHANGELOG.md)** —— 本 README 自 v1.57 起只保留当前版本与上一版本的摘要，

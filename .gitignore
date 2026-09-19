@@ -111,5 +111,7 @@ tools/stats/__pycache__/
 我的工作区/**/*密码*
 
 
-# ===== 手机版合并单文件是构建产物（由 doubao-skill/build_mobile_single.py 生成，源文件在 doubao-skill/），不入库 =====
-doubao-skill/thesis-ai-coach-手机版.md
+# ===== 手机版合并单文件 thesis-ai-coach-手机版.md 已改为入库（v1.88）=====
+# 它不是中间构建产物，而是手机侧唯一"一定能用"的交付物；而发布包由 git archive 生成、
+# 只装 git 跟踪的文件——过去它被排除在库外，于是两个发布 zip 里都没有它，README 承诺的
+# 保底路径发不出去。陈旧风险由 validate.py 的 --check 同步核对兜住（缺件或过期一律判红）。
