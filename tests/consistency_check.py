@@ -176,12 +176,18 @@ def main():
         for ref in md_refs:
             if ref.startswith(("http", "<")) or "*" in ref:
                 continue
+            if ref.startswith("我的工作区/"):
+                # 工作区里的是**学生自己产出**的文件（如"把大纲存成 我的工作区/05-开题报告/我的开题大纲.md"），
+                # 包里不可能带着它，按文档链接判悬空会在干净副本里必然误报（目录号交给规则 5/5b 管）
+                continue
             if ref in BUILD_ARTIFACT_REFS:
                 continue
             if not doc_exists(md, ref):
                 problems.append(f"[{rel}] 引用了不存在的文档 {ref}")
 
-        # 5. 学生工作区路径引用完整：`我的工作区/子目录或文件` 必须真实存在
+        # 5. 学生工作区路径引用完整：`我的工作区/子目录或文件` 的第一段必须真实存在
+        #    （只核到第一段：目录号写错——把开题写成 02——要抓得到；
+        #      而目录里学生会存什么文件包说了不算，核到整条路径会在干净副本里误报）
         for ws_ref in re.findall(r"`(我的工作区/[^`\n\s]+)`", text):
             if "*" in ws_ref or "<" in ws_ref:
                 continue
@@ -190,7 +196,10 @@ def main():
                 continue
             if "子目录" in ws_ref or "xxx" in ws_ref.lower():
                 continue
-            if not (ROOT / ws_ref.rstrip("/")).exists():
+            first = ws_ref[len("我的工作区/"):].split("/")[0].rstrip(":：")
+            if not first:
+                continue
+            if not (ROOT / "我的工作区" / first).exists():
                 problems.append(f"[{rel}] 引用了不存在的工作区路径 {ws_ref}")
 
         # 5b. 命令示例与图片语法里嵌的"我的工作区/NN-目录"也必须真实存在。
