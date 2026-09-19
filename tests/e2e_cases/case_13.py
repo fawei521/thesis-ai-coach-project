@@ -140,7 +140,7 @@ if True:  # 容器不产生作用域，缩进与拆分前完全一致
     # 文档里删掉。换成它本要表达的不变量：ROADMAP 点名的 .py 必须真实存在。
     ghost75 = [s for s in sorted(set(re.findall(r"([A-Za-z0-9_]+\.py)", rm75)))
                if not any((ROOT / d / s).exists()
-                          for d in ("tools", "tools/stats", "tests", "doubao-skill"))]
+                          for d in ("tools", "tools/stats", "tests", "tests/e2e_cases", "doubao-skill"))]
     check("v175 ROADMAP引用的脚本都存在", not ghost75, str(ghost75))
     rdme75 = tx("README.md")
     check("v175 README版本区收敛", "更早版本（v1.64 及以前）" in rdme75

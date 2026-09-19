@@ -177,7 +177,9 @@ FRAGMENTS = [
     "case_13.py",  # v1.72 单样本模式（--onesample/--constant
     "case_14.py",  # 并行复核会话交付物：行为锁定（防退回） ==========
     "case_15.py",  # v1.83 记账归档
-    "case_16.py",  # v1.84 coach-rules 流程三节下沉为按需读    "case_17.py",  # v1.85 开题就绪度自检工具
+    "case_16.py",  # v1.84 coach-rules 流程三节下沉为按需读
+    "case_17.py",  # v1.85 开题就绪度自检工具
+    "case_18.py",  # v1.89 轻量版口径追平＋点名的完整版能力核对＋行尾单一
 ]
 
 try:
