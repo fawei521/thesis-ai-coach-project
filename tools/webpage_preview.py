@@ -38,7 +38,7 @@ from pathlib import Path
 # --- 输出编码守卫：管道/重定向时强制 UTF-8 ---
 # 中文 Windows 控制台默认 GBK，Python 写真实控制台不受影响，
 # 但 stdout 被管道/重定向时会退回 GBK，遇到特殊字符会 UnicodeEncodeError 崩溃。
-if hasattr(sys.stdout, "reconfigure") and not sys.stdout.isatty():
+if hasattr(sys.stdout, "reconfigure"):
     sys.stdout.reconfigure(encoding="utf-8", errors="replace")
     sys.stderr.reconfigure(encoding="utf-8", errors="replace")
 

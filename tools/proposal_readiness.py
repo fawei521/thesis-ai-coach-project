@@ -19,8 +19,9 @@ from pathlib import Path
 
 # --- 输出编码守卫：管道/重定向时强制 UTF-8 ---
 # 中文 Windows 控制台默认 GBK，stdout 被管道捕获时遇到 ↔ χ² 这类字符会 UnicodeEncodeError；
-# 真实控制台走 Windows 宽字符写入路径，不受影响，故沿用全套件的 isatty 判断口径。
-if hasattr(sys.stdout, "reconfigure") and not sys.stdout.isatty():
+# 真控制台编码本来就是 UTF-8（实测 CREATE_NEW_CONSOLE 下 isatty()=True 且 encoding=utf-8），
+# 而无条件 reconfigure 在它是无操作，所以判断不再依赖 isatty()——NUL 设备上 isatty() 也为真。
+if hasattr(sys.stdout, "reconfigure"):
     sys.stdout.reconfigure(encoding="utf-8", errors="replace")
     sys.stderr.reconfigure(encoding="utf-8", errors="replace")
 

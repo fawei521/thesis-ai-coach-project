@@ -18,12 +18,13 @@ import sys
 # 中文 Windows 控制台默认 GBK，Python 写真实控制台不受影响，
 # 但 stdout 被管道/重定向时会退回 GBK，遇到 ² χ² ⚠ ↔ 等字符直接 UnicodeEncodeError 崩溃。
 # AI 助手与 tests/full_e2e.py 都是以管道捕获输出的，故此处统一为 UTF-8。
-if hasattr(sys.stdout, "reconfigure") and not sys.stdout.isatty():
+if hasattr(sys.stdout, "reconfigure"):
     sys.stdout.reconfigure(encoding="utf-8", errors="replace")
     sys.stderr.reconfigure(encoding="utf-8", errors="replace")
 
-# 共用交互件在 menu_io.py；23 个处理器按"数据与统计""文献与产出"两组分放
-# menu_data.py / menu_lit.py。拆分的直接原因：本文件此前正好撞在单文件 700 行门禁上，
+# 共用交互件在 menu_io.py；处理器按主题分册放：menu_data.py（数据与统计）、
+# menu_lit.py（文献与产出）、menu_thesis.py（开题与材料检查，v1.85 起——menu_lit 已顶到 220 行尺寸闸门）。
+# 拆分的直接原因：本文件此前正好撞在单文件 700 行门禁上，
 # 新工具要进菜单必须先腾出地方（加一项会把 full_e2e 弄红）。
 from menu_io import pause
 from menu_lit import (t_search, t_lit, t_cards, t_chart, t_demo, t_power, t_preview, t_refs,

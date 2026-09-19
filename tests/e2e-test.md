@@ -91,6 +91,8 @@
 | 测试78 | 菜单四件套与 22 项接线（v1.79–v1.80，menu*.py） | 本文件 |
 | 测试79 | 主手册流程三节下沉为按需读（v1.84，core/coach-rules/） | 本文件 |
 | 测试80 | 开题就绪度自检工具（v1.85，proposal_readiness.py / 菜单第23项） | 本文件 |
+| 测试81 | 菜单注释点名的分册必须真实存在（v1.86，menu_*.py） | 本文件 |
+| 测试82 | 输出编码守卫无条件生效（v1.86，NUL 下不假报） | 本文件 |
 
 ---
 
@@ -551,3 +553,32 @@ python tools\mult_compare.py --ps .002,.033,.12,.31 --method all
 5. 菜单第 23 项已接线（标签【23/23】、处理器存在、调用 `proposal_readiness.py`）；入口文档同步。
 6. 口径不打架：题目里"…对…的影响"是本包 proposal-guide 第六节认可的标准句式，**不得**判成违规因果；
    图片按大纲自己所在目录解析。
+
+---
+
+## 测试81：菜单注释点名的分册必须真实存在（v1.86）
+
+**目的**：v1.85 加第 23 项时新起了 `menu_thesis.py`，但 `menu.py` 顶部的分组注释还写着"两组分放
+menu_data.py / menu_lit.py"——注释里点名的模块少了一册。这种漂移编译器抓不到、守卫也不管，
+下一个人照注释找处理器会找错地方（v1.79 拆分时就把"注释与文档要点名真实资产"写进了规矩）。
+
+**步骤与预期**：
+1. 扫 `tools/menu.py` 源码里 `menu_*.py` 形式的点名，逐个核对文件真实存在（不存在的即报）。
+2. 点名的分册集合必须**覆盖磁盘上全部** `menu_*.py`（除入口 `menu.py` 自身）——少写一册即报，
+   这是本版踩到的那个错：真实三册、注释只提两册。
+3. 注释里**不得**再写处理器条数（条数一律由 `MENU` 表自己数出来，见"分母等于项数"那条）——
+   写死数字就是下一次漂移的源头。
+
+## 测试82：输出编码守卫无条件生效（v1.86，NUL 下不假报）
+
+**目的**：Git Bash 的 `/dev/null` 与 Windows 的 `nul` 都是字符设备，`isatty()` 返回 True。
+旧守卫写成 `... and not sys.stdout.isatty()`，在这种环境下会**跳过** UTF-8 归一、退回 GBK，
+打印 `↔`/`χ²` 直接 `UnicodeEncodeError` —— 表现为"退出码 1 却一条错误内容都没有"的**假失败**，
+会把维护者引向查不存在的漂移。
+
+**步骤与预期**：
+1. `python tests/consistency_check.py` 的 stdout 丢给 `subprocess.DEVNULL`，**退出码必须 0**（旧写法此处为 1）。
+2. 全仓库扫描：`tools/`、`tests/`、`doubao-skill/` 里不得再有 `if hasattr(sys.stdout, "reconfigure") ... isatty` 形式的守卫
+   （只匹配代码行，注释里讲原因提到 isatty 不算）。
+3. 真控制台取证：`CREATE_NEW_CONSOLE` 起子进程实测 `isatty()=True` 且 `sys.stdout.encoding` **本就是 utf-8**，
+   `reconfigure(encoding="utf-8")` 成功且是恒等变换 → 改成无条件生效**不影响学生双击 bat 的显示**。

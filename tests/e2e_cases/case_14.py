@@ -177,3 +177,33 @@ if True:  # 容器不产生作用域，缩进与拆分前完全一致
     check("v179菜单可运行且列全各项",
           mk79.returncode == 0 and all(("\n  %d. " % i) in body79 for i in range(1, MENU_N + 1)),
           ((body79 or "") + (mk79.stderr or ""))[-200:])
+
+    # ---- v1.86 编码守卫不再依赖 isatty() ----
+    # 为什么钉这条：Git Bash 的 /dev/null 与 Windows 的 nul 都是字符设备，isatty() 返回 True，
+    # 旧守卫于是跳过 UTF-8 归一、退回 GBK，打印 "文档 ↔ 代码" 这类字符直接 UnicodeEncodeError，
+    # 让维护者看到"退出码 1 却没有一条漂移"的假失败。真控制台实测编码本就是 utf-8，无条件 reconfigure 对它无影响。
+    nul86 = subprocess.run([sys.executable, "tests/consistency_check.py"], stdout=subprocess.DEVNULL,
+                           stderr=subprocess.PIPE, timeout=240)
+    check("v186 输出丢给 NUL 时守卫脚本不假报失败", nul86.returncode == 0,
+          (nul86.stderr or b"").decode("utf-8", "replace")[-260:])
+    lazy86 = []
+    for _d in ("tools", "tests", "doubao-skill"):
+        for _p in (ROOT / _d).rglob("*.py"):
+            if "__pycache__" in _p.parts:
+                continue
+            for _l in _p.read_text(encoding="utf-8").splitlines():
+                if _l.strip().startswith("if hasattr(") and "reconfigure" in _l and "isatty" in _l:
+                    lazy86.append(str(_p.relative_to(ROOT)))
+    check("v186 守卫条件全仓库统一为无条件生效", not lazy86, str(sorted(set(lazy86))))
+    # v1.86：菜单注释点名的分册必须与磁盘真实一致（v1.85 加 menu_thesis 时注释只提两册，就是这类错）。
+    # 注：条数一律不写进注释——由 MENU 表自己数出来（`菜单标签编号连续且分母等于项数` 那条守），
+    # 免得"改菜单忘改注释数字"再制造一次漂移。
+    _m86 = tx("tools/menu.py")
+    _named86 = sorted(set(re.findall(r"menu_\w+\.py", _m86)))
+    _disk86 = sorted(p86.name for p86 in (ROOT / "tools").glob("menu_*.py"))
+    check("v186菜单注释点名的分册齐全且真实", _named86 == _disk86
+          and all((ROOT / "tools" / n).is_file() for n in _named86),
+          "注释=%s 磁盘=%s" % (_named86, _disk86))
+    check("v186菜单注释不再写死处理器条数", "个处理器" not in _m86,
+          [l for l in _m86.splitlines() if "个处理器" in l][:2])
+

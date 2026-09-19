@@ -56,7 +56,7 @@ from stats.dataio import (find_missing_items, parse_scales, read_data,  # noqa: 
                            recoded_item_series, to_float_matrix)
 
 # --- 输出编码守卫：管道/重定向时强制 UTF-8（与 auto_stats.py / effect_size.py 同款）---
-if hasattr(sys.stdout, "reconfigure") and not sys.stdout.isatty():
+if hasattr(sys.stdout, "reconfigure"):
     sys.stdout.reconfigure(encoding="utf-8", errors="replace")
     sys.stderr.reconfigure(encoding="utf-8", errors="replace")
 

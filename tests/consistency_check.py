@@ -20,7 +20,7 @@ from pathlib import Path
 # 中文 Windows 控制台默认 GBK，Python 写真实控制台不受影响，
 # 但 stdout 被管道/重定向时会退回 GBK，遇到 ² χ² ⚠ ↔ 等字符直接 UnicodeEncodeError 崩溃。
 # AI 助手与 tests/full_e2e.py 都是以管道捕获输出的，故此处统一为 UTF-8。
-if hasattr(sys.stdout, "reconfigure") and not sys.stdout.isatty():
+if hasattr(sys.stdout, "reconfigure"):
     sys.stdout.reconfigure(encoding="utf-8", errors="replace")
     sys.stderr.reconfigure(encoding="utf-8", errors="replace")
 

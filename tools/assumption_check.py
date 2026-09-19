@@ -53,7 +53,7 @@ from stats.mathx import (  # noqa: E402
 )
 
 # --- 输出编码守卫：管道/重定向时强制 UTF-8（与其他工具同款，避免 GBK 崩溃）---
-if hasattr(sys.stdout, "reconfigure") and not sys.stdout.isatty():
+if hasattr(sys.stdout, "reconfigure"):
     sys.stdout.reconfigure(encoding="utf-8", errors="replace")
     sys.stderr.reconfigure(encoding="utf-8", errors="replace")
 

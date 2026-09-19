@@ -46,7 +46,7 @@ from datetime import date
 from pathlib import Path
 
 # --- 输出编码守卫：管道/重定向时强制 UTF-8（中文 Windows 控制台默认 GBK）---
-if hasattr(sys.stdout, "reconfigure") and not sys.stdout.isatty():
+if hasattr(sys.stdout, "reconfigure"):
     sys.stdout.reconfigure(encoding="utf-8", errors="replace")
     sys.stderr.reconfigure(encoding="utf-8", errors="replace")
 

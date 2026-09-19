@@ -31,7 +31,7 @@ import shutil
 # --- 输出编码守卫：管道/重定向时强制 UTF-8 ---
 # 中文 Windows 下 stdout 被管道捕获会退回 GBK，遇到 ⚠ → 等字符直接 UnicodeEncodeError；
 # tests/full_e2e.py 与 AI 助手都以管道方式读输出，故统一为 UTF-8。
-if hasattr(sys.stdout, "reconfigure") and not sys.stdout.isatty():
+if hasattr(sys.stdout, "reconfigure"):
     sys.stdout.reconfigure(encoding="utf-8", errors="replace")
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))

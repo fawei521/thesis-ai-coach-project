@@ -12,7 +12,7 @@ PY = sys.executable
 
 # --- 输出编码守卫：管道/重定向时强制 UTF-8（项目门禁统一要求，见 tests/full_e2e.py 全部脚本有编码守卫）---
 import sys as _sys
-if hasattr(_sys.stdout, "reconfigure") and not _sys.stdout.isatty():
+if hasattr(_sys.stdout, "reconfigure"):
     _sys.stdout.reconfigure(encoding="utf-8", errors="replace")
     _sys.stderr.reconfigure(encoding="utf-8", errors="replace")
 
