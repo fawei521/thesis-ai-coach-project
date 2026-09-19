@@ -37,14 +37,16 @@ doubao-skill/
 有些平台不收文件夹、或一次只让发一个附件。用生成器把整个 Skill 合并成一个 md：
 
 ```
-python build_mobile_single.py                     # 输出 thesis-ai-coach-手机版.md
-python build_mobile_single.py --out 输出路径.md
+python build_mobile_single.py                     # 输出到本目录 thesis-ai-coach-手机版.md
+python doubao-skill/build_mobile_single.py        # 从仓库根跑也一样写在 doubao-skill/ 里
+python build_mobile_single.py --out 路径.md        # 只要产物放到别处（相对路径按当前目录解析）
 python build_mobile_single.py --check             # 校验已生成的合并版是否与源文件同步
 ```
 
 - **逐文件原样拼接，不改写任何规则文字**（避免"生成版与源版不一致"）；
 - 带**内容指纹**，源文件改过而忘记重新生成时 `--check` 会报不同步；
-- 发布完整版时**必须重新生成**并把产物放进分发包。
+- 默认输出路径与 `validate.py` 检查的是同一份，且该产物已被 `.gitignore` 排除（构建产物不入库）；
+- 发布完整版时**必须重新生成**（不带 `--out`，让本目录那份保持最新），再把这份产物拷进分发包。
 
 ## 设计原则（改动时必须遵守）
 
@@ -69,13 +71,14 @@ python build_mobile_single.py --check   # 合并版是否与源同步
 鼓励开关、安全口径、手机能力边界、占位符残留）。
 
 发布流程：
-1. 跑 `validate.py` 与 `build_mobile_single.py --check`；
-2. 重新生成合并单文件：`python build_mobile_single.py --out <分发包目录>/thesis-ai-coach-手机版.md`；
+1. 跑 `validate.py` 与 `build_mobile_single.py --check`（产物不在本目录时先不带 `--out` 生成一次）；
+2. 重新生成合并单文件：`python build_mobile_single.py`，再把 `doubao-skill/thesis-ai-coach-手机版.md` 拷进分发包；
 3. 手机端：把**合并单文件**给学生（最稳）；桌面端：把本目录内容同步到 `.user_skills/thesis-ai-coach/`；
 4. 在本文件同级 CHANGELOG.md 追加 Skill 版本条目（Skill 独立语义化版本，并注明"对应完整版 vX.Y.Z"）。
 
 ## 版本
 
+- Skill v1.4.1（2026-09-19）：**合并单文件生成路径修复（维护者侧）**——`build_mobile_single.py` 的默认输出过去按当前目录解析，从项目根跑会把产物写进项目根（不在 .gitignore 内）而 `validate.py` 检查的是本目录那份，导致自检永远报"不同步"、产物长期过期；现默认输出改到本目录（与受检、被忽略的那份同一路径），`--check` 与显式 `--out` 语义不变，自检提示改为给出可执行的重新生成命令，本 README 的用法与发布流程两步同步改正。**12 阶段与规则口径一字未改**，已发给学生的手机版本来就是正确内容。对应完整版 v1.78。
 - Skill v1.4（2026-09-18）：**手机边界修正＋规则优先级＋去人设命名＋AI 正文草稿边界**——手机能力边界改为"阶段 0–6 全程/阶段 7 半程/阶段 8 必须回电脑/写作答辩手机起草+电脑定稿"，设备交接提醒提前到开题通过后；SKILL.md 新增六层"规则优先级"；语气文件改名 gentle-patient/concise-direct/lively-warm；stage-8 统计阈值标注"因教材而异、结合导师意见"；stage-4 授权分级、伦理要求以本校文件为准；coaching-protocol 新增过闸"进度卡更新块"；academic-norms 新增"AI 可做与不可做"边界清单（经要求可生成可编辑正文草稿，但必须标注草稿、逐段报告风险、经学生逐句核实改写，直接提交仍按代写红线处理）；mobile-guide 补截断"分步喂"提示、tools 补完整版校验值要求。对应完整版 v1.61。
 - Skill v1.3（2026-09-17）：**去老师化＋稳定陪伴＋多词检索＋重点卡片＋手机原生适配**——新增 `references/companionship.md`（AI 工具/学习伙伴定位、反情感依附、未成年人条款）；默认自然语气、三种可选"语气"替代人设（活泼热情档降温）；鼓励改原则化自然发挥；阶段 2/4 改多词矩阵与 ≥90 篇候选池、重点文献卡片；重写 `mobile-guide.md` 为手机原生做法＋设备交接单；自测重排 T1–T36、validate 增陪伴/去老师化检查。对应完整版 v1.58。
 - Skill v1.2（2026-09-17）：**手机独立版**——新增 `references/mobile-guide.md`（安装方式/手机能力边界/操作贴士/隐私）与 `build_mobile_single.py`（合并单文件生成器）；SKILL.md 增"手机能力边界"节；`stage-7`／`stage-8` 加"必须回电脑"横幅；`tools.md` 加手机/电脑能力对照并修正学校示例措辞。对应完整版 v1.56.1。

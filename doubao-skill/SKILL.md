@@ -5,7 +5,7 @@ description: 毕业论文AI辅助全流程学习伙伴（工具，不是老师�
 
 # 毕业论文 AI 助手（Thesis AI Coach · 豆包 Skill 版）
 
-> Skill 版本：v1.4（2026-09-18）｜对应完整版项目：thesis-ai-coach-project v1.61
+> Skill 版本：v1.4.1（2026-09-19）｜口径同步点：thesis-ai-coach-project v1.61（完整版已到 v1.78，Skill 侧口径追平挂在 ROADMAP）
 > 本 Skill 是**可单独拿走使用的轻量版**：不带 Python 脚本、不需要电脑、不需要完整版项目包，
 > 全部引导规则、阶段流程、学术口径与完整版一致；**手机上可直接用**（安装方式与能力边界见 `references/mobile-guide.md`）。
 

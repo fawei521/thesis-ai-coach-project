@@ -8,9 +8,12 @@
 学生发这一个文件即可开始，不需要再传别的。
 
 用法：
-    python build_mobile_single.py                       # 输出到当前目录
-    python build_mobile_single.py --out 输出路径.md
-    python build_mobile_single.py --check               # 只校验生成结果是否与源文件同步
+    python doubao-skill/build_mobile_single.py        # 输出到本目录（doubao-skill/），与 CWD 无关
+    python doubao-skill/build_mobile_single.py --out 输出路径.md
+    python doubao-skill/build_mobile_single.py --check   # 只校验生成结果是否与源文件同步
+
+默认输出路径就是 validate.py 检查"产物是否与源同步"的那个路径，两处必须一致：
+在 doubao-skill/ 里生成、在发布时把该文件拷进分发包（或显式 --out 指到分发包目录）。
 
 原则：
   - 逐文件**原样拼接**，不改写任何规则文字（避免"生成版与源版本不一致"）；
@@ -153,7 +156,8 @@ def build():
 
 def main():
     ap = argparse.ArgumentParser(description="把 Skill 合并成单个 Markdown 文件（手机 AI 用）")
-    ap.add_argument("--out", default=DEFAULT_NAME, help="输出文件路径，默认当前目录下的 %s" % DEFAULT_NAME)
+    ap.add_argument("--out", default=str(ROOT / DEFAULT_NAME),
+                    help="输出文件路径，默认本技能目录下的 %s（显式给相对路径时按当前目录解析）" % DEFAULT_NAME)
     ap.add_argument("--check", action="store_true", help="只校验：目标文件是否与源文件同步")
     args = ap.parse_args()
 

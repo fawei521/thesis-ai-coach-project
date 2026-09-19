@@ -221,7 +221,8 @@ if _single.exists():
     r = subprocess.run([sys.executable, str(_builder), "--check", "--out", str(_single)],
                        capture_output=True, text=True, encoding="utf-8", errors="replace", timeout=60)
     if r.returncode != 0:
-        problems.append("合并单文件 thesis-ai-coach-手机版.md 与源文件不同步，请重新生成")
+        problems.append("合并单文件 thesis-ai-coach-手机版.md 与源文件不同步 → "
+                        "跑 python doubao-skill/build_mobile_single.py 重新生成（默认就写在本目录）")
 
 # 汇总 -----------------------------------------------------------------
 print("=" * 56)

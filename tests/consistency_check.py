@@ -87,6 +87,10 @@ def main():
         switches_by_name.setdefault(k.rsplit("/", 1)[-1], set()).update(sw)
     all_switches = (set().union(*switches_by_tool.values()) if switches_by_tool
                     else set()) | SWITCH_WHITELIST
+    # doubao-skill 的维护者脚本（build_mobile_single.py 等）不属 tools/ 命名空间，
+    # 但版本历史里引用它的 --out 是真实开关：并入全局集合即可，不参与按脚本归属核对。
+    for _sp in sorted((ROOT / "doubao-skill").glob("*.py")):
+        all_switches |= tool_switches(_sp)
     all_exports = set()
     for p in tool_keys.values():
         all_exports |= py_export_suffixes(p)

@@ -1047,6 +1047,28 @@ try:
             if not rmtree_retry(md_dir):
                 print("WARN 手机版构建临时目录未能删除（请手动清理）：" + str(md_dir))
 
+        # ---- v1.78 生成器默认输出路径必须就是 validate.py 检查的那一份 ----
+        # 历史缺陷：默认路径按 CWD 解析，在仓库根跑就写到根目录，技能目录里那份永远过期，
+        # 于是 validate 报"不同步"、旧语气名断言跟着红，两条报警都指不到真因。
+        _art = SK / "thesis-ai-coach-手机版.md"
+        _bak = _art.read_bytes() if _art.exists() else None
+        _mtmp = new_tmp("v178mobile")
+        try:
+            rb = subprocess.run([sys.executable, str(bsp)], capture_output=True, text=True,
+                                encoding="utf-8", errors="replace", timeout=120, cwd=str(_mtmp))
+            check("v178默认输出落技能目录而非当前目录",
+                  rb.returncode == 0 and _art.exists() and not list(_mtmp.glob("*.md")),
+                  (rb.stderr or rb.stdout or "")[-200:])
+            rc3 = subprocess.run([sys.executable, str(bsp), "--check"], capture_output=True,
+                                 text=True, encoding="utf-8", errors="replace", timeout=60,
+                                 cwd=str(_mtmp))
+            check("v178换目录跑--check仍判同步", rc3.returncode == 0, (rc3.stdout or "")[-160:])
+        finally:
+            if _bak is not None:
+                _art.write_bytes(_bak)
+            elif _art.exists():
+                _art.unlink()
+
     # ---- v1.58 身份/稳定陪伴/鼓励自然化/多词检索/90篇候选池/重点卡片/手机原生适配 ----
     companionship = ROOT / "core" / "companionship.md"
     skill_comp = SK / "references" / "companionship.md"
@@ -1082,9 +1104,12 @@ try:
         check("v161语气文件改名_" + newnm,
               (SK / "personalities" / (newnm + ".md")).exists()
               and not (SK / "personalities" / (oldnm + ".md")).exists())
+    # 合并单文件是构建产物（.gitignore 已排除），过期由 validate.py 的同步检查抓，
+    # 不在这里当源码问题报——否则一条"旧语气名"能把人引到完全错的方向。
     check("v161旧语气名清零(除版本历史)",
           all(oldnm not in p.read_text(encoding="utf-8")
-              for p in SK.rglob("*.md") if p.name not in ("CHANGELOG.md", "README.md")
+              for p in SK.rglob("*.md")
+              if p.name not in ("CHANGELOG.md", "README.md", "thesis-ai-coach-手机版.md")
               for oldnm in ("strict-ceo", "gentle-sister", "puppy")))
     s8 = tx("doubao-skill/stages/stage-8-analysis.md")
     check("v161统计阈值标争议",
