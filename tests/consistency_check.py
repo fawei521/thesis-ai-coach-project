@@ -170,10 +170,10 @@ def main():
                     problems.append(f"[{rel}] 文档声称导出 {exp}，但没有任何工具写出该文件")
 
         # 4. 文档导航完整性：markdown 链接与反引号里引用的 .md 必须真实存在
-        #    （AI 会按引导去读这些文件，悬空会直接断链）；裸文件名用全项目同名兜底
+        #    （AI 会按引导去读）；裸文件名全项目兜底；学生工作区不核对——那里学生自己命名、常在包外
         md_refs = set(re.findall(r"\]\(([^)\s#]+\.md)(?:#[^)]*)?\)", text))
         md_refs |= set(re.findall(r"`([^`\n\s]+\.md)`", text))
-        for ref in md_refs:
+        for ref in ([] if is_workspace else md_refs):
             if ref.startswith(("http", "<")) or "*" in ref:
                 continue
             if ref.startswith("我的工作区/"):

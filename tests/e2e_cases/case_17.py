@@ -25,6 +25,9 @@ if True:  # 容器不产生作用域，缩进与其他片段一致
 - 样本回收慢
 """
     GOOD17 = """# 我的开题大纲
+副标题：开题报告
+汇报人：张三
+指导教师：李老师
 ## 第1页：选题背景与意义
 - 青少年 AI 陪伴使用普及，需要弄清它与心理风险的关系
 ## 第2页：文献综述与研究空白
@@ -46,6 +49,8 @@ if True:  # 容器不产生作用域，缩进与其他片段一致
 - 回收慢则扩大渠道并如实报告样本局限
 ## 第9页：参考文献
 - 李强, 2023；王芳, 2021（均已在库中核对原文）
+## 第10页：请老师指正
+- 谢谢各位老师，恳请批评指正
 """
     (_d17 / "我的模型图.png").write_bytes(b"\x89PNG\r\n\x1a\n")
     (_d17 / "坏大纲.md").write_text(BAD17, encoding="utf-8")
@@ -55,8 +60,8 @@ if True:  # 容器不产生作用域，缩进与其他片段一致
         "- 自变量 X：AI情感依赖\n- 因变量 Y：非自杀性自伤\n- 计划答辩时间：2027年5月\n", encoding="utf-8")
     b17 = run(["tools/proposal_readiness.py", str(_d17 / "坏大纲.md"), str(_d17 / "进度卡.md"), "--strict"])
     bo17 = (b17.stdout or "") + (b17.stderr or "")
-    check("v185 坏大纲能跑通并报缺项", b17.returncode == 1 and "八节里的「参考文献」没找到" in bo17
-          and "留着【】" in bo17 and "找不到，排成 PPT 会是空框" in bo17, bo17[-500:])
+    check("v185 坏大纲能跑通并报缺项", b17.returncode == 1 and "没找到——按 proposal-guide" in bo17
+          and "处【】没换成你自己的内容" in bo17 and "找不到，排成 PPT 会是空框" in bo17, bo17[-500:])
     check("v185 坏大纲抓到三类风险",
           "未成年人却没写知情同意" in bo17 and "强因果措辞" in bo17 and "混进了工具脚本名" in bo17, bo17[-500:])
     check("v185 进度卡与大纲不一致能抓到", "AI情感依赖 在大纲中找不到" in bo17
@@ -80,3 +85,31 @@ if True:  # 容器不产生作用域，缩进与其他片段一致
           and "就绪度" in tx("QUICKSTART.md"))
     check("v185 不写论文正文的红线写在工具里",
           "不代写" in tx("tools/proposal_readiness.py") and "只报问题" in tx("tools/proposal_readiness.py"))
+    # ---- v1.87 真人走查缺陷修：S1 隐私闸 ----
+    # `我的工作区/我的论文进度.md` 是被 git 跟踪、随发布包分发的**空白模板**；学生填的是同一个路径。
+    # 一旦哪次 `git add -A` 把填写版提交上去，姓名/导师就会进别人的下载包（2026-09-19 走查实测差点发生）。
+    # 所以盯 git 基线（不是工作副本——工作副本本就该由学生自己填）：身份三行必须仍是空的。
+    if (ROOT / ".git").exists():               # 只在有 git 的形态跑（开发树/worktree）；发布副本没有 .git 自然跳过
+        _base87 = subprocess.run(["git", "show", "HEAD:我的工作区/我的论文进度.md"], cwd=str(ROOT),
+                                 capture_output=True, text=True, encoding="utf-8", timeout=60)
+        _fields87 = ("- 学生姓名/昵称", "- 指导教师", "- 计划答辩时间",
+                   "- 论文题目（暂定）", "- 自变量 X", "- 因变量 Y")
+        def filled87(text):
+            rows = [l for l in text.splitlines() if l.split("：")[0] in _fields87]
+            return len(rows), [l for l in rows if l.split("：", 1)[1].strip()]
+        _n87, _hot87 = filled87(_base87.stdout or "")
+        check("v187包内进度卡基线仍是空白模板", _base87.returncode == 0 and _n87 == 6 and not _hot87,
+              ("填了%d条 " % len(_hot87)) + str(_hot87)[:110] + (_base87.stderr or "")[:60])
+        # 尺子不空转的现场证明：同一把尺量**工作副本**（学生真填过的那份）必须判红，
+        # 否则"基线全空"可能只是没人在看。这里不断言，只在失败时把证据带进报告。
+        _nw87, _hw87 = filled87(tx("我的工作区/我的论文进度.md"))
+        check("v187同一把尺量工作副本要能抓到填写痕迹", _hw87 and len(_hw87) >= 1,
+              "工作副本命中 %d 条" % len(_hw87))
+    # S5：菜单第21项排 PPT 前要先警告占位符没换（不阻塞、不吃输入，避免改变既有交互断言）
+    _ppt87 = tx("tools/menu_lit.py")
+    check("v187排PPT前警告未替换占位", "处【】没换成你自己的内容" in _ppt87 and "菜单第 23 项" in _ppt87)
+    # S4：PPT 与报告体两套口径；S2/S3：进度卡取值净化与假设"空即报"
+    _pr87 = tx("tools/proposal_readiness.py")
+    check("v187就绪度双口径与取值净化已生效",
+          "SECTIONS_PPT" in _pr87 and "SECTIONS_REPORT" in _pr87 and "def clean_value" in _pr87
+          and '("研究假设", "HYP")' in _pr87)

@@ -29,15 +29,25 @@ ROOT = Path(__file__).resolve().parents[1]
 DEF_OUTLINE = ROOT / "我的工作区" / "05-开题报告" / "我的开题大纲.md"
 DEF_PROGRESS = ROOT / "我的工作区" / "我的论文进度.md"
 
-# 开题报告八节（proposal-guide.md 第二节）：任一关键词命中即认为写了
-SECTIONS = [("选题背景与意义", ["背景", "意义"]),
-            ("国内外研究现状", ["文献", "综述", "研究现状"]),
-            ("研究问题与假设", ["假设", "研究问题", "H1"]),
-            ("研究方法与设计", ["方法", "设计", "程序"]),
-            ("研究创新点", ["创新"]),
-            ("研究进度安排", ["进度", "安排", "时间表"]),
-            ("预期困难与对策", ["困难", "局限", "对策"]),
-            ("参考文献", ["参考文献"])]
+# 报告体八节（proposal-guide.md 第二节）：任一关键词命中即认为写了
+SECTIONS_REPORT = [("选题背景与意义", ["背景", "意义"]),
+                   ("国内外研究现状", ["文献", "综述", "研究现状"]),
+                   ("研究问题与假设", ["假设", "研究问题", "H1"]),
+                   ("研究方法与设计", ["方法", "设计", "程序"]),
+                   ("研究创新点", ["创新"]),
+                   ("研究进度安排", ["进度", "安排", "时间表"]),
+                   ("预期困难与对策", ["困难", "局限", "对策"]),
+                   ("参考文献", ["参考文献"])]
+# PPT 汇报八项（proposal-guide.md 第四节）：与报告体**不是一套**，
+# 拿报告口径去判 PPT 大纲会假报"参考文献没找到"（v1.86 真人走查 S4）。
+SECTIONS_PPT = [("封面（题目/姓名/导师/日期）", ["副标题", "汇报人", "指导教师"]),
+                ("选题背景", ["背景"]),
+                ("文献综述与研究空白", ["综述", "空白"]),
+                ("研究模型与假设", ["模型", "假设"]),
+                ("研究方法（对象/量表/分析）", ["方法", "对象", "量表", "分析"]),
+                ("创新点", ["创新"]),
+                ("进度安排", ["进度"]),
+                ("致谢/请老师指正", ["指正", "致谢", "谢谢"])]
 # 进度卡字段 → 内部标签；值里留着" / "说明是模板选项、按未填处理
 FIELDS = [("论文题目", "TITLE"), ("研究类型", "TYPE"), ("自变量", "X"), ("因变量", "Y"),
           ("中介变量 M1", "M1"), ("中介变量 M2", "M2"), ("调节变量", "W"),
@@ -51,17 +61,30 @@ TOOLISH = re.compile(r"(tools/\w+\.py|\w+\.py\b|auto_stats|outline_to_ppt|sample
                      r"|menu\.py|启动工具箱|--[a-z][a-z-]+)")
 
 
+def clean_value(val):
+    """把"- 字段：值"里的值净化成可比对的**核心词**：真人会写 `非自杀性自伤（NSSI）`、`暂无，待定`、
+    `**自然**（走查时选的）`，整串拿去和大纲做子串比对必然假报"两边对不上"（v1.86 真人走查 S2）。"""
+    v = val.strip().replace("**", "").replace("`", "").lstrip("*").strip()
+    v = re.split(r"[（(—、；;，]| {2,}", v, maxsplit=1)[0].strip()
+    if not v or v in ("无", "暂无", "暂定", "待定", "N/A", "na", "-") or " / " in val or "默认" in val:
+        return ""
+    return v
+
+
 def parse_progress(text):
     out = {}
     for line in text.splitlines():
         m = re.match(r"^\s*[-*]\s*([^：:]+)[：:]\s*(.*)$", line)
         if not m:
+            # 假设常写成缩进子条目（"- 研究假设：" 下面 "- H1 …"）：冒号后为空也要认成"已列条目"，
+            # 否则会漏报"假设没写进大纲"（v1.86 真人走查 S3）。
+            if "HYP" in out and not out["HYP"] and re.match(r"^\s+[-*]\s*H\d+\b", line):
+                out["HYP"] = "已列条目"
             continue
         key, val = m.group(1).strip(), m.group(2).strip()
         for zh, tag in FIELDS:
             if zh in key and tag not in out:
-                filled = bool(val) and " / " not in val and "默认" not in val and val != "暂定"
-                out[tag] = val if filled else ""
+                out[tag] = clean_value(val)
     return out
 
 
@@ -82,14 +105,27 @@ def check(outline, prog, base=None):
     want, got = [], []
     base = Path(base) if base else DEF_OUTLINE.parent   # 图片按"大纲自己所在目录"解析
     body = outline.replace("\n", " ")
-    for name, keys in SECTIONS:
+    # 输入是 PPT 大纲还是报告正文，两套口径分开核（v1.86 真人走查 S4：以前拿报告八节判 PPT，
+    # 对着一份本来就不含参考文献页的汇报大纲报"参考文献没找到"）
+    ppt = bool(re.search(r"第\s*\d+\s*页", outline))
+    secs, 口径, 量词 = (SECTIONS_PPT, "第四节", "项") if ppt else (SECTIONS_REPORT, "第二节", "节")
+    for name, keys in secs:
         if not any(k in body for k in keys):
-            want.append(("缺项", "八节里的「%s」没找到——按 proposal-guide 第二节补上这一节" % name))
-    ph = [i + 1 for i, l in enumerate(outline.splitlines()) if "【" in l]
+            want.append(("缺项", "%s里的「%s」没找到——按 proposal-guide %s补上这一%s"
+                         % ("汇报八项" if ppt else "报告八节", name, 口径, 量词)))
+    lines = outline.splitlines()
+    ph = sum(l.count("【") for l in lines)
     if ph:
-        want.append(("缺项", "还有 %d 行留着【】没换成你自己的内容（第 %s 行）——占位没换就交是硬伤"
-                     % (len(ph), "、".join(map(str, ph[:12])) + ("…" if len(ph) > 12 else ""))))
-    imgs = re.findall(r"!\[[^\]]*\]\(([^)]+)\)", outline) + re.findall(r"([^\s（）()]+\.png)", outline)
+        tally, cur = {}, "（封面/开头）"
+        for ln in lines:                       # 按页分组，零基础同学才对得上是哪一页要补（S6）
+            if re.match(r"^#{1,4}\s", ln):
+                cur = ln.lstrip("#").strip()[:14]
+            if "【" in ln:
+                tally[cur] = tally.get(cur, 0) + ln.count("【")
+        want.append(("缺项", "还有 %d 处【】没换成你自己的内容，按页看：%s——占位没换就交是硬伤"
+                     % (ph, "、".join("%s %d 处" % (k, v) for k, v in list(tally.items())[:8]))))
+    imgs = list(dict.fromkeys(re.findall(r"!\[[^\]]*\]\(([^)]+)\)", outline)
+                            + re.findall(r"([^\s（）()]+\.png)", outline)))
     if "模型" in body and not imgs:
         want.append(("缺项", "写了研究模型却没有模型图——假设与路径要靠图讲清（菜单第6项可生成）"))
     for im in imgs:

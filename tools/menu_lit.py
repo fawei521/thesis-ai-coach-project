@@ -185,6 +185,10 @@ def t_ppt():
     print("  还没有大纲？先拷模板：templates\\opening-ppt-outline.md（12 页开题结构，把【】换成你的内容）")
     f = ask_path("  把你的大纲 .md 拖进来（直接回车=我的工作区\\05-开题报告\\我的开题大纲.md）：",
                  must_exist=False) or "我的工作区/05-开题报告/我的开题大纲.md"
+    _ph = Path(f).read_text(encoding="utf-8-sig", errors="replace").count("【") if Path(f).exists() else 0
+    if _ph:
+        print(f"  ⚠ 这份大纲还有 {_ph} 处【】没换成你自己的内容：PPT 照样排得出来，但那几页上就是占位符。")
+        print("    想按页看清楚缺哪几处，先用菜单第 23 项跑一次就绪度自检。")
     if not Path(f).exists():
         print("  ✗ 没找到大纲：" + f)
         print("    把 templates\\opening-ppt-outline.md 拷成上面这个路径、填好【】再回来跑这一项。")
