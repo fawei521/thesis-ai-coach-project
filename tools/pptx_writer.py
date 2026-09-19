@@ -16,6 +16,9 @@
 版式用 python-pptx 默认模板的 layout 名，按名字取而不是按序号，避免模板版本变化时错位：
   Title Slide / Title and Content / Section Header / Title Only / Blank
 
+中文字体：save() 会把主题里的 latin/ea/cs 字体槽统一写成 cn_font（默认 微软雅黑）。
+不写的话模板里的 a:ea 是空的，中文用哪套字体全由打开它的那台机器的 Office 主题决定。
+
 页面尺寸：默认 4:3（默认模板的占位符坐标按 4:3 排布）。
 ratio="16:9" 时会把母版与全部版式里显式定位的形状横坐标按 4/3 缩放，
 所以内容仍然是居中的，不会挤在左边。
@@ -31,6 +34,11 @@ _LAYOUT_NAMES = {
 
 SLIDE_W_4X3 = 9144000     # EMU，10in
 SLIDE_H = 6858000         # 7.5in
+
+# python-pptx 默认模板的主题里 `a:ea`（东亚字体槽）是空的，中文实际用哪套字体
+# 完全由打开它的这台机器的 Office 主题决定（宋体/等线/雅黑各台不同）。
+# 产出物要拿去别处放映，字体就得写死在包里，否则换台机器版式就变。
+DEFAULT_CN_FONT = "微软雅黑"
 
 # --- 输出编码守卫：管道/重定向时强制 UTF-8（项目门禁统一要求）---
 import sys as _sys
@@ -63,13 +71,14 @@ INSTALL_HINT = "pip install python-pptx"
 class Presentation:
     """攒一页页内容，最后 save() 成 .pptx。"""
 
-    def __init__(self, title="", author="", ratio="4:3"):
+    def __init__(self, title="", author="", ratio="4:3", cn_font=DEFAULT_CN_FONT):
         api = _pptx()
         if api is None:
             raise RuntimeError(
                 f"生成 .pptx 需要 python-pptx，请先执行：{INSTALL_HINT}\n"
                 "（未安装时请改用 markdown 大纲交付，不要让流程断在这里。）")
         self._api = api
+        self.cn_font = cn_font or ""
         self.prs = api["Presentation"]()
         self.prs.slide_width = api["Emu"](SLIDE_W_4X3)
         self.prs.slide_height = api["Emu"](SLIDE_H)
@@ -235,6 +244,8 @@ class Presentation:
         out = Path(path)
         out.parent.mkdir(parents=True, exist_ok=True)
         self.prs.save(str(out))
+        if getattr(self, "cn_font", ""):
+            _apply_theme_fonts(out, self.cn_font)
         return out
 
     def _to_169(self):
@@ -281,3 +292,42 @@ def _png_size(path):
     if head[:8] != b"\x89PNG\r\n\x1a\n" or head[12:16] != b"IHDR":
         raise ValueError(f"只支持 PNG：{path}")
     return int.from_bytes(head[16:20], "big"), int.from_bytes(head[20:24], "big")
+
+
+def _apply_theme_fonts(path, cn_font):
+    """把主题里的字体槽（major/minor 各自的 latin / ea / cs）统一写成 cn_font。
+
+    直接改包内 `ppt/theme/themeN.xml`：python-pptx 把主题当不透明二进制部件存着，
+    没有公开 API 可写 `a:ea`，而东亚字体不写就等于交给各台机器的 Office 主题去猜。
+    返回 True 表示确实改到了（模板没有主题部件时不动文件）。
+    """
+    import re
+    import shutil
+    import zipfile
+
+    safe = (cn_font.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;"))
+    slot = re.compile(r'(<a:(?:latin|ea|cs)\b[^>]*?typeface=")[^"]*(")')
+    with zipfile.ZipFile(path) as zin:
+        names = zin.namelist()
+        items = {n: zin.read(n) for n in names}
+        stamps = {n: zin.getinfo(n).date_time for n in names}
+        types = {n: zin.getinfo(n).compress_type for n in names}
+    changed = False
+    for n in names:
+        if not (n.startswith("ppt/theme/theme") and n.endswith(".xml")):
+            continue
+        xml = items[n].decode("utf-8")
+        new = slot.sub(lambda m: m.group(1) + safe + m.group(2), xml)
+        if new != xml:
+            items[n] = new.encode("utf-8")
+            changed = True
+    if not changed:
+        return False
+    tmp = str(path) + ".fonts.tmp"
+    with zipfile.ZipFile(tmp, "w", zipfile.ZIP_DEFLATED) as zout:
+        for n in names:                       # 顺序、压缩方式、时间戳都照原样，OPC 读方才稳
+            info = zipfile.ZipInfo(n, date_time=stamps[n])
+            info.compress_type = types[n]
+            zout.writestr(info, items[n])
+    shutil.move(tmp, str(path))               # 同盘覆盖，不留临时文件
+    return True

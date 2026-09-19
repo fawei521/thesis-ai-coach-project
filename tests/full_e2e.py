@@ -2161,6 +2161,40 @@ try:
             finally:
                 zz.close()
         check("PPT真生成且包结构合法", okp, (rr.stdout or "")[-200:])
+
+        # ---- v1.81 主题中文字体：生成物要拿到别处放映，字体必须写死在包里 ----
+        # 默认模板的 a:ea 是空的，中文落到哪套字体全看各台机器的 Office 主题（宋体/等线/雅黑不一致）。
+        def _theme_ea(pptx_path):
+            zz = zipfile.ZipFile(str(pptx_path))
+            try:
+                th = zz.read("ppt/theme/theme1.xml").decode("utf-8")
+            finally:
+                zz.close()
+            return re.findall(r'<a:ea typeface="([^"]*)"', th)
+
+        if okp:
+            ea_default = _theme_ea(outp)
+            check("PPT主题默认写入中文字体",
+                  len(ea_default) >= 2 and all(f == "微软雅黑" for f in ea_default), str(ea_default))
+            out_song = v76 / "宋体.pptx"
+            rr_s = run([op76, str(good76), "-o", str(out_song), "--cn-font", "宋体"])
+            ea_song = _theme_ea(out_song) if rr_s.returncode == 0 and out_song.exists() else []
+            check("PPT可换指定中文字体", bool(ea_song) and all(f == "宋体" for f in ea_song), str(ea_song))
+            out_raw = v76 / "不改.pptx"
+            rr_n = run([op76, str(good76), "-o", str(out_raw), "--cn-font", "none"])
+            ea_raw = _theme_ea(out_raw) if rr_n.returncode == 0 and out_raw.exists() else ["跑不起来"]
+            check("PPT选none时不动主题字体", all(f == "" for f in ea_raw), str(ea_raw))
+            # 改主题要重写 zip：包还能被 python-pptx 打开、页页与越界不变量都不许退化
+            try:
+                from pptx import Presentation as _Pr76
+                _pp = _Pr76(str(out_song))
+                _w, _h = _pp.slide_width, _pp.slide_height
+                _over = [(_i, sh.shape_type) for _i, _s in enumerate(_pp.slides, 1) for sh in _s.shapes
+                         if sh.left is not None and sh.width is not None
+                         and (sh.left + sh.width > _w + 100 or sh.top + sh.height > _h + 100)]
+                check("PPT改字体后仍可回读且不越页", len(_pp.slides) == 4 and not _over, str(_over[:3]))
+            except Exception as _e76:
+                check("PPT改字体后仍可回读且不越页", False, repr(_e76)[:200])
     except ImportError:
         rr = run([op76, str(good76)])
         check("PPT缺依赖时优雅降级", rr.returncode != 0 and "python-pptx" in (rr.stdout or "")

@@ -197,9 +197,12 @@ def t_ppt():
     out = ask_path("  输出 .pptx 存哪儿？（直接回车=与大纲同名同目录）：", must_exist=False)
     if out:
         args += ["-o", out]
+    font = input("  中文用什么字体？直接回车=微软雅黑；学校要求宋体就输入 宋体；输入 none=不改主题字体：").strip()
+    if font:
+        args += ["--cn-font", font]
     run("outline_to_ppt.py", args)
     print("\n  这一步需要 python-pptx（未装时工具会给出安装提示并退回大纲本身，不会崩）。")
-    print("  生成后自己放映一遍：中文字体由各台机器的 Office 主题决定，不合适就在 PPT 里统一改字体。")
+    print("  生成后自己放映一遍：字体已写进文件主题，但换机器仍建议现场打开确认一遍版式。")
 
 
 def t_workspace():

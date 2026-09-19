@@ -35,6 +35,7 @@
 用法：
   python tools/outline_to_ppt.py 我的开题大纲.md
   python tools/outline_to_ppt.py 大纲.md -o 我的工作区/07-答辩材料/答辩.pptx
+  python tools/outline_to_ppt.py 大纲.md --cn-font 宋体     # 中文写宋体（默认微软雅黑；none=不改主题）
 
 依赖 python-pptx（见 requirements.txt）。未安装时给出安装提示并退回"大纲本身即可用"，
 退出码 1，不会崩在 ImportError 上。
@@ -194,10 +195,10 @@ def check_images(pages):
                 f" 用 chart_generator 导出时加 --format png，或先转成 PNG。")
 
 
-def build(meta, pages, out_path):
+def build(meta, pages, out_path, cn_font=W.DEFAULT_CN_FONT):
     pr = W.Presentation(title=meta["title"] or "报告",
                         author=" / ".join(x for x in (meta["presenter"],) if x) or "",
-                        ratio=meta["ratio"])
+                        ratio=meta["ratio"], cn_font=cn_font)
     made = {"cover": 0, "bullets": 0, "section": 0, "table": 0, "picture": 0}
     for i, pg in enumerate(pages, 1):
         note = "\n".join(pg["notes"]) or ""
@@ -242,6 +243,9 @@ def main():
     ap.add_argument("outline", nargs="?", help="大纲 markdown 文件")
     ap.add_argument("-o", "--output", default="", help="输出 .pptx 路径（默认同名同目录）")
     ap.add_argument("--dry-run", action="store_true", help="只校验大纲并打印分页结构，不出文件")
+    ap.add_argument("--cn-font", default=W.DEFAULT_CN_FONT,
+                    help="写进主题的中文/西文字体名（默认 %s；学校要求宋体就填宋体；填 none 表示不改主题）"
+                         % W.DEFAULT_CN_FONT)
     args = ap.parse_args()
     if not args.outline:
         ap.print_help()
@@ -278,9 +282,11 @@ def main():
         print("大纲校验通过。")
         return
     out = Path(args.output) if args.output else src.with_suffix(".pptx")
-    saved, made = build(meta, pages, out)
+    font = "" if str(args.cn_font).strip().lower() in ("none", "无", "不改") else args.cn_font
+    saved, made = build(meta, pages, out, cn_font=font)
     print("已生成：" + str(saved))
     print("  " + "  ".join(f"{k}={v}" for k, v in made.items() if v))
+    print("  主题字体：" + (font or "未改（用模板默认，中文由本机 Office 主题决定）"))
     print("红线：以上是按你的大纲排版的**你自己的内容**；答辩前请把每页数字与"
           "开题报告正文逐一核对，工具不替你判断对错。")
 
