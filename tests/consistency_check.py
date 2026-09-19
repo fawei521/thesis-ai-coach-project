@@ -30,9 +30,9 @@ TOOLS = ROOT / "tools"
 # 通用/文档示意开关，不属于某个脚本但允许出现在文档里
 SWITCH_WHITELIST = {"--help", "-h", "--outdir", "-o", "--version"}
 
-# 构建产物：由脚本生成、被 .gitignore 排除，因此**干净解压副本里必然不存在**。
-# 文档引用它们是正确的（要告诉维护者产物在哪），不能当悬空链接报漂移。
+# 构建产物（.gitignore）与仓库内档案（export-ignore）都不随包分发；包内引用它们是对的，不报悬空。
 BUILD_ARTIFACT_REFS = {"doubao-skill/thesis-ai-coach-手机版.md"}
+ARCHIVE_DIR_PRESENT = (ROOT / "维护档案").is_dir()
 
 
 def tool_switches(py_path: Path):
@@ -180,7 +180,7 @@ def main():
                 # 工作区里的是**学生自己产出**的文件（如"把大纲存成 我的工作区/05-开题报告/我的开题大纲.md"），
                 # 包里不可能带着它，按文档链接判悬空会在干净副本里必然误报（目录号交给规则 5/5b 管）
                 continue
-            if ref in BUILD_ARTIFACT_REFS:
+            if ref in BUILD_ARTIFACT_REFS or (ref.startswith("维护档案/") and not ARCHIVE_DIR_PRESENT):  # 开发树里仍严格
                 continue
             if not doc_exists(md, ref):
                 problems.append(f"[{rel}] 引用了不存在的文档 {ref}")
