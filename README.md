@@ -140,7 +140,7 @@ thesis-ai-coach-project/
 ├── README.md / CONSTITUTION.md / ROADMAP.md
 ├── DEVELOPMENT.md            # 维护者强制开发流程（九阶段门+测试金字塔，改功能前必读）
 ├── 我的工作区/                # 学生自己的文件：01-文献PDF/02-问卷数据/03-分析结果/04-网页 + 我的论文进度.md
-├── core/                     # AI规则（coach-rules）+ 身份陪伴边界（companionship）+ 引导反馈协议 + 鼓励系统 + AI素养
+├── core/                     # AI规则（coach-rules + 下沉细则 coach-rules/）+ 身份陪伴边界（companionship）+ 引导反馈协议 + 鼓励系统 + AI素养
 ├── workflows/                # 10个阶段工作流手册
 ├── tools/                    # 23个可调脚本（含统一菜单、重点文献卡片literature_cards.py、网页预览器、去标识化anonymize_data.py、效应量换算effect_size.py、聚合区分效度validity_cr_ave.py、预试项目分析item_analysis.py、内容效度content_cvi.py、参考文献格式化reference_formatter.py、缺失值分析missing_report.py、前提假设assumption_check.py、配对检验paired_compare.py、多重校正mult_compare.py、大纲排PPT outline_to_ppt.py、工作区补齐setup_workspace.py）+ 菜单实现 menu_io/menu_data/menu_lit + stats/ 统计实现包（9个模块）
 ├── psychology/               # 量表/统计/伦理知识库
@@ -148,15 +148,13 @@ thesis-ai-coach-project/
 └── tests/                    # full_e2e.py 一键全量回归（断言主体在 e2e_cases/ 主题片段）、consistency_check.py 文档↔代码一致性、size_ratchet.py 文件尺寸棘轮、专项测试与测试数据
 ```
 
-> 维护者/接手者：改动后运行 `python tests/full_e2e.py`（约3-5分钟，663 项断言，自动备份恢复测试数据），退出码 0 才算通过；学生日常使用不需要跑。
+> 维护者/接手者：改动后运行 `python tests/full_e2e.py`（约3-5分钟，676 项断言，自动备份恢复测试数据），退出码 0 才算通过；学生日常使用不需要跑。
 
 ## 版本
 
-**当前版本：v1.83**（2026-09-19）三本账瘦身：历史正文移入仓库内 `维护档案/`（git 追踪、发布包不携带）
-- `CHANGELOG.md` 156KB→34KB、`PROJECT_PLAN.md` 68KB→16KB、`tests/e2e-test.md` 116KB→54KB；包内仍留**全量版本索引**与用例编号索引，正文一字未改，只是搬到不分发的目录
-- 新规矩：版本索引行的主题列 ≤40 字，细节只在详情区写一次；回归 655→663 项
+**当前版本：v1.84**（2026-09-19）必读瘦身收尾：`core/coach-rules.md` 的 12 阶段工作流 / 8 类常见错误 / 工具调用规范三节下沉到 `core/coach-rules/` 改按需读，主手册 395→216 行、28.9KB→14.3KB（正文一字未改，拼回逐行全等）；AI 每轮少读约 14KB，学生侧命令与产出零影响；full_e2e 664→676 项
 
-**上一个版本：v1.82** 统计包与回归套件按主题拆分（`stats/regress.py` 700 行撞门禁 → 5 个模块、`full_e2e.py` 2270 行 → 壳 + 14 个主题片段），并新增文件尺寸棘轮（新文件 ≤220 行、存量冻结只减不增）；学生侧命令与导出文件名全部不变；full_e2e 647→655 项；逐条见 CHANGELOG。
+**上一个版本：v1.83** 三本账瘦身：历史正文移入仓库内 `维护档案/`（git 完整追踪、发布包不携带），包内仍留**全量版本索引**与用例编号索引；新规矩：索引行的主题列 ≤40 字、细节只在详情区写一次；full_e2e 655→664 项
 
 **更早版本（v1.64 及以前）的逐版说明全部见
 [CHANGELOG.md](CHANGELOG.md)** —— 本 README 自 v1.57 起只保留当前版本与上一版本的摘要，

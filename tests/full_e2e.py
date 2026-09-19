@@ -39,6 +39,14 @@ def run(a, t=240):
 
 def tx(rr): return (ROOT / rr).read_text(encoding="utf-8")
 def rt(p): return Path(p).read_text(encoding="utf-8-sig", errors="replace") if Path(p).exists() else ""
+def tdoc(rr):
+    """v1.84：把"主文件 + 同名子目录里的 .md 分片"拼成一份逻辑文档再返回。
+    `core/coach-rules.md` 的流程性三节已下沉为按需读（AI 进到哪个阶段才读哪一节），
+    盯这些正文的断言因此一律改用本函数——正文位置变了，断言的名字与内容一条都不动。"""
+    d = (ROOT / rr).with_suffix("")
+    if not d.is_dir():
+        return tx(rr)
+    return "\n".join([tx(rr)] + [tx((d / p.name).as_posix()) for p in sorted(d.glob("*.md"))])
 
 # 备份可能被覆盖的被跟踪基准样例，结束时恢复（干净副本无 git，靠这里还原）
 BACKUP = {}
@@ -169,6 +177,7 @@ FRAGMENTS = [
     "case_13.py",  # v1.72 单样本模式（--onesample/--constant
     "case_14.py",  # 并行复核会话交付物：行为锁定（防退回） ==========
     "case_15.py",  # v1.83 记账归档
+    "case_16.py",  # v1.84 coach-rules 流程三节下沉为按需读
 ]
 
 try:

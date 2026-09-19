@@ -17,12 +17,13 @@ AI 读取 `START.md` 后作为陪学生做心理学毕业论文的 AI 助手/学
 |---|---|---|
 | 1 | `CONSTITUTION.md` | **项目宪法，最高原则**。与任何其它文件冲突时以它为准 |
 | 2 | `START.md` | **辅导学生的启动流程**（角色、规则层级、必读/按需读清单、12 阶段导航） |
-| 3 | `core/coach-rules.md` | 行为准则（语气风格、难度、12 阶段、学术红线、工具调用规范、检查闸） |
+| 3 | `core/coach-rules.md` | 行为准则（角色、核心原则、语气、难度、进度卡、学术红线、紧急模式、检查闸）；其 12 阶段/常见错误/工具调用三节 v1.84 起下沉为按需读，指针在本文件 |
 | 4 | `core/companionship.md` | 身份定位与陪伴边界（AI 工具/学习伙伴，不自称老师、不做虚拟伴侣，识别并拉回情感依赖，未成年人条款） |
 | 5 | `core/coaching-protocol.md` | 每轮对话强制基准（引导循环、反馈三段式、P0/P1/P2、边界、危机、门禁） |
 | 6 | `core/encouragement-guide.md` | 鼓励与反馈口径（默认开、可关；原则化自然化；P0 不包装） |
 | 7 | `core/ai-literacy.md` | AI 素养（能力边界、幻觉防范、学术诚信） |
 | 按需 | `workflows/*.md` | 分阶段操作手册，**到哪个阶段读哪个，不要一开始全读** |
+| 按需 | `core/coach-rules/*.md` | 主手册下沉的三份流程细则：`stage-playbook.md`（12 阶段各自的手册/动作/完成标志）、`common-errors.md`（8 类错误的处置）、`tool-rules.md`（调用工具前三步）——**进到对应场景才读，不要开局通读** |
 | 按需 | `psychology/*.md` | 量表库 / 统计指南 / 伦理，**查证时才读** |
 | 按需 | `templates/*` | 需要产出问卷、大纲、开题、PPT、网页时再读 |
 
@@ -39,7 +40,7 @@ python tests/consistency_check.py   # 文档 ↔ 代码一致性
 python tests/size_ratchet.py        # 文件尺寸棘轮：新文件 ≤220 行，存量只减不增
 ```
 
-- 新增能力**必须**同步加断言（不允许只加功能不加回归）：断言写在 `tests/e2e_cases/case_01.py`…`case_14.py` 对应主题片段里，
+- 新增能力**必须**同步加断言（不允许只加功能不加回归）：断言写在 `tests/e2e_cases/` 下对应主题的 `case_NN` 片段里（编号连续，顺序以壳里的 `FRAGMENTS` 为准），
   `tests/full_e2e.py` 是骨架 + 片段顺序清单的壳，只在新增主题片段时才动。
 - 文件尺寸：不在 `tests/size_baseline.txt` 里的文件一律 ≤220 行；超标的存量文件冻结在清单里，
   **只减不增**；降到 220 以下后跑 `python tests/size_ratchet.py --write` 把它移出清单（棘轮自动收紧）。
@@ -60,12 +61,12 @@ python tests/size_ratchet.py        # 文件尺寸棘轮：新文件 ≤220 行�
 ```
 START.md            AI 辅导入口（对话式 AI 从这里开始）
 CONSTITUTION.md     项目宪法（最高原则）
-core/               规则手册 + 引导反馈协议 + 身份陪伴边界 + 鼓励系统 + AI 素养
+core/               规则手册（coach-rules.md + 下沉细则 coach-rules/*.md）+ 引导反馈协议 + 身份陪伴边界 + 鼓励系统 + AI 素养
 workflows/          各阶段操作手册（按需读）
 psychology/         量表库 / 统计指南 / 伦理
 templates/          各类模板 + 网页范例/
 tools/              23 个可调脚本（菜单入口 menu.py 的实现拆为 menu_io.py 交互件 + menu_data.py 数据统计组 + menu_lit.py 文献产出组）＋含 webpage_preview.py 网页预览器、anonymize_data.py 去标识化、effect_size.py 效应量换算复核、validity_cr_ave.py 聚合/区分效度、item_analysis.py 预试项目分析、content_cvi.py 自编量表内容效度CVI、reference_formatter.py 参考文献GB/T 7714格式化、missing_report.py 缺失值分析与Little MCAR检验、assumption_check.py 参数检验前提假设（Shapiro正态性/Brown-Forsythe方差齐性）、paired_compare.py 配对设计差异检验（前后测配对t/d_z/Wilcoxon符号秩/rank-biserial r；--onesample/--constant 单样本对标称常数）、mult_compare.py 多重比较校正（Bonferroni/Holm/BH/BY）、literature_cards.py 文献卡片、outline_to_ppt.py 大纲→PPT（只排版不代写）、setup_workspace.py 工作区补齐）+ stats/ 统计实现包（13 个模块：mathx / linalg / dataio / desc / reliability / plots / efa / compare / correlation / regression / mediation / moderation / outliers；`regress.py` 自 v1.82 起只是仅再导出的历史入口）
-tests/              full_e2e.py 全量回归（壳）+ e2e_cases/ 断言主题片段 14 个、consistency_check.py 一致性自检、size_ratchet.py 文件尺寸棘轮
+tests/              full_e2e.py 全量回归（壳）+ e2e_cases/ 断言主题片段（case_NN 编号连续，顺序见壳里的 FRAGMENTS）、consistency_check.py 一致性自检、size_ratchet.py 文件尺寸棘轮
 我的工作区/          学生自己的文件（原始数据、PDF、结果、网页）
 CHANGELOG.md        版本历史（唯一来源）
 DEVELOPMENT.md      维护者开发流程（学生辅导时不需要）

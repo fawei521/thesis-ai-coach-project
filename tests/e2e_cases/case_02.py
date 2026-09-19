@@ -142,7 +142,7 @@ if True:  # 容器不产生作用域，缩进与拆分前完全一致
     check("问卷注意力题", "注意力检查" in qt and "质量控制题" in qt)
     check("问卷时长埋点", "作答时长" in qt)
     check("问卷多选题示例", "可多选" in qt and "不计入任何量表" in qt)
-    cr = tx("core/coach-rules.md")
+    cr = tdoc("core/coach-rules.md")
     check("coach5埋点", "注意力检查题" in cr and "作答时长" in cr)
     check("coach5多选填空", "多选题" in cr and "scales.txt 时勿列入" in cr)
     check("coach6样本量", "sample_size.py" in cr)

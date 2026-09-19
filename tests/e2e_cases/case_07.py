@@ -31,12 +31,12 @@ if True:  # 容器不产生作用域，缩进与拆分前完全一致
     s4 = tx("doubao-skill/stages/stage-4-scale.md")
     check("v161授权分级本地化", "授权与使用许可（分级处理）" in s4 and "以本校文件为准" in s4)
     check("v161进度卡更新块", "进度卡更新块" in skp and "过闸日期" in skp
-          and "进度卡更新块" in tx("core/coach-rules.md"))
+          and "进度卡更新块" in tdoc("core/coach-rules.md"))
     an = tx("doubao-skill/references/academic-norms.md")
     check("v161AI正文草稿边界",
           all(s in an for s in ("AI 可做与不可做", "可编辑的论文正文草稿", "报告风险", "不可直接提交")))
     check("v161完整版草稿边界同步",
-          "正文可起草、不可代交" in tx("core/coach-rules.md")
+          "正文可起草、不可代交" in tdoc("core/coach-rules.md")
           and "可编辑草稿" in tx("core/coaching-protocol.md")
           and "可编辑草稿" in tx("workflows/writing-guide.md"))
     mg2 = tx("doubao-skill/references/mobile-guide.md")
