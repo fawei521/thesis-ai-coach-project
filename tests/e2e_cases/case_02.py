@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """v1.62 现代信效度：McDonald's ω（随 auto_stats 信度节产出）+ HTMT（--htmt 模式）----
-full_e2e.py 顺序片段 2/14（原第 305–461 行，由壳按序 exec，不单独运行）。
+full_e2e.py 顺序片段 2/21（原第 305–461 行，由壳按序 exec，不单独运行）。
 骨架名字（check/run/tx/rt/ROOT/TD/new_tmp…）与前面各段产出的变量都在同一个
 命名空间里注入，与拆分前的扁平脚本语义一致；本文件的 if True 容器只为保持
 原 4 空格缩进逐字节不变（if 块不产生作用域）。
@@ -164,3 +164,25 @@ if True:  # 容器不产生作用域，缩进与拆分前完全一致
     check("批量下载红线阈值", "单次登录全文下载不超过约 **30 篇**" in las and "30-50 篇以内" in las and "永久封禁" in las)
     check("全文不传播不批量工具", "不得传播、上传到公开网络" in las and "禁用迅雷" in las and "不整期/整卷下载" in las)
     check("题录总表归文献区", "文献总表 CSV 都归文献区" in las and "文献总表 CSV 放 `我的工作区/03" not in las)
+
+    # ---- 门禁收口：把 AGENTS.md 原来单列的 py_compile 并进回归，让"改完跑一条"名副其实。
+    #      扫得比旧命令更宽（rglob 连 tests/e2e_cases/ 片段一起编），碎片语法错不再靠 exec 时才炸。
+    pyfiles = sorted(str(p.relative_to(ROOT)).replace("\\", "/")
+                     for p in list((ROOT / "tools").rglob("*.py"))
+                     + list((ROOT / "tests").rglob("*.py"))
+                     + list((ROOT / "doubao-skill").rglob("*.py")))
+    pc = run(["-m", "py_compile", "-q"] + pyfiles, 300)
+    check("py_compile全通过", pc.returncode == 0, (pc.stderr or pc.stdout or "")[-300:])
+    check("py_compile扫到全部脚本", len(pyfiles) >= 74, "扫到 %d 个" % len(pyfiles))
+
+    # ---- 账本点名的"待办 P__"必须在本仓查得到定义。历史上这些编号只在仓库外的待办文件里定义，
+    #      发出去的 CHANGELOG 因此带着查不到的引用（v1.93 实测四处：P16/P9/P15/P7）。
+    _pidx = ROOT / "维护档案" / "待办编号索引.md"
+    if _pidx.exists():  # 维护档案不随发布包分发：阶段 G 验证副本里没这份，跳过而不是崩
+        _defined = set(re.findall(r"^\|\s*(P\d+[a-z]?)\s*\|", _pidx.read_text(encoding="utf-8"), re.M))
+        _cited = set()
+        for _bn in ("CHANGELOG.md", "ROADMAP.md", "PROJECT_PLAN.md"):
+            _cited |= set(re.findall(r"待办\s*(P\d+[a-z]?)", tx(_bn)))
+        check("待办编号索引有条目", len(_defined) >= 19, "本表定义 %d 个" % len(_defined))
+        check("待办编号引用都能在本仓解析", _cited <= _defined,
+              "引用了本表没有的编号 %s" % sorted(_cited - _defined))

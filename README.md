@@ -35,7 +35,7 @@
 | 选题 | 给选题方向、验证创新性、检索英文文献 |
 | 开题 | 开题报告模板、开题PPT、模拟开题问答 |
 | 文献 | 自动操作知网检索、英文API检索、PDF结构化分析、研究空白梳理 |
-| 量表 | 24组常用量表对比（含AI依赖、NSSI、孤独、反刍，以及DASS-21、压力知觉PSS-10、应对方式SCSQ、情绪调节ERQ、自我控制SCS、核心自我评价CSES、生活满意度SWLS、基本心理需要BPNS、社交媒体成瘾BSMAS等），信效度信息、问卷生成 |
+| 量表 | 常用量表对比（含AI依赖、NSSI、孤独、反刍，以及DASS-21、压力知觉PSS-10、应对方式SCSQ、情绪调节ERQ、自我控制SCS、核心自我评价CSES、生活满意度SWLS、基本心理需要BPNS、社交媒体成瘾BSMAS等），信效度信息、问卷生成 |
 | 数据 | 问卷星预处理、自动清洗（注意力检查题/长直线/低变异/高缺失/时长，附剔除报告）、反向计分、算总分 |
 | 分析 | 一键跑人口学频数/信度α+McDonald ω+题项分析(CITC/删题α)+分半信度(Spearman-Brown/Guttman λ4)/结构效度KMO/自编量表完整EFA(多因子+Varimax+平行分析+自动碎石图)/Harman/描述统计(含偏度峰度正态性)/相关矩阵+α对角整合三线表并自动出下三角相关热图(系数+显著性星号、对角Cronbach α,支持--spearman秩相关、--partial控制性别年级等的偏相关)/人口学差异(Levene方差齐性+独立样本t/Welch t+单因素ANOVA/Welch ANOVA+Cohen d/η²+Bonferroni事后；偏态/有序时--nonparametric给Mann-Whitney U/Kruskal-Wallis H非参数检验)/人口学交叉卡方χ²+Cramér's V(分类×分类,Yates/Fisher提示)/回归(含容差/VIF共线性诊断)/Bootstrap中介(模型4/6)/调节效应(模型1中心化交互项+±1SD简单斜率+简单斜率图)、HTMT区分效度(原始问卷数据直算+Bootstrap 95%CI)、开题样本量功效估算(sample_size.py，G*Power等价)、生成三线表、画模型图，JASP/SPSS仅复核 |
 | 写作 | 大纲、各章节要点、语言润色、格式检查、去AI味 |
@@ -99,7 +99,7 @@ AI 助手可以引导学生做一个**给自己用**的网页，把手里多而�
 
 ## 专业知识库（psychology/）
 
-- `scale-library.md` — 16种心理学常用量表（题数、维度、信度、出处，含AI依赖、NSSI等新主题）
+- `scale-library.md` — 心理学常用量表逐组对比（题数、维度、信度、出处，含AI依赖、NSSI等新主题）。**组数与大类数不在本文件写死**，以该文件内的 `### N.` 编号为准——扩库只改那一处，别处抄一份下次就漂（来历见 `维护档案/评估结论-外部账本治理建议-2026-09-20.md`）
 - `stats-guide.md` — 常用统计方法的SPSS/JASP/PROCESS操作步骤（信效度、共同方法偏差、相关与差异、中介/调节、网络分析、功效分析等）
 - `missing-imputation-guide.md` — MCAR 被拒绝/缺失较多时的多重插补（SPSS MI、R mice）与 FIML（AMOS）照做步骤、Rubin 池化公式、敏感性分析与论文模板
 - `ethics.md` — 研究伦理（知情同意、未成年人、敏感话题）
@@ -142,7 +142,7 @@ thesis-ai-coach-project/
 ├── 我的工作区/                # 学生自己的文件：01–09 九个分类目录 + 先读我.md（进度卡与检索记录不在包里，第一次用由菜单第22项从模板生成，装新版盖不到）
 ├── core/                     # AI规则（coach-rules + 下沉细则 coach-rules/）+ 身份陪伴边界（companionship）+ 引导反馈协议 + 鼓励系统 + AI素养
 ├── workflows/                # 10个阶段工作流手册
-├── tools/                    # 24个可调脚本（含统一菜单、重点文献卡片literature_cards.py、网页预览器、去标识化anonymize_data.py、效应量换算effect_size.py、聚合区分效度validity_cr_ave.py、预试项目分析item_analysis.py、内容效度content_cvi.py、参考文献格式化reference_formatter.py、缺失值分析missing_report.py、前提假设assumption_check.py、配对检验paired_compare.py、多重校正mult_compare.py、大纲排PPT outline_to_ppt.py、工作区补齐setup_workspace.py、开题就绪度自检proposal_readiness.py）+ 菜单实现 menu_io/menu_data/menu_lit/menu_thesis + stats/ 统计实现包（9个模块）
+├── tools/                    # 24个可调脚本（含统一菜单、重点文献卡片literature_cards.py、网页预览器、去标识化anonymize_data.py、效应量换算effect_size.py、聚合区分效度validity_cr_ave.py、预试项目分析item_analysis.py、内容效度content_cvi.py、参考文献格式化reference_formatter.py、缺失值分析missing_report.py、前提假设assumption_check.py、配对检验paired_compare.py、多重校正mult_compare.py、大纲排PPT outline_to_ppt.py、工作区补齐setup_workspace.py、开题就绪度自检proposal_readiness.py）+ 菜单实现 menu_io/menu_data/menu_lit/menu_thesis + stats/ 统计实现包（模块清单见 `AGENTS.md` 的目录速查，本文件不抄个数）
 ├── psychology/               # 量表/统计/伦理知识库
 ├── templates/                # 问卷/大纲/开题/答辩/进度卡/AI声明模板 + 网页范例/
 └── tests/                    # **只在仓库里，发布包不带**（v1.93 起）：full_e2e.py 一键全量回归（断言主体在 e2e_cases/ 主题片段）、consistency_check.py 文档↔代码一致性、case_21 发布包形态核对
@@ -160,8 +160,8 @@ thesis-ai-coach-project/
 [CHANGELOG.md](CHANGELOG.md)** —— 本 README 自 v1.57 起只保留当前版本与上一版本的摘要，
 不再往下堆积版本正文（同一版本的说明只维护 CHANGELOG 一处，避免两处漂移、README 无限变长）。
 
-> 维护者：改动后必须跑 `python tests/full_e2e.py`（约 3-5 分钟，退出码 0 才算通过）
-> 与 `python tests/consistency_check.py`（文档↔代码一致性）；发布流程见 `DEVELOPMENT.md`。
+> 发布流程见 `DEVELOPMENT.md` 阶段 G。改动后要跑的命令**本文件只写一处**（见上文"维护者/接手者"那条），
+> 别再在这里抄第二遍——曾经这两处一份说跑一条、一份说跑两条，读哪条照做都不算错。
 
 ## 致谢
 

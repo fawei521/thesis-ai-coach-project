@@ -103,7 +103,8 @@ if True:  # 容器不产生作用域，缩进与拆分前完全一致
     check("coach阶段10引用", "workflows/communication-guide.md" in cr)
     check("START导航沟通", "communication-guide.md" in st)
     rm = tx("README.md"); check("README沟通清单", "communication-guide.md" in rm)
-    check("README数字修正", "16种" in rm and "10种统计方法" not in rm)
+    # 反向钉：README 不抄量表组数/模块数（曾把过期的"16种"当正确答案锁在断言里，等于给漂移续命）。
+    check("README数字修正", "16种" not in rm and "24组" not in rm and "10种统计方法" not in rm)
     daa = tx("workflows/data-analysis-auto.md")
     check("分析流程多选说明", "多选题" in daa and "开放填空题" in daa and "scales.txt" in daa)
     check("JASP链式走Process模块", "Process 模块后选 Model 6" in daa and "原生支持链式中介" not in daa)

@@ -36,14 +36,19 @@ AI 读取 `START.md` 后作为陪学生做心理学毕业论文的 AI 助手/学
 
 必须先读 `DEVELOPMENT.md`（九阶段门：分析→调研→查找→学习→方案→实现→测试→文档→发布）。
 
-**改动后的强制验证（退出码 0 才算通过）：**
+**改动后的强制验证：一条命令。**
 
 ```bash
-python -m py_compile tools/*.py tools/stats/*.py tests/*.py
-python tests/full_e2e.py            # 全量回归，约 3-5 分钟
-python tests/consistency_check.py   # 文档 ↔ 代码一致性
-python tests/size_ratchet.py        # 文件尺寸棘轮：新文件 ≤220 行，存量只减不增
+python tests/full_e2e.py     # 全量回归，约 3-5 分钟
 ```
+
+这条命令**就是全部**：`py_compile` 语法编译、文档↔代码一致性（`consistency_check.py`）、文件尺寸棘轮
+（`size_ratchet.py`）、轻量版口径同源（`skill_sync_check.py`）、Skill 结构自检（`validate.py`）都已在回归内部依次执行。
+**不用再为"过闸"把它们拆开各跑一遍**——那是同一批检查跑两遍。
+（改动量大时，可以先单独跑 `python tests/consistency_check.py`——它只要几秒，适合当改中途的快速自检；但**它不能替代上面那条**。）
+
+**判定只看日志最后一行 `==== 共 N 项，通过 X，失败 Y ====`，失败数必须为 0。**
+放后台跑时，"后台任务退出码 0"说的是任务包装器，不是被测程序——这条误判过一次，别再犯。
 
 - 新增能力**必须**同步加断言（不允许只加功能不加回归）：断言写在 `tests/e2e_cases/` 下对应主题的 `case_NN` 片段里（编号连续，顺序以壳里的 `FRAGMENTS` 为准），
   `tests/full_e2e.py` 是骨架 + 片段顺序清单的壳，只在新增主题片段时才动。

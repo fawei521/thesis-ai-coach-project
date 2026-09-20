@@ -98,7 +98,7 @@
 - **门**：一个不懂的 AI 只读文档就能正确调用并解读结果。
 
 ### 阶段 G — 发布 Release（打包验证）
-1. `python -m py_compile` 全部脚本；跑 `python doubao-skill/validate.py`（轻量 Skill 子包自检）；跑 `python tests/size_ratchet.py`（文件尺寸棘轮，拆完记得 `--write` 刷新清单）；跑 `python tests/full_e2e.py` 一键全量回归（用例清单与历史见 `tests/e2e-test.md`，已含 Skill 自检与其阴性测试）。
+1. 跑 `python tests/full_e2e.py` 一键全量回归：`py_compile`、`tests/consistency_check.py`、`tests/size_ratchet.py`、`tests/skill_sync_check.py`、`doubao-skill/validate.py` 五道都在它内部依次执行（含各自的阴性测试），**不必拆开各跑一遍**；判定只看日志最后一行 `失败 0`。用例清单与历史见 `tests/e2e-test.md`。拆过文件要另跑 `python tests/size_ratchet.py --write` 刷新冻结清单——那是写盘动作，回归不替你做。
 2. 更新版本号（语义化：新增功能 minor，修复 patch），三处保持一致：`CHANGELOG.md` 顶部新增该版本条目、`START.md` 顶部版本行、git tag；README 的"当前版本"同步；然后 commit、打 tag。
 3. **双产物验证（v1.93 起必做）**：发布包由 `.gitattributes` 的 `export-ignore` 挡掉了 `tests/` 与 `DEVELOPMENT.md`，
    所以"把学生包解压出来直接跑回归"这一步已经不成立了——改成两份产物，**都必须从同一个 tag 打**：
@@ -183,10 +183,9 @@
 - [ ] 计算结果有 L1/L2 正确性证据并记录数值与容差
 - [ ] 边界与 GBK 编码不崩；固定种子可复现
 - [ ] 菜单/工作流/指南/README/START/测试/版本记录全部同步
-- [ ] 全脚本 py_compile 通过、`python tests/full_e2e.py` 全绿
-- [ ] `python tests/consistency_check.py` 退出码 0（文档命令/开关/导出与代码一致）
-- [ ] `python tests/size_ratchet.py` 退出码 0；本轮拆完已 `--write` 刷新冻结清单（存量只减不增）
-- [ ] `python doubao-skill/validate.py` 退出码 0；`python tests/skill_sync_check.py` 退出码 0（轻量版口径与完整版一致，机检）；镜像已同步、Skill CHANGELOG 已追加
+- [ ] `python tests/full_e2e.py` 判"失败 0"（内含 py_compile / 文档↔代码一致性 / 尺寸棘轮 / Skill 口径同源 / Skill 结构自检五道，不必拆开跑）
+- [ ] 本轮若拆过文件：已 `python tests/size_ratchet.py --write` 刷新冻结清单（存量只减不增）
+- [ ] 轻量版镜像已同步、`doubao-skill/CHANGELOG.md` 已追加
 - [ ] 全新解压副本里 `python tests/full_e2e.py` PASS，启动器中文正常
 - [ ] 无密码/凭据/学生数据/临时文件入库
 - [ ] ROADMAP、PROJECT_PLAN、tag、zip 一致

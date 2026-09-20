@@ -1,7 +1,7 @@
 # 存量超标文件冻结清单（棘轮：只减不增）
 # 生成命令：python tests/size_ratchet.py --write   —— 不要手改数字
 # 格式：<行数>	<相对路径>；文件降到 ≤220 行后会被移出，此后按新文件上限管。
-# 不在此表 = 新文件，一律 ≤220 行硬闸。记账类（CHANGELOG/PROJECT_PLAN/e2e-test/full_e2e）
+# 不在此表 = 新文件，一律 ≤220 行硬闸。记账类（CHANGELOG/PROJECT_PLAN/e2e-test）
 # 由 tests/size_ratchet.py 的 LEDGER 豁免：它们每版必须追加，靠“重复只写一遍 + 历史移包外”瘦身。
 # tests/full_e2e.py 已在 v1.82 拆成壳 + 顺序片段（207 行），不再豁免。
 239	doubao-skill/validate.py
