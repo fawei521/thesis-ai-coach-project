@@ -13,7 +13,7 @@ full_e2e.py 顺序片段 21/21（由壳按序 exec，不单独运行）。
 只在有 `.git` 的形态跑（要读仓库）；包内副本没有 .git，整段自然跳过。
 **不落盘**：`git archive --format=tar` 直接读进内存——在 `tests/.tmp_e2e/` 留一个 zip 会被收尾自检判成临时文件残留。
 """
-if True:  # 容器不产生作用域，与其余片段一致
+if (ROOT / ".git").exists():  # 只在有仓库的形态跑：`git archive` 要读仓库；阶段 G 的验证副本没有 .git，整段跳过
     import io, tarfile
     # `--worktree-attributes`：包形态由**工作树里的 .gitattributes** 决定，改了打包规则还没提交的当口就能验
     # （正式产物从 tag 打，那时工作树是干净的，两者结果一致）。
