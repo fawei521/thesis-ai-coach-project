@@ -209,5 +209,9 @@ if True:  # 容器不产生作用域，缩进与拆分前完全一致
     check("版本号三处一致", bool(cur_ver) and cur_ver in chg and cur_ver in rm,
           "解析到 START=%s, CHANGELOG命中=%s, README命中=%s" % (
               cur_ver or "(未解析到)", cur_ver in chg, cur_ver in rm))
-    check("DEVELOPMENT引用CHANGELOG", "CHANGELOG.md" in tx("DEVELOPMENT.md"))
+    # v1.93：DEVELOPMENT.md 不再随包分发。开发树里照旧核它引用 CHANGELOG；
+    # 包内副本改核"入口文档仍指得到它"——否则接手的人拿到的包里连线索都没有。
+    check("DEVELOPMENT引用CHANGELOG",
+          ("CHANGELOG.md" in tx("DEVELOPMENT.md")) if (ROOT / "DEVELOPMENT.md").exists()
+          else all("DEVELOPMENT.md" in tx(p) for p in ("AGENTS.md", "START.md")))
 

@@ -7,3 +7,11 @@
 # 文件与目录本体都要写，只写 /** 的话 git archive 仍会带出一个空目录。
 维护档案/** export-ignore
 维护档案 export-ignore
+
+# 开发文件不进学生包（v1.93）：tests/ 44 个文件是回归断言与**故意编出来的假数字夹具**，
+# DEVELOPMENT.md 是给维护者的九阶段门——两者对"把整个文件夹交给 AI"的学生只会造成干扰，
+# 甚至可能被当成真数据引用。仓库里一行不少；发版验收改用"包 + 补回 tests/"的副本跑全量回归，见 DEVELOPMENT.md 阶段 G。
+# 这条名单同时被 tests/consistency_check.py 解析（包内文档引用仓库独有文件不算悬空），别在别处再抄。
+tests/** export-ignore
+tests export-ignore
+DEVELOPMENT.md export-ignore

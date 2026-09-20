@@ -1,11 +1,9 @@
 # -*- coding: utf-8 -*-
 """
-thesis-ai-coach 全量端到端回归（测试金字塔 L7）。
-随项目包分发：开发仓库根目录或解压后的干净副本里都能直接运行：
+thesis-ai-coach 全量端到端回归（测试金字塔 L7）。**只在仓库里**（v1.93 起 `tests/` 不随发布包分发）：
     python tests/full_e2e.py
-覆盖：统计/清洗/样本量/模型图/文献脚本真实运行 + 文档-代码一致性 + 合规与事实断言。
-约需 3-5 分钟（含 Bootstrap 5000、英文文献联网检索、缺库降级回归）。
-退出码 0 = 全部通过；非 0 = 有失败项（见 FAIL 行）。
+覆盖：统计/清洗/样本量/模型图/文献脚本真实运行 + 文档-代码一致性 + 合规与事实断言。约需 3-5 分钟
+（含 Bootstrap 5000、英文文献联网检索、缺库降级回归）。退出码 0 = 全部通过；非 0 = 有失败项（见 FAIL 行）。
 运行中会在 tests/test-data 生成并自动清理临时产物，结束时恢复被跟踪的基准样例。
 """
 import os, sys, subprocess, csv, re, shutil, time, random, math
@@ -182,15 +180,16 @@ FRAGMENTS = [
     "case_18.py",  # v1.89 轻量版口径追平＋点名的完整版能力核对＋行尾单一
     "case_19.py",  # v1.90 证据与核验纪律：三查/切片禁令/[需核实] 门禁
     "case_20.py",  # v1.91 宪法级严谨性条款＋可复跑的 A/B 对照实验
+    "case_21.py",  # v1.93 发布包形态：开发文件不进包、学生要用的都在、export-ignore 名单同源
 ]
 
 try:
     # ---- 断言主体已按主题切成顺序片段（见 tests/e2e_cases/）：原 612+ 条断言逐字节未改，
     # 仍按原顺序 exec 进本模块命名空间，语义与拆分前的单文件扁平脚本一致。
-    _ns = globals()
+    # 这里**必须直接写 globals()**：v1.91 的 case_20 曾有一句 `_ns = {}` 顶掉循环命名空间、之后的片段全在空字典里跑（v1.93 加 case_21 才炸出来），守卫断言写在 case_20
     for _fn in FRAGMENTS:
         _p = ROOT / "tests" / "e2e_cases" / _fn
-        exec(compile(_p.read_text(encoding="utf-8"), "tests/e2e_cases/" + _fn, "exec"), _ns)
+        exec(compile(_p.read_text(encoding="utf-8"), "tests/e2e_cases/" + _fn, "exec"), globals())
 
 
 finally:

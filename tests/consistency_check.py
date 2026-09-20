@@ -28,11 +28,12 @@ ROOT = Path(__file__).resolve().parent.parent
 TOOLS = ROOT / "tools"
 
 # 通用/文档示意开关，不属于某个脚本但允许出现在文档里
-SWITCH_WHITELIST = {"--help", "-h", "--outdir", "-o", "--version"}
+SWITCH_WHITELIST = {"--help", "-h", "--outdir", "-o", "--version", "--worktree-attributes", "--prefix", "--format"}  # 后三项是 git 自己的开关（阶段 G 的命令要写），不由本项目脚本定义
 
-# 构建产物（.gitignore）与仓库内档案（export-ignore）都不随包分发；包内引用它们是对的，不报悬空。
+# 构建产物与"仓库里有、发布包里不带"的文件（.gitattributes 的 export-ignore）：包内文档引用它们是对的，不报悬空。
 BUILD_ARTIFACT_REFS = {"doubao-skill/thesis-ai-coach-手机版.md"}
-ARCHIVE_DIR_PRESENT = (ROOT / "维护档案").is_dir()
+REPO_ONLY = {l.split()[0] for l in (ROOT / ".gitattributes").read_text(encoding="utf-8", errors="replace").splitlines()
+             if l.endswith("export-ignore") and not l.startswith("#")}   # 名单只有一份，别在此另抄
 # 学生"就地填写"的文件同理：包里只有模板，装包后才存在。名单从 tools/setup_workspace.py 的 GENERATED 读，不在此另抄（抄了会漂）
 _SW_SRC = (TOOLS / "setup_workspace.py").read_text(encoding="utf-8", errors="replace")
 STUDENT_OWNED = {m.split("/")[0] for m in re.findall(r'^\s+\("([^"]+)",\s*"templates/', _SW_SRC, re.M)}
@@ -81,8 +82,7 @@ def command_segments(md_text: str):
 def main():
     problems = []
 
-    # 扫描 tools/ 下全部 .py（含 stats/ 子包）：导出文件名与 CLI 开关可能定义在任一实现模块里，
-    # 只扫顶层会在拆分后漏掉 "_因子分析.csv" 这类由子模块写出的文件，导致误报漂移。
+    # 扫描 tools/ 下全部 .py（含 stats/ 子包）：导出文件名与 CLI 开关可能定义在任一实现模块里，只扫顶层会在拆分后漏掉子模块写出的 "_因子分析.csv" 之类，导致误报漂移
     tool_paths = sorted(p for p in TOOLS.rglob("*.py") if "__pycache__" not in p.parts)
     tool_keys = {p.relative_to(TOOLS).as_posix(): p for p in tool_paths}
     py_set = set(tool_keys) | {p.name for p in tool_paths}
@@ -92,8 +92,7 @@ def main():
     switches_by_name = {}
     for k, sw in switches_by_tool.items():
         switches_by_name.setdefault(k.rsplit("/", 1)[-1], set()).update(sw)
-    all_switches = (set().union(*switches_by_tool.values()) if switches_by_tool
-                    else set()) | SWITCH_WHITELIST
+    all_switches = (set().union(*switches_by_tool.values()) if switches_by_tool else set()) | SWITCH_WHITELIST
     # doubao-skill 与 tests/ 的维护者脚本不属 tools/ 命名空间，但文档引用它们的 --out/--write 是真开关：并入全局集合、不参与按脚本归属核对
     for _sp in sorted((ROOT / "doubao-skill").glob("*.py")) + sorted((ROOT / "tests").glob("*.py")):
         all_switches |= tool_switches(_sp)
@@ -180,7 +179,8 @@ def main():
                 # 工作区里的是**学生自己产出**的文件（如"把大纲存成 我的工作区/05-开题报告/我的开题大纲.md"），
                 # 包里不可能带着它，按文档链接判悬空会在干净副本里必然误报（目录号交给规则 5/5b 管）
                 continue
-            if ref in BUILD_ARTIFACT_REFS or (ref.startswith("维护档案/") and not ARCHIVE_DIR_PRESENT):  # 开发树里仍严格
+            if ref in BUILD_ARTIFACT_REFS or (any(ref == p or ref.startswith(p.rstrip("/*") + "/") for p in REPO_ONLY)
+                                              and not (ROOT / ref).exists()):   # 只在"包里确实没有"时豁免，开发树仍严格
                 continue
             if not doc_exists(md, ref):
                 problems.append(f"[{rel}] 引用了不存在的文档 {ref}")

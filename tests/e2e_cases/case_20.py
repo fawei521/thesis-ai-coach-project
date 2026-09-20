@@ -40,9 +40,17 @@ check("v191轻量版幻觉防范节加了空位与独立源",
       or all(k in tx("doubao-skill/references/coaching-protocol.md") for k in ("空位可以留空", "不算第二源")))
 
 # ---- 实验判据：不空转、可复跑、结论没写歪 ----
-_ns = {}
-exec(compile(tx("tests/rigor_experiment.py"), "tests/rigor_experiment.py", "exec"), _ns)
-_j, _bad, _trs = _ns["judge"], _ns["BAD_ANSWERS"], _ns["TRANSCRIPTS"]
+# v1.93 改名：这句原本写作 `_ns = {}`，而壳的循环用的就是 `_ns = globals()`——
+# 片段在共享命名空间里重新绑定它，等于把之后所有片段的运行环境换成了一个空字典。
+_rns91 = {}
+exec(compile(tx("tests/rigor_experiment.py"), "tests/rigor_experiment.py", "exec"), _rns91)
+_j, _bad, _trs = _rns91["judge"], _rns91["BAD_ANSWERS"], _rns91["TRANSCRIPTS"]
+_shell91 = tx("tests/full_e2e.py")
+check("v193片段不许顶掉壳的循环命名空间",
+      not [p.name for p in sorted((ROOT / "tests" / "e2e_cases").glob("case_*.py"))
+           if re.search(r"^\s*(_ns|_fn|_p)\s*=", rt(p.as_posix()), re.M)],
+      "有片段给壳的循环变量赋值")
+check("v193壳把片段 exec 进真 globals", "exec(compile(" in _shell91 and '"exec"), globals())' in _shell91)
 
 
 def _strict(ans):

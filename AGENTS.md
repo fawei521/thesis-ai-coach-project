@@ -30,6 +30,10 @@ AI 读取 `START.md` 后作为陪学生做心理学毕业论文的 AI 助手/学
 
 ## 如果你要改这个项目（维护者模式）
 
+> **先认清你在哪份上工作**：发布包（学生拿到的那份）**不含 `tests/` 与 `DEVELOPMENT.md`**——
+> 回归断言与开发流程只存在于仓库里（`tests/e2e_cases/case_21.py` 钉着这件事）。
+> 在学生包副本里既跑不了回归，也不该按下面的门禁动手；那种副本只用于"验证学生看到的东西"。
+
 必须先读 `DEVELOPMENT.md`（九阶段门：分析→调研→查找→学习→方案→实现→测试→文档→发布）。
 
 **改动后的强制验证（退出码 0 才算通过）：**
@@ -67,8 +71,8 @@ workflows/          各阶段操作手册（按需读）
 psychology/         量表库 / 统计指南 / 伦理
 templates/          各类模板 + 网页范例/
 tools/              24 个可调脚本（菜单入口 menu.py 的实现拆为 menu_io.py 交互件 + menu_data.py 数据统计组 + menu_lit.py 文献产出组 + menu_thesis.py 开题与材料检查组）＋含 webpage_preview.py 网页预览器、anonymize_data.py 去标识化、effect_size.py 效应量换算复核、validity_cr_ave.py 聚合/区分效度、item_analysis.py 预试项目分析、content_cvi.py 自编量表内容效度CVI、reference_formatter.py 参考文献GB/T 7714格式化、missing_report.py 缺失值分析与Little MCAR检验、assumption_check.py 参数检验前提假设（Shapiro正态性/Brown-Forsythe方差齐性）、paired_compare.py 配对设计差异检验（前后测配对t/d_z/Wilcoxon符号秩/rank-biserial r；--onesample/--constant 单样本对标称常数）、mult_compare.py 多重比较校正（Bonferroni/Holm/BH/BY）、literature_cards.py 文献卡片、outline_to_ppt.py 大纲→PPT（只排版不代写）、setup_workspace.py 工作区补齐、proposal_readiness.py 开题就绪度自检）+ stats/ 统计实现包（13 个模块：mathx / linalg / dataio / desc / reliability / plots / efa / compare / correlation / regression / mediation / moderation / outliers；`regress.py` 自 v1.82 起只是仅再导出的历史入口）
-tests/              full_e2e.py 全量回归（壳）+ e2e_cases/ 断言主题片段（case_NN 编号连续，顺序见壳里的 FRAGMENTS）、consistency_check.py 一致性自检、size_ratchet.py 文件尺寸棘轮
-我的工作区/          学生自己的文件（原始数据、PDF、结果、网页）
+tests/              只在仓库里、不随发布包分发：full_e2e.py 全量回归（壳）+ e2e_cases/ 断言主题片段（case_NN 编号连续，顺序见壳里的 FRAGMENTS）、consistency_check.py 一致性自检、size_ratchet.py 文件尺寸棘轮
+我的工作区/          学生自己的文件（原始数据、PDF、结果、网页）；进度卡与检索记录**不在包里**，由菜单第 22 项缺才生成
 CHANGELOG.md        版本历史（唯一来源）
-DEVELOPMENT.md      维护者开发流程（学生辅导时不需要）
+DEVELOPMENT.md      维护者开发流程（学生辅导时不需要；同样只在仓库里，不随发布包分发）
 ```

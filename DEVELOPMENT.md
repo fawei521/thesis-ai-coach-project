@@ -85,6 +85,9 @@
 - **版本史记账的三条规矩（v1.83 起）**：①索引表每行的“主题”列 **≤40 字**，细节只写在详情区一次（`最新索引行主题不超过40字` 断言盯着最新那一行）；②历史正文移入仓库内的 `维护档案/`——git 完整追踪、`.gitattributes` 用 `export-ignore` 把它排除在发布包之外，所以“包内瘦”与“史不减”同时成立；③`维护档案/` 不参与一致性核对与尺寸棘轮（档案本性就长）。
 - **版本历史只有一个来源**：`CHANGELOG.md`（单文件 · 日期标签）。`README.md` / `PROJECT_PLAN.md` / `ROADMAP.md` 只保留当前版本指针，不重复维护版本清单，避免同一版本手改四处造成漂移。
 - **给新功能加断言的位置**：`tests/e2e_cases/` 下的 `case_NN` 主题片段（编号连续，顺序以壳里的 `FRAGMENTS` 为准）（壳里不放断言，`断言片段无孤儿且顺序清单完整` 与 `片段正文合计守恒` 两条断言会盯着这件事）。
+  ⚠ **片段与壳共用一个命名空间**：片段里**不许给壳的循环变量赋值**（`_ns`/`_fn`/`_p`）。v1.91 的 `case_20` 有一句
+  `_ns = {}` 把壳的 `_ns = globals()` 顶掉了，之后所有片段都在空字典里跑——当时它是最后一片所以没暴露，
+  v1.93 加 `case_21` 才炸出 NameError。现在壳直接 exec 进 `globals()`，并由 `v193片段不许顶掉壳的循环命名空间` 盯着。
 - **文件尺寸棘轮（v1.82 起，`python tests/size_ratchet.py` 判 0 才算过）**：
   不在 `tests/size_baseline.txt` 里的文件一律 **≤220 行**（`tools/**/*.py`、`tests/*.py`、`doubao-skill/*.py` 与全部 `*.md`）；
   超标的存量文件按现值冻结在清单里，**只准减不准增**；某个文件降到 ≤220 后跑 `--write` 把它移出清单，棘轮自动收紧。
@@ -97,8 +100,16 @@
 ### 阶段 G — 发布 Release（打包验证）
 1. `python -m py_compile` 全部脚本；跑 `python doubao-skill/validate.py`（轻量 Skill 子包自检）；跑 `python tests/size_ratchet.py`（文件尺寸棘轮，拆完记得 `--write` 刷新清单）；跑 `python tests/full_e2e.py` 一键全量回归（用例清单与历史见 `tests/e2e-test.md`，已含 Skill 自检与其阴性测试）。
 2. 更新版本号（语义化：新增功能 minor，修复 patch），三处保持一致：`CHANGELOG.md` 顶部新增该版本条目、`START.md` 顶部版本行、git tag；README 的"当前版本"同步；然后 commit、打 tag。
-3. `git archive` 打包到**全新临时目录解压**，在副本里再跑一遍 `python tests/full_e2e.py`（不是在开发目录）。
-4. 核对：文件齐全、中文文件名正常、启动器（GBK+CRLF）正常、演示数据/工作区就位、无 `__pycache__`/临时文件/学生真实数据入库。
+3. **双产物验证（v1.93 起必做）**：发布包由 `.gitattributes` 的 `export-ignore` 挡掉了 `tests/` 与 `DEVELOPMENT.md`，
+   所以"把学生包解压出来直接跑回归"这一步已经不成立了——改成两份产物，**都必须从同一个 tag 打**：
+   - **验证副本**＝`git archive --prefix=thesis-ai-coach-project/ -o <项目外>/g.zip <tag>` 解出后，
+     **只从仓库补回 `tests/` 目录**（其余一律不补），在这份里跑 `python tests/full_e2e.py`。
+     这样跑的就是学生真正拿到的那些文件，`tests/` 只是"借来的尺子"。
+     本地想提前预演包形态可加 `--worktree-attributes`（未提交的 `.gitattributes` 改动才会生效）；正式产物一律从 tag 打。
+   - **发布包**＝同一命令直接放 `_发布包/thesis-ai-coach-project-vX.Y.zip`，与上面那份**逐字节相同**（同一 tag、同一参数）。
+4. 核对包形态（`tests/e2e_cases/case_21.py` 已经把这件事变成断言，但仍要人看一眼）：目录树、中文文件名正常、
+   启动器（GBK+CRLF）正常、`case_21.py` 的必带清单齐、`我的工作区/` 只有预置说明与占位（**没有要学生填写的文件**）、
+   无 `__pycache__`/临时文件/学生真实数据入库、`tests/` 与 `DEVELOPMENT.md` 确实不在包里且没留空目录。
 5. `ROADMAP.md` / `PROJECT_PLAN.md` 一般无需再改（版本进展统一在 `CHANGELOG.md`）；仅在路线图有增减时更新；发布包归档到项目外的 `_发布包/`（不在本包内），并同步其中的发布记录文件。
 - **门**：干净解压副本端到端 PASS，方可作为推荐分发包。
 
