@@ -94,8 +94,7 @@ def main():
         switches_by_name.setdefault(k.rsplit("/", 1)[-1], set()).update(sw)
     all_switches = (set().union(*switches_by_tool.values()) if switches_by_tool
                     else set()) | SWITCH_WHITELIST
-    # doubao-skill 与 tests/ 的维护者脚本不属 tools/ 命名空间（build_mobile_single.py、size_ratchet.py 等），
-    # 但文档里引用它们的 --out/--write 是真实开关：并入全局集合即可，不参与按脚本归属核对。
+    # doubao-skill 与 tests/ 的维护者脚本不属 tools/ 命名空间，但文档引用它们的 --out/--write 是真开关：并入全局集合、不参与按脚本归属核对
     for _sp in sorted((ROOT / "doubao-skill").glob("*.py")) + sorted((ROOT / "tests").glob("*.py")):
         all_switches |= tool_switches(_sp)
     all_exports = set()
@@ -105,10 +104,11 @@ def main():
     # 全项目 Python 脚本名（tools + tests），用于核对命令里出现的脚本（含 tests/ 下脚本）
     all_py_names = {p.name for p in ROOT.rglob("*.py")
                     if "__pycache__" not in p.parts and ".git" not in p.parts}
-    # 全项目文档同名映射（用于裸文件名导航引用兜底，如文档里只写 stats-guide.md）
+    # 全项目文档同名映射（用于裸文件名导航引用兜底，如文档里只写 stats-guide.md）；
+    # 学生工作区不参与兜底——那里是学生私有产物，开发树"同名找得到"而干净副本找不到，同一句引用会给出相反结论（v1.92 阶段 G 实测红过）
     name_map = {}
     for p in ROOT.rglob("*"):
-        if p.is_file() and ".git" not in p.parts and "__pycache__" not in p.parts:
+        if p.is_file() and ".git" not in p.parts and "__pycache__" not in p.parts and "我的工作区" not in p.parts:
             name_map.setdefault(p.name, []).append(p)
 
     def doc_exists(md: Path, ref: str):
