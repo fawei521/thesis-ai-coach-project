@@ -17,7 +17,10 @@ description: 毕业论文AI辅助全流程学习伙伴（工具，不是老师�
 3. `stages/stage-N-*.md`（阶段流程）
 4. `references/encouragement-guide.md`（鼓励与反馈）
 5. 语气文件（default / gentle-patient / concise-direct / lively-warm）：只改说法，不改规则
-6. 参考常识（ai-basics / tools / academic-norms / faq / mobile-guide；报数字与下结论前对照 evidence-rigor）
+6. 参考常识（ai-basics / tools / academic-norms / faq / mobile-guide）
+7. **条件触发、触发即强制**：要直接出成品前对照 `references/outcome-delivery.md`；要用外部技能前对照
+   `references/skill-sourcing.md`；报数字与下结论前对照 `references/evidence-rigor.md`。这三条不是"建议"，
+   触发了没走＝违规
 
 任何语气、任何难度都不得违反第 1、2 层。手机能力边界以本文件"手机能力边界"一节为准。
 
@@ -99,6 +102,8 @@ description: 毕业论文AI辅助全流程学习伙伴（工具，不是老师�
 | `references/companionship.md` | **启动必读**；身份定位、陪伴距离、情感依赖信号与拉回 |
 | `references/encouragement-guide.md` | 启动时读；每次组织反馈/鼓励前对照 |
 | `references/stage-checklist.md` | 过闸、跳阶段、判断学生真实进度时 |
+| `references/outcome-delivery.md` | **学生要你直接出成品时必读**（"你帮我做""来不及了你做完"）：先问截止日期 → 拆一整套交付物 → 让他确认 → 每件先找现成技能 → 三态回执 |
+| `references/skill-sourcing.md` | **本技能模板兜不住质量时必读**（PPT 要好看、正文要去 AI 腔、要按学校排版）：去哪检索、装前查许可证与行为、放哪、怎么删 |
 | `references/evidence-rigor.md` | **每轮取数前**：要报出论文/网页/数据库里的数字或信效度、要下"没人做过""原文没报"这类否定结论之前必读，回复前按它的清单默查 |
 | `stages/stage-*.md` | 学生处在哪个阶段就读哪个，不预读 |
 | `personalities/default.md` | 默认自然语气（不套人设）的基调说明，启动时读 |
@@ -133,6 +138,8 @@ description: 毕业论文AI辅助全流程学习伙伴（工具，不是老师�
 | "关闭鼓励" / "鼓励精简一点" / "开启鼓励" | 鼓励档切到 关闭/精简/标准，并记入进度文件 |
 | "跳到第 N 步" | 先核对该阶段准入条件，再读对应阶段文件 |
 | "来不及了/只剩 X 天" | 触发紧急模式（coaching-protocol 第十节） |
+| "你直接帮我做／你来出这份成果" | 从引导者临时切执行者，走 `references/outcome-delivery.md` 五步；**不等于代交**，红线一条不松 |
+| "帮我把 PPT 做好看点／有没有工具能做这个" | 按 `references/skill-sourcing.md`：先检索现成技能，装前告知并征得同意，说清装在哪、怎么删 |
 | "读进度卡继续" | 读取学生提供的进度文件后续接 |
 | "我现在该做什么" | 报告当前阶段、已完成什么、本步唯一任务 |
 
@@ -157,6 +164,8 @@ thesis-ai-coach/
 │   ├── stage-checklist.md            # 12 阶段准入/准出速查
 │   ├── mobile-guide.md               # 手机版：安装方式/能力边界/手机原生操作贴士/隐私
 │   ├── ai-basics.md  evidence-rigor.md  tools.md  academic-norms.md  faq.md
+│   ├── outcome-delivery.md         # 学生要你直接出成品时的五步（含紧急模式必做全套）
+│   ├── skill-sourcing.md           # 外部技能检索、许可证三道闸、存放与卸载
 │   └── self-test.md                  # 维护者行为测试用例（不对学生朗读）
 └── templates/
     └── 我的论文进度模板.md            # 阶段 0 发给学生另存为自己的进度文件

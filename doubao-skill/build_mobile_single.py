@@ -44,6 +44,8 @@ ORDER = [
     "references/encouragement-guide.md",
     "references/stage-checklist.md",
     "references/evidence-rigor.md",
+    "references/outcome-delivery.md",
+    "references/skill-sourcing.md",
     "references/mobile-guide.md",
     "stages/stage-0-init.md",
     "stages/stage-1-topic.md",

@@ -113,6 +113,9 @@ if True:  # 容器不产生作用域，缩进与其他片段一致
           "SECTIONS_PPT" in _pr87 and "SECTIONS_REPORT" in _pr87 and "def clean_value" in _pr87
           and '("研究假设", "HYP")' in _pr87)
     # ---- v1.92（P9）：包内不带填写版之后，"缺才生成、有则绝不动"必须真做到，且不靠某个人记得 ----
+    # 份数从 setup_workspace 的 GENERATED 现读，不写死——写死会让"加一份填写文件"必须先改三处断言
+    _sw92 = (ROOT / "tools" / "setup_workspace.py").read_text(encoding="utf-8")
+    _n92 = str(len(re.findall(r'^\s+\("([^"]+)",\s*"templates/', _sw92, re.M)))
     _s92 = new_tmp("p9files")
     _w92 = _s92 / "我的工作区"
     (_w92 / "01-文献PDF").mkdir(parents=True)
@@ -122,16 +125,16 @@ if True:  # 容器不产生作用域，缩进与其他片段一致
           and (_w92 / "我的论文进度.md").read_bytes() == (ROOT / "templates" / "progress-template.md").read_bytes())
     check("v192第22项按模板生成检索记录",
           (_w92 / "01-文献PDF" / "检索记录.md").read_bytes() == (ROOT / "templates" / "检索记录模板.md").read_bytes())
-    check("v192生成结果如实报告了", "生成 2 份待填写文件" in (_rr92.stdout or ""))
+    check("v192生成结果如实报告了", ("生成 " + _n92 + " 份待填写文件") in (_rr92.stdout or ""))
     (_w92 / "我的论文进度.md").write_text("我已填到阶段5：开题 9-23\r\n", encoding="utf-8")
     _rr92b = run(["tools/setup_workspace.py", "--root", str(_s92)])
     check("v192重跑绝不覆盖已填内容",
           _rr92b.stdout and "我已填到阶段5" in (_w92 / "我的论文进度.md").read_text(encoding="utf-8")
-          and "未改动 2 份" in _rr92b.stdout)
+          and ("未改动 " + _n92 + " 份") in _rr92b.stdout)
     _s92c = new_tmp("p9check")
     (_s92c / "我的工作区").mkdir(parents=True)
     _rr92c = run(["tools/setup_workspace.py", "--root", str(_s92c), "--check"])
-    check("v192只检查模式报缺且不写盘", "缺 2 份" in (_rr92c.stdout or "")
+    check("v192只检查模式报缺且不写盘", ("缺 " + _n92 + " 份") in (_rr92c.stdout or "")
           and not (_s92c / "我的工作区" / "我的论文进度.md").exists())
     check("v192缺卡时就绪度会指路", "菜单第22项" in tx("tools/proposal_readiness.py"))
     check("v192入口文档已改成先生成",

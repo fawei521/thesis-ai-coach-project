@@ -83,6 +83,11 @@ desktop.ini
 *.swo
 *~
 
+# ===== 现场安装的外部技能（口径见 core/skill-sourcing.md 第四节）=====
+# 外部技能统一装进这一层：不随包分发、不进 git，卸载就是删这个目录。
+# 只忽略 _external/，不动 .qoder/ 的其余内容——那是使用者自己的项目设置，本包不替他决定。
+.qoder/skills/_external/
+
 # ===== 临时文件 =====
 *.tmp
 *.bak

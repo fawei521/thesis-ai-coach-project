@@ -67,6 +67,8 @@ GENERATED = [
      "论文存档点（换对话/换 AI 时靠它续接）"),
     ("01-文献PDF/检索记录.md", "templates/检索记录模板.md",
      "检索留痕（多词矩阵、命中数、0 命中反查证据）"),
+    ("我的毕业材料清单.md", "templates/materials-checklist.md",
+     "学校要交的那一整套表格（任务书/计划书/中期检查/答辩记录…逐校不同，问教务后逐项打勾）"),
 ]
 
 
@@ -124,7 +126,7 @@ def main():
     print(f"位置：{ws}")
     if args.check:
         if not missing and not lack_files:
-            print("✅ 九个目录齐全，两份填写文件也都在，无需补齐。")
+            print(f"✅ {len(LAYOUT)} 个目录齐全，{len(GENERATED)} 份填写文件也都在，无需补齐。")
             return
         if missing:
             print(f"缺 {len(missing)} 个目录：")
