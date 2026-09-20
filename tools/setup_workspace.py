@@ -3,7 +3,8 @@
 """
 工作区初始化 / 补齐工具
 ======================
-把 `我的工作区/` 补齐成**覆盖论文全流程**的目录结构。
+把 `我的工作区/` 补齐成**覆盖论文全流程**的目录结构，并生成缺少的**学生自己填写的文件**
+（进度卡、检索记录——包里只带模板，填写版随包分发会在下次装新包时盖掉学生的记录）。
 
 为什么需要：包里原来只有 4 个目录（文献PDF / 问卷数据 / 分析结果 / 网页），
 只覆盖"读文献 + 跑数据"两段。而一篇心理学毕业论文实际要归档的东西远不止这些：
@@ -11,8 +12,8 @@
 缺了这些，学生的成果就散回桌面上了。
 
 **三条硬规矩（这个工具的存在理由）**：
-  1. 只新增，**绝不重命名、绝不移动、绝不删除**已有目录——老学生本地已有数据；
-  2. 幂等：重复跑没副作用，已存在的目录一律跳过（连说明文件都不覆盖）；
+  1. 只新增，**绝不重命名、绝不移动、绝不删除**已有目录与文件——老学生本地已有数据；
+  2. 幂等：重复跑没副作用，已存在的目录与文件一律跳过（连说明文件都不覆盖）；
   3. 不碰项目文件：只在 `我的工作区/` 里面动手。
 
 用法：
@@ -58,6 +59,16 @@ PLACEHOLDER = {
     "09-导师沟通记录": "导师沟通记录",
 }
 
+# 学生**就地填写**的文件：发布包只带模板、不带这些填写版（`.gitignore` 已同步排除）。
+# 缺了才从模板复制一份，已存在则一个字都不碰——所以装新包不可能盖掉学生的存档点与检索留痕。
+# 这份清单同时给 tests/consistency_check.py 与 full_e2e 复用，别在别处再抄一遍名字。
+GENERATED = [
+    ("我的论文进度.md", "templates/progress-template.md",
+     "论文存档点（换对话/换 AI 时靠它续接）"),
+    ("01-文献PDF/检索记录.md", "templates/检索记录模板.md",
+     "检索留痕（多词矩阵、命中数、0 命中反查证据）"),
+]
+
 
 def main():
     ap = argparse.ArgumentParser(description="补齐 我的工作区/ 的论文全流程目录（只新增不删除）")
@@ -90,23 +101,50 @@ def main():
                             encoding="utf-8")
         created.append(name)
 
+    made_files, have_files, lack_files = [], [], []
+    for rel, tpl, purpose in GENERATED:
+        dst = ws / rel
+        if dst.exists():
+            have_files.append(rel)
+            continue
+        if args.check:
+            lack_files.append((rel, purpose))
+            continue
+        src = ROOT / tpl
+        if not src.exists():
+            print(f"✗ 包里的模板 {tpl} 不见了，跳过生成 {rel}（请重新解压发布包）")
+            continue
+        dst.parent.mkdir(parents=True, exist_ok=True)
+        dst.write_bytes(src.read_bytes())      # 逐字节复制：保住模板的行尾与编码
+        made_files.append(rel)
+
     print("=" * 62)
-    print("工作区目录检查" if args.check else "工作区目录补齐")
+    print("工作区检查" if args.check else "工作区补齐")
     print("=" * 62)
     print(f"位置：{ws}")
     if args.check:
-        if not missing:
-            print("✅ 九个目录齐全，无需补齐。")
+        if not missing and not lack_files:
+            print("✅ 九个目录齐全，两份填写文件也都在，无需补齐。")
             return
-        print(f"缺 {len(missing)} 个目录（跑 `python tools/setup_workspace.py` 即可补齐）：")
-        for name, purpose, _ in missing:
-            print(f"  · {name}：{purpose[:44]}")
+        if missing:
+            print(f"缺 {len(missing)} 个目录：")
+            for name, purpose, _ in missing:
+                print(f"  · {name}：{purpose[:44]}")
+        if lack_files:
+            print(f"缺 {len(lack_files)} 份要你填写的文件（补齐时从模板复制，已存在的一律不动）：")
+            for rel, purpose in lack_files:
+                print(f"  · {rel}：{purpose}")
+        print("\n跑 `python tools/setup_workspace.py`（或菜单第 22 项）即可补齐上面这些。")
         return
     if created:
         print(f"新建 {len(created)} 个：{'、'.join(created)}")
     else:
         print("没有新建（都已存在）——重复运行不会有副作用。")
     print(f"已存在跳过 {len(skipped)} 个。")
+    if made_files:
+        print(f"生成 {len(made_files)} 份待填写文件：{'、'.join(made_files)}（内容取自包内空白模板）")
+    if have_files:
+        print(f"已存在、未改动 {len(have_files)} 份你的文件：{'、'.join(have_files)}")
     print("\n安全声明：本次没有重命名、移动或删除任何已有目录或文件；"
           "老数据留在原处即可，01–04 编号未改动。")
     print("下一步：把 `我的工作区/先读我.md` 看一眼，确认每类东西该放哪；"

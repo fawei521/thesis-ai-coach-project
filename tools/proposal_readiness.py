@@ -196,7 +196,7 @@ def main():
     want, got = check(outline, prog, base=op.parent)
     print("=" * 58)
     print("开题就绪度自检　大纲：%s（%d 字）　进度卡：%s"
-          % (op.name, len(outline), "未读取" if not prog else pp.name))
+          % (op.name, len(outline), "未读取" if a.no_progress else (pp.name if prog else "没有这份卡：用菜单第22项从模板生成")))
     print("=" * 58)
     for tag, sub in (("缺项", "先补这些，否则老师一定会问"), ("矛盾", "两份材料对不上"),
                      ("风险", "会被当场抓的硬伤")):

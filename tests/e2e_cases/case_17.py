@@ -85,23 +85,20 @@ if True:  # 容器不产生作用域，缩进与其他片段一致
           and "就绪度" in tx("QUICKSTART.md"))
     check("v185 不写论文正文的红线写在工具里",
           "不代写" in tx("tools/proposal_readiness.py") and "只报问题" in tx("tools/proposal_readiness.py"))
-    # ---- v1.87 真人走查缺陷修：S1 隐私闸 ----
-    # `我的工作区/我的论文进度.md` 是被 git 跟踪、随发布包分发的**空白模板**；学生填的是同一个路径。
-    # 一旦哪次 `git add -A` 把填写版提交上去，姓名/导师就会进别人的下载包（2026-09-19 走查实测差点发生）。
-    # 所以盯 git 基线（不是工作副本——工作副本本就该由学生自己填）：身份三行必须仍是空的。
-    if (ROOT / ".git").exists():               # 只在有 git 的形态跑（开发树/worktree）；发布副本没有 .git 自然跳过
-        _base87 = subprocess.run(["git", "show", "HEAD:我的工作区/我的论文进度.md"], cwd=str(ROOT),
-                                 capture_output=True, text=True, encoding="utf-8", timeout=60)
-        _fields87 = ("- 学生姓名/昵称", "- 指导教师", "- 计划答辩时间",
-                   "- 论文题目（暂定）", "- 自变量 X", "- 因变量 Y")
-        def filled87(text):
-            rows = [l for l in text.splitlines() if l.split("：")[0] in _fields87]
-            return len(rows), [l for l in rows if l.split("：", 1)[1].strip()]
-        _n87, _hot87 = filled87(_base87.stdout or "")
-        check("v187包内进度卡基线仍是空白模板", _base87.returncode == 0 and _n87 == 6 and not _hot87,
-              ("填了%d条 " % len(_hot87)) + str(_hot87)[:110] + (_base87.stderr or "")[:60])
-        # 尺子不空转的现场证明：同一把尺量**工作副本**（学生真填过的那份）必须判红，
-        # 否则"基线全空"可能只是没人在看。这里不断言，只在失败时把证据带进报告。
+    # ---- v1.87 真人走查缺陷修：S1 隐私闸（v1.92 起改量"包里那一份"）----
+    # 原状：包里那份就是学生要填的那一份（同一路径），所以这把尺只能盯 git 基线、在干净副本里自动跳过。
+    # P9 之后包内只有 `templates/progress-template.md` 一份空白基线（填写版不进包），
+    # 于是它可以离开 .git 条件——**阶段 G 的干净解压副本也会量一遍**，学生拿到手的空白卡保证是空的。
+    _fields87 = ("- 学生姓名/昵称", "- 指导教师", "- 计划答辩时间",
+                 "- 论文题目（暂定）", "- 自变量 X", "- 因变量 Y")
+    def filled87(text):
+        rows = [l for l in text.splitlines() if l.split("：")[0] in _fields87]
+        return len(rows), [l for l in rows if l.split("：", 1)[1].strip()]
+    _n87, _hot87 = filled87(tx("templates/progress-template.md"))
+    check("v187包内进度卡基线仍是空白模板", _n87 == 6 and not _hot87,
+          "六个身份字段命中 %d 行、其中已填 %d 行" % (_n87, len(_hot87)))
+    if (ROOT / ".git").exists() and (ROOT / "我的工作区" / "我的论文进度.md").exists():
+        # 尺子不空转的现场证明：同一把尺量本机这份真填过的，必须抓到痕迹
         _nw87, _hw87 = filled87(tx("我的工作区/我的论文进度.md"))
         check("v187同一把尺量工作副本要能抓到填写痕迹", _hw87 and len(_hw87) >= 1,
               "工作副本命中 %d 条" % len(_hw87))
@@ -113,3 +110,36 @@ if True:  # 容器不产生作用域，缩进与其他片段一致
     check("v187就绪度双口径与取值净化已生效",
           "SECTIONS_PPT" in _pr87 and "SECTIONS_REPORT" in _pr87 and "def clean_value" in _pr87
           and '("研究假设", "HYP")' in _pr87)
+    # ---- v1.92（P9）：包内不带填写版之后，"缺才生成、有则绝不动"必须真做到，且不靠某个人记得 ----
+    _s92 = new_tmp("p9files")
+    _w92 = _s92 / "我的工作区"
+    (_w92 / "01-文献PDF").mkdir(parents=True)
+    (_w92 / "01-文献PDF" / "学生的旧文件.txt").write_text("别动我", encoding="utf-8")
+    _rr92 = run(["tools/setup_workspace.py", "--root", str(_s92)])
+    check("v192第22项按模板生成进度卡", _rr92.returncode == 0
+          and (_w92 / "我的论文进度.md").read_bytes() == (ROOT / "templates" / "progress-template.md").read_bytes())
+    check("v192第22项按模板生成检索记录",
+          (_w92 / "01-文献PDF" / "检索记录.md").read_bytes() == (ROOT / "templates" / "检索记录模板.md").read_bytes())
+    check("v192生成结果如实报告了", "生成 2 份待填写文件" in (_rr92.stdout or ""))
+    (_w92 / "我的论文进度.md").write_text("我已填到阶段5：开题 9-23\r\n", encoding="utf-8")
+    _rr92b = run(["tools/setup_workspace.py", "--root", str(_s92)])
+    check("v192重跑绝不覆盖已填内容",
+          _rr92b.stdout and "我已填到阶段5" in (_w92 / "我的论文进度.md").read_text(encoding="utf-8")
+          and "未改动 2 份" in _rr92b.stdout)
+    _s92c = new_tmp("p9check")
+    (_s92c / "我的工作区").mkdir(parents=True)
+    _rr92c = run(["tools/setup_workspace.py", "--root", str(_s92c), "--check"])
+    check("v192只检查模式报缺且不写盘", "缺 2 份" in (_rr92c.stdout or "")
+          and not (_s92c / "我的工作区" / "我的论文进度.md").exists())
+    check("v192缺卡时就绪度会指路", "菜单第22项" in tx("tools/proposal_readiness.py"))
+    check("v192入口文档已改成先生成",
+          "已就位" not in tx("START.md") and "打开已就位的" not in tx("core/coach-rules/stage-playbook.md")
+          and "故意不带" in tx("我的工作区/先读我.md") and "别直接覆盖" in tx("QUICKSTART.md"))
+    # README 正文里**第一个** Skill 版本号（＝能力介绍那行）必须等于 SKILL.md 自己的声明，
+    # 且任何一处都不许超过它（历史版本段落写旧号是允许的）。2026-09-20 实测 README 停在 v1.3 而轻量版已 v1.7。
+    _sk92 = re.search(r"Skill\s*版本：v(\d+\.\d+)", tx("doubao-skill/SKILL.md"))
+    _rm92 = re.findall(r"Skill v(\d+\.\d+)", tx("README.md"))
+    _v92 = lambda v: tuple(int(x) for x in v.split("."))
+    check("v192README里的Skill版本串不再漂", bool(_sk92) and bool(_rm92)
+          and _rm92[0] == _sk92.group(1) and all(_v92(v) <= _v92(_sk92.group(1)) for v in _rm92),
+          "SKILL.md=v%s README=%s" % (_sk92.group(1) if _sk92 else "?", _rm92))

@@ -23,10 +23,12 @@ if True:  # 容器不产生作用域，缩进与拆分前完全一致
     check("凭据代填红线", not cred_hits, str(sorted(set(cred_hits))))
     check("登录交学生本人", "登录一律由学生本人" in las or "学生本人输入" in las)
     check("拒绝代填明确入工作流", "不索取、不接受、不存储、不代填" in las and "T25" in las)
-    check("检索记录预置存在", (ROOT / "我的工作区" / "01-文献PDF" / "检索记录.md").exists())
+    # v1.92（P9）：包里只带空白模板。原先随包分发的两份"就地填写"文件（进度卡、检索记录）
+    # 会在学生装新包时把自己的记录盖成空白——现在从源头断掉，填写版由菜单第 22 项缺才生成。
     check("检索记录模板存在", (ROOT / "templates" / "检索记录模板.md").exists())
+    check("进度卡基线存在", (ROOT / "templates" / "progress-template.md").exists())
     check("检索记录入口", "检索记录.md" in las and "检索记录.md" in tx("我的工作区/先读我.md"))
-    check("进度卡接检索留痕", "文献与检索留痕" in tx("我的工作区/我的论文进度.md"))
+    check("进度卡接检索留痕", "文献与检索留痕" in tx("templates/progress-template.md"))
     check("菜单5接受CSV", "标准 CSV" in menu and "txt" in menu)
     # 发布形态安全：预置文件必须在 git 索引里，否则 git archive 打出的包会缺它，
     # 而开发树里看着"明明存在"（.gitignore 的目录级排除曾把新建的 检索记录.md 挡在包外）。
@@ -34,13 +36,20 @@ if True:  # 容器不产生作用域，缩进与拆分前完全一致
         ls = subprocess.run(["git", "ls-files", "-z"], capture_output=True, text=True,
                             encoding="utf-8", errors="replace", cwd=str(ROOT))
         tracked = set(ls.stdout.split("\0")) if ls.returncode == 0 else set()
-        want = {"我的工作区/01-文献PDF/检索记录.md", "templates/检索记录模板.md",
-                "我的工作区/先读我.md", "我的工作区/我的论文进度.md"}
+        want = {"templates/检索记录模板.md", "templates/progress-template.md", "我的工作区/先读我.md"}
         check("预置文件已入库", want <= tracked, str(sorted(want - tracked)))
+        # v1.92 的根治闸：这两条路径一旦重新入库，装新包就又会把学生的记录盖成空白模板。
+        # 它们改由 tools/setup_workspace.py 在缺失时从模板复制生成，所以"不在包里"才是正确状态。
+        filled = {"我的工作区/我的论文进度.md", "我的工作区/01-文献PDF/检索记录.md"}
+        check("包内不带学生填写版", not (filled & tracked), str(sorted(filled & tracked)))
+        # 生成清单与豁免名单同源：setup_workspace 说要生成的，必须正好是上面那两条
+        sw = (ROOT / "tools" / "setup_workspace.py").read_text(encoding="utf-8")
+        gen = {"我的工作区/" + m for m in re.findall(r'^\s+\("([^"]+)",\s*"templates/', sw, re.M)}
+        check("第22项生成清单与不进包的清单同源", gen == filled, f"GENERATED={sorted(gen)}")
         # 反向：学生本人的数据/成果/凭据不得入库（题录 txt、CSV、真实数据）
         # 白名单用模式而不是逐个文件名：`把…放这里.txt` 是各目录占位说明的统一命名，
         # 逐个列举会让"新加一个工作区目录"必须先改这条断言（v1.77 踩过）。
-        preset = ("先读我.md", "我的论文进度.md", "检索记录.md")
+        preset = ("先读我.md",)
         leak = [t for t in tracked if t.startswith("我的工作区/")
                 and not (re.match(r"^我的工作区/[^/]+/把.+放这里\.txt$", t)
                          or t.rsplit("/", 1)[-1] in preset)]
@@ -84,7 +93,7 @@ if True:  # 容器不产生作用域，缩进与拆分前完全一致
     pr = tx("workflows/paper-reading-guide.md")
     check("精读IMRaD卡片", "IMRaD" in pr and "与本研究的关系" in pr)
     check("精读分层数量", "精读（10–20 篇，从约 90 篇候选池中筛）" in pr and "泛读（20-40篇）" in pr)
-    check("进度卡12阶段", "11 答辩准备" in tx("我的工作区/我的论文进度.md"))
+    check("进度卡12阶段", "11 答辩准备" in tx("templates/progress-template.md"))
     cm = ROOT / "workflows" / "communication-guide.md"
     check("沟通指南文件存在", cm.exists())
     if cm.exists():

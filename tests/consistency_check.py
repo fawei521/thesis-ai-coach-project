@@ -33,6 +33,9 @@ SWITCH_WHITELIST = {"--help", "-h", "--outdir", "-o", "--version"}
 # 构建产物（.gitignore）与仓库内档案（export-ignore）都不随包分发；包内引用它们是对的，不报悬空。
 BUILD_ARTIFACT_REFS = {"doubao-skill/thesis-ai-coach-手机版.md"}
 ARCHIVE_DIR_PRESENT = (ROOT / "维护档案").is_dir()
+# 学生"就地填写"的文件同理：包里只有模板，装包后才存在。名单从 tools/setup_workspace.py 的 GENERATED 读，不在此另抄（抄了会漂）
+_SW_SRC = (TOOLS / "setup_workspace.py").read_text(encoding="utf-8", errors="replace")
+STUDENT_OWNED = {m.split("/")[0] for m in re.findall(r'^\s+\("([^"]+)",\s*"templates/', _SW_SRC, re.M)}
 
 
 def tool_switches(py_path: Path):
@@ -114,14 +117,11 @@ def main():
         cands = [md.parent / ref, ROOT / ref, ROOT / "tools" / Path(ref).name,
                  ROOT / "tests" / "test-data" / Path(ref).name,
                  ROOT / "我的工作区" / Path(ref).name]
-        if any(c.exists() for c in cands):
-            return True
-        return bool(name_map.get(Path(ref).name))
+        return any(c.exists() for c in cands) or bool(name_map.get(Path(ref).name))  # 末路＝全项目同名兜底
 
     md_files = list(ROOT.rglob("*.md"))
     skill_files = [p for p in md_files if p.relative_to(ROOT).parts[0] == "doubao-skill"]
     for md in md_files:
-        # 跳过 .user_skills 等目录外内容（rglob 已限定 ROOT）
         rel = md.relative_to(ROOT)
         # 学生自由工作区：文件由学生自己命名，不由工具保证，不做导出一致性核对
         # doubao-skill 独立分发子包，由其 validate.py 自检，不纳入完整版核对；跨包硬口径见 tests/skill_sync_check.py
@@ -186,8 +186,8 @@ def main():
                 problems.append(f"[{rel}] 引用了不存在的文档 {ref}")
 
         # 5. 学生工作区路径引用完整：`我的工作区/子目录或文件` 的第一段必须真实存在
-        #    （只核到第一段：目录号写错——把开题写成 02——要抓得到；
-        #      而目录里学生会存什么文件包说了不算，核到整条路径会在干净副本里误报）
+        #    （只核到第一段：目录号写错——把开题写成 02——要抓得到；目录里学生存什么包说了不算，核到整条路径必误报。
+        #      进度卡/检索记录这类填写版由 STUDENT_OWNED 豁免——v1.92 起它们本就不随包分发）
         for ws_ref in re.findall(r"`(我的工作区/[^`\n\s]+)`", text):
             if "*" in ws_ref or "<" in ws_ref:
                 continue
@@ -199,7 +199,7 @@ def main():
             first = ws_ref[len("我的工作区/"):].split("/")[0].rstrip(":：")
             if not first:
                 continue
-            if not (ROOT / "我的工作区" / first).exists():
+            if first not in STUDENT_OWNED and not (ROOT / "我的工作区" / first).exists():
                 problems.append(f"[{rel}] 引用了不存在的工作区路径 {ws_ref}")
 
         # 5b. 命令示例与图片语法里嵌的"我的工作区/NN-目录"也必须真实存在。

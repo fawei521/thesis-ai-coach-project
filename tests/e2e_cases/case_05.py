@@ -203,8 +203,8 @@ if True:  # 容器不产生作用域，缩进与拆分前完全一致
     check("v156coach引用反馈协议", "core/coaching-protocol.md" in cr and "反馈三段式" in cr)
     check("v156START必读六份", "先读这六份" in st and "core/companionship.md" in st and "core/coaching-protocol.md" in st and "core/encouragement-guide.md" in st)
     check("v156START开场第五问", "关闭鼓励" in st and "反馈方式" in st)
-    card_t = tx("templates/progress-template.md"); card_w = tx("我的工作区/我的论文进度.md")
-    check("v156双进度卡鼓励档行", "鼓励反馈档" in card_t and "鼓励反馈档" in card_w)
+    card_t = tx("templates/progress-template.md")     # v1.92 起进度卡只有这一份基线（填写版不进包）
+    check("v156进度卡基线鼓励档行", "鼓励反馈档" in card_t)
     check("v156入口登记齐全", all(s in tx("AGENTS.md") for s in ("coaching-protocol.md", "encouragement-guide.md"))
           and "关闭鼓励" in rm and "关闭鼓励" in tx("QUICKSTART.md"))
     check("v156鼓励与Skill口径一致",
