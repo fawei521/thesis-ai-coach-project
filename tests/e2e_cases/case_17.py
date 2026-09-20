@@ -106,7 +106,9 @@ if True:  # 容器不产生作用域，缩进与其他片段一致
     _ppt87 = tx("tools/menu_lit.py")
     check("v187排PPT前警告未替换占位", "处【】没换成你自己的内容" in _ppt87 and "菜单第 23 项" in _ppt87)
     # S4：PPT 与报告体两套口径；S2/S3：进度卡取值净化与假设"空即报"
-    _pr87 = tx("tools/proposal_readiness.py")
+    # v1.94 起实现拆进 tools/readiness/ 包（入口贴住 220 行闸），所以量"这份逻辑文档"而不是入口文件
+    _pr87 = "\n".join([tx("tools/proposal_readiness.py")] +
+                      [tx("tools/readiness/" + q.name) for q in sorted((ROOT / "tools" / "readiness").glob("*.py"))])
     check("v187就绪度双口径与取值净化已生效",
           "SECTIONS_PPT" in _pr87 and "SECTIONS_REPORT" in _pr87 and "def clean_value" in _pr87
           and '("研究假设", "HYP")' in _pr87)
@@ -143,3 +145,40 @@ if True:  # 容器不产生作用域，缩进与其他片段一致
     check("v192README里的Skill版本串不再漂", bool(_sk92) and bool(_rm92)
           and _rm92[0] == _sk92.group(1) and all(_v92(v) <= _v92(_sk92.group(1)) for v in _rm92),
           "SKILL.md=v%s README=%s" % (_sk92.group(1) if _sk92 else "?", _rm92))
+
+    # ---- v1.94（待办 P8）：报告体走自己那套节次口径，不再被 PPT 的页数规则误判 ----
+    # 样例放 tests/test-data/，这里抄进 _d17 跑——那里有现成的 我的模型图.png，图那条才核得过。
+    _src194 = tx("tests/test-data/开题报告样例.md")
+    _rp194 = _d17 / "开题报告.md"
+    _rp194.write_text(_src194, encoding="utf-8")
+    r194 = run(["tools/proposal_readiness.py", str(_rp194), "--no-progress", "--strict"])
+    ro194 = (r194.stdout or "") + (r194.stderr or "")
+    check("v194报告体按节次核且不报页数（尺子不空咬）",
+          r194.returncode == 0 and "报告体" in ro194 and "8-12 页" not in ro194, ro194[-500:])
+    check("v194PPT 那条路没被改坏", g17.returncode == 0 and "PPT 汇报大纲" in go17, go17[-300:])
+    for _nm194, _old194, _new194, _exp194 in (
+            ("统计方法", "使用 SPSS 与 JASP：Harman 单因子检验共同方法偏差；Cronbach's α 与 KMO 检验信效度；Pearson 相关；\n"
+             "PROCESS 模型 6 检验链式中介，Bootstrap 5000 次，95% 置信区间不含 0 判为显著。",
+             "数据收集完成后会做分析。", "数据处理这一节没写统计方法"),
+            ("夸大措辞", "### 五、研究创新点", "### 五、研究创新点\n\n本研究首次填补了该领域的空白。", "强断言"),
+            ("下划线空位", "| 2026 年 10 月 | 确定问卷终稿 | 问卷 |", "| __年__月 | 确定问卷终稿 | 问卷 |", "下划线空位"),
+            ("空节", "1. **选题创新**：在青少年样本中检验人工智能依赖经孤独感、反刍到非自杀性自伤的链式中介路径；\n"
+             "2. **现实价值**：为学校心理教师提供可操作的筛查切入点。", "（待补）", "只有标题没有内容")):
+        _f194 = _d17 / ("坏报告_%s.md" % _nm194)
+        _f194.write_text(_src194.replace(_old194, _new194), encoding="utf-8")
+        _x194 = run(["tools/proposal_readiness.py", str(_f194), "--no-progress", "--strict"])
+        check("v194报告体植入「%s」要能抓到（尺子不空转）" % _nm194,
+              _x194.returncode == 1 and _exp194 in (_x194.stdout or ""), (_x194.stdout or "")[-300:])
+    _ls194 = sorted(p.name for p in _d17.iterdir())
+    _c194 = run(["tools/proposal_readiness.py", str(_rp194), "--no-progress", "--for-card"])
+    check("v194for-card只打印可粘贴段且不写盘",
+          (_c194.stdout or "").startswith("## 四之二") and "不代写" in (_c194.stdout or "")
+          and sorted(p.name for p in _d17.iterdir()) == _ls194, (_c194.stdout or "")[:200])
+    check("v194进度卡模板留了可贴的那一节", "四之二、开题就绪度自检" in tx("templates/progress-template.md"))
+    # 拆包最怕抄两份：两套节次口径各自只定义一次，入口只剩"读文件、选口径、打印"
+    _pkg194 = "\n".join(tx("tools/readiness/" + q.name)
+                        for q in sorted((ROOT / "tools" / "readiness").glob("*.py")))
+    check("v194拆包后口径各只一份且入口不复述检查逻辑",
+          _pkg194.count("SECTIONS_PPT = [") == 1 and _pkg194.count("SECTIONS_REPORT = [") == 1
+          and "want.append" not in tx("tools/proposal_readiness.py"),
+          "PPT=%d REPORT=%d" % (_pkg194.count("SECTIONS_PPT = ["), _pkg194.count("SECTIONS_REPORT = [")))
