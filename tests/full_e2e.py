@@ -181,6 +181,7 @@ FRAGMENTS = [
     "case_17.py",  # v1.85 开题就绪度自检工具
     "case_18.py",  # v1.89 轻量版口径追平＋点名的完整版能力核对＋行尾单一
     "case_19.py",  # v1.90 证据与核验纪律：三查/切片禁令/[需核实] 门禁
+    "case_20.py",  # v1.91 宪法级严谨性条款＋可复跑的 A/B 对照实验
 ]
 
 try:
@@ -217,4 +218,3 @@ if stray:
     fails.append(("测试临时文件残留", False))
     print(f"==== 修正后：共 {len(results)} 项，失败 {len(fails)} ====")
 sys.exit(1 if fails else 0)
-
