@@ -109,3 +109,40 @@ check("v190轻量版自测含T44-T46且编号连续",
 check("v190新用例各自指得回动作口径",
       all(k in _BTTXT for k in ("仅摘要", "已落盘的错条目", "均未检索到", "不得进正式稿"))
       and all(k in _STTXT for k in ("仅摘要", "搜不到", "逐字原文")))
+
+# ---- 6. P15（v1.94）：被催短与要更正从"写在文档里"变成"有尺量" ----
+# 用户 09-20 的原话是"道歉这种就不必写这么多，AI 会自己懂道歉的"——所以两把尺**只量形式在不在**，
+# 不量语气、不量有没有认错；写进规则的规矩自己也按"规则算功能"验收。
+_C3 = tx("CONSTITUTION.md").split("## 第三条")[1].split("## 第四条")[0]
+check("v194宪法第三条多了第五形制被催短不掉形",
+      all(k in _C3 for k in ("被催短不掉形", "状态标记", "30–60 秒")), _C3[:180])
+check("v194最低形式三样两侧纪律都在位（镜像不缺边）",
+      all(all(k in t for k in ("最低形式", "状态标记", "一句为什么", "30–60 秒"))
+          for t in (tx("core/evidence-rigor.md"), tx("doubao-skill/references/evidence-rigor.md"))))
+check("v194两份产出前门禁都加了这条勾",
+      all("最低形式三样" in tx(f) for f in ("core/coaching-protocol.md",
+                                            "doubao-skill/references/coaching-protocol.md")))
+check("v194手机合并单文件带上这一节", "最低形式" in tx("doubao-skill/thesis-ai-coach-手机版.md"))
+_p15 = run(["tests/rigor_pressure.py"], t=60)
+po15 = (_p15.stdout or "") + (getattr(_p15, "stderr", "") or "")
+check("v194两把尺对五份植入坏回答全部判红（尺不空转）",
+      _p15.returncode == 0 and "漏抓" not in po15 and po15.count("[抓到]") == 5, po15[-300:])
+check("v194实测结论照实写着第十节测不出增益",
+      "测不出增益" in po15 and "已解决" not in po15.split("诚实边界")[-1], po15[-260:])
+_PP = tx("tests/rigor_pressure.py")
+check("v194压力实验的夹具与词表不抄第二份（单源）",
+      "from rigor_experiment import" in _PP and "_MARK = (" not in _PP and "def _放行" not in _PP,
+      "抄了第二份就会和原件漂")
+check("v194用例登记里两条都指向这把尺",
+      "judge_floor" in tx("tests/behavior-self-test.md")
+      and "judge_correct" in tx("tests/behavior-self-test.md")
+      and "最低形式" in tx("doubao-skill/references/self-test.md"))
+# 报告在仓库外的 _归档（不随包分发）：开发树里必须已落盘，干净副本自然跳过
+_rep94 = ROOT.parent / "_归档" / "审查报告" / "2026-09-20 被催短与更正的形制下界实验.md"
+if _rep94.exists():
+    _t94 = _rep94.read_text(encoding="utf-8")
+    check("v194实验报告归档且写了测不出增益与三处自纠",
+          all(k in _t94 for k in ("n=1", "测不出增益", "摘录删过头", "假阴性", "道歉"))
+          and "全部判红" in _t94, _rep94.name)
+
+
