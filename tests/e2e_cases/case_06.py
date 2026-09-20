@@ -45,7 +45,7 @@ if True:  # 容器不产生作用域，缩进与拆分前完全一致
     check("v1566自测用例扩至38且连续", len(bt_nums) >= 38 and bt_nums[:38] == list(range(1, 39)),
           "n=%d" % len(bt_nums))
     check("v1566自测新增六场景", all(s in bt for s in ("T33", "T34", "T35", "T36", "T37", "T38")))
-    check("v158自测用例扩至45且连续", len(bt_nums) == 45 and bt_nums == list(range(1, 46)),
+    check("v158自测用例扩至45且连续", len(bt_nums) >= 45 and bt_nums == list(range(1, len(bt_nums) + 1)),
           "n=%d" % len(bt_nums))
     check("v158自测新增七场景", all(("T%d" % i) in bt for i in range(39, 46)))
     check("v1566走查记录诚实标注",

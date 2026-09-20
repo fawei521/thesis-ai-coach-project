@@ -31,8 +31,8 @@ ROOT = Path(__file__).resolve().parent
 problems = []
 
 REQUIRED_REFERENCES = ["coaching-protocol.md", "companionship.md", "encouragement-guide.md",
-                       "stage-checklist.md", "ai-basics.md", "tools.md", "academic-norms.md",
-                       "faq.md", "self-test.md", "mobile-guide.md"]
+                       "stage-checklist.md", "evidence-rigor.md", "ai-basics.md", "tools.md",
+                       "academic-norms.md", "faq.md", "self-test.md", "mobile-guide.md"]
 REQUIRED_TEMPLATES = ["我的论文进度模板.md"]
 REQUIRED_PERSONALITIES = ["default.md", "concise-direct.md", "gentle-patient.md", "lively-warm.md"]
 STAGE_COUNT = 12

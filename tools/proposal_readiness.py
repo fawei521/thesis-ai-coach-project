@@ -115,6 +115,7 @@ def check(outline, prog, base=None):
                          % ("汇报八项" if ppt else "报告八节", name, 口径, 量词)))
     lines = outline.splitlines()
     ph = sum(l.count("【") for l in lines)
+    _mk = [i + 1 for i, l in enumerate(lines) if "[需核实]" in l]
     if ph:
         tally, cur = {}, "（封面/开头）"
         for ln in lines:                       # 按页分组，零基础同学才对得上是哪一页要补（S6）
@@ -124,6 +125,8 @@ def check(outline, prog, base=None):
                 tally[cur] = tally.get(cur, 0) + ln.count("【")
         want.append(("缺项", "还有 %d 处【】没换成你自己的内容，按页看：%s——占位没换就交是硬伤"
                      % (ph, "、".join("%s %d 处" % (k, v) for k, v in list(tally.items())[:8]))))
+    if _mk:
+        want.append(("缺项", "第 %s 行还留着 [需核实]——回原文补上「逐字原文＋第几节/哪张表」，补不上就删掉这条（core/evidence-rigor.md）" % "、".join(str(i) for i in _mk[:6])))
     imgs = list(dict.fromkeys(re.findall(r"!\[[^\]]*\]\(([^)]+)\)", outline)
                             + re.findall(r"([^\s（）()]+\.png)", outline)))
     if "模型" in body and not imgs:
@@ -146,8 +149,7 @@ def check(outline, prog, base=None):
     if any(w in body for w in MINOR) and not any(c in body for c in CONSENT):
         want.append(("风险", "对象涉及未成年人却没写知情同意/监护人同意——伦理硬伤，见 psychology/ethics.md"))
     if any(c in body for c in CROSS):
-        # 只看"导致/证明"这类强因果词。题目里"…对…的影响"是本包 proposal-guide 第六节
-        # 认可的标准句式，不能当违规抓——否则工具会和自己教的口径打架。
+        # 只抓"导致/证明"这类强因果词；"…对…的影响"是 proposal-guide 第六节认可的标准句式，抓它=工具和自己教的口径打架
         hits = sorted({w for w in CAUSAL if w in body})
         if hits:
             want.append(("风险", "设计是横断（一次施测），却出现强因果措辞：%s。评审常问「横断能说明因果吗」，"
@@ -166,8 +168,7 @@ def check(outline, prog, base=None):
         got.append("出现的年份里近五年（2021 及以后）偏少：%d 处中只有 %d 处——综述以近五年为主"
                    % (len(yrs), sum(1 for y in yrs if y >= 2021)))
     pages = [p for p in parse_pages(outline) if p["lines"] or "页" in p["t"]]
-    # 页数优先按"第N页"这种真实分页标题数（模板自带一个 ## 标题页，混进来会多数一页）
-    npg = len(re.findall(r"第\s*\d+\s*页", outline)) or len(pages)
+    npg = len(re.findall(r"第\s*\d+\s*页", outline)) or len(pages)   # 优先按"第N页"数：模板自带的 ## 标题页混进来会多数一页
     if npg < 8 or npg > 12:
         got.append("现在 %d 页，口径是 8-12 页（proposal-guide 第四节）——多了念不完，少了讲不清" % npg)
     fat = [p["t"] for p in pages

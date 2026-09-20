@@ -43,6 +43,7 @@ ORDER = [
     "references/companionship.md",
     "references/encouragement-guide.md",
     "references/stage-checklist.md",
+    "references/evidence-rigor.md",
     "references/mobile-guide.md",
     "stages/stage-0-init.md",
     "stages/stage-1-topic.md",
@@ -82,7 +83,7 @@ HEADER = """# 毕业论文 AI 助手（Thesis AI Coach · 手机合并版）
 3. `stages/stage-N-*.md`（阶段流程）
 4. `references/encouragement-guide.md`（鼓励与反馈）
 5. 语气文件（default / gentle-patient / concise-direct / lively-warm）：只改说法，不改规则
-6. 参考常识（ai-basics / tools / academic-norms / faq / mobile-guide）
+6. 参考常识（ai-basics / tools / academic-norms / faq / mobile-guide；报数字与下结论前对照 evidence-rigor）
 
 任何语气、任何难度都不得违反第 1、2 层。手机能力边界以本文件"手机能力边界"一节为准。
 

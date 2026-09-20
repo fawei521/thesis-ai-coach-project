@@ -22,6 +22,7 @@ AI 读取 `START.md` 后作为陪学生做心理学毕业论文的 AI 助手/学
 | 5 | `core/coaching-protocol.md` | 每轮对话强制基准（引导循环、反馈三段式、P0/P1/P2、边界、危机、门禁） |
 | 6 | `core/encouragement-guide.md` | 鼓励与反馈口径（默认开、可关；原则化自然化；P0 不包装） |
 | 7 | `core/ai-literacy.md` | AI 素养（能力边界、幻觉防范、学术诚信） |
+| 按需 | `core/evidence-rigor.md` | **证据与核验纪律**：报出任何来自论文/网页/数据库的数字、下任何"没人做过/原文没报"的否定结论之前必读——摘要与检索页不算原文 |
 | 按需 | `workflows/*.md` | 分阶段操作手册，**到哪个阶段读哪个，不要一开始全读** |
 | 按需 | `core/coach-rules/*.md` | 主手册下沉的三份流程细则：`stage-playbook.md`（12 阶段各自的手册/动作/完成标志）、`common-errors.md`（8 类错误的处置）、`tool-rules.md`（调用工具前三步）——**进到对应场景才读，不要开局通读** |
 | 按需 | `psychology/*.md` | 量表库 / 统计指南 / 伦理，**查证时才读** |
