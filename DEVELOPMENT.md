@@ -76,24 +76,24 @@
 #### 跑哪一道闸：按改动面判，不按"改了几行"判（2026-09-20 定）
 
 > **这一张表是唯一权威**，`AGENTS.md` 与 `README.md` 只给指针、不重抄——抄第二份就会漂成两份。
-> 耗时为 2026-09-20 单机实测（smoke 约 5 秒 / 全量约 70 秒），**当量级看，别当承诺**；
-> 项数一律不在文档里抄，看各命令自己打印的末行。
+> 耗时为 2026-09-20 单机实测（smoke 约 5 秒 / 全量约 70 秒），**当量级看，别当承诺**；项数一律不抄，看各命令末行。
 > 全量里有一步真打英文文献 API（超时上限 90 秒），断网时整轮会涨到约 160 秒。
 
 | 这一批改动了什么 | 跑到哪一道 |
 |---|---|
 | 改中途每完成一小步 | `python tests/smoke_check.py`（约 5 秒） |
-| 只动记账文字：`CHANGELOG.md` 叙述、`维护档案/**`、`tests/e2e-test.md` 台账（不新增断言、不动数字） | smoke 即可；**本会话收尾补一次全量** |
-| `tools/**.py`、`tools/stats/**.py`、菜单项、CLI 开关、导出文件名 | **全量** `python tests/full_e2e.py` |
-| `core/**`、`psychology/**`、`workflows/**`、`doubao-skill/**`（学生侧行为与口径） | **全量** |
-| `tests/**`：改判据、加断言、动棘轮/一致性尺子本身 | **全量**，且尺子要配阴性（植入一处坏，看它红） |
-| 文档里**带事实的句子**：数字、条数、路径、量表名、红线措辞（README/START/QUICKSTART/AGENTS 都算） | **全量** |
+| 只动记账文字：`CHANGELOG.md` 叙述、`维护档案/**`、`tests/e2e-test.md`、`tests/size_baseline.txt` | smoke 即可；**本会话收尾补一次全量** |
+| `tools/**.py`、`tools/stats/**.py`、`tools/menu*.py`（菜单项、CLI 开关、导出文件名都体现在这些文件里） | **全量** `python tests/smoke_check.py --full` |
+| `core/**.md`、`psychology/**.md`、`workflows/**.md`、`doubao-skill/**`（学生侧行为与口径） | **全量** |
+| `tests/*.py`、`tests/e2e_cases/*.py`：改判据、加断言、动棘轮/一致性尺子本身 | **全量**，且尺子要配阴性（植入一处坏，看它红） |
+| 文档里**带事实的句子**：数字、条数、路径、量表名、红线措辞——`README.md`、`START.md`、`QUICKSTART.md`、`AGENTS.md`、`DEVELOPMENT.md`、`CONSTITUTION.md` | **全量** |
 | 发版 / 打 tag 前 | **全量** ＋ 阶段 G 双产物（干净解压副本再跑一遍全量） |
 
-**为什么"带事实的句子"这一格不能省**：`smoke_check.py` 聚合的是结构闸（脚本/开关/导出/链接**还在不在**），
-而 700 多条**口径与事实**断言（数字对不对、措辞有没有走样）只活在 `full_e2e.py` 里。
-2026-09-20 实测：把 README 里过期的"16种量表"改掉后 smoke 九项全绿，**只有全量的 `README数字修正` 判红**。
-便宜层在这类错上是刻意让路的——以为"smoke 绿了就是没事"＝没测。
+**本表第二列同时是机器判据**：`case_21.py` 现读本表，第二列含 `**全量**` 那些格里的反引号路径都算 L1 改动面，
+动了却没在 commit 说明带门禁凭证 → 判红。**所以路径必须写在反引号里**，漏写等于放行；改这张表＝改门禁。
+
+**为什么"带事实的句子"不能省**：smoke 聚合的是结构闸（脚本/开关/导出/链接**还在不在**），口径与事实断言只活在
+`full_e2e.py` 里。2026-09-20 实测：改掉 README 过期的"16种量表"后 smoke 九项全绿，**只有全量判红**。
 
 ### 阶段 D — 文档 Document（让人会用）
 - 同步：菜单、对应 `workflows/*.md`、`psychology/stats-guide.md`（报告口径与 JASP 复核步骤）、`START.md` 工具清单、`README.md`、`QUICKSTART.md`（如影响学生）、`tests/e2e-test.md` 用例、**`CHANGELOG.md` 版本记录**。
@@ -120,7 +120,10 @@
 - **门**：一个不懂的 AI 只读文档就能正确调用并解读结果。
 
 ### 阶段 G — 发布 Release（打包验证）
-1. 跑 `python tests/full_e2e.py` 一键全量回归：`py_compile`、`tests/consistency_check.py`、`tests/size_ratchet.py`、`tests/skill_sync_check.py`、`doubao-skill/validate.py` 五道都在它内部依次执行（含各自的阴性测试），**不必拆开各跑一遍**；判定只看日志最后一行 `失败 0`。用例清单与历史见 `tests/e2e-test.md`。拆过文件要另跑 `python tests/size_ratchet.py --write` 刷新冻结清单——那是写盘动作，回归不替你做。
+1. 跑 `python tests/smoke_check.py --full`，**把它末行打印的 `[门禁凭证] head=… full=N/N` 原样贴进 commit 说明**
+   （跑哪几道闸只看上面阶段 T 的表，这里不复述）。**一个版本收尾至少一次全量留痕**：分层只决定改中途跑多快，
+   不决定这一版有没有被全量验过——动了 L1 文件却没贴凭证，`case_21.py` 的审计判红。拆过文件另跑
+   `python tests/size_ratchet.py --write` 刷新冻结清单（写盘动作，回归不替你做）。用例清单见 `tests/e2e-test.md`。
 2. 更新版本号（语义化：新增功能 minor，修复 patch），三处保持一致：`CHANGELOG.md` 顶部新增该版本条目、`START.md` 顶部版本行、git tag；README 的"当前版本"同步；然后 commit、打 tag。
 3. **双产物验证（v1.93 起必做）**：发布包由 `.gitattributes` 的 `export-ignore` 挡掉了 `tests/` 与 `DEVELOPMENT.md`，
    所以"把学生包解压出来直接跑回归"这一步已经不成立了——改成两份产物，**都必须从同一个 tag 打**：
@@ -205,11 +208,10 @@
 - [ ] 计算结果有 L1/L2 正确性证据并记录数值与容差
 - [ ] 边界与 GBK 编码不崩；固定种子可复现
 - [ ] 菜单/工作流/指南/README/START/测试/版本记录全部同步
-- [ ] **机制改了就 grep 旧说法扫残留**：任何"某件事不再会发生"的改动（如 v1.92 起包里不带填写版、
-  本次门禁分层），都要拿旧结论的关键词全仓 grep 一遍（例：`grep -rn "装包会盖\|装前先备份\|四件套\|3-5 分钟"`），
-  逐条判"历史记录（留着）／活的事实陈述（改或删）"。**只改触发点、不扫残留＝留下自相矛盾的两份**——
-  这次两轮改动每次都靠这一步才逮到漏的。
-- [ ] `python tests/full_e2e.py` 判"失败 0"（内含 py_compile / 文档↔代码一致性 / 尺寸棘轮 / Skill 口径同源 / Skill 结构自检五道，不必拆开跑）
+- [ ] **改了机制就 grep 旧说法扫残留**：凡是"某件事从此不会发生"的改动（v1.92 起包里不带填写版、本次门禁分层），
+  拿旧结论的关键词全仓 grep 一遍（如"装包会盖""装前先备份""四件套""3-5 分钟"），逐条判"历史记录留着／
+  活的事实陈述改或删"。**只改触发点不扫残留＝留下一份自相矛盾**——本轮两次都是靠这一步才逮到漏的。
+- [ ] `python tests/smoke_check.py --full` 判"失败 0"，且它打印的凭证行已原样贴进 commit 说明（跑哪几道见阶段 T 的表）
 - [ ] 本轮若拆过文件：已 `python tests/size_ratchet.py --write` 刷新冻结清单（存量只减不增）
 - [ ] 轻量版镜像已同步、`doubao-skill/CHANGELOG.md` 已追加
 - [ ] 全新解压副本里 `python tests/full_e2e.py` PASS，启动器中文正常

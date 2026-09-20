@@ -1,7 +1,8 @@
 # -*- coding: utf-8 -*-
 """改动中途跑的秒级门禁（L0）。**不含全量回归。**
 
-    python tests/smoke_check.py
+    python tests/smoke_check.py            # 改中途：约 5 秒
+    python tests/smoke_check.py --full     # 该跑全量时：跑完打一行 [门禁凭证]，原样贴进 commit 说明
 
 **本文件不复制任何检查逻辑**——只是把现成的检查器按序调用一遍、汇总成一句结论。
 把逻辑抄一份到这里，就又造出一个会和原件漂移的副本（教训见
@@ -14,6 +15,8 @@
 红线文案、发布包形态…）——那些只在 `python tests/full_e2e.py` 里跑。
 什么时候必须跑全量，照 `DEVELOPMENT.md` 阶段 T 的"改动面 → 闸"表判，**不要凭感觉**。
 """
+import argparse
+import re
 import subprocess
 import sys
 import time
@@ -86,10 +89,50 @@ def main():
     if fails:
         print("失败项：" + "、".join(fails))
         print("→ 这几项各自的输出已在上面给出结论行；要定位细节就单独跑那一条命令。")
-    else:
-        print("→ 秒级门禁绿。**这不等于全量通过**：是否还要跑 full_e2e 看 DEVELOPMENT.md 阶段 T 的表。")
-    return 1 if fails else 0
+        return 1
+    print("→ 秒级门禁绿。**这不等于全量通过**：要不要跑全量看 DEVELOPMENT.md 阶段 T 的表。")
+    return 0
 
+
+def head_hash():
+    p = subprocess.run(["git", "rev-parse", "--short", "HEAD"], cwd=str(ROOT), capture_output=True)
+    return p.stdout.decode("utf-8", "replace").strip() if p.returncode == 0 else "无git"
+
+
+def full_and_cert(smoke_ok):
+    """`--full`：跑全量回归，贴出末行，再打一行**凭证**供 commit 说明使用。
+
+    凭证**不写进任何日志文件**——它就活在 commit message 里。再建一个凭证文件＝
+    又造一份会和 commit 漂的副本（这轮一直在治的那个病）。
+    `head=` 记的是**跑这一刻的 HEAD**，也就是即将新建那个 commit 的父提交：
+    没真跑过就凑不出这七个字符——这是它比"我自己说跑过了"硬的地方。
+    """
+    t0 = time.perf_counter()
+    p = subprocess.run([sys.executable, "tests/full_e2e.py"], cwd=str(ROOT), capture_output=True,
+                       text=True, encoding="utf-8", errors="replace", timeout=1200)
+    dt = time.perf_counter() - t0
+    log = (p.stdout or "") + (p.stderr or "")
+    for ln in log.splitlines():
+        if ln.startswith("FAIL "):
+            print("   " + ln[:150])
+    last = [ln.strip() for ln in log.splitlines() if ln.startswith("==== 共")]
+    print("---- full_e2e 末行 ----")
+    print(last[-1] if last else "（没抓到末行：整轮可能被异常打断，去跑一次带输出的看看）")
+    print("     用时 %.0f 秒" % dt)
+    m = re.search(r"共 (\d+) 项，通过 (\d+)，失败 (\d+)", last[-1] if last else "")
+    if not m:
+        return 1
+    print("\n**把下面这一行原样贴进 commit 说明**——动了 L1 文件却没这行，回归会判红：")
+    print("%s head=%s smoke=%s full=%s/%s"
+          % (CERT, head_hash(), "9/9" if smoke_ok else "有失败", m.group(2), m.group(1)))
+    return 0 if (int(m.group(3)) == 0 and smoke_ok) else 1
+
+
+CERT = "[门禁凭证]"
 
 if __name__ == "__main__":
-    sys.exit(main())
+    ap = argparse.ArgumentParser(description="秒级门禁（约 5 秒）；--full 再跑全量并打印 commit 凭证")
+    ap.add_argument("--full", action="store_true",
+                    help="先跑九项秒级门禁，再跑全量回归，末行打印 [门禁凭证] 供原样贴进 commit 说明")
+    _a = ap.parse_args()
+    sys.exit(full_and_cert(main() == 0) if _a.full else main())

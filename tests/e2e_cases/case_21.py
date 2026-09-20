@@ -14,7 +14,7 @@ full_e2e.py 顺序片段 21/21（由壳按序 exec，不单独运行）。
 **不落盘**：`git archive --format=tar` 直接读进内存——在 `tests/.tmp_e2e/` 留一个 zip 会被收尾自检判成临时文件残留。
 """
 if (ROOT / ".git").exists():  # 只在有仓库的形态跑：`git archive` 要读仓库；阶段 G 的验证副本没有 .git，整段跳过
-    import io, tarfile
+    import io, tarfile, fnmatch
     # `--worktree-attributes`：包形态由**工作树里的 .gitattributes** 决定，改了打包规则还没提交的当口就能验
     # （正式产物从 tag 打，那时工作树是干净的，两者结果一致）。
     _ar93 = subprocess.run(["git", "archive", "--worktree-attributes",
@@ -72,3 +72,74 @@ if (ROOT / ".git").exists():  # 只在有仓库的形态跑：`git archive` 要�
           and ".gitattributes" in tx("tests/consistency_check.py"))
     check("v193阶段 G 已改成双产物口径",
           "补回" in tx("DEVELOPMENT.md") and "export-ignore" in tx("DEVELOPMENT.md"))
+
+    # ================= 门禁凭证审计（2026-09-20 加）=================
+    # 要治的是"沉默式跳闸"：动了该跑全量的东西、只跑秒级就说通过了——这种事本身不留痕迹，
+    # 于是只能靠人盯着。这里把"跑过"变成一个**没跑就凑不出来的字符串**，事后任何一轮回归都能追查到。
+    # 判据的 L1 路径**不另抄一份**：现读 DEVELOPMENT.md 阶段 T 那张表（和 consistency_check 读
+    # .gitattributes、setup_workspace.GENERATED 被两处复用是同一个套路——名单只有一份）。
+    def l1_globs_from_table(dev_text):
+        """取第二列含 `**全量**` 的表格行，收回格一里用反引号包着的路径。"""
+        globs = []
+        for line in dev_text.splitlines():
+            cells = [c.strip() for c in line.strip().strip("|").split("|")]
+            if len(cells) < 2 or "**全量**" not in cells[1]:
+                continue          # "smoke 即可；收尾补一次全量"那行没有粗体，天然被排除
+            globs += [g for g in re.findall(r"`([^`]+)`", cells[0])
+                      if "/" in g or g.endswith((".py", ".md"))]
+        return sorted(set(globs))
+
+    def cert_missing(table_globs, commits):
+        """commits: [(hash, parent_full, msg, files)]。返回没带凭证的 commit 短描述。"""
+        def hit(f):   # fnmatch 语义就够：表里写的是 tools/**.py、core/**.md 这种
+            return any(fnmatch.fnmatch(f, g) or f.startswith(g.rstrip("/*/") + "/") for g in table_globs)
+        bad = []
+        for h, par, msg, files in commits:
+            touched = sorted({f for f in files if hit(f)})
+            if not touched:
+                continue
+            m = re.search(r"\[门禁凭证\] head=(\S+) smoke=\S+ full=(\d+)/(\d+)", msg)
+            if not m:
+                bad.append("%s 动了 L1(%s) 却没有凭证" % (h[:7], ",".join(touched[:3])))
+            elif not (par.startswith(m.group(1)) and len(m.group(1)) >= 7):
+                bad.append("%s 凭证里的 head=%s 对不上父提交 %s（＝凭证不是这一笔之前跑的）"
+                           % (h[:7], m.group(1), par[:7]))
+            elif m.group(2) != m.group(3):
+                bad.append("%s 凭证写着 full=%s/%s，不是零失败" % (h[:7], m.group(2), m.group(3)))
+        return bad
+
+    _tab21 = [p for p in ("DEVELOPMENT.md",) if (ROOT / p).exists()]
+    if _tab21:
+        _g21 = l1_globs_from_table(tx("DEVELOPMENT.md"))
+        check("定闸表能解析出 L1 路径", len(_g21) >= 8, "%d 条：%s" % (len(_g21), _g21))
+        # 锚点＝**引入"门禁凭证"这个字符串的那个 commit**（git -S 找得到，就不必写死 hash、也不必给历史补凭证）
+        _anc_p = subprocess.run(["git", "-c", "core.quotepath=false",
+                                 "log", "-S", "门禁凭证", "--format=%H", "--reverse"],
+                                cwd=str(ROOT), capture_output=True, timeout=120)
+        _anc = _anc_p.stdout.decode("utf-8", "replace").split()[:1]
+        _rng = ("%s..HEAD" % _anc[0]) if _anc else ""
+        _lst = subprocess.run(["git", "rev-list", _rng], cwd=str(ROOT), capture_output=True,
+                              timeout=120).stdout.decode("utf-8", "replace").split() if _rng else []
+        _cs = []
+        for _h in _lst:
+            _meta = subprocess.run(["git", "show", "-s", "--format=%H%x00%P", _h],
+                                   cwd=str(ROOT), capture_output=True, timeout=60)
+            _hh, _par = (_meta.stdout.decode("utf-8", "replace").split("\x00") + [""])[:2]
+            _msg = subprocess.run(["git", "show", "-s", "--format=%B", _h], cwd=str(ROOT),
+                                  capture_output=True, timeout=60).stdout.decode("utf-8", "replace")
+            _fl = subprocess.run(["git", "-c", "core.quotepath=false",       # 不开这个，中文路径会变成
+                                  "show", "--name-only", "--format=", _h],   # "\347\273\264…" 而谁也匹配不上
+                                 cwd=str(ROOT), capture_output=True, timeout=60)
+            _cs.append((_hh, _par.split()[0] if _par.strip() else "", _msg,
+                        [x.strip().replace("\\", "/") for x in _fl.stdout.decode("utf-8", "replace").splitlines()
+                         if x.strip()]))
+        _bad = cert_missing(_g21, _cs)
+        check("动了L1的commit都带门禁凭证", not _bad, ("；".join(_bad))[:300] or "锚点后 %d 笔全部合规" % len(_cs))
+        # 尺子不许空转：同一把函数喂一份"改了 tools 却没凭证"的假清单，必须抓到
+        _fake = [("abcd1234" * 5, "ffff9999" * 5, "修了个统计脚本", ["tools/auto_stats.py", "README.md"])]
+        check("凭证审计抓得到植入", len(cert_missing(["tools/**.py", "README.md"], _fake)) == 1,
+              "对植入无反应＝这条断言是假的")
+        _fake2 = [("abcd1234" * 5, "ffff9999" * 5,
+                   "修了个统计脚本\n[门禁凭证] head=ffff999 smoke=9/9 full=780/780",
+                   ["tools/auto_stats.py"])]
+        check("凭证审计放过合规的", cert_missing(["tools/**.py"], _fake2) == [], "合规清单被误判＝天天误报")
