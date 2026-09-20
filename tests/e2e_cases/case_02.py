@@ -175,6 +175,28 @@ if True:  # 容器不产生作用域，缩进与拆分前完全一致
     check("py_compile全通过", pc.returncode == 0, (pc.stderr or pc.stdout or "")[-300:])
     check("py_compile扫到全部脚本", len(pyfiles) >= 74, "扫到 %d 个" % len(pyfiles))
 
+    # ---- 秒级门禁 smoke_check 自己也要有闸：它一旦变慢或漏项，"改中途不敢跑、只能等全量"
+    #      这个病就会复发（分层规则见 DEVELOPMENT.md 阶段 T 的"跑哪一道闸"表）。
+    _t0 = time.perf_counter()
+    sm = run(["tests/smoke_check.py"], 180)
+    _dt = time.perf_counter() - _t0
+    _tail = [x for x in (sm.stdout or "").splitlines() if x.startswith("==== smoke")]
+    check("smoke秒级门禁全绿", sm.returncode == 0 and bool(_tail) and "失败 0" in _tail[-1],
+          (_tail[-1] if _tail else (sm.stdout or sm.stderr or "")[-250:]))
+    # 20 秒是**预算**不是实测值（实测约 5.5 秒）：超预算＝便宜层在长胖，该把新检查挪去全量而不是留着。
+    check("smoke在预算内", _dt < 20, "本轮 %.1f 秒，预算 20 秒" % _dt)
+    # ---- 分层规则本身也要单源：表只写在 DEVELOPMENT.md 阶段 T，入口文档只给指针。
+    #      表头这句只存在于真正的表格里（"跑哪一道闸"这个词会出现在指针句里，拿它判会空转）。
+    #      DEVELOPMENT.md 不随发布包分发（v1.93 起），包里没这份就整段跳过而不是让 tx() 崩掉全轮。
+    if (ROOT / "DEVELOPMENT.md").exists():
+        _mds = [p for p in ("DEVELOPMENT.md", "AGENTS.md", "README.md",
+                            "START.md", "QUICKSTART.md", "CONSTITUTION.md") if (ROOT / p).exists()]
+        _heads = [tx(p).count("| 这一批改动了什么 |") for p in _mds]
+        check("定闸表只写一处", sum(_heads) == 1 and _heads[0] == 1,
+              str(list(zip(_mds, _heads))))
+        check("入口文档指向定闸表",
+              "跑哪一道闸" in tx("AGENTS.md") and "跑哪一道闸" in tx("README.md"))
+
     # ---- 账本点名的"待办 P__"必须在本仓查得到定义。历史上这些编号只在仓库外的待办文件里定义，
     #      发出去的 CHANGELOG 因此带着查不到的引用（v1.93 实测四处：P16/P9/P15/P7）。
     _pidx = ROOT / "维护档案" / "待办编号索引.md"
