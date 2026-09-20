@@ -49,8 +49,11 @@ if (ROOT / ".git").exists():  # 只在有仓库的形态跑：`git archive` 要�
               "doubao-skill/SKILL.md", "doubao-skill/validate.py", "doubao-skill/thesis-ai-coach-手机版.md"]
     check("v193学生要用的都在包里", not [m for m in must93 if m not in names93],
           str([m for m in must93 if m not in names93])[:200])
-    check("v193包确实瘦下来了（件数与解压体积都盯）",
-          100 <= len(names93) <= 160 and sum(m.size for m in _mem93) < 2_200_000,
+    # 上限随内容动，但**每次抬高都要在 CHANGELOG 写出为什么**——这条闸的全部意义是拦"顺手塞东西进包"。
+    # v1.93 定 2_200_000（当时 2074 KB）；v1.94 加 5 份学生侧文档（成果交付/外部技能各两份 + 材料清单）
+    # 实测 148 件 / 2154 KB，抬到 2_350_000（≈ 余量 190 KB）。件数上限 160 未动。
+    check("v194包体积上限随内容上调并写明理由",
+          100 <= len(names93) <= 160 and sum(m.size for m in _mem93) < 2_350_000,
           "件数=%d 解压=%d KB" % (len(names93), sum(m.size for m in _mem93) // 1024))
 
     def _read93(name):
