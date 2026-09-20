@@ -34,7 +34,6 @@ if hasattr(sys.stdout, "reconfigure"):
 
 from readiness import common, outline, report  # noqa: E402
 
-ROOT = common.ROOT
 KIND_LABEL = {"ppt": "PPT 汇报大纲", "report": "开题报告正文（报告体）"}
 
 
