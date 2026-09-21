@@ -56,3 +56,27 @@ if True:  # 容器不产生作用域，缩进与拆分前完全一致
           "维护档案/** export-ignore" in tx(".gitattributes")
           and "\n维护档案 export-ignore\n" in ("\n" + tx(".gitattributes") + "\n"),
           "两条 export-ignore 规则应在 .gitattributes 里")
+
+    # ---- v1.97（待办 P20）：搬账时最容易挤坏的就是"包内指针 ↔ 磁盘档案"这一处，从此交给机器盯 ----
+    def _ptr197(text):
+        """返回（坏链, 孤儿）：引用了磁盘上没有的＝坏链；磁盘上有但包内没人引用＝孤儿。"""
+        _cited = set(re.findall(r"CHANGELOG-历史详情-[\d.v-]+\.md", text))
+        _disk = {p.name for p in arch.glob("CHANGELOG-历史详情-*.md")}
+        return sorted(_cited - _disk), sorted(_disk - _cited)
+    if not in_pkg:      # 档案按设计不进包，这组核对只在开发树做
+        _bl197, _or197 = _ptr197(chg83)
+        check("v197 档案指针与磁盘档案双向对齐（无坏链、无孤儿）",
+              not _bl197 and not _or197,
+              "坏链%s 孤儿%s" % (_bl197 or "无", _or197 or "无"))
+        _mismatch197 = sorted(f.name for f in arch.glob("CHANGELOG-历史详情-*.md")
+                              if not set(re.findall(r"v\d+\.\d+", f.name)) <=
+                              set(re.findall(r"v\d+\.\d+", f.read_text(encoding="utf-8").splitlines()[0])))
+        check("v197 每份历史详情档案的首行标题认得自己的版本号",
+              not _mismatch197, str(_mismatch197)[:120])
+        _orph = _ptr197(chg83.replace("CHANGELOG-历史详情-v1.92.md", "", 1))
+        _brk = _ptr197(chg83.replace("CHANGELOG-历史详情-v1.92.md", "CHANGELOG-历史详情-v1.99.md", 1))
+        # 改名这一格会同时出两项：v1.99 是坏链，被换掉的 v1.92 成了孤儿——只盯一半就是空转
+        check("v197 指针核对不空转：抽掉一行指针报孤儿、指向不存在的档案报坏链（阴性）",
+              _orph == ([], ["CHANGELOG-历史详情-v1.92.md"])
+              and _brk == (["CHANGELOG-历史详情-v1.99.md"], ["CHANGELOG-历史详情-v1.92.md"]),
+              "孤儿格=%s 坏链格=%s" % (_orph, _brk))
