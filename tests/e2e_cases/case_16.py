@@ -47,3 +47,29 @@ if True:  # 容器不产生作用域，缩进与其他片段一致
     st16 = tx("START.md") + tx("AGENTS.md")
     check("v184 入口文档同步了按需读口径",
           st16.count("core/coach-rules/") >= 1 and "进入" in st16)
+
+    # ---- v1.95：主手册再下沉两处（三种可选语气 / 紧急模式三档逐日方案）----
+    _new195 = {"tones.md": "### 可选语气 1：简洁直接",
+               "emergency.md": "### 7天版（保完整、砍锦上添花）"}
+    _nt195 = {f: (CRD / f).read_text(encoding="utf-8") for f in _new195}
+    check("v195 两个新分片都在包里且正文真搬到了分片",
+          all((CRD / f).is_file() for f in _new195)
+          and all(h in _nt195[f] for f, h in _new195.items()))
+    check("v195 主手册不再复述这两处下沉正文（单源不重复）",
+          all(h in _nt195[f] and h not in cr_main for f, h in _new195.items()))
+    check("v195 两个新分片都带出处指针",
+          all(_nt195[f].splitlines()[2].count("core/coach-rules.md") >= 1 for f in _new195))
+    check("v195 下沉小节的标题与指针仍留在主手册（引用不断链）",
+          all(h in cr_main for h in ("### 可选语气三种：简洁直接 / 温和耐心 / 活泼热情",
+                                     "### 7天／3天／1天三档逐日方案"))
+          and all(("`core/coach-rules/" + f + "`") in cr_main for f in _new195),
+          "缺指针：%s" % [f for f in _new195 if ("`core/coach-rules/" + f + "`") not in cr_main])
+    # 阴性：把分片正文抄回主手册，单源那条必须判红（否则这把尺子空转）
+    _mut195 = cr_main + "\n" + _new195["tones.md"]
+    check("v195 单源尺子抓得住复述（阴性）",
+          not all(h in _nt195[f] and h not in _mut195 for f, h in _new195.items()))
+    # 下面这条是给"下一个版本"留的余量，不是给今天看的：主手册与回归壳都不许再贴闸。
+    _shell195 = tx("tests/full_e2e.py").splitlines()
+    check("v195 主手册与回归壳都为下次改动留了余量",
+          220 - len(cr_main.splitlines()) >= 20 and 220 - len(_shell195) >= 100,
+          "主手册%d 壳%d" % (len(cr_main.splitlines()), len(_shell195)))

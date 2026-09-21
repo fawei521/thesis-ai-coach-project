@@ -26,7 +26,7 @@ AI 读取 `START.md` 后作为陪学生做心理学毕业论文的 AI 助手/学
 | 按需 | `core/skill-sourcing.md` | 本包模板/脚本兜不住质量时（PPT 美化、去 AI 腔、学校排版）：去哪检索外部技能、装前过**许可证／行为／学生同意**三道闸、只装项目级 `.qoder/skills/_external/`、登记与卸载 |
 | 按需 | `core/evidence-rigor.md` | **证据与核验纪律**：报出任何来自论文/网页/数据库的数字、下任何"没人做过/原文没报"的否定结论之前必读——摘要与检索页不算原文 |
 | 按需 | `workflows/*.md` | 分阶段操作手册，**到哪个阶段读哪个，不要一开始全读** |
-| 按需 | `core/coach-rules/*.md` | 主手册下沉的三份流程细则：`stage-playbook.md`（12 阶段各自的手册/动作/完成标志）、`common-errors.md`（8 类错误的处置）、`tool-rules.md`（调用工具前三步）——**进到对应场景才读，不要开局通读** |
+| 按需 | `core/coach-rules/*.md` | 主手册下沉的五份细则：`stage-playbook.md`（12 阶段各自的手册/动作/完成标志）、`common-errors.md`（8 类错误的处置）、`tool-rules.md`（调用工具前三步）、`tones.md`（三种可选语气各要做到什么）、`emergency.md`（紧急模式 7天/3天/1天逐日方案）——**进到对应场景才读，不要开局通读** |
 | 按需 | `psychology/*.md` | 量表库 / 统计指南 / 伦理，**查证时才读** |
 | 按需 | `templates/*` | 需要产出问卷、大纲、开题、PPT、网页时再读 |
 
@@ -78,7 +78,7 @@ workflows/          各阶段操作手册（按需读）
 psychology/         量表库 / 统计指南 / 伦理
 templates/          各类模板 + 网页范例/
 tools/              24 个可调脚本（菜单入口 menu.py 的实现拆为 menu_io.py 交互件 + menu_data.py 数据统计组 + menu_lit.py 文献产出组 + menu_thesis.py 开题与材料检查组）＋含 webpage_preview.py 网页预览器、anonymize_data.py 去标识化、effect_size.py 效应量换算复核、validity_cr_ave.py 聚合/区分效度、item_analysis.py 预试项目分析、content_cvi.py 自编量表内容效度CVI、reference_formatter.py 参考文献GB/T 7714格式化、missing_report.py 缺失值分析与Little MCAR检验、assumption_check.py 参数检验前提假设（Shapiro正态性/Brown-Forsythe方差齐性）、paired_compare.py 配对设计差异检验（前后测配对t/d_z/Wilcoxon符号秩/rank-biserial r；--onesample/--constant 单样本对标称常数）、mult_compare.py 多重比较校正（Bonferroni/Holm/BH/BY）、literature_cards.py 文献卡片、outline_to_ppt.py 大纲→PPT（只排版不代写）、setup_workspace.py 工作区补齐、proposal_readiness.py 开题就绪度自检）+ stats/ 统计实现包（13 个模块：mathx / linalg / dataio / desc / reliability / plots / efa / compare / correlation / regression / mediation / moderation / outliers；`regress.py` 自 v1.82 起只是仅再导出的历史入口）
-tests/              只在仓库里、不随发布包分发：full_e2e.py 全量回归（壳）+ e2e_cases/ 断言主题片段（case_NN 编号连续，顺序见壳里的 FRAGMENTS）、consistency_check.py 一致性自检、size_ratchet.py 文件尺寸棘轮
+tests/              只在仓库里、不随发布包分发：full_e2e.py 全量回归（壳，v1.95 起临时目录与收尾清理的实现在 e2e_tmp.py）+ e2e_cases/ 断言主题片段（case_NN 编号连续，顺序见壳里的 FRAGMENTS）、consistency_check.py 一致性自检、size_ratchet.py 文件尺寸棘轮
 我的工作区/          学生自己的文件（原始数据、PDF、结果、网页）；进度卡与检索记录**不在包里**，由菜单第 22 项缺才生成
 CHANGELOG.md        版本历史（唯一来源）
 DEVELOPMENT.md      维护者开发流程（学生辅导时不需要；同样只在仓库里，不随发布包分发）
