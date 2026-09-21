@@ -141,7 +141,7 @@ if True:  # 容器不产生作用域，缩进与拆分前完全一致
     # 会被杀软/索引器短暂锁住（WinError 5），既可能打断回归、又会留下删不掉的目录污染仓库。
     neg = new_tmp("skill_neg")
     try:
-        # copytree 到刚建的目录仍可能被瞬时占用，保留小退避重试（此前无重试，直接抛 PermissionError 打断全量回归）
+        # copytree 到刚建的目录可能被瞬时占用 → 小退避重试，不让它打断整轮全量回归
         copied = False
         for attempt in range(5):
             try:

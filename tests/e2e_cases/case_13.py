@@ -69,8 +69,7 @@ if True:  # 容器不产生作用域，缩进与拆分前完全一致
     mathx73 = tx("tools/stats/mathx.py")
     ass73 = tx("tools/assumption_check.py")
     reg73 = tx("tools/stats/regression.py")
-    # v1.82：残差诊断随 regress.py 拆分落到 regression.py，这里按所属模块核对
-    #（原先 reg73 只读不用，是死变量——现在真正断上）
+    # v1.82：残差诊断随 regress.py 拆分落到 regression.py，这里按所属模块核对（读了就要断上，别只读不断）
     check("SW下沉mathx", "def shapiro_wilk" in mathx73 and "def durbin_watson" in mathx73
           and "def shapiro_wilk" not in ass73 and "shapiro_wilk" in ass73
           and "durbin_watson(resid)" in reg73 and "shapiro_wilk(resid)" in reg73)
@@ -135,9 +134,7 @@ if True:  # 容器不产生作用域，缩进与拆分前完全一致
     check("v175 ROADMAP缺口挂账", all(k in rm75 for k in
           ("Friedman", "polychoric", "Schmid-Leiman", "HTMT2", "Cook", "PPT")))
     check("v175 MI决策落档", "不内置一键插补" in rm75 and "missing-imputation-guide" in rm75)
-    # 原写法是"ROADMAP 不得提到 outline_to_ppt / pptx_writer"（当时它们尚未入库，
-    # 禁令等价于防幽灵引用）。两个脚本已提交进仓库，禁令过时且会反向逼人把它们从
-    # 文档里删掉。换成它本要表达的不变量：ROADMAP 点名的 .py 必须真实存在。
+    # 不变量：ROADMAP 点名的 .py 必须真实存在（防"文档指着一个不存在的脚本"，无论它是否已入库）。
     ghost75 = [s for s in sorted(set(re.findall(r"([A-Za-z0-9_]+\.py)", rm75)))
                if not any((ROOT / d / s).exists()
                           for d in ("tools", "tools/stats", "tests", "tests/e2e_cases", "doubao-skill"))]
@@ -147,9 +144,8 @@ if True:  # 容器不产生作用域，缩进与拆分前完全一致
           and "上一个版本：v1." in rdme75 and len(rdme75.splitlines()) < 200)
 
     # ========== v1.76 文档勘误与行数守卫 ==========
-    # v1.76 真正留下来的不变量是"README 版本区行数 ≤180"；当年顺带盯的那句勘误文字，
-    # 已随 v1.85 记账瘦身进 维护档案/（不随包分发），所以这里改盯包内指针——
-    # 与 case_15 的"包内 CHANGELOG 已瘦身且最新版详情在包内"同一条思路：盯活规矩，不盯历史正文的 Location。
+    # 这条盯的是活规矩：README 版本区行数 ≤180，＋ 历史正文在 维护档案/ 且包内留了指针。
+    # 与 case_15 同一条思路：盯规矩本身，不去盯历史正文的位置。
     check("v176 勘误与行数守卫", len(tx("README.md").splitlines()) <= 180
           and "维护档案/CHANGELOG-历史详情" in tx("CHANGELOG.md"))
 

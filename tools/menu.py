@@ -23,9 +23,8 @@ if hasattr(sys.stdout, "reconfigure"):
     sys.stderr.reconfigure(encoding="utf-8", errors="replace")
 
 # 共用交互件在 menu_io.py；处理器按主题分册放：menu_data.py（数据与统计）、
-# menu_lit.py（文献与产出）、menu_thesis.py（开题与材料检查，v1.85 起——menu_lit 已顶到 220 行尺寸闸门）。
-# 拆分的直接原因：本文件此前正好撞在单文件 700 行门禁上，
-# 新工具要进菜单必须先腾出地方（加一项会把 full_e2e 弄红）。
+# menu_lit.py（文献与产出）、menu_thesis.py（开题与材料检查）。
+# 新工具要进菜单先确认没顶到文件尺寸闸门：顶到了就再拆一册，别把它挤在命令行里。
 from menu_io import pause
 from menu_lit import (t_search, t_lit, t_cards, t_chart, t_demo, t_power, t_preview, t_refs,
                       t_ppt, t_workspace)

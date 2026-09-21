@@ -91,7 +91,7 @@ if True:  # 容器不产生作用域，缩进与拆分前完全一致
                             "2,反刍思维的中介作用,李四,2024,心理学报,\n", encoding="utf-8")
         r = run(["tools/literature_organizer.py", str(utf8_csv), "-o", str(lit_tmp / "o1.csv")])
         check("整理器吃UTF8标准CSV", r.returncode == 0 and "读取文献：2篇" in (r.stdout or ""), (r.stdout or "")[-200:])
-        # 知网/Excel 另存的 GBK CSV：必须同样读出 2 篇（此前会解成乱码、静默 0 篇）
+        # 知网/Excel 另存的 GBK CSV：必须同样读出 2 篇（按 GBK 解，不许退化成乱码后静默 0 篇）
         gbk_csv = lit_tmp / "gbk.csv"
         gbk_csv.write_bytes("序号,标题,作者,年份,期刊\n1,大学生AI依赖与孤独感,张三,2025,心理科学\n"
                             "2,反刍思维的中介作用,李四,2024,心理学报\n".encode("gb18030"))
@@ -115,11 +115,10 @@ if True:  # 容器不产生作用域，缩进与拆分前完全一致
     check("降级与闭环回归测试0", gd.returncode == 0, ((gd.stdout or "")[-600:]) + ((gd.stderr or "")[-200:]))
 
     # ---- v1.53.1 工程化：编码守卫 + auto_stats 拆包 ----
-    # 覆盖 tools/、tests/ 与 doubao-skill/（轻量版自带 validate.py 也必须有守卫；
-    # 此前只扫前两个目录，validate.py 的守卫存在与否没有回归保护）
+    # 覆盖 tools/、tests/ 与 doubao-skill/（轻量版自带 validate.py，它的守卫同样要有回归保护）
     import ast as _ast
-    # 编码守卫真正该管的是“能被单独运行的脚本”，故按模块级 if __name__ == "__main__" 判定，
-    # 而不是按目录点名——原写法有盲区：tools/stats/ 与 tests/e2e_cases/ 都不在 glob 覆盖里。
+    # 编码守卫管的是"能被单独运行的脚本"，故按模块级 if __name__ == "__main__" 判定，
+    # 不按目录点名——点名录会漏掉 tools/stats/ 与 tests/e2e_cases/ 这类不在 glob 里的目录。
     def _runnable(_p):
         try:
             _t = _ast.parse(_p.read_text(encoding="utf-8"))

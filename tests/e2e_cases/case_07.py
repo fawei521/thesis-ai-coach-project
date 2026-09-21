@@ -123,7 +123,7 @@ if True:  # 容器不产生作用域，缩进与拆分前完全一致
         shutil.rmtree(card_tmp, ignore_errors=True)
 
     # ---- v1.64 全流程三轮演练健壮性回归（详见 e2e-test 测试63）----
-    # 1) 模型图 direct 二变量直接效应（旧版菜单引导 2 变量却只支持 3/4 变量，必报错）
+    # 1) 模型图 direct 支持二变量直接效应（-t direct 接两个变量就要出图，不能只接 3/4 变量）
     cg = "tools/chart_generator.py"
     d_png = new_tmp("v164chart") / "direct.png"
     r = run([cg, "-v", "AI依赖,NSSI", "-c", "0.32", "-t", "direct", "-o", str(d_png)])
@@ -162,12 +162,12 @@ if True:  # 容器不产生作用域，缩进与拆分前完全一致
           r.returncode != 0 and "数字" in (r.stdout or "") and "Traceback" not in (r.stderr or ""))
     r = run(["tools/data_cleaner.py", str(TD / "demo_survey.csv"), "--max-missing", "9"])
     check("v164清洗参数越界中文报错", r.returncode != 0 and "不合理" in (r.stdout or ""))
-    # 4) 效应量工具参数校验失败必须非零退出（旧版只 print 叉号然后 return，进程仍 0）
+    # 4) 效应量工具参数校验失败必须非零退出（只 print 一行错误、进程仍退 0，等于告诉调用方"成功了"）
     r = run(["tools/effect_size.py", "r", "--r", "0.3", "--n", "1"])
     check("v164效应量坏参非零退出", r.returncode != 0 and "n>3" in (r.stdout or ""))
     r = run(["tools/effect_size.py", "d", "--m1", "10", "--n1", "30", "--m2", "9", "--n2", "30"])
     check("v164效应量缺参非零退出", r.returncode != 0 and "sd1" in (r.stdout or ""))
-    # 5) 文献整理：空文件/读取失败必须非零退出（旧版静默导出空整理表并报成功）
+    # 5) 文献整理：空文件/读取失败必须非零退出（静默导出空整理表还报成功，是最坏的一种假绿）
     empty_lit = v64 / "empty.txt"
     empty_lit.write_text("", encoding="utf-8")
     r = run(["tools/literature_organizer.py", str(empty_lit)])

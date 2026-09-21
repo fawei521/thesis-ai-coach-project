@@ -8,9 +8,8 @@ full_e2e.py 顺序片段 3/14（原第 462–615 行，由壳按序 exec，不�
 # --- 输出编码守卫：由壳 tests/full_e2e.py 统一处理，本片段不在管道外单独运行 ---
 if True:  # 容器不产生作用域，缩进与拆分前完全一致
     # ---- 账号密码红线（P0）：项目任何文件都不得出现"AI 代填/凭据文件"这类写法 ----
-    # 起因：并行会话把"AI 读取本地凭据文件代填图书馆密码"写进了 literature-auto-search，
-    # 与 CONSTITUTION 第七条、ai-literacy、behavior-self-test T25 三处直接冲突。
-    # 该缺陷此前能一路过关，是因为没有任何断言守这条红线——本组断言即为它补的闸。
+    # 这道闸只有本组断言守着：删掉它，"AI 读取本地凭据文件代填图书馆密码"这类写法就能一路过关，
+    # 而它与 CONSTITUTION 第七条、ai-literacy、behavior-self-test T25 三处直接冲突。
     cred_md = [p for p in ROOT.rglob("*.md")
                if "CHANGELOG" not in p.name and p.name not in ("e2e-test.md", "behavior-self-test.md")
                and "doubao-skill" not in p.parts]
@@ -23,15 +22,15 @@ if True:  # 容器不产生作用域，缩进与拆分前完全一致
     check("凭据代填红线", not cred_hits, str(sorted(set(cred_hits))))
     check("登录交学生本人", "登录一律由学生本人" in las or "学生本人输入" in las)
     check("拒绝代填明确入工作流", "不索取、不接受、不存储、不代填" in las and "T25" in las)
-    # v1.92（P9）：包里只带空白模板。原先随包分发的两份"就地填写"文件（进度卡、检索记录）
-    # 会在学生装新包时把自己的记录盖成空白——现在从源头断掉，填写版由菜单第 22 项缺才生成。
+    # v1.92（P9）：包里只带空白模板——就地填写的进度卡/检索记录若随包分发，学生装新包时会把自己的
+    # 记录盖成空白，而使用副本没有 .git、盖了不可回滚；所以填写版一律由菜单第 22 项缺才生成。
     check("检索记录模板存在", (ROOT / "templates" / "检索记录模板.md").exists())
     check("进度卡基线存在", (ROOT / "templates" / "progress-template.md").exists())
     check("检索记录入口", "检索记录.md" in las and "检索记录.md" in tx("我的工作区/先读我.md"))
     check("进度卡接检索留痕", "文献与检索留痕" in tx("templates/progress-template.md"))
     check("菜单5接受CSV", "标准 CSV" in menu and "txt" in menu)
     # 发布形态安全：预置文件必须在 git 索引里，否则 git archive 打出的包会缺它，
-    # 而开发树里看着"明明存在"（.gitignore 的目录级排除曾把新建的 检索记录.md 挡在包外）。
+    # 而开发树里看着"明明存在"（.gitignore 的目录级排除会把新建的填写文件挡在包外）。
     if (ROOT / ".git").exists():
         ls = subprocess.run(["git", "ls-files", "-z"], capture_output=True, text=True,
                             encoding="utf-8", errors="replace", cwd=str(ROOT))
@@ -105,7 +104,7 @@ if True:  # 容器不产生作用域，缩进与拆分前完全一致
     check("coach阶段10引用", "workflows/communication-guide.md" in cr)
     check("START导航沟通", "communication-guide.md" in st)
     rm = tx("README.md"); check("README沟通清单", "communication-guide.md" in rm)
-    # 反向钉：README 不抄量表组数/模块数（曾把过期的"16种"当正确答案锁在断言里，等于给漂移续命）。
+    # 反向钉：README 不抄量表组数/模块数——断言钉住某个时刻的具体值＝给漂移续命。
     check("README数字修正", "16种" not in rm and "24组" not in rm and "10种统计方法" not in rm)
     daa = tx("workflows/data-analysis-auto.md")
     check("分析流程多选说明", "多选题" in daa and "开放填空题" in daa and "scales.txt" in daa)

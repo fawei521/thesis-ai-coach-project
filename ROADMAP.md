@@ -18,11 +18,10 @@
 - [x] 论文 PPT 一键导出接入菜单与文档——v1.77 落工具、v1.79 拆菜单腾位置、**v1.80 接第 21/22 项并同步 START/QUICKSTART/proposal-guide**
 - [x] **大文件拆分**：v1.82 拆统计包与回归套件并落地文件尺寸棘轮；v1.83 三本账去重、历史正文移入 `维护档案/`（git 追踪、`export-ignore` 不进包）。**剩余**：按需查证型文档（`stats-guide.md`/`data-analysis-auto.md`/`scale-library.md`）经评估**不物理拆**——它们按章跳读、拆开只增跳转与断链风险，故冻结在清单里随改随降；**v1.84 已完成**：`core/coach-rules.md` 的流程性三节（12 阶段工作流、常见错误处理、工具调用规范）原样下沉到 `core/coach-rules/` 改按需读，主手册 395→216 行、28.9KB→14.3KB，规则本体仍留在必读里；至此**大文件拆分收口**，其余 28 个存量 `.py` 随改动逐个降
 - [x] **Skill 轻量版口径追平完整版** → **v1.89 已交付（Skill v1.5）**：同步点见 `doubao-skill/CHANGELOG.md` 最新一条
-  （本文件不复写版本号；过去四处各写一遍、漂成三个数字，现由 `tests/skill_sync_check.py` 盯住）。
+  （本文件不复写版本号；同步点只有 `doubao-skill/CHANGELOG.md` 一处，由 `tests/skill_sync_check.py` 盯住）。
   本版追平：开题就绪度自检进阶段 6，McDonald's ω／CR·AVE·HTMT／前提假设／多重比较校正／配对 d_z 与 rank-biserial／
-  回归 D-W 与残差正态进阶段 8，缺失机制（MCAR→多重插补/FIML/MNAR）进阶段 7，`doubao-skill/references/tools.md` 的完整版能力清单同步 23 项菜单；
-  并修掉轻量版把完整版答辩口径写错的那几处（24 问分 7 类，不是 24 类）。
-  两侧硬口径（含新增的答辩问题条数）现在逐条机比，不靠人记；追平后不许回退由 `case_18.py` 钉住
+  回归 D-W 与残差正态进阶段 8，缺失机制（MCAR→多重插补/FIML/MNAR）进阶段 7，`doubao-skill/references/tools.md` 的完整版能力清单同步；
+  两侧硬口径（含答辩问题条数）现在逐条机比，不靠人记；追平后不许回退由 `case_18.py` 钉住
 - [x] PPT 中文字体不受控 → **v1.81 已修**：`pptx_writer.save()` 把主题里的 latin/ea/cs 字体槽统一写死
   （默认微软雅黑），`outline_to_ppt.py --cn-font 宋体` 按学校口径换、`--cn-font none` 保持模板默认，
   菜单第 21 项会直接问；模板 `a:ea` 为空导致的"换台机器中文换字体"从此可控
