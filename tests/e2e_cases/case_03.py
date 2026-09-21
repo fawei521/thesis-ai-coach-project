@@ -38,11 +38,11 @@ if True:  # 容器不产生作用域，缩进与拆分前完全一致
         tracked = set(ls.stdout.split("\0")) if ls.returncode == 0 else set()
         want = {"templates/检索记录模板.md", "templates/progress-template.md", "我的工作区/先读我.md"}
         check("预置文件已入库", want <= tracked, str(sorted(want - tracked)))
-        # v1.92 的根治闸：这两条路径一旦重新入库，装新包就又会把学生的记录盖成空白模板。
+        # v1.92 的根治闸：这些路径一旦重新入库，装新包就又会把学生的记录盖成空白模板。
         # 它们改由 tools/setup_workspace.py 在缺失时从模板复制生成，所以"不在包里"才是正确状态。
         # 这里的硬编码是刻意的第二来源：往 GENERATED 里加东西，必须同时在这里交代"它为什么不进包"
         filled = {"我的工作区/我的论文进度.md", "我的工作区/01-文献PDF/检索记录.md",
-                  "我的工作区/我的毕业材料清单.md"}
+                  "我的工作区/我的毕业材料清单.md", "我的工作区/06-论文正文/我的写作留痕.md"}
         check("包内不带学生填写版", not (filled & tracked), str(sorted(filled & tracked)))
         # 生成清单与豁免名单同源：setup_workspace 说要生成的，必须正好是上面那两条
         sw = (ROOT / "tools" / "setup_workspace.py").read_text(encoding="utf-8")

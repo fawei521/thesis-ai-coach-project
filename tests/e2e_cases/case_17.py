@@ -79,7 +79,7 @@ if True:  # 容器不产生作用域，缩进与其他片段一致
           and not any(k in (ROOT / "tools" / "proposal_readiness.py").read_text(encoding="utf-8")
                       for k in ("write_text", "write_bytes", "mkdir(", "unlink", "remove(")))
     menu17 = "\n".join(tx("tools/" + p.name) for p in sorted((ROOT / "tools").glob("menu*.py")))
-    check("v185 菜单第23项已接线", "【23/23】" in menu17 and "t_readiness" in menu17
+    check("v185 菜单第23项已接线", "【23/" in menu17 and "t_readiness" in menu17  # 分母别写死，加项会假红
           and "proposal_readiness.py" in menu17, "菜单里没找到第 23 项")
     check("v185 入口文档已同步", "proposal_readiness.py" in tx("START.md")
           and "就绪度" in tx("QUICKSTART.md"))

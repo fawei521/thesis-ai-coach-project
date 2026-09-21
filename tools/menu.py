@@ -31,7 +31,7 @@ from menu_lit import (t_search, t_lit, t_cards, t_chart, t_demo, t_power, t_prev
                       t_ppt, t_workspace)
 from menu_data import (t_preprocess, t_clean, t_stats, t_anonymize, t_effect, t_validity,
                        t_itemanalysis, t_cvi, t_missing, t_assumption, t_paired, t_multcomp)
-from menu_thesis import t_readiness   # v1.85 开题与材料检查组（menu_lit 已顶到尺寸闸门，另起一册）
+from menu_thesis import t_readiness, t_style, t_log   # v1.85 开题与材料检查组（menu_lit 已顶到尺寸闸门，另起一册）
 
 
 MENU = [
@@ -58,6 +58,8 @@ MENU = [
     ("21", "把大纲排成 PPT（开题/答辩汇报 .pptx，只排版不代写）", t_ppt),
     ("22", "检查并补齐「我的工作区」九个目录（开题到答辩全流程归档）", t_workspace),
     ("23", "开题就绪度自检（大纲+进度卡→缺项/矛盾/风险，只报问题不代写）", t_readiness),
+    ("24", "AI 腔体检（草稿→套话/句式均一/缺具体信息，只报问题不代写、不测检测率）", t_style),
+    ("25", "写作留痕（每版草稿记一行时间/字数/指纹，攒过程证据；不动草稿）", t_log),
 ]
 
 
