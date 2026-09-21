@@ -43,6 +43,7 @@ if (ROOT / ".git").exists():  # 只在有仓库的形态跑：`git archive` 要�
     must93 = ["START.md", "QUICKSTART.md", "README.md", "CONSTITUTION.md", "AGENTS.md", "CHANGELOG.md",
               "LICENSE", "requirements.txt", "启动工具箱.bat", ".gitattributes", ".gitignore",
               "core/coach-rules.md", "core/evidence-rigor.md", "core/coach-rules/stage-playbook.md",
+              "core/coach-rules/tones.md", "core/coach-rules/emergency.md",
               "workflows/literature-auto-search.md", "tools/menu.py", "tools/setup_workspace.py",
               "tools/stats/mediation.py", "templates/progress-template.md", "templates/检索记录模板.md",
               "psychology/scale-library.md", "我的工作区/先读我.md", "我的工作区/09-导师沟通记录/把导师沟通记录放这里.txt",
