@@ -1,0 +1,10 @@
+id,doi,pmcid,arxiv,url,expect_title
+L11,10.3389/fpsyg.2025.1621540,,,,,Development and validation of the conversational AI dependence scale for Chinese college students
+L01,,,2506.12605,,The Rise of AI Companions
+L25,,PMC11987286,,,,负性生活事件与非自杀性自伤两波纵向研究
+L18,10.1016/j.sample2019.06.023,,,,这一行演示"DOI 猜错一位"——状态会报 标题对不上
+# 用法：python tools/lit_fetch.py 本文件.csv --probe（先探测）／--go（下载公开全文）
+# 规则：一行一篇；六个来源列填其中任意一个即可（填得越具体越准）。
+# expect_title 一定要填——它是"DOI 指向的到底是不是这篇"的唯一防线。
+# 没有公开入口的（知网学位论文、Elsevier/Wiley/APA 付费墙）留空 url，让工具报"需数据库"，
+#   然后按 workflows/literature-auto-search.md 第五步逐篇人工下载，不绕付费墙。

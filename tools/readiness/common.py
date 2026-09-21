@@ -83,19 +83,32 @@ def shared_checks(text, prog, base=None):
     base = Path(base) if base else DEF_OUTLINE.parent   # 图片按"材料自己所在目录"解析
     body = text.replace("\n", " ")
     lines = text.splitlines()
-    ph = sum(l.count("【") for l in lines)
+    # 占位符＝模板留给你写的那一格（【你来写…】【你填】【待填】【__】或空【】）；
+    # 核验类标注（【缺：卷号】【预印本】【DOI 串号…】）不是"没填"，是"查到了但缺字段"——
+    # 混在一起数会把一份内容完整的报告判成"占位没换"，也让人找不到真正要写的那几处（v1.98 实测各多算 16 处）。
+    slot = re.compile(r"【\s*(你来|你填|你定|你选|你答|填|待|请|_{2,}|】)")
+    ph = sum(len(slot.findall(l)) for l in lines)
+    note = sum(l.count("【") for l in lines) - ph
     _mk = [i + 1 for i, l in enumerate(lines) if "[需核实]" in l]
+    _tri = [i + 1 for i, l in enumerate(lines) if "[未查到]" in l or "[推断]" in l]
     if ph:
         tally, cur = {}, "（封面/开头）"
         for ln in lines:                       # 按页分组，零基础同学才对得上是哪一页要补（S6）
             if re.match(r"^#{1,4}\s", ln):
                 cur = ln.lstrip("#").strip()[:14]
-            if "【" in ln:
-                tally[cur] = tally.get(cur, 0) + ln.count("【")
+            if slot.search(ln):
+                tally[cur] = tally.get(cur, 0) + len(slot.findall(ln))
         want.append(("缺项", "还有 %d 处【】没换成你自己的内容，按页看：%s——占位没换就交是硬伤"
                      % (ph, "、".join("%s %d 处" % (k, v) for k, v in list(tally.items())[:8]))))
     if _mk:
         want.append(("缺项", "第 %s 行还留着 [需核实]——回原文补上「逐字原文＋第几节/哪张表」，补不上就删掉这条（core/evidence-rigor.md）" % "、".join(str(i) for i in _mk[:6])))
+    if note:
+        got.append("另有 %d 处【…】是**核验类标注**（如【缺：卷号、页码】），不是模板没填；"
+                   "但带缺字段的条目同样不得进正式稿——补齐或删条，二选一。" % note)
+    if _tri:
+        got.append("第 %s 行带着 [未查到]/[推断] 三态标记：这样写是**合规**的（空着比填一个看着像的数好），"
+                   "但答辩要能一句话说清为什么空着（core/evidence-rigor.md 第〇节）。"
+                   % "、".join(str(i) for i in _tri[:6]))
     imgs = list(dict.fromkeys(re.findall(r"!\[[^\]]*\]\(([^)]+)\)", text)
                             + re.findall(r"([^\s（）()]+\.png)", text)))
     if "模型" in body and not imgs:

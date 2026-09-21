@@ -161,9 +161,9 @@ if True:  # 容器不产生作用域，缩进与拆分前完全一致
     imp79 = subprocess.run(
         [sys.executable, "-c",
          "import sys; sys.path.insert(0, 'tools'); "
-         "import menu, menu_data, menu_lit, menu_thesis; "   # v1.85 起处理器三册，漏一册就判不平
+         "import menu, menu_data, menu_lit, menu_thesis, menu_ref; "   # v1.98 起处理器四册，漏一册就判不平
          "wired = {f.__name__ for _, _, f in menu.MENU}; "
-         "defs = {n for m in (menu_data, menu_lit, menu_thesis) for n in dir(m) if n.startswith('t_')};"
+         "defs = {n for m in (menu_data, menu_lit, menu_thesis, menu_ref) for n in dir(m) if n.startswith('t_')};"
          "print(len(menu.MENU), all(callable(f) for _, _, f in menu.MENU), "
          "menu.MENU[0][0], menu.MENU[-1][0], defs == wired, sorted(defs - wired))"],
         capture_output=True, text=True, encoding="utf-8", errors="replace", timeout=120)

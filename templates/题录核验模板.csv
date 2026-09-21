@@ -1,0 +1,9 @@
+题名,作者,年份,期刊,卷,期,页,DOI
+Development and validation of the conversational AI dependence scale for Chinese college students,Chen Y,2025,Frontiers in Psychology,16,,1621540,10.3389/fpsyg.2025.1621540
+The Emotional Cascade Model and Self-Injury,Selby EA,2008,Behaviour Research and Therapy,46,5,593-611,10.1016/j.brat.2008.02.002
+A Short Scale for Measuring Loneliness: The UCLA Loneliness Scale-6 (ULS-6),Hughes ME,2004,Research on Aging,26,6,655-672,10.1177/0164027504268574
+# 用法：python tools/lit_verify.py 本文件.csv --gbt
+# 第 2、3 行是演示"编出来的标题"会怎样：一条真标题不是这样（情绪级联那篇），
+#   一条是三条目版量表却被记成 ULS-6——工具都会报"有出入：标题对不上"，不给你盖章。
+# 列名兼容：题名/标题/title、期刊/来源/刊名、页/页码/pages；DOI 没有就留空（会改用标题去查，判得更松）。
+# 报告写到 同名_题录核验.md：五态＋差异＋依据。**查无与有出入的行必须回原文定夺，补不到就删条。**

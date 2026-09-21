@@ -23,13 +23,14 @@ if hasattr(sys.stdout, "reconfigure"):
     sys.stderr.reconfigure(encoding="utf-8", errors="replace")
 
 # 共用交互件在 menu_io.py；处理器按主题分册放：menu_data.py（数据与统计）、
-# menu_lit.py（文献与产出）、menu_thesis.py（开题与材料检查）。
+# menu_lit.py（文献与产出）、menu_thesis.py（开题与材料检查）、menu_ref.py（原文与题录核验）。
 # 新工具要进菜单先确认没顶到文件尺寸闸门：顶到了就再拆一册，别把它挤在命令行里。
 from menu_io import pause
 from menu_lit import (t_search, t_lit, t_cards, t_chart, t_demo, t_power, t_preview, t_refs,
                       t_ppt, t_workspace)
 from menu_data import (t_preprocess, t_clean, t_stats, t_anonymize, t_effect, t_validity,
                        t_itemanalysis, t_cvi, t_missing, t_assumption, t_paired, t_multcomp)
+from menu_ref import t_fetch, t_verify   # v1.98 原文与题录核验组
 from menu_thesis import t_readiness, t_style, t_log   # v1.85 开题与材料检查组（menu_lit 已顶到尺寸闸门，另起一册）
 
 
@@ -59,6 +60,8 @@ MENU = [
     ("23", "开题就绪度自检（大纲+进度卡→缺项/矛盾/风险，只报问题不代写）", t_readiness),
     ("24", "AI 腔体检（草稿→套话/句式均一/缺具体信息，只报问题不代写、不测检测率）", t_style),
     ("25", "写作留痕（每版草稿记一行时间/字数/指纹，攒过程证据；不动草稿）", t_log),
+    ("26", "文献原文可得性探测与下载（公开全文逐篇取，出六态台账；不绕付费墙）", t_fetch),
+    ("27", "题录双源核验（Crossref+OpenAlex 逐字段比，专抓编造标题/错刊名/错 DOI）", t_verify),
 ]
 
 
@@ -82,6 +85,7 @@ def main():
         print("  多组两两比较/多量表/多时点的 p 值校正（Bonferroni/Holm/BH）用 20")
         print("  开题/答辩要上台：写好大纲用 21 排成 .pptx；目录没建好先用 22 补齐我的工作区")
         print("  开题前心里没底：用 23 跑一次就绪度自检（只报缺项/矛盾/风险，不替你写）")
+        print("  综述里每条引用都要有全文：用 26 探测可得性并取公开原文；交稿前用 27 核验题录真伪")
         print("-" * 64)
         for num, name, _ in MENU:
             print(f"  {num}. {name}")
