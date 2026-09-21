@@ -142,7 +142,10 @@ if True:  # 容器不产生作用域，缩进与拆分前完全一致
     (ws76 / "01-文献PDF" / "学生的旧文件.txt").write_text("别动我", encoding="utf-8")
     rr = run(["tools/setup_workspace.py", "--root", str(wsroot)])
     dirs76 = sorted(p.name for p in ws76.iterdir() if p.is_dir())
-    check("工作区补齐新建5个目录", rr.returncode == 0 and len(dirs76) == 9
+    # 目录数从 setup_workspace 的 LAYOUT 现读，不写死：写死会让"加一个目录"必须先来改这条断言。
+    _nlay = len(re.findall(r'^\s+\("\d\d-[^"/]+",',   # 不认带 / 的：那是 GENERATED 的填写件，不是目录
+                           (ROOT / "tools" / "setup_workspace.py").read_text(encoding="utf-8"), re.M))
+    check("工作区补齐新建5个目录", rr.returncode == 0 and len(dirs76) == _nlay
           and "05-开题报告" in dirs76, str(dirs76))
     check("工作区补齐不动旧文件",
           (ws76 / "01-文献PDF" / "学生的旧文件.txt").read_text(encoding="utf-8") == "别动我")
@@ -161,9 +164,9 @@ if True:  # 容器不产生作用域，缩进与拆分前完全一致
     imp79 = subprocess.run(
         [sys.executable, "-c",
          "import sys; sys.path.insert(0, 'tools'); "
-         "import menu, menu_data, menu_lit, menu_thesis, menu_ref; "   # v1.98 起处理器四册，漏一册就判不平
+         "import menu, menu_data, menu_lit, menu_thesis, menu_ref, menu_kb; "   # v1.99 起处理器五册，漏一册就判不平
          "wired = {f.__name__ for _, _, f in menu.MENU}; "
-         "defs = {n for m in (menu_data, menu_lit, menu_thesis, menu_ref) for n in dir(m) if n.startswith('t_')};"
+         "defs = {n for m in (menu_data, menu_lit, menu_thesis, menu_ref, menu_kb) for n in dir(m) if n.startswith('t_')};"
          "print(len(menu.MENU), all(callable(f) for _, _, f in menu.MENU), "
          "menu.MENU[0][0], menu.MENU[-1][0], defs == wired, sorted(defs - wired))"],
         capture_output=True, text=True, encoding="utf-8", errors="replace", timeout=120)

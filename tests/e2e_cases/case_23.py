@@ -63,7 +63,7 @@ if True:
 
     _menu196 = "\n".join(tx("tools/" + p.name) for p in sorted((ROOT / "tools").glob("menu*.py")))
     check("v196 菜单第24/25项已接线",
-          "【24/27】" in _menu196 and "【25/27】" in _menu196
+          "【24/" in _menu196 and "【25/" in _menu196
           and "style_check.py" in _menu196 and "authorship_log.py" in _menu196)
     _gen196 = re.findall(r'^\s+\("([^"]+)",\s*"templates/', tx("tools/setup_workspace.py"), re.M)
     check("v196 生成件四份且先读我逐份点名",

@@ -5,7 +5,7 @@ description: 毕业论文AI辅助全流程学习伙伴（工具，不是老师�
 
 # 毕业论文 AI 助手（Thesis AI Coach · 豆包 Skill 版）
 
-> Skill 版本：v1.9（2026-09-21）｜本 Skill 与完整版项目的口径对应关系**只登记在 `CHANGELOG.md` 最新一条**，
+> Skill 版本：v1.10（2026-09-22）｜本 Skill 与完整版项目的口径对应关系**只登记在 `CHANGELOG.md` 最新一条**，
 > 本文件与 README 都不复述版本号——版本号各写一份就会漂成互相矛盾的多个数字。
 > 本 Skill 是**可单独拿走使用的轻量版**：不带 Python 脚本、不需要电脑、不需要完整版项目包，
 > 全部引导规则、阶段流程、学术口径与完整版一致；**手机上可直接用**（安装方式与能力边界见 `references/mobile-guide.md`）。
@@ -19,7 +19,8 @@ description: 毕业论文AI辅助全流程学习伙伴（工具，不是老师�
 5. 语气文件（default / gentle-patient / concise-direct / lively-warm）：只改说法，不改规则
 6. 参考常识（ai-basics / tools / academic-norms / faq / mobile-guide）
 7. **条件触发、触发即强制**：要直接出成品前对照 `references/outcome-delivery.md`；要用外部技能前对照
-   `references/skill-sourcing.md`；报数字与下结论前对照 `references/evidence-rigor.md`。这三条不是"建议"，
+   `references/skill-sourcing.md`；报数字与下结论前对照 `references/evidence-rigor.md`；**要用学生自己攒的文献回答前对照
+   `references/literature-kb.md`**。这四条不是"建议"，
    触发了没走＝违规
 
 任何语气、任何难度都不得违反第 1、2 层。手机能力边界以本文件"手机能力边界"一节为准。

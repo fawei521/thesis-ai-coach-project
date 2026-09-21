@@ -16,7 +16,15 @@ if True:  # 容器不产生作用域，缩进与拆分前完全一致
 
     # ---- v1.56.4 规则接线：core规则真正接入10个workflow（统一指针，不复制正文）+ 鼓励理论规范出处 + 防假空白 ----
     wf_all = sorted(p for p in (ROOT / "workflows").glob("*.md"))
-    check("v1564工作流十份", len(wf_all) == 10, "n=%d" % len(wf_all))
+    _all10 = tx("START.md")
+    _k = _all10.find("## 第四步")
+    _st10 = _all10[_k:_all10.find("\n## 第五步", _k) if _all10.find("\n## 第五步", _k) > 0 else None]
+    _orphan = [p.name for p in wf_all if p.name not in _st10]
+    _ghost = sorted(set(re.findall(r"^\| `([a-z0-9-]+\.md)`", _st10, re.M)))
+    _ghost = [g for g in _ghost if not (ROOT / "workflows" / g).is_file()]
+    check("v1564工作流全部在START导航表里",
+          not _orphan and not _ghost and len(wf_all) >= 10,
+          "手册未进导航=%s｜导航点名却查无=%s｜n=%d" % (_orphan, _ghost, len(wf_all)))
     check("v1564工作流全部接带教约定",
           all(all(s in p.read_text(encoding="utf-8") for s in
                   ("**带教约定**", "core/coaching-protocol.md", "core/encouragement-guide.md",

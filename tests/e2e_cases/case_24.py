@@ -36,7 +36,7 @@ if True:
     _menu198 = "\n".join(tx("tools/" + p.name)
                          for p in sorted((ROOT / "tools").glob("menu*.py")))
     check("v198 菜单第26/27项已接线",
-          "【26/27】" in _menu198 and "【27/27】" in _menu198
+          "【26/" in _menu198 and "【27/" in _menu198   # 分母不写死：菜单加项时由 case_25 的"分母等于项数"不变量管
           and "lit_fetch.py" in _menu198 and "lit_verify.py" in _menu198)
     check("v198 新处理器落在独立分册且被 menu.py 点名",
           "menu_ref.py" in tx("tools/menu.py") and (ROOT / "tools" / "menu_ref.py").is_file(),
