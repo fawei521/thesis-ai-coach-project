@@ -53,8 +53,14 @@ if (ROOT / ".git").exists():  # 只在有仓库的形态跑：`git archive` 要�
     # 上限随内容动，但**每次抬高都要在 CHANGELOG 写出为什么**——这条闸的全部意义是拦"顺手塞东西进包"。
     # v1.93 定 2_200_000（当时 2074 KB）；v1.94 加 5 份学生侧文档（成果交付/外部技能各两份 + 材料清单）
     # 实测 148 件 / 2154 KB，抬到 2_350_000（≈ 余量 190 KB）。件数上限 160 未动。
+    # v1.99 件数 160 → **170**：文献知识库随包新增 8 件，全是学生侧要用的东西，不是维护者文件——
+    #   core/literature-kb.md、workflows/knowledge-base-setup.md、doubao-skill/references/literature-kb.md、
+    #   templates/文献卡片模板.md、tools/kb_search.py、tools/kb_index.py、tools/menu_kb.py、
+    #   我的工作区/10-知识库/把文献卡片放这里.txt。实测 166 件 / 2282 KB（体积仍在 2_350_000 内）。
+    # ⚠ 这条量的是 `git archive HEAD`，**提交前跑全量它看的是上一版**：v1.99 发版时就这样躲过去一次
+    #   （提交前 937 全绿、提交后立刻红）。所以发版顺序里"打完 tag 必须再跑一遍全量"是硬步骤，见 P28。
     check("v194包体积上限随内容上调并写明理由",
-          100 <= len(names93) <= 160 and sum(m.size for m in _mem93) < 2_350_000,
+          100 <= len(names93) <= 170 and sum(m.size for m in _mem93) < 2_350_000,
           "件数=%d 解压=%d KB" % (len(names93), sum(m.size for m in _mem93) // 1024))
 
     def _read93(name):
