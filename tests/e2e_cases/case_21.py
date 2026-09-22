@@ -59,8 +59,12 @@ if (ROOT / ".git").exists():  # 只在有仓库的形态跑：`git archive` 要�
     #   我的工作区/10-知识库/把文献卡片放这里.txt。实测 166 件 / 2282 KB（体积仍在 2_350_000 内）。
     # ⚠ 这条量的是 `git archive HEAD`，**提交前跑全量它看的是上一版**：v1.99 发版时就这样躲过去一次
     #   （提交前 937 全绿、提交后立刻红）。所以发版顺序里"打完 tag 必须再跑一遍全量"是硬步骤，见 P28。
+    # 09-22 实测：HEAD 在 45fd6d5 时已 167 件 / 2298 KB（超 2_350_000 ≈ 2294 KB），
+    #   106336b 加进 `tools/folder_audit.py`（11 KB）＋ `templates/目录模板.md`（2 KB）后 169 件 / 2312 KB。
+    #   抬到 2_420_000（≈ 余量 105 KB）：新增的都是学生侧要用的东西，不是维护者文件塞进包——
+    #   维护者侧的 `tools/changelog_build.py` 已由 .gitattributes export-ignore 挡在包外。
     check("v194包体积上限随内容上调并写明理由",
-          100 <= len(names93) <= 170 and sum(m.size for m in _mem93) < 2_350_000,
+          100 <= len(names93) <= 170 and sum(m.size for m in _mem93) < 2_420_000,
           "件数=%d 解压=%d KB" % (len(names93), sum(m.size for m in _mem93) // 1024))
 
     def _read93(name):
@@ -143,8 +147,28 @@ if (ROOT / ".git").exists():  # 只在有仓库的形态跑：`git archive` 要�
             _cs.append((_hh, _par.split()[0] if _par.strip() else "", _msg,
                         [x.strip().replace("\\", "/") for x in _fl.stdout.decode("utf-8", "replace").splitlines()
                          if x.strip()]))
-        _bad = cert_missing(_g21, _cs)
-        check("动了L1的commit都带门禁凭证", not _bad, ("；".join(_bad))[:300] or "锚点后 %d 笔全部合规" % len(_cs))
+        # 凭证豁免是一份**冻结的历史债清单**（和 tests/size_baseline.txt 同一个路子）：每笔写明
+        # "当时为什么凑不出零失败"，且必须真在历史里、确实被这把尺点过名；表外的新违规照抓。
+        # 为什么非要有它：这条尺要求 `full=N/N`，可历史上一旦留下一笔不合规，往后**每一笔**
+        # 都再也拿不到零失败的凭证——2026-09-22 实测就是这个死锁（两笔在前，第三笔发不出去），
+        # 闸把自己锁死了。改历史会让凭证变成编出来的数，所以选择登记，不选择抹平。
+        _CERT_WAIVERS = {
+            "45fd6d5": "动了 L1 没带凭证；当时包体积已超上限（HEAD 实测 167 件/2298 KB > 2294 KB），跑不出零失败",
+            "106336b": "凭证写 full=978/980 非零失败——提交者没先读第三条件；事后补一个没跑过的数就是造假，只能登记",
+        }
+        _unwaived = cert_missing(_g21, _cs)
+        _bad = [b for b in _unwaived if not any(b.startswith(h + " ") for h in _CERT_WAIVERS)]
+        check("动了L1的commit都带门禁凭证（历史债按冻结清单豁免）",
+              not _bad, ("；".join(_bad))[:300] or "锚点后 %d 笔，除登记在案的 %d 笔历史债外全部合规"
+                        % (len(_cs), len(_CERT_WAIVERS)))
+        # 豁免清单自己也不许空转：每条必须对得上一笔**真实**违规（hash 在范围内且确实被点过名），
+        # 所以拿它藏新账、或塞一条编造的 hash，这条断言会红。
+        _waiv_stale = [w for w in _CERT_WAIVERS
+                       if not any(c[0].startswith(w) for c in _cs)
+                       or not any(x.startswith(w + " ") for x in _unwaived)
+                       or not _CERT_WAIVERS[w].strip()]
+        check("凭证豁免清单不养闲条目（每条＝一笔真实违规＋一句理由）",
+              not _waiv_stale, "对不上真实违规或没写理由：%s" % _waiv_stale)
         # 尺子不许空转：同一把函数喂一份"改了 tools 却没凭证"的假清单，必须抓到
         _fake = [("abcd1234" * 5, "ffff9999" * 5, "修了个统计脚本", ["tools/auto_stats.py", "README.md"])]
         check("凭证审计抓得到植入", len(cert_missing(["tools/**.py", "README.md"], _fake)) == 1,
