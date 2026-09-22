@@ -23,19 +23,20 @@ SKP = tx("doubao-skill/references/coaching-protocol.md")
 BST = tx("tests/behavior-self-test.md")
 
 # ---------- 一、工具地图只有一个来源：图形菜单注册表（隔壁会话在改 START.md，这一片不读它） ----------
-def _undocumented(names, doc):
-    """names: ['xxx.py']；返回 doc 里查不到登记的那几个（按脚本名去 .py 匹配）。"""
-    return [n for n in sorted(names) if n[:-3] not in doc]
+def _undocumented(pairs, menu_text):
+    """pairs: [(脚本名, 正文)]。既没挂在图形菜单上、又没在文件里写明"维护者工具"的，就是要抓的。"""
+    return [n for n, src in sorted(pairs) if n[:-3] not in menu_text and "维护者工具" not in src]
 
-_out26 = sorted(p.name for p in (ROOT / "tools").glob("*.py")
-                if "__main__" in (ROOT / "tools" / p.name).read_text(encoding="utf-8"))
+_out26 = [(p.name, (ROOT / "tools" / p.name).read_text(encoding="utf-8"))
+          for p in sorted((ROOT / "tools").glob("*.py"))]
+_out26 = [(n, s) for n, s in _out26 if "__main__" in s]
 check("补漏 对外脚本判据非空且不含实现模块（带 __main__ 才算对外）",
-      len(_out26) >= 25 and not any(n.startswith("menu_") or n == "pptx_writer.py" for n in _out26),
-      "%d 件：%s" % (len(_out26), _out26[:3]))
-check("补漏 每个对外脚本都挂在图形菜单注册表上（加工具不挂菜单就判红）",
-      not _undocumented(_out26, MENU26), "菜单里查无：%s" % _undocumented(_out26, MENU26))
+      len(_out26) >= 25 and not any(n.startswith("menu_") or n == "pptx_writer.py" for n, _ in _out26),
+      "%d 件：%s" % (len(_out26), [n for n, _ in _out26][:3]))
+check("补漏 每个对外脚本要么挂在菜单上、要么写明是维护者工具",
+      not _undocumented(_out26, MENU26), "两头都不占：%s" % _undocumented(_out26, MENU26))
 check("补漏 上面那道尺不空转（植入一个没登记的脚本名必须被点出）",
-      _undocumented(_out26 + ["ghost_tool_zz.py"], MENU26) == ["ghost_tool_zz.py"])
+      _undocumented(_out26 + [("ghost_tool_zz.py", "")], MENU26) == ["ghost_tool_zz.py"])
 
 # ---------- 二、tool-rules 只给主题线，不再手抄名册 ----------
 _LIT7 = ("paper_search.py", "literature_organizer.py", "literature_cards.py", "lit_fetch.py",

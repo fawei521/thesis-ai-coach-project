@@ -15,3 +15,7 @@
 tests/** export-ignore
 tests export-ignore
 DEVELOPMENT.md export-ignore
+
+# CHANGELOG 生成器是维护者工具：它会**重写包内的版本史文件**，留在学生包里只会被某个 AI 手滑跑一次。
+# 正文来源在 `维护档案/CHANGELOG/版本详情/`（整个 维护档案 已 export-ignore），发版时跑一次它即可。
+tools/changelog_build.py export-ignore

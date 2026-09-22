@@ -132,6 +132,27 @@ if True:
           _dens199 == {str(_n_item199)}, "分母 %s／实际 %d 项" % (sorted(_dens199), _n_item199))
     check("v199 第28/29项已接线且落在独立分册",
           "【28/" in _menu199 and "【29/" in _menu199 and "menu_kb.py" in _mn199)
+    # 学生侧清单与入口文档同源：QUICKSTART 第四节把菜单抄了一遍，v1.96-1.99 新加的 6 项没人回来补，
+    # START.md 那句写死的分母也停在旧数字上。比的是**编号集合**，不是点名清单——加一项就自动要两边同步。
+    def _qsnums25(block):
+        got = set()
+        for ln in block.splitlines():
+            head = ln.split(".", 1)[0]
+            if head.isdigit() and int(head) > 0:
+                got.add(int(head))
+        return got
+    _blk25 = next((b for b in tx("QUICKSTART.md").split("```") if "问卷星数据预处理" in b), "")
+    _menu_lines25 = [ln for ln in _mn199.splitlines() if ln.startswith('    ("')]
+    _mn25 = {int(ln.split('"')[1]) for ln in _menu_lines25}
+    _qn25 = _qsnums25(_blk25)
+    check("QUICKSTART 菜单清单与 menu.py 注册表同号（缺项/多项都判红）", _qn25 == _mn25,
+          "缺 %s／多 %s" % (sorted(_mn25 - _qn25), sorted(_qn25 - _mn25)))
+    _drop25 = "%d. " % min(_mn25)
+    _less25 = _qsnums25("\n".join(ln for ln in _blk25.splitlines() if not ln.startswith(_drop25)))
+    check("上面那道尺不空转（阴性：抽掉第 %s 项必须报缺）" % min(_mn25), _less25 != _mn25)
+    _mrow25 = [ln for ln in tx("START.md").splitlines() if ln.startswith("- `menu.py`")]
+    check("入口文档那一行不写死菜单分母（抄一次漂一次）",
+          _mrow25 and " 项" not in _mrow25[0], _mrow25 and _mrow25[0][:60])
 
     # ---------- 六之二、"规则也算功能"：形制尺必须不空转（宪法第十条）----------
     _ex199 = run(["tests/kb_experiment.py"])

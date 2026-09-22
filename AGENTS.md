@@ -57,7 +57,7 @@ python tests/smoke_check.py --full  # 该跑全量时：跑完打印一行 [门�
   `tests/full_e2e.py` 是骨架 + 片段顺序清单的壳，只在新增主题片段时才动。
 - 文件尺寸：不在 `tests/size_baseline.txt` 里的文件一律 ≤220 行；超标的存量文件冻结在清单里，
   **只减不增**；降到 220 以下后跑 `python tests/size_ratchet.py --write` 把它移出清单（棘轮自动收紧）。
-- 版本历史只有 `CHANGELOG.md` 一个来源；`README.md` / `PROJECT_PLAN.md` / `ROADMAP.md` 只留指针。
+- 版本正文一版一个文件（`维护档案/CHANGELOG/版本详情/`，不进包），包内 `CHANGELOG.md` 由 `tools/changelog_build.py` 生成（改了详情没重跑生成器＝`case_27` 判红）；`README.md` / `PROJECT_PLAN.md` / `ROADMAP.md` 只留指针。
 - 发布需在**项目之外**的干净解压副本里再跑一遍 `full_e2e.py`。
 
 ## 硬约束（不要违反）
@@ -81,6 +81,6 @@ templates/          各类模板 + 网页范例/
 tools/              31 个可调脚本（菜单入口 menu.py 的实现拆为 menu_io.py 交互件 + menu_data.py 数据统计组 + menu_lit.py 文献产出组 + menu_thesis.py 开题与材料检查组 + menu_ref.py 原文与题录核验组 + menu_kb.py 文献知识库组）＋含 webpage_preview.py 网页预览器、anonymize_data.py 去标识化、effect_size.py 效应量换算复核、validity_cr_ave.py 聚合/区分效度、item_analysis.py 预试项目分析、content_cvi.py 自编量表内容效度CVI、reference_formatter.py 参考文献GB/T 7714格式化、missing_report.py 缺失值分析与Little MCAR检验、assumption_check.py 参数检验前提假设（Shapiro正态性/Brown-Forsythe方差齐性）、paired_compare.py 配对设计差异检验（前后测配对t/d_z/Wilcoxon符号秩/rank-biserial r；--onesample/--constant 单样本对标称常数）、mult_compare.py 多重比较校正（Bonferroni/Holm/BH/BY）、literature_cards.py 文献卡片、outline_to_ppt.py 大纲→PPT（只排版不代写）、setup_workspace.py 工作区补齐、proposal_readiness.py 开题就绪度自检、style_check.py AI 腔体检（不测检测率）、authorship_log.py 写作留痕、lit_fetch.py 原文可得性探测与下载、lit_verify.py 题录双源核验、kb_index.py 知识库清点与对账、kb_search.py 知识库检索（BM25＋中文二元切分，纯标准库离线））+ stats/ 统计实现包（13 个模块：mathx / linalg / dataio / desc / reliability / plots / efa / compare / correlation / regression / mediation / moderation / outliers；`regress.py` 自 v1.82 起只是仅再导出的历史入口）
 tests/              只在仓库里、不随发布包分发：full_e2e.py 全量回归（壳，v1.95 起临时目录与收尾清理的实现在 e2e_tmp.py）+ e2e_cases/ 断言主题片段（case_NN 编号连续，顺序见壳里的 FRAGMENTS）、consistency_check.py 一致性自检、size_ratchet.py 文件尺寸棘轮
 我的工作区/          学生自己的文件（原始数据、PDF、结果、网页）；进度卡与检索记录**不在包里**，由菜单第 22 项缺才生成
-CHANGELOG.md        版本历史（唯一来源）
+CHANGELOG.md        版本历史（生成物：正文在 维护档案/CHANGELOG/版本详情/，一版一个文件）
 DEVELOPMENT.md      维护者开发流程（学生辅导时不需要；同样只在仓库里，不随发布包分发）
 ```

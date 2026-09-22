@@ -96,7 +96,7 @@
 `full_e2e.py` 里。2026-09-20 实测：改掉 README 过期的"16种量表"后 smoke 九项全绿，**只有全量判红**。
 
 ### 阶段 D — 文档 Document（让人会用）
-- 同步：菜单、对应 `workflows/*.md`、`psychology/stats-guide.md`（报告口径与 JASP 复核步骤）、`START.md` 工具清单、`README.md`、`QUICKSTART.md`（如影响学生）、`tests/e2e-test.md` 用例、**`CHANGELOG.md` 版本记录**。
+- 同步：菜单、对应 `workflows/*.md`、`psychology/stats-guide.md`（报告口径与 JASP 复核步骤）、`START.md` 工具清单、`README.md`、`QUICKSTART.md`（如影响学生）、`tests/e2e-test.md` 用例、**`维护档案/CHANGELOG/版本详情/vX.md` ＋跑生成器**。
 - **菜单加一项的正确姿势**（v1.79 起菜单是四件套，别再往一个文件里堆）：
   在对应分组模块（`tools/menu_data.py` 数据统计组 / `tools/menu_lit.py` 文献产出组）写 `t_xxx` 处理器
   → 在 `tools/menu.py` 的 `MENU` 表挂一行 → 所有处理器里的标签分母 `【N/20】` 同步改成新总数。
@@ -105,7 +105,7 @@
   计数不用到处改：`菜单标签编号连续且分母等于项数` 与 `v179菜单表项数与标签一致…` 两条断言
   从标签里自己数出项数（v1.80 起加项不再需要改断言里的数字，只改标签分母）。
 - **版本史记账的三条规矩（v1.83 起）**：①索引表每行的“主题”列 **≤40 字**，细节只写在详情区一次（`最新索引行主题不超过40字` 断言盯着最新那一行）；②历史正文移入仓库内的 `维护档案/`——git 完整追踪、`.gitattributes` 用 `export-ignore` 把它排除在发布包之外，所以“包内瘦”与“史不减”同时成立；③`维护档案/` 不参与一致性核对与尺寸棘轮（档案本性就长）。
-- **版本历史只有一个来源**：`CHANGELOG.md`（单文件 · 日期标签）。`README.md` / `PROJECT_PLAN.md` / `ROADMAP.md` 只保留当前版本指针，不重复维护版本清单，避免同一版本手改四处造成漂移。
+- **版本正文一版一个文件，包内 `CHANGELOG.md` 是生成物**：写 `维护档案/CHANGELOG/版本详情/vX.md`（首行 `**vX 主题**`、次行 `> 发布：日期`）→ 跑 `python tools/changelog_build.py --write` 拼出包内那份；**滚出包内的老版本自动处理，没有人再手工搬**。`README.md` / `PROJECT_PLAN.md` / `ROADMAP.md` 只留指针。改了详情文件没重跑生成器＝`case_27` 当场判红。
 - **给新功能加断言的位置**：`tests/e2e_cases/` 下的 `case_NN` 主题片段（编号连续，顺序以壳里的 `FRAGMENTS` 为准）（壳里不放断言，`断言片段无孤儿且顺序清单完整` 与 `片段正文合计守恒` 两条断言会盯着这件事）。
   ⚠ **片段与壳共用一个命名空间**：片段里**不许给壳的循环变量赋值**（`_ns`/`_fn`/`_p`）。v1.91 的 `case_20` 有一句
   `_ns = {}` 把壳的 `_ns = globals()` 顶掉了，之后所有片段都在空字典里跑——当时它是最后一片所以没暴露，
@@ -124,7 +124,7 @@
    （跑哪几道闸只看上面阶段 T 的表，这里不复述）。**一个版本收尾至少一次全量留痕**：分层只决定改中途跑多快，
    不决定这一版有没有被全量验过——动了 L1 文件却没贴凭证，`case_21.py` 的审计判红。拆过文件另跑
    `python tests/size_ratchet.py --write` 刷新冻结清单（写盘动作，回归不替你做）。用例清单见 `tests/e2e-test.md`。
-2. 更新版本号（语义化：新增功能 minor，修复 patch），三处保持一致：`CHANGELOG.md` 顶部新增该版本条目、`START.md` 顶部版本行、git tag；README 的"当前版本"同步；然后 commit、打 tag。
+2. 更新版本号（语义化：新增功能 minor，修复 patch）：先在 `维护档案/CHANGELOG/版本详情/` 写一版一个文件的详情，再 `python tools/changelog_build.py --write`（索引行自动补、老版自动滚出包），同步 `START.md` 顶部版本行与 README 的「当前版本」；然后 commit、打 tag。
 3. **双产物验证（v1.93 起必做）**：发布包由 `.gitattributes` 的 `export-ignore` 挡掉了 `tests/` 与 `DEVELOPMENT.md`，
    所以"把学生包解压出来直接跑回归"这一步已经不成立了——改成两份产物，**都必须从同一个 tag 打**：
    - **验证副本**＝`git archive --prefix=thesis-ai-coach-project/ -o <项目外>/g.zip <tag>` 解出后，
