@@ -102,6 +102,8 @@ def main():
         note = d / ("把" + PLACEHOLDER.get(name, name.split("-", 1)[-1]) + "放这里.txt")
         if not note.exists():
             note.write_text(f"{name}\n\n该放：{purpose}\n\n"
+                            f"放了东西之后，在本目录补一份 目录.md（照 templates/目录模板.md 的四节）："
+                            f"该看哪份、当前版是哪一个、为什么这样分。\n"
                             f"（本目录由 tools/setup_workspace.py 创建；"
                             f"目录只新增，工具不会重命名或删除任何已有内容。）\n",
                             encoding="utf-8")
