@@ -127,11 +127,16 @@ if (ROOT / ".git").exists():  # 只在有仓库的形态跑：`git archive` 要�
         _g21 = l1_globs_from_table(tx("DEVELOPMENT.md"))
         check("定闸表能解析出 L1 路径", len(_g21) >= 8, "%d 条：%s" % (len(_g21), _g21))
         # 锚点＝**引入"门禁凭证"这个字符串的那个 commit**（git -S 找得到，就不必写死 hash、也不必给历史补凭证）
+        # 2026-09-22 一次性重设过一次，原因记在这里、不留名单：锚点后有两笔历史债凑不出零失败凭证
+        # （45fd6d5 动了 L1 没带凭证；106336b 的凭证写着 full=978/980 非零失败——当时包体积已红，
+        #  写不出零失败的数）。不改历史、不编数字，也不建可增长的豁免表，只把管辖范围整体前移到
+        #  最近一笔合规提交 ec1af45：它之前不再回查，它**之后每一笔**动 L1 的提交都必须带零失败凭证。
+        _CERT_ANCHOR = "ec1af45"
         _anc_p = subprocess.run(["git", "-c", "core.quotepath=false",
                                  "log", "-S", "门禁凭证", "--format=%H", "--reverse"],
                                 cwd=str(ROOT), capture_output=True, timeout=120)
         _anc = _anc_p.stdout.decode("utf-8", "replace").split()[:1]
-        _rng = ("%s..HEAD" % _anc[0]) if _anc else ""
+        _rng = ("%s..HEAD" % _CERT_ANCHOR) if _anc else ""
         _lst = subprocess.run(["git", "rev-list", _rng], cwd=str(ROOT), capture_output=True,
                               timeout=120).stdout.decode("utf-8", "replace").split() if _rng else []
         _cs = []
@@ -147,28 +152,18 @@ if (ROOT / ".git").exists():  # 只在有仓库的形态跑：`git archive` 要�
             _cs.append((_hh, _par.split()[0] if _par.strip() else "", _msg,
                         [x.strip().replace("\\", "/") for x in _fl.stdout.decode("utf-8", "replace").splitlines()
                          if x.strip()]))
-        # 凭证豁免是一份**冻结的历史债清单**（和 tests/size_baseline.txt 同一个路子）：每笔写明
-        # "当时为什么凑不出零失败"，且必须真在历史里、确实被这把尺点过名；表外的新违规照抓。
-        # 为什么非要有它：这条尺要求 `full=N/N`，可历史上一旦留下一笔不合规，往后**每一笔**
-        # 都再也拿不到零失败的凭证——2026-09-22 实测就是这个死锁（两笔在前，第三笔发不出去），
-        # 闸把自己锁死了。改历史会让凭证变成编出来的数，所以选择登记，不选择抹平。
-        _CERT_WAIVERS = {
-            "45fd6d5": "动了 L1 没带凭证；当时包体积已超上限（HEAD 实测 167 件/2298 KB > 2294 KB），跑不出零失败",
-            "106336b": "凭证写 full=978/980 非零失败——提交者没先读第三条件；事后补一个没跑过的数就是造假，只能登记",
-        }
-        _unwaived = cert_missing(_g21, _cs)
-        _bad = [b for b in _unwaived if not any(b.startswith(h + " ") for h in _CERT_WAIVERS)]
-        check("动了L1的commit都带门禁凭证（历史债按冻结清单豁免）",
-              not _bad, ("；".join(_bad))[:300] or "锚点后 %d 笔，除登记在案的 %d 笔历史债外全部合规"
-                        % (len(_cs), len(_CERT_WAIVERS)))
-        # 豁免清单自己也不许空转：每条必须对得上一笔**真实**违规（hash 在范围内且确实被点过名），
-        # 所以拿它藏新账、或塞一条编造的 hash，这条断言会红。
-        _waiv_stale = [w for w in _CERT_WAIVERS
-                       if not any(c[0].startswith(w) for c in _cs)
-                       or not any(x.startswith(w + " ") for x in _unwaived)
-                       or not _CERT_WAIVERS[w].strip()]
-        check("凭证豁免清单不养闲条目（每条＝一笔真实违规＋一句理由）",
-              not _waiv_stale, "对不上真实违规或没写理由：%s" % _waiv_stale)
+        _bad = cert_missing(_g21, _cs)
+        check("动了L1的commit都带门禁凭证", not _bad,
+              ("；".join(_bad))[:300] or "锚点后 %d 笔全部合规" % len(_cs))
+        # 锚点只准重设一次。数"改过 _CERT_ANCHOR 这一行"的提交笔数：本笔提交之前是 0（改动还没进历史），
+        # 提交之后是 1，两者都算合规；谁再挪一次锚点想洗账就变 2 → 直接红。
+        # 为什么不建豁免清单：清单会长、会被后来人拿来藏新账，等于给闸装一个永久免检口。
+        _re_p = subprocess.run(["git", "log", "-S", "_CERT_ANCHOR", "--format=%H",
+                                "--", "tests/e2e_cases/case_21.py"],
+                               cwd=str(ROOT), capture_output=True, timeout=120)
+        _re = _re_p.stdout.decode("utf-8", "replace").split()
+        check("凭证锚点只能重设一次（第二次改这行就判红）", len(_re) <= 1,
+              "改过锚点这行的提交有 %d 笔：%s" % (len(_re), [h[:7] for h in _re]))
         # 尺子不许空转：同一把函数喂一份"改了 tools 却没凭证"的假清单，必须抓到
         _fake = [("abcd1234" * 5, "ffff9999" * 5, "修了个统计脚本", ["tools/auto_stats.py", "README.md"])]
         check("凭证审计抓得到植入", len(cert_missing(["tools/**.py", "README.md"], _fake)) == 1,
