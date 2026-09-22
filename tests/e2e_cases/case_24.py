@@ -20,7 +20,7 @@ if True:
     _lv198 = _load198("tools/lit_verify.py")
 
     # ---------- 一、两个工具都是纯标准库 + 编码守卫形状 ----------
-    _s198 = "\n".join(tx("tools/" + n) for n in ("lit_fetch.py", "lit_verify.py", "menu_ref.py"))
+    _s198 = "\n".join(tx("tools/" + n) for n in ("lit_fetch.py", "lit_verify.py", "menu_ref.py", "lit_audit.py"))
     check("v198 原文与题录工具纯标准库",
           all(k not in _s198 for k in ("import requests", "import pandas", "import numpy",
                                        "subprocess"))
@@ -187,3 +187,34 @@ if True:
           "还有 2 处【】没换成你自己的内容" in _o198 and "核验类标注" in _o198, _o198[:260])
     check("v198 自检对三态标记给提示不判缺项（空着是事实，填上才是编）",
           "三态标记" in _o198 and "[提示]" in _o198, _o198[-260:])
+
+    # ---------- 六、--audit：落盘后还得开一次（真实事故：知网点下载被弹回首页，拿回一张期刊宣传图） ----------
+    _la198 = _load198("tools/lit_audit.py")
+    (_dir198 := _d198 / "audit").mkdir(exist_ok=True)
+    def _mk198(name, pages=1, text=b"", img=False):
+        body = b"BT (%s) Tj ET" % text if text else b"q /Im0 Do Q"
+        kids = b" ".join(b"%d 0 R" % (10 + i * 2) for i in range(pages))
+        out = bytearray(b"%%PDF-1.4\n1 0 obj<</Type/Catalog>>endobj\n"
+                        b"3 0 obj<</Type/Pages/Kids[%s]/Count %d>>endobj\n" % (kids, pages))
+        for i in range(pages):
+            out += (b"%d 0 obj<</Type/Page/MediaBox[0 0 612 792]%s>>endobj\n"
+                    b"%d 0 obj<</Length %d>>stream\n%sendstream\nendobj\n") % (
+                10 + i * 2, b"/Resources<</XObject<</Im0 99 0 R>>>>" if img else b"", 11 + i * 2, len(body), body)
+        if img:   # 整页一张图、又没有文字层——宣传图/重定向页就是这个形状
+            out += b"99 0 obj<</Subtype/Image>>stream\n%s\nendstream\nendobj\n" % (b"\xff\xd8" + b"\x00" * 30000)
+        (_dir198 / name).write_bytes(bytes(out) + b"trailer<</Size 1>>\n%%EOF\n")
+    _mk198("banner.pdf", img=True)
+    _mk198("spaced.pdf", 14, text=b"D e v e l o p m e n t   a n d   v a l i d a t i o n   o f   t h e   c o n v e r s a t i o n a l" * 40)
+    _mk198("other.pdf", 9, text=b"Regression in autism and something else entirely here" * 60)
+    _题198 = "Development and validation of the conversational AI dependence scale for college students"
+    _行198 = [dict(id=n, expect_title=_题198) for n in ("spaced", "other", "banner")]
+    check("v198 体检：单页整图判疑似拿错、内容是另一篇判标题对不上（不给你顺眼就引）",
+          _la198.audit_file(_dir198 / "banner.pdf", "随便一篇")["state"] == "疑似拿错"
+          and _la198.audit_file(_dir198 / "other.pdf", _题198)["state"] == "标题对不上"
+          and _la198.audit_file(_dir198 / "spaced.pdf", _题198)["state"] == "一致")   # 逐字定位抽出的字母串，开发时真误判过一份好原文
+    check("v198 体检：目录里有坏件返回非零，清干净才返回 0",
+          _la198.run_dir(_dir198, _行198) == 1
+          and all((_dir198 / n).unlink() is None for n in ("banner.pdf", "other.pdf"))
+          and _la198.run_dir(_dir198, _行198[:1]) == 0)
+    check("v198 体检接在第 26 项上", "--audit" in tx("tools/lit_fetch.py") and "lit_audit" in _s198)
+

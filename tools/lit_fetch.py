@@ -1,15 +1,15 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-"""文献原文可获取性探测与下载（v1.98，菜单第 26 项）。
+"""文献原文可获取性探测、下载与落盘体检（v1.98，菜单第 26 项）。
 为什么需要它：`paper_search.py` 只给题录与摘要，而 `core/evidence-rigor.md` 第一节把"读的是什么材料"
 列为引用四要素之一——**只有摘要时不得输出"该研究发现 X"级别的结论**。这一项把"能不能拿到全文"
 变成一次可复跑的检查，公开原文落到 `我的工作区/01-文献PDF/原文/`，综述里每条数字才有地方可翻。
-
 清单（CSV 或 JSON）：id, doi, pmcid, arxiv, url, expect_title——填其中任意几个即可。
 **expect_title 一定要填**：它做"标题回核"。DOI 打错一位会静默取回**另一篇**文献，
 比下载失败更危险（v1.98 实测：Brand 2019 的 DOI 尾号猜成 …023，Crossref 返回了一篇讲孤独症退化的文章）。
-
-用法：python tools/lit_fetch.py 清单.csv --probe（只探测）／--go（下载，默认上限 30 篇，--max/--delay 可调）
+用法：python tools/lit_fetch.py 清单.csv --probe（探测）／--go（下载，默认上限 30 篇，--max/--delay 可调）
+     python tools/lit_fetch.py --audit   清单可省（体检已落盘的原文：页数/文字层/首页标题，见 `lit_audit.py`）
+**下载成功 ≠ 原文到手**：--go 之后、或你手工放进原文区的文件，都要跑一次 --audit 验明正身。
 红线与 `workflows/literature-auto-search.md` 第八节同源，此处只执行不重述：只走公开入口、
 不绕付费墙、不碰要登录的库、逐篇带停顿、单次限量；下载的原文仅限本人学习研究使用。
 """
@@ -162,17 +162,23 @@ def probe(row, go, out_dir):
 
 
 def main():
-    ap = argparse.ArgumentParser(description="文献原文可获取性探测与下载（不绕付费墙）")
-    ap.add_argument("manifest", help="清单 CSV 或 JSON（列：id,doi,pmcid,arxiv,url,expect_title）")
+    ap = argparse.ArgumentParser(description="文献原文可获取性探测、下载与落盘体检（不绕付费墙）")
+    ap.add_argument("manifest", nargs="?", default="",
+                    help="清单 CSV 或 JSON（列：id,doi,pmcid,arxiv,url,expect_title）；--audit 时可省")
     mode = ap.add_mutually_exclusive_group(required=True)
     mode.add_argument("--probe", action="store_true", help="只探测能不能拿到，不落盘")
     mode.add_argument("--go", action="store_true", help="下载公开全文 PDF 到 --out")
+    mode.add_argument("--audit", action="store_true",
+                      help="体检 --out 目录里已落盘的原文（页数/文字层/标题回核），有坏件返回 1")
     ap.add_argument("--out", default="我的工作区/01-文献PDF/原文", help="落盘目录（默认原文区）")
     ap.add_argument("--max", type=int, default=30, help="本次最多取几篇（红线：逐篇、限量）")
     ap.add_argument("--delay", type=float, default=2.0, help="篇间隔秒数（模拟人工节奏）")
     ap.add_argument("--report", default="我的工作区/01-文献PDF/原文获取台账.md", help="台账输出路径")
     a = ap.parse_args()
-
+    if a.audit:                                   # 落盘之后还要开一次：下载成功 ≠ 原文到手
+        sys.path.insert(0, str(Path(__file__).resolve().parent))
+        from lit_audit import run_dir
+        return run_dir(a.out, read_rows(a.manifest) if a.manifest else ())
     rows = read_rows(a.manifest)
     if not rows:
         print("清单里没读到任何带 id 的行——列名请用 id,doi,pmcid,arxiv,url,expect_title")
@@ -193,19 +199,16 @@ def main():
             done += 1
         print("  [%s] %-6s %s" % (row["id"], rec["status"], rec["detail"][:76]))
         time.sleep(a.delay)
-
     from collections import Counter
     tally = Counter(r["status"] for r in results)
     print("\n汇总：" + "｜".join("%s %d" % (k, v) for k, v in sorted(tally.items())))
     rep = Path(a.report)
     rep.parent.mkdir(parents=True, exist_ok=True)
-    lines = ["# 文献原文获取台账",
-             "",
+    lines = ["# 文献原文获取台账", "",
              "> 生成：`tools/lit_fetch.py %s %s`。状态六态：已获取/可获取=公开全文能拿到；"
              "**需数据库**=只能走知网/学校已购权限（见 `workflows/literature-auto-search.md` 第五步）；"
              "非PDF/失败=换源或人工；**标题对不上**=DOI 指向了别的文章，先修题录再谈下载。" % (a.manifest, "--go" if a.go else "--probe"),
-             "",
-             "| 编号 | 状态 | 来源/原因 |", "|---|---|---|"]
+             "", "| 编号 | 状态 | 来源/原因 |", "|---|---|---|"]
     lines += ["| %s | %s | %s |" % (r["id"], r["status"], r["detail"].replace("|", "/")[:120])
               for r in results]
     rep.write_text("\n".join(lines) + "\n", encoding="utf-8")
