@@ -32,7 +32,7 @@ from menu_data import (t_preprocess, t_clean, t_stats, t_anonymize, t_effect, t_
                        t_itemanalysis, t_cvi, t_missing, t_assumption, t_paired, t_multcomp)
 from menu_ref import t_fetch, t_verify   # v1.98 原文与题录核验组
 from menu_kb import t_kb_index, t_kb_search   # v1.99 文献知识库组（攒卡片＋按行号回原文）
-from menu_thesis import t_readiness, t_style, t_log   # v1.85 开题与材料检查组（menu_lit 已顶到尺寸闸门，另起一册）
+from menu_thesis import t_readiness, t_style, t_log, t_audit   # v1.85 开题与材料检查组（menu_lit 已顶到尺寸闸门，另起一册）
 
 
 MENU = [
@@ -65,6 +65,7 @@ MENU = [
     ("27", "题录双源核验（Crossref+OpenAlex 逐字段比，专抓编造标题/错刊名/错 DOI）", t_verify),
     ("28", "清点我的文献知识库（攒了什么、各自核到什么程度、哪张卡缺证据）", t_kb_index),
     ("29", "检索我的文献知识库（BM25 词法检索，命中给文件名＋行号，离线零安装）", t_kb_search),
+    ("30", "材料区目录体检（只读：东西在哪、哪份是当前版；一个文件都不改）", t_audit),
 ]
 
 

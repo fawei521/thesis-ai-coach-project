@@ -45,6 +45,7 @@ _r28 = _sp28.run([_sys28.executable, "tools/folder_audit.py", "--selftest"],
 _out28 = (_r28.stdout or b"").decode("utf-8", "replace") + (_r28.stderr or b"").decode("utf-8", "replace")
 check("folder_audit 八条形制全部咬住", _r28.returncode == 0 and "八条全咬住" in _out28,
       "rc=%s %s" % (_r28.returncode, _out28.strip()[-160:]))
-check("尺子按维护者工具入册（不冒充学生工具）",
-      "维护者工具" in tx("tools/folder_audit.py"))
+check("尺子挂在图形菜单第 30 项（学生双击就能跑）",
+      "t_audit" in tx("tools/menu.py") and "【30/30】" in tx("tools/menu_thesis.py")
+      and '"30"' in tx("tools/menu.py"))
 check("跨副本双卡那条也在尺子上（今天这摊乱的根因）", "跨副本也咬住" in _out28)
