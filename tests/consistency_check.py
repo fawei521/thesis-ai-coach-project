@@ -129,9 +129,9 @@ def main():
         is_workspace = rel.parts[0] == "我的工作区"
         text = md.read_text(encoding="utf-8", errors="replace")
 
-        # 1. 显式 tools/xxx.py 引用存在性（允许子包路径，如 tools/stats/efa.py）
+        # 1. 显式 tools/xxx.py 引用存在性（允许子包路径，如 tools/stats/efa.py）；REPO_ONLY 同 33 行：包里没带的维护者脚本不算悬空
         for ref in re.findall(r"tools/([A-Za-z0-9_/]+\.py)\b", text):
-            if ref not in py_set:
+            if ref not in py_set and ("tools/" + ref) not in REPO_ONLY:
                 problems.append(f"[{rel}] 引用了不存在的 tools/{ref}")
 
         # 2. 命令片段（围栏块/逐行）内开关归属核对（-- 后首字符必须是字母/数字，排除 ---）

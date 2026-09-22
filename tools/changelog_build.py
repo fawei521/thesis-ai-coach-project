@@ -112,7 +112,9 @@ def archive_section(details, kept_vers):
     以前这行指针埋在某个版本的详情块里，一滚出去就成孤儿（`case_15` 当场抓到）——所以它必须是生成物。"""
     lines = ["", "", "## 历史详情档案（维护者留档，不随发布包分发）", ""]
     for p in sorted((ROOT / "维护档案").glob("CHANGELOG-历史详情-*.md")):
-        lines.append("- `%s` — %s" % (p.as_posix().split("维护档案/")[-1],
+        # 指针必须写**完整仓库路径**：consistency_check 的"包外文件"豁免按 `维护档案/` 前缀认，
+        # 裸文件名在开发树里靠"全项目同名兜底"能过，到学生副本里就成假悬空（2026-09-22 实测）。
+        lines.append("- `%s` — %s" % (p.relative_to(ROOT).as_posix(),
                                       p.read_text(encoding="utf-8").split("\n")[0].lstrip("# ")))
     out = [v for v, _, _, _ in details if v not in kept_vers]
     lines.append("- 一版一个文件的近期详情在 `维护档案/CHANGELOG/版本详情/`；当前未拼进本文件的：%s"
