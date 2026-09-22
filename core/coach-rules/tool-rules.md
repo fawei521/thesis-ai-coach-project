@@ -17,16 +17,13 @@
    - 不执行删除操作、不安装系统级软件
    - 安装Python包前告知包名和大小
 
-### 可用工具
-- `wjx_preprocess.py` — 问卷星原始答卷预处理（中文表头/文本选项/用时 → 标准数字表）
-- `data_cleaner.py` — 问卷数据清洗五指标（时长过短/长直线/低变异SD/高缺失/注意力检查题答错），导出清洗后数据＋"_清洗报告.csv"剔除明细
-- `auto_stats.py` — 自动统计（人口学频数、反向计分、Cronbach's α＋CITC/删题α＋分半信度、结构效度KMO/Bartlett/载荷、`--efa`完整因子分析＋平行分析＋碎石图、Harman共同方法偏差、量表总分、描述统计、相关三件套（Pearson/Spearman/偏相关）＋相关热图、人口学差异（参数/非参数）、交叉卡方、回归＋VIF、Bootstrap中介模型4/6、调节模型1＋简单斜率图、三线表）
-- `sample_size.py` — 开题样本量/功效估算（G*Power等价：相关/回归/R²增量/ANOVA，三档效应量速查＋无效卷冗余）
-- `generate_demo_data.py` — 生成内置链式中介的模拟问卷数据供练手（严禁写进真实论文）
-- `paper_search.py` — 英文学术文献检索（OpenAlex/Semantic Scholar免费API，无需key）
-- `literature_organizer.py` — 文献去重、分类、导出整理表
-- `chart_generator.py` — 研究模型图、路径系数图
-- `webpage_preview.py` — **本地预览学生自己做的网页**（纯标准库静态服务器；只读、不上传、不越出指定目录；默认只绑本机 `127.0.0.1`，要让手机看须显式加 `--lan`）
+### 可用工具（名册不在这里抄）
+对外脚本一共有哪些、每件干什么、红线在哪，只有一份：**`START.md` 第五步**；图形菜单第几项以 `tools/menu.py` 的注册表为准。这条不靠人记：`case_26` 钉着“每个带 `__main__` 的 tools 脚本都挂在图形菜单注册表上”——加了工具没进菜单，当场判红。
+**要主动替学生动手时先看这几行主题线**（决策发生在这一页，细节回 START 查）：
+- **文献七件**：`paper_search.py` 英文库多词检索、`literature_organizer.py` 去重分类、`literature_cards.py` 重点文献卡片网页、`lit_fetch.py` 探测并取公开全文、`lit_verify.py` 题录双源核验、`kb_index.py` 清点自己的库、`kb_search.py` 检索自己的库。学生说**“我没文献”“读不到全文”“这条引用是真的吗”“这个数哪来的”**，出路都在这七件里（属于阶段 2／3，动作见 `core/coach-rules/stage-playbook.md`）。
+- **数据与统计**：`wjx_preprocess.py` 预处理、`data_cleaner.py` 清洗、`auto_stats.py` 一条龙，另有效果量、信效度、项目分析、内容效度、缺失值、前提假设、多重校正、配对差异等单项脚本。
+- **写作与交付**：`outline_to_ppt.py` 排版、`proposal_readiness.py` 开题就绪度自检、`style_check.py` AI 腔体检、`authorship_log.py` 写作留痕、`reference_formatter.py` 参考文献格式化。
+- **环境与工作区**：`setup_workspace.py` 补齐目录与学生填写件、`webpage_preview.py` 本地预览、`anonymize_data.py` 外发前去标识、`chart_generator.py` 模型图、`generate_demo_data.py` 练手数据。
 - `menu.py` / 「启动工具箱.bat」 — 中文统一菜单，免记命令、支持拖拽文件
 - 虚拟电脑/浏览器 — 知网等网页的检索、下载（登录和验证码由学生完成）
 

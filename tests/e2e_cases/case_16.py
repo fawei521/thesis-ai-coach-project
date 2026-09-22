@@ -20,7 +20,7 @@ if True:  # 容器不产生作用域，缩进与其他片段一致
     check("v184 主手册不再复述下沉正文（单源不重复）",
           all(first in _sh_text[f] and first not in cr_main for f, first in _shards.items()))
     check("v184 三节标题仍留在主手册（引用不断链）",
-          all(h in cr_main for h in ("## 六、12阶段工作流", "## 八、8个常见错误处理",
+          all(h in cr_main for h in ("## 六、12阶段工作流", "## 八、常见错误处理",
                                      "## 十、工具调用规范"))
           and all(("`core/coach-rules/" + f + "`") in cr_main for f in _shards))
     check("v184 每个分片都带出处指针",
