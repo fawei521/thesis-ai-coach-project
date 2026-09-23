@@ -41,10 +41,38 @@ check("第四节是可逆清单", "动了什么" in TPL and "删除 / 改名" in
 _r28 = _sp28.run([_sys28.executable, "tools/folder_audit.py", "--selftest"],
                  cwd=str(ROOT), capture_output=True, timeout=120)
 # 必须自己按 UTF-8 解：`text=True` 会拿系统 locale（中文 Windows 是 GBK）去解子进程的 UTF-8 输出，
-# 中文全成乱码，"八条全咬住"匹配不上——rc=0 却判红，坑在这（case_21 读 git 输出也是自己 decode 的）。
+# 中文全成乱码，"全部判据都咬住"匹配不上——rc=0 却判红（判据只能读自己解出来的文本）。
 _out28 = (_r28.stdout or b"").decode("utf-8", "replace") + (_r28.stderr or b"").decode("utf-8", "replace")
-check("folder_audit 八条形制全部咬住", _r28.returncode == 0 and "八条全咬住" in _out28,
+# 结论句**不写条数**（09-23 那批改动加到十条时，旧句里的"八条"就成了说谎的字面量）：
+# 这里改成核"清单与实现两边相等"，条数由尺子自己数。
+check("folder_audit 每条判据都被自测咬住", _r28.returncode == 0 and "全部判据都咬住" in _out28,
       "rc=%s %s" % (_r28.returncode, _out28.strip()[-160:]))
+_FA = tx("tools/folder_audit.py")
+_doc_rules = set(re.findall(r"^  (R\d+) [红黄] ", _FA, re.M))
+_code_rules = set(re.findall(r'hits\.append\(\(".", "(R\d+)"', _FA))
+check("判据清单与实现两头相等（写文档没实现、或实现没写文档都红）",
+      _doc_rules == _code_rules and len(_doc_rules) >= 10,
+      "文档 %s ／代码 %s" % (sorted(_doc_rules), sorted(_code_rules)))
+check("R9 与 R10 在案（临时区过期脚本／根一层放脚本）", {"R9", "R10"} <= _code_rules, str(sorted(_code_rules)))
+check("夹具也配了 R9/R10（自测报告里能看见它们命中）",
+      "'R9'" in _out28 and "'R10'" in _out28, _out28[-200:])
+check("豁免只给当前版类：archived() 自己写明时效类照抓",
+      "时效类" in _FA and "当前版类" in _FA and "R9" in _FA.split("def archived")[1].split("def walk")[0],
+      "拆不干净就会退回整层豁免——临时区里放烂的脚本就再也查不到")
+# 阳性侧：一份**刚写的**临时区脚本与一份干净目录，都不该被判红。
+# 只测"抓得住坏"会养出一见脚本就红的尺，学生第二天就不敢用临时区了。
+_ws102 = new_tmp("v102clean") / "我的工作区"
+(_ws102 / "01-文献PDF").mkdir(parents=True)
+(_ws102 / "01-文献PDF" / "新笔记.md").write_text("x", encoding="utf-8")
+(_ws102 / "_scratch").mkdir()
+(_ws102 / "_scratch" / "今天刚写的核验.py").write_text("#", encoding="utf-8")
+_r102 = _sp28.run([_sys28.executable, "tools/folder_audit.py", str(_ws102)],
+                  cwd=str(ROOT), capture_output=True, timeout=120)
+_o102 = (_r102.stdout or b"").decode("utf-8", "replace")
+check("刚写的临时脚本与单份笔记不该判红（阳性）",
+      "R9" not in _o102 and "R10" not in _o102, _o102.strip()[-200:])
+check("菜单第 30 项的帮助不抄条数（条数漂了就没人回来改）",
+      "八条" not in tx("tools/menu_thesis.py") and "七条" not in _FA)
 check("尺子挂在图形菜单第 30 项（学生双击就能跑）",
       "t_audit" in tx("tools/menu.py") and "【30/30】" in tx("tools/menu_thesis.py")
       and '"30"' in tx("tools/menu.py"))

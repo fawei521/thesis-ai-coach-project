@@ -9,7 +9,7 @@
 为什么要有它：仓里写过三条"要归位／要登记／用完即删"，**三条全部落空**——它们管开发仓，材料却落在没有 git、
 没有门禁的那份副本里。写第四条"要注意卫生"一样不会有用的，所以这里只做一件事：**把卫生翻译成能判红的形制**。
 
-八条判据（红＝会误导人下错判断；黄＝该收一下）：
+判据（红＝会误导人下错判断；黄＝该收一下。**条数不在这里写死**——`--selftest` 从本文件源码现读该咬住的清单）：
   R1 红 同一棵树里两份以上"唯一权威文件"（进度卡）——两张卡必然有一张是错的
   R2 黄 人读目录（同层有 .md）里 `.json/.xml/.log/.py` 与 .md 并排——机器产物跟给人看的混放
   R3 黄 子项为 0 的目录壳——搬完没留指针，别人只会以为东西没了
@@ -18,12 +18,14 @@
   R6 黄 目录里有实文件（占位说明不算）却没有 `目录.md`
   R7 红 顶层冒出 LAYOUT 之外的目录——名单只有一份，从 `setup_workspace.py` 解析，不抄第二遍
   R8 红 同一层出现两个"入口"（`目录.md` 与 `README/索引/说明/00-` 式文件并存）——一层只准一个法律
+  R9 红 `_` 前缀的临时区里还有过期没清的脚本——"用完即删"写过三遍都没生效，这里钉形状不钉名字
+  R10 红 根一层出现脚本——能跑的进 `tools/`、验证用的进 `tests/`，散落一份没人知道它还跑不跑
 
 用法（**只扫材料区**，拿它扫代码仓会一堆假红）：
   python folder_audit.py 我的工作区            # 打印报告
   python folder_audit.py 我的工作区 --strict    # 有红项返回非零（给门禁串用）
   python folder_audit.py --copies D:\桌面        # 跨副本看同一个进度卡有几份在用
-  python folder_audit.py --selftest             # 造一个坏目录，七条必须全命中（判据的阴性自测）
+  python folder_audit.py --selftest             # 造一个坏目录，每条判据都必须命中（阴性自测）
 """
 import argparse
 import datetime
@@ -39,6 +41,7 @@ if hasattr(sys.stdout, "reconfigure"):
 
 REPO = Path(__file__).resolve().parent.parent
 MACHINE = {".json", ".xml", ".log", ".py", ".pyc"}
+TMP_SCRIPTS, ROOT_SCRIPTS, STALE_DAYS, NOW = {".py", ".ps1", ".sh"}, {".py", ".ps1"}, 7, datetime.datetime.now().timestamp()   # R9/R10：钉扩展名与位置，不钉文件名
 STALE_WORDS = ("本次", "最新", "终版", "最终", "新建", "副本", "未命名")
 AUTHORITY = {"我的论文进度.md"}
 SKIP_DIRS = {".git", "__pycache__", ".tmp_e2e", "node_modules", ".mypy_cache"}
@@ -50,7 +53,7 @@ CURRENT_MARK = ("当前版", "该看哪份")
 
 def archived(rel):
     """路径里任一段是"声明过只存旧东西"的层 = 归档/临时区（`_` 开头，或 `旧版/`），
-    不按"当前版在哪"要求它——它存的就是旧东西。但空壳（R3）与时效词文件名（R4）照抓。
+    不按"当前版在哪"要求它——它存的就是旧东西。**豁免只给当前版类（R5/R6/R8）；时效类（R3/R4/R9）与位置类（R10）照抓**——临时区正是最该被问「东西怎么还在」的地方。
     收 Path 也收 parts 元组，调用方不用换算。"""
     parts = [str(p) for p in getattr(rel, "parts", rel)]
     return any(p.startswith("_") or p == "旧版" for p in parts)
@@ -105,6 +108,10 @@ def audit(root, layout=None):
             if any(w in f.name for w in STALE_WORDS) and f.name != INDEX:
                 hits.append(("黄", "R4", str(f.relative_to(root)),
                              "这类词过几天没人知道指哪一次，改成语义名或带日期 YYYYMMDD"))
+        if any(q.startswith("_") for q in rel.parts):   # 临时区：脚本放久了就是没删
+            for f in fs:
+                if f.suffix in TMP_SCRIPTS and NOW - f.stat().st_mtime > STALE_DAYS * 86400:
+                    hits.append(("红", "R9", str(f.relative_to(root)), "临时区脚本放超过一周：删掉，或在本层 目录.md 写一句为什么还留着"))
         real = [f for f in fs if not PLACEHOLDER.match(f.name) and f.name != INDEX]
         idx = d / INDEX
         if skip:
@@ -124,6 +131,8 @@ def audit(root, layout=None):
         elif real and not idx.is_file() and not all(f.suffix in MACHINE for f in real):
             hits.append(("黄", "R6", f"{rel}/", f"{len(real)} 个文件却没有任何说明，补 {INDEX}"))
 
+    for f in by_dir.get(root, []):   # 根一层不放脚本
+        if f.suffix in ROOT_SCRIPTS: hits.append(("红", "R10", f.name, "能跑的进 tools/、验证用的进 tests/、用完的删"))
     names = layout_names(layout)
     for sub in dirs[1:]:
         try:
@@ -152,7 +161,7 @@ def report(root, hits):
 def copies(base):
     """跨副本清点权威文件有几份在同时被用——两张进度卡并存，正是今天这摊乱的根因。
 
-    七条判据只在**一个材料区内**有效，看不见"同一台机器上有两份副本"这件事，所以单列这一项。
+    这些判据只在**一个材料区内**有效，看不见"同一台机器上有两份副本"这件事，所以单列这一项。
     """
     found = sorted(p for p in Path(base).rglob("*")
                    if p.name in AUTHORITY and ".git" not in p.parts and not archived(p.parts))
@@ -166,30 +175,19 @@ def copies(base):
 
 
 def selftest(layout=None):
-    """阴性自测：造一个必坏的目录，七条判据必须全部命中——判据抓不住就是尺子在空转。"""
+    """阴性自测：造一个必坏的目录，**每条判据都必须命中**——抓不住就是尺子在空转。
+    该咬住的清单从本文件源码现读（下方 re.findall），加了判据忘了配夹具会直接红；夹具在 `tools/folder_audit_selftest.py`——本文件顶在 220 闸上，夹具不跟判据抢行数。"""
+    from folder_audit_selftest import build
     with tempfile.TemporaryDirectory() as tmp:
         ws = Path(tmp) / "我的工作区"
-        (ws / "01-文献PDF").mkdir(parents=True)
-        (ws / "01-文献PDF" / "我的论文进度.md").write_text("x", encoding="utf-8")
-        (ws / "09-导师沟通记录").mkdir()
-        (ws / "09-导师沟通记录" / "我的论文进度.md").write_text("x", encoding="utf-8")
-        (ws / "01-文献PDF" / "总览.md").write_text("x", encoding="utf-8")
-        (ws / "01-文献PDF" / "总览35篇.md").write_text("x", encoding="utf-8")
-        (ws / "01-文献PDF" / "题录.json").write_text("{}", encoding="utf-8")
-        (ws / "01-文献PDF" / "目录.md").write_text("", encoding="utf-8")
-        (ws / "01-文献PDF" / "README.md").write_text("x", encoding="utf-8")   # 第二个入口
-        (ws / "01-文献PDF" / "_本次核验.py").write_text("#", encoding="utf-8")
-        (ws / "01-文献PDF" / "原文").mkdir()                      # 空壳
-        (ws / "99-自由发挥").mkdir()                              # LAYOUT 之外
-        (ws / "02-问卷数据").mkdir()
-        (ws / "02-问卷数据" / "答卷.csv").write_text("a", encoding="utf-8")   # 无目录.md
+        build(ws)
         got = {h[1] for h in audit(ws, layout)}
-        dup = copies(ws.parent)          # 跨副本那条也得抓到自测里这两份卡
-    want = {"R1", "R2", "R3", "R4", "R5", "R6", "R7", "R8"}
-    miss = want - got
-    print(f"自测：判据命中 {sorted(got)}；跨副本另抓到 {dup} 项")
-    print(f"结论：{'八条全咬住，跨副本也咬住' if not miss and dup else '没咬住 ' + str(sorted(miss)) + '，或跨副本为 0——尺子在空转'}")
-    return 1 if (miss or not dup) else 0
+        dup = copies(ws.parent)   # 跨副本那条也得抓到自测里这两份卡
+    miss = set(re.findall('hits\\.append\\(\\(".", "(R\\d+)"', Path(__file__).read_text(encoding="utf-8"))) - got
+    print(f"自测：判据命中 {sorted(got, key=lambda r: int(r[1:]))}；跨副本另抓到 {dup} 项")
+    ok = not miss and dup
+    print("结论：" + ("全部判据都咬住，跨副本也咬住" if ok else "没咬住 " + str(sorted(miss)) + "，或跨副本为 0——尺子在空转"))
+    return 0 if ok else 1
 
 
 def main():
