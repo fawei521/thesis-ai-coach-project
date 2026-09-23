@@ -185,3 +185,33 @@ if True:  # 容器不产生作用域，缩进与其他片段一致
           _pkg194.count("SECTIONS_PPT = [") == 1 and _pkg194.count("SECTIONS_REPORT = [") == 1
           and "want.append" not in tx("tools/proposal_readiness.py"),
           "PPT=%d REPORT=%d" % (_pkg194.count("SECTIONS_PPT = ["), _pkg194.count("SECTIONS_REPORT = [")))
+
+    # ---- 第 21 项挑大纲：目录里不止一份时必须列出来给人挑，不许写死名字静默吃旧稿 ----
+    # 09-23 真人走查实测：目录里同时躺着 9-19 的 `我的开题大纲.md` 与当天的新稿，而"直接回车"用写死的
+    # 那个名字——PPT 排得出来，内容是过期的，且不告诉任何人吃的是哪份。改成 choose_from 列候选＋报出处。
+    _d21 = new_tmp("v101ppt")
+    _o21d = _d21 / "我的工作区" / "05-开题报告"
+    _o21d.mkdir(parents=True)
+    (_o21d / "我的开题大纲.md").write_text("# 大标题\n## 第1页：背景\n- 要点\n", encoding="utf-8")
+    (_o21d / "开题大纲_新稿.md").write_text("# 大标题\n## 第1页：新背景\n- 要点\n", encoding="utf-8")
+    os.utime(_o21d / "我的开题大纲.md", (1_000_000_000, 1_000_000_000))
+    os.utime(_o21d / "开题大纲_新稿.md", (1_100_000_000, 1_100_000_000))
+    _drv21 = ('import sys;sys.path.insert(0,r"%s");from menu_io import choose_from;'
+              'print("=>" + choose_from("我的工作区/05-开题报告","大纲"))' % str(ROOT / "tools"))
+
+    def _ask21(ans, cwd):
+        return subprocess.run([sys.executable, "-c", _drv21], cwd=str(cwd), input=ans, capture_output=True,
+                              encoding="utf-8", errors="replace", timeout=60,
+                              env=dict(os.environ, PYTHONIOENCODING="utf-8")).stdout
+
+    _p21old = _ask21("2\n", _d21)                       # 选序号 2＝那份旧的
+    _p21new = _ask21("1\n", _d21)                       # 选序号 1＝最近改的
+    check("v101两份大纲会列出来并认序号",
+          "我的开题大纲.md" in _p21old and "开题大纲_新稿.md" in _p21old
+          and "=>我的工作区/05-开题报告/我的开题大纲.md" in _p21old.replace("\\", "/"), _p21old[-260:])
+    check("v101选了不是最新的那份要点破", "不是最新那份" in _p21old, _p21old[-200:])
+    check("v101选最新那份不该点破（阳性）", "不是最新那份" not in _p21new, _p21new[-200:])
+    check("v101选定后报吃的是哪份多少字", "个汉字" in _p21new and "改于" in _p21new, _p21new[-200:])
+    _d21e = new_tmp("v101pptempty")
+    (_d21e / "我的工作区" / "05-开题报告").mkdir(parents=True)
+    check("v101目录里没有大纲时交回调用方给指引", _ask21("", _d21e).strip() == "=>", repr(_ask21("", _d21e)[-80:]))

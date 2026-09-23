@@ -5,7 +5,7 @@
 
 from pathlib import Path
 
-from menu_io import ask_path, run
+from menu_io import ask_path, choose_from, run
 
 # --- 输出编码守卫：管道/重定向时强制 UTF-8（项目门禁统一要求，见 tests/full_e2e.py 全部脚本有编码守卫）---
 import sys as _sys
@@ -183,15 +183,15 @@ def t_ppt():
     print("  | 竖线写表格、![题注](图.png) 整页插图、> 讲稿：写进演讲者备注（不上屏）。")
     print("  内容全部你自己写，工具一个字也不替你写。")
     print("  还没有大纲？先拷模板：templates\\opening-ppt-outline.md（12 页开题结构，把【】换成你的内容）")
-    f = ask_path("  把你的大纲 .md 拖进来（直接回车=我的工作区\\05-开题报告\\我的开题大纲.md）：",
-                 must_exist=False) or "我的工作区/05-开题报告/我的开题大纲.md"
+    f = ask_path("  把你的大纲 .md 拖进来（直接回车=从 我的工作区\\05-开题报告\\ 里挑一份）：",
+                 must_exist=False) or choose_from("我的工作区/05-开题报告", "大纲")
     _ph = Path(f).read_text(encoding="utf-8-sig", errors="replace").count("【") if Path(f).exists() else 0
     if _ph:
         print(f"  ⚠ 这份大纲还有 {_ph} 处【】没换成你自己的内容：PPT 照样排得出来，但那几页上就是占位符。")
         print("    想按页看清楚缺哪几处，先用菜单第 23 项跑一次就绪度自检。")
     if not Path(f).exists():
-        print("  ✗ 没找到大纲：" + f)
-        print("    把 templates\\opening-ppt-outline.md 拷成上面这个路径、填好【】再回来跑这一项。")
+        print("  ✗ 没找到大纲：" + (f or "我的工作区/05-开题报告 里一份 .md 都没有"))
+        print("    把 templates\\opening-ppt-outline.md 拷进 我的工作区\\05-开题报告\\、填好【】再回来跑这一项。")
         return
     args = [f]
     if input("  先只自检大纲、不出文件？输入 y=只自检（直接回车=直接生成）：").strip().lower() in ("y", "yes", "是", "1"):
