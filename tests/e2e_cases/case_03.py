@@ -26,6 +26,12 @@ if True:  # 容器不产生作用域，缩进与拆分前完全一致
     # 记录盖成空白，而使用副本没有 .git、盖了不可回滚；所以填写版一律由菜单第 22 项缺才生成。
     check("检索记录模板存在", (ROOT / "templates" / "检索记录模板.md").exists())
     check("进度卡基线存在", (ROOT / "templates" / "progress-template.md").exists())
+    # 09-23 真人走查："我根本不知道怎么填，里面已经有信息了"——根因是候选值、解释文字、待填空位三种东西同形。
+    # 于是把形状定下来：带" / "的候选行必须自己写明"（选一个"。这条盯着**新加的行**别忘了标，不要求措辞一致。
+    _cand = [l.split("：")[0] for l in tx("templates/progress-template.md").splitlines()
+             if l.startswith("- ") and "：" in l
+             and any(s in l.split("：", 1)[1] for s in (" / ", "／")) and "（选一个" not in l]
+    check("进度卡模板的候选行都写明选一个", not _cand, str(_cand))
     check("检索记录入口", "检索记录.md" in las and "检索记录.md" in tx("我的工作区/先读我.md"))
     check("进度卡接检索留痕", "文献与检索留痕" in tx("templates/progress-template.md"))
     check("菜单5接受CSV", "标准 CSV" in menu and "txt" in menu)
