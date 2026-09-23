@@ -47,6 +47,13 @@ if True:  # 容器不产生作用域，缩进与拆分前完全一致
         sw = (ROOT / "tools" / "setup_workspace.py").read_text(encoding="utf-8")
         gen = {"我的工作区/" + m for m in re.findall(r'^\s+\("([^"]+)",\s*"templates/', sw, re.M)}
         check("第22项生成清单与不进包的清单同源", gen == filled, f"GENERATED={sorted(gen)}")
+        # 上一条只量"此刻没入库"，那靠的是没人跑 git add -A——一次手滑就把学生填的表格发给别人。
+        # 这一条要的是硬保证：每一份生成件都得被 .gitignore 挡住（名单从 GENERATED 现读，不在此点名，
+        # 所以新加一份填写件却没交代它凭什么不进包，当场红）。
+        unignored = [g for g in sorted(gen)
+                     if subprocess.run(["git", "check-ignore", "-q", g],
+                                       cwd=str(ROOT)).returncode != 0]
+        check("第22项生成件被gitignore硬挡", not unignored, str(unignored))
         # 反向：学生本人的数据/成果/凭据不得入库（题录 txt、CSV、真实数据）
         # 白名单用模式而不是逐个文件名：`把…放这里.txt` 是各目录占位说明的统一命名，
         # 逐个列举会让"新加一个工作区目录"必须先改这条断言（v1.77 踩过）。
