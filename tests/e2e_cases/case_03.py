@@ -63,6 +63,13 @@ if True:  # 容器不产生作用域，缩进与拆分前完全一致
                          or t.rsplit("/", 1)[-1] in preset)]
         check("学生数据不入库", not leak, str(sorted(leak)))
     for d in ["01-文献PDF", "02-问卷数据", "03-分析结果"]: check("目录" + d, (ROOT / "我的工作区" / d).is_dir())
+    # v1.92 起包里不带填写版，但主手册"首次填写"那节当时漏改、仍写着"已随包预置…无需再复制新建"——
+    # 照着读的 AI 会以为卡片是填好的，学生就卡在阶段0（2026-09-23 真人走查当场撞出来）。
+    # 两条一起钉：不许说预置，且必须给出生成入口（第 22 项）。
+    _card_sec = cr.split("### 首次填写")[-1].split("###")[0] if "### 首次填写" in cr else ""
+    check("主手册首次填卡口径与包形态一致",
+          "已随包预置" not in cr and "第 22 项" in _card_sec,
+          "首次填写段:%s" % _card_sec[:70])
     bat = (ROOT / "启动工具箱.bat").read_bytes(); cc = bat.count(b"\r\n"); lo = bat.count(b"\n") - cc
     check("bat编码行尾", bat[:3] != b"\xef\xbb\xbf" and cc > 20 and lo == 0, f"crlf={cc} lf={lo}")
     df = tx("workflows/defense-guide.md")

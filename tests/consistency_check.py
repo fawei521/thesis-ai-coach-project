@@ -11,6 +11,7 @@
 
 纯标准库，直接运行：python tests/consistency_check.py
 退出码 0=全部一致，1=发现漂移（打印清单，需修文档或代码）。
+核对范围＝**随包分发的文档**；学生工作区／维护档案／轻量版子包各归自己的尺（理由见扫描处那条注释）。
 """
 import ast
 import re
@@ -122,11 +123,11 @@ def main():
     skill_files = [p for p in md_files if p.relative_to(ROOT).parts[0] == "doubao-skill"]
     for md in md_files:
         rel = md.relative_to(ROOT)
-        # 学生自由工作区：文件由学生自己命名，不由工具保证，不做导出一致性核对
-        # doubao-skill 独立分发子包，由其 validate.py 自检，不纳入完整版核对；跨包硬口径见 tests/skill_sync_check.py
-        if rel.parts[0] in ("doubao-skill", "维护档案"):   # 档案＝历史快照，不参与文档↔代码核对
+        # 三侧都不进发布包，也就不是"本包文档有没有说谎"：doubao-skill 由自己的 validate.py 核（跨包硬口径见
+        # tests/skill_sync_check.py）；维护档案＝历史快照；学生工作区＝学生/AI 自产材料（里面出现 --xxx 是常事，
+        # 且这些文件在阶段 G 副本里根本不存在，同一条判据两棵树给出相反结论＝量错对象，09-23 真人走查撞红三条）。
+        if rel.parts[0] in ("doubao-skill", "维护档案", "我的工作区"):
             continue
-        is_workspace = rel.parts[0] == "我的工作区"
         text = md.read_text(encoding="utf-8", errors="replace")
 
         # 1. 显式 tools/xxx.py 引用存在性（允许子包路径，如 tools/stats/efa.py）；REPO_ONLY 同 33 行：包里没带的维护者脚本不算悬空
@@ -161,18 +162,16 @@ def main():
                     if sw not in all_switches:
                         problems.append(f"[{rel}] 出现未定义开关 {sw}")
 
-        # 3. 导出 csv：只核对"含中文"的工具报告后缀（英文 csv 多为输入/临时文件）；
-        #    学生自由工作区是自命名示例，跳过。
-        if not is_workspace:
-            for exp in set(re.findall(r"_[0-9A-Za-z\u4e00-\u9fa5]*[\u4e00-\u9fa5][0-9A-Za-z\u4e00-\u9fa5]*\.csv", text)):
-                if exp not in all_exports:
-                    problems.append(f"[{rel}] 文档声称导出 {exp}，但没有任何工具写出该文件")
+        # 3. 导出 csv：只核对"含中文"的工具报告后缀（英文 csv 多为输入/临时文件）
+        for exp in set(re.findall(r"_[0-9A-Za-z\u4e00-\u9fa5]*[\u4e00-\u9fa5][0-9A-Za-z\u4e00-\u9fa5]*\.csv", text)):
+            if exp not in all_exports:
+                problems.append(f"[{rel}] 文档声称导出 {exp}，但没有任何工具写出该文件")
 
         # 4. 文档导航完整性：markdown 链接与反引号里引用的 .md 必须真实存在
         #    （AI 会按引导去读）；裸文件名全项目兜底；学生工作区不核对——那里学生自己命名、常在包外
         md_refs = set(re.findall(r"\]\(([^)\s#]+\.md)(?:#[^)]*)?\)", text))
         md_refs |= set(re.findall(r"`([^`\n\s]+\.md)`", text))
-        for ref in ([] if is_workspace else md_refs):
+        for ref in md_refs:
             if ref.startswith(("http", "<")) or "*" in ref:
                 continue
             if ref.startswith("我的工作区/"):
