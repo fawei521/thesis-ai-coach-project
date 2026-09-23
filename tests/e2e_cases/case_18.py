@@ -108,3 +108,17 @@ for _p in ROOT.rglob("*"):
 check("v189同一文件内行尾单一", not _mixed, str(_mixed[:4]))
 _n1, _n2 = _mixed_eol(b"a\r\nb\rc\n"), _mixed_eol(b"a\nb\r\n")
 check("v189行尾尺子算得准（阴性）", _n1 == (1, 1, 1) and _n2 == (1, 1, 0), "%s %s" % (_n1, _n2))
+
+# ---- 学生材料目录只能有一套名字（2026-09-23 真人走查第一轮撞出来的）----
+# 目录名是**地址**：进度卡、菜单工具、版本史都按它指路。名单唯一出处＝tools/setup_workspace.py 的 LAYOUT。
+# 轻量版此前另教一套下划线命名的 7 目录（01_选题与方案…07_导师沟通），学生进度卡里两套混写，
+# AI 每轮都要花一次澄清"这个目录不存在"；改之前**没有任何闸盯着这件事**。
+_second = [str(p.relative_to(ROOT)) for p in sorted((ROOT / "doubao-skill").rglob("*.md"))
+           if "手机版" not in p.name   # 手机版是构建产物，由下面的同步闸管
+           and re.search(r"\b\d\d_[\u4e00-\u9fa5]", p.read_text(encoding="utf-8", errors="ignore"))]
+check("轻量版不教第二套目录名", not _second, str(_second[:4]))
+_lay = re.findall(r'\("(\d\d-[^"/]+)",', tx("tools/setup_workspace.py"))   # 不认带 / 的：那是 GENERATED 的填写件，不是目录
+_s0 = tx("doubao-skill/stages/stage-0-init.md")
+check("轻量版第3步目录名单与LAYOUT逐项相同",
+      len(_lay) >= 10 and all(d in _s0 for d in _lay),
+      "LAYOUT %d 个，轻量版第3步缺：%s" % (len(_lay), [d for d in _lay if d not in _s0]))
