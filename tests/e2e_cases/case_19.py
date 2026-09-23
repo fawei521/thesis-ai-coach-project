@@ -127,6 +127,10 @@ _p15 = run(["tests/rigor_pressure.py"], t=60)
 po15 = (_p15.stdout or "") + (getattr(_p15, "stderr", "") or "")
 check("v194两把尺对五份植入坏回答全部判红（尺不空转）",
       _p15.returncode == 0 and "漏抓" not in po15 and po15.count("[抓到]") == 5, po15[-300:])
+# 尺子的另一半：换一套说法的合格回答必须判绿。只测"抓得住坏"会养出一把只认旧措辞的尺——
+# 2026-09-23 真人走查第一份真回答就被这么误判过（同义词假阴性第四次）。
+check("v194阳性夹具判绿（词表不只看它自己见过的说法）",
+      "误判红" not in po15 and "阳性夹具判绿" in po15, po15[-300:])
 check("v194实测结论照实写着第十节测不出增益",
       "测不出增益" in po15 and "已解决" not in po15.split("诚实边界")[-1], po15[-260:])
 _PP = tx("tests/rigor_pressure.py")
