@@ -157,6 +157,18 @@ if True:  # 容器不产生作用域，缩进与拆分前完全一致
                          text=True, encoding="utf-8", errors="replace", timeout=120)
     check("尺寸棘轮尺子不空转", srn.returncode == 0 and "阴性自测通过" in (srn.stdout or ""),
           (srn.stdout or "")[-250:])
+    # 2026-09-24 起棘轮分两档（代码 300 / 文档 220）。两档数字只许在棘轮里各定义一次；
+    # 凡写明行数口径的文档必须两档都写明——只留一个 220 等于把"分情况"又抹回一刀切。
+    _sr_src = tx("tests/size_ratchet.py")
+    _py_lim = re.findall(r"^LIMIT_PY = (\d+)", _sr_src, re.M)
+    _md_lim = re.findall(r"^LIMIT_MD = (\d+)", _sr_src, re.M)
+    check("棘轮两档各定义一次且代码档高于文档档",
+          len(_py_lim) == 1 and len(_md_lim) == 1 and int(_py_lim[0]) > int(_md_lim[0]),
+          "LIMIT_PY=%s LIMIT_MD=%s" % (_py_lim, _md_lim))
+    _tier_docs = [d for d in ("AGENTS.md", "DEVELOPMENT.md") if "size_baseline.txt" in tx(d)]
+    check("写行数口径的文档两档都写明",
+          bool(_tier_docs) and all(all(n in tx(d) for n in ("300", "220")) for d in _tier_docs),
+          "缺档:%s" % [d for d in _tier_docs if not all(n in tx(d) for n in ("300", "220"))])
     check("存量冻结清单已入库且非空", (ROOT / "tests" / "size_baseline.txt").is_file()
           and any(not l.startswith("#") and l.strip()
                   for l in tx("tests/size_baseline.txt").splitlines()))

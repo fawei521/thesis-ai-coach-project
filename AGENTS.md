@@ -55,8 +55,8 @@ python tests/smoke_check.py --full  # 该跑全量时：跑完打印一行 [门�
 
 - 新增能力**必须**同步加断言（不允许只加功能不加回归）：断言写在 `tests/e2e_cases/` 下对应主题的 `case_NN` 片段里（编号连续，顺序以壳里的 `FRAGMENTS` 为准），
   `tests/full_e2e.py` 是骨架 + 片段顺序清单的壳，只在新增主题片段时才动。
-- 文件尺寸：不在 `tests/size_baseline.txt` 里的文件一律 ≤220 行；超标的存量文件冻结在清单里，
-  **只减不增**；降到 220 以下后跑 `python tests/size_ratchet.py --write` 把它移出清单（棘轮自动收紧）。
+- 文件尺寸：不在 `tests/size_baseline.txt` 里的文件**按档设限——代码 `.py` ≤300 行、文档 `.md` ≤220 行**；超标的存量文件冻结在清单里，
+  **只减不增**；降到本档上限以下后跑 `python tests/size_ratchet.py --write` 把它移出清单（棘轮自动收紧）。两档数字只在 `tests/size_ratchet.py` 一处定义。
 - 版本正文一版一个文件（`维护档案/CHANGELOG/版本详情/`，不进包），包内 `CHANGELOG.md` 由 `tools/changelog_build.py` 生成（改了详情没重跑生成器＝`case_27` 判红）；`README.md` / `PROJECT_PLAN.md` / `ROADMAP.md` 只留指针。
 - 发布需在**项目之外**的干净解压副本里再跑一遍 `full_e2e.py`。
 
