@@ -165,7 +165,10 @@ if True:  # 容器不产生作用域，缩进与拆分前完全一致
     check("棘轮两档各定义一次且代码档高于文档档",
           len(_py_lim) == 1 and len(_md_lim) == 1 and int(_py_lim[0]) > int(_md_lim[0]),
           "LIMIT_PY=%s LIMIT_MD=%s" % (_py_lim, _md_lim))
-    _tier_docs = [d for d in ("AGENTS.md", "DEVELOPMENT.md") if "size_baseline.txt" in tx(d)]
+    # DEVELOPMENT.md 带 export-ignore、不随包分发：在阶段 G 的学生副本里本就不存在，跳过而不是崩
+    # （开发树里它存在，仍严格参加核对——同 v1.83 那条"只在包内确实没有时才豁免"的写法）。
+    _tier_docs = [d for d in ("AGENTS.md", "DEVELOPMENT.md")
+                  if (ROOT / d).is_file() and "size_baseline.txt" in tx(d)]
     check("写行数口径的文档两档都写明",
           bool(_tier_docs) and all(all(n in tx(d) for n in ("300", "220")) for d in _tier_docs),
           "缺档:%s" % [d for d in _tier_docs if not all(n in tx(d) for n in ("300", "220"))])
