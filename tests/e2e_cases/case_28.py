@@ -77,3 +77,18 @@ check("尺子挂在图形菜单第 30 项（学生双击就能跑）",
       "t_audit" in tx("tools/menu.py") and "【30/30】" in tx("tools/menu_thesis.py")
       and '"30"' in tx("tools/menu.py"))
 check("跨副本双卡那条也在尺子上（今天这摊乱的根因）", "跨副本也咬住" in _out28)
+# ---- R9/R10 的"规矩文本＋对照实验"两头都要在（宪法第十条：只写进文档＝未解决）----
+_kb9 = KB
+check("一次性脚本的规矩写到了学生侧规则里",
+      "用完就删" in _kb9 and "根一层不放脚本" in _kb9 and "R9" in _kb9 and "R10" in _kb9,
+      "工具判红了但规则没写，AI 只会在被拦那一刻才知道")
+check("脚本是谁写的决定怎么处理（AI 自清、学生的只报不动手）",
+      "AI 自己写的" in _kb9 and "由他定去留" in _kb9)
+_hx = _sp28.run([_sys28.executable, "tests/hygiene_experiment.py", "--demo"],
+                 cwd=str(ROOT), capture_output=True, timeout=300)
+_hx_out = (_hx.stdout or b"").decode("utf-8", "replace") + (_hx.stderr or b"").decode("utf-8", "replace")
+check("卫生实验跑得起、两侧分得开（C10 在内）",
+      _hx.returncode == 0 and "分得开，尺子能用" in _hx_out and "C10" in _hx_out,
+      "rc=%s %s" % (_hx.returncode, _hx_out.strip()[-220:]))
+check("行为用例登记了 T68/T69", "T68" in tx("tests/behavior-self-test.md")
+      and "T69" in tx("tests/behavior-self-test.md"))
