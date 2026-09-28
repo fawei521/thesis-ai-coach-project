@@ -123,6 +123,22 @@ if True:
     check("v199 目录个数不再被写死（九个目录这类说法已清）",
           "九个目录" not in _live199 and "9 个目录" not in _live199)
 
+    # ---------- 五之二、入口名单完整性（2026-09-28 信息架构体检第 3 条）----------
+    # 上一道尺只查"九个目录"这四个字在不在——**漏写第十条它永远放行**。升级成真实不变量：
+    # 先读我.md 是这一层逐目录说明的唯一一页，LAYOUT 里的名字它必须全点名；
+    # START.md 一旦开始逐条列举（点名 ≥3 个编号目录）就必须列全——只列一半比不列更会误导 AI。
+    # 名单从 `setup_workspace.LAYOUT` 现读，不在这里抄第二份（抄一次就漂一次）。
+    _lay25b = [n for n, _p, _lg in _load199("tools/setup_workspace.py").LAYOUT]
+    _miss25b = [n for n in _lay25b if n not in tx("我的工作区/先读我.md")]
+    check("先读我逐目录说明覆盖 LAYOUT 全部编号目录（缺一条即红）", _miss25b == [],
+          "缺：%s" % _miss25b)
+    _st25b = tx("START.md")
+    _hit25b = [n for n in _lay25b if n in _st25b]
+    check("START 列举编号目录就必须列全（点名≥3 却有缺项＝红）",
+          len(_hit25b) < 3 or len(_hit25b) == len(_lay25b),
+          "点名 %d/%d｜缺：%s" % (len(_hit25b), len(_lay25b),
+                                 [n for n in _lay25b if n not in _st25b]))
+
     # ---------- 六、菜单分母与项数同源（v1.99 加到 29 项时改了一次全部分母，写死必漂）----------
     _menu199 = "\n".join(tx("tools/" + p.name) for p in sorted((ROOT / "tools").glob("menu*.py")))
     _mn199 = tx("tools/menu.py")
