@@ -63,8 +63,16 @@ if (ROOT / ".git").exists():  # 只在有仓库的形态跑：`git archive` 要�
     #   106336b 加进 `tools/folder_audit.py`（11 KB）＋ `templates/目录模板.md`（2 KB）后 169 件 / 2312 KB。
     #   抬到 2_420_000（≈ 余量 105 KB）：新增的都是学生侧要用的东西，不是维护者文件塞进包——
     #   维护者侧的 `tools/changelog_build.py` 已由 .gitattributes export-ignore 挡在包外。
+    # v1.104 件数 170 → **171**：语体规范随包新增 1 件 `core/academic-style.md`（13 KB）。
+    #   抬上限的理由不是"想加"，是**它已经在工具的依赖链上**：`tools/style_check.py` 的词表全部现读这份文件，
+    #   挡在包外＝第 24 项体检在第 0 步就报错。学生侧要用（AI 起草时按它落笔），不是维护者文件。
+    #   实测 171 件 / 2342 KB，体积上限 2_420_000 未动（余 21 KB）。
+    #   ⚠ 这一件**故意没写进上面的 must93**：那条量的是 `git archive HEAD`，提交前跑全量它看不见这份新文件，
+    #   写进去就等于逼人贴一笔带失败的凭证进仓（v1.99 正是这样留下一笔永久违规、此后每笔都凑不出零失败凭证）。
+    #   "它在不在包里"改由**阶段 G 的干净副本**判：副本里 `case_31.py` 第一条就是"判据表解析成功"，
+    #   没带进包＝解析不到＝当场判红。判的是学生真正拿到的那份，不是开发树。
     check("v194包体积上限随内容上调并写明理由",
-          100 <= len(names93) <= 170 and sum(m.size for m in _mem93) < 2_420_000,
+          100 <= len(names93) <= 171 and sum(m.size for m in _mem93) < 2_420_000,
           "件数=%d 解压=%d KB" % (len(names93), sum(m.size for m in _mem93) // 1024))
 
     def _read93(name):
