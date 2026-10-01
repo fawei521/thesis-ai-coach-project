@@ -40,6 +40,22 @@ if True:  # 容器不产生作用域，缩进与其他片段一致
           "合计%d" % sum(len(tx(f).encode("utf-8")) for f in
                         ("core/coach-rules.md", "core/companionship.md", "core/coaching-protocol.md",
                          "core/encouragement-guide.md", "core/ai-literacy.md", "CONSTITUTION.md")))
+    # ---- 2026-10-01（待办 P35）：开场必读总量＝START＋六份，另立一道闸 ----
+    # 上面那道 70KB 只管六份，可 AI 开场读进来的第一份是 `START.md`——它有 30KB 级，比其中四份核心文件都大，
+    # 却不在任何闸里。结果是"瘦了六份、胖了 START，余量原地清零"没人看得见。
+    # 这个数保护的是**开局一次读进上下文的量**：它涨，挤掉的是学生材料与对话的空间；AI 读不完自己带的规则，
+    # 与 v1.93 那次"入口文档教 AI 去跑三五分钟回归"是同一种病。
+    # 为什么是 96,000：闸放在"场景用法下沉之后、下一条规矩进来之前"这段区间上——实测读数由这把尺自己打印
+    # （消息里的"合计%d"），注释不抄数，抄了就会漂。余量只够一条确实必须开局在场的规矩；
+    # 更宽（100KB 以上）等于允许把内容从别处搬进开局集而不必真瘦身，更严会让本版刚下沉完就撞红、闸变成惩罚瘦身本身。
+    # 撞了怎么办：**先把按需读的内容摘出开局集，减不下来才动这个数**，动数要在
+    # `维护档案/CHANGELOG/02-维护决定.md` 当日写清摘了哪几段、挪到哪个分片——抬数本身不算处理。
+    _open16 = sum(len(tx(f).encode("utf-8")) for f in
+                  ("START.md", "core/coach-rules.md", "core/companionship.md", "core/coaching-protocol.md",
+                   "core/encouragement-guide.md", "core/ai-literacy.md", "CONSTITUTION.md"))
+    check("开场必读总量（START＋六份）低于 96KB", _open16 < 96000, "合计%d" % _open16)
+    check("总量这把尺不空转（阴性：开局集再加 3KB 就该撞闸，说明余量确实薄）", _open16 + 3000 >= 96000,
+          "现量%d＋3KB=%d，闸在 96000" % (_open16, _open16 + 3000))
     check("tdoc 无同名子目录时等价于 tx（阴性：尺子不空转）",
           tdoc("core/ai-literacy.md") == tx("core/ai-literacy.md"))
     check("tdoc 把分片拼进来了（阴性：漏读会被抓到）",

@@ -48,6 +48,51 @@ check("补漏 文献七件在决策那一页点得到名（少一件即红）",
 check("补漏 tool-rules 写明学生那四句话对应文献这一摊",
       all(k in TOOLR for k in ("我没文献", "读不到全文", "这个数哪来的")))
 
+# ---------- 二之二、场景用法只有一个落点（2026-10-01 待办 P35：从 START 第五步整节下沉到本页） ----------
+# 过去 `START.md` 第五步既列名册又写十几段「XX用法」，那是 AI 开场一次读进来的东西；现在名册留在 START，
+# 场景用法搬到「调用工具前必读」的这一页。钉的是搬完之后的三件事：**不许两处都有**（复述＝两份会漂）、
+# **不许搬着搬着把内容搬没了**（每段都得指到一件真存在的工具）、**START 那份指针要还在**（不然 AI 在 START 里找不到出口）。
+_USE26 = _re26.compile(r"^\*\*[^*\n]+用法\*\*：", _re26.M)
+_ST26 = tx("START.md")
+_sc26 = TOOLR[TOOLR.find("### 场景用法"):] if "### 场景用法" in TOOLR else ""
+_SC26 = _sc26.split("\n### ")[0]
+_TR_USE26 = [m.group(0) for m in _USE26.finditer(_SC26)]
+check("补漏 场景用法单源：START 不再复述、正文还在本页（复述或删空都判红）",
+      not _USE26.search(_ST26) and bool(_TR_USE26),
+      "START 有 %d 段复述／本页 %d 段" % (len(_USE26.findall(_ST26)), len(_TR_USE26)))
+check("上面那道尺不空转（阴性：往 START 塞一段复述必须判红）",
+      bool(_USE26.search(_ST26 + "\n**植入用法**：这一段只是复述")))
+_IDS26 = {int(n) for n in _re26.findall(r'^\s*\("(\d+)",\s*"[^"]+",', tx("tools/menu.py"), _re26.M)}
+
+
+def _unanchored26(section):
+    """每段场景用法都得指到一件**真存在**的工具：脚本名要在 `tools/` 下，菜单号要在注册表里。
+    指到查无的名字＝坏链；一段里既没脚本名又没菜单号＝它在说空话（也顺带兜住"整节被删空"）。"""
+    bad = []
+    for seg in (s for s in _re26.split(r"(?m)^(?=\*\*)", section) if _USE26.match(s)):
+        names = _re26.findall(r"([a-z][a-z_]*\.py)", seg)
+        nums = {int(x) for x in _re26.findall(r"菜单第\s*(\d+)\s*项", seg)}
+        ghost = [n for n in names if not (ROOT / "tools" / n).is_file()] + \
+                ["菜单第%d项" % x for x in sorted(nums - _IDS26)]
+        title = seg.split("：")[0].strip("*").strip()[:14]
+        if ghost:
+            bad.append("%s→%s" % (title, "、".join(ghost)))
+        elif not (names or nums or "启动工具箱.bat" in seg):
+            bad.append("%s→没指到任何一件工具" % title)
+    return bad
+
+
+_PLANT26 = ("\n**植入甲用法**：用 ghost_tool_zz.py 跑一遍\n"
+            "**植入乙用法**：菜单第 99 项先例\n**植入丙用法**：这一段什么都没指")
+_bad26 = _unanchored26(_SC26)
+check("补漏 场景用法逐段指得到真工具（幽灵脚本名／幽灵菜单号／空话段都判红）",
+      bool(_TR_USE26) and not _bad26, "段落 %d／问题 %s" % (len(_TR_USE26), _bad26[:3]))
+check("这把锚定尺不空转（阴性：查无的脚本名、查无的菜单号、没指工具的一段，三样都要被抓）",
+      len(_unanchored26(_SC26 + _PLANT26)) == 3, str(_unanchored26(_SC26 + _PLANT26))[:150])
+check("补漏 START 的指针指得到这一节（不然 AI 只会在 START 里找不到用法）",
+      "「场景用法」" in _ST26 and "`core/coach-rules/tool-rules.md`" in _ST26)
+
+
 # ---------- 三、主手册的错误枚举与分片标题同源、条数不写死 ----------
 _titles26 = _re26.findall(r"^### 错误(\d+)：(.+)$", ERR_SHARD, _re26.M)
 _ptr26 = [ln for ln in CR_MAIN.splitlines() if "先读 `core/coach-rules/common-errors.md`" in ln]

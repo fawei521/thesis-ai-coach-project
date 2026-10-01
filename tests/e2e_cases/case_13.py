@@ -125,8 +125,15 @@ if True:  # 容器不产生作用域，缩进与拆分前完全一致
     check("v174模板回归诊断接线", "Durbin-Watson" in outline74 and "残差 Shapiro-Wilk" in outline74
           and "VIF" in outline74)
     check("v174 START接线", "Durbin-Watson残差独立性" in tx("START.md"))
-    quick74 = tx("QUICKSTART.md")
-    check("v174 QUICKSTART接线", "Durbin-Watson" in quick74 and "单样本" in quick74)
+    # 2026-10-01（待办 P34）：QUICKSTART 第四节不再抄工具细节，改成与 menu.py 注册表**逐字同源**的短清单
+    # （旧抄写第 3 项单行 200+ 字符，手机上代码块不换行要横滑；v1.96-1.99 新加的 6 项当时没人回来补）。
+    # "接线到学生读得到的地方"这条判据的落点因此变成两处：QUICKSTART 的清单 ＋ START 名册／tool-rules 场景用法。
+    _tooldocs13 = (tx("QUICKSTART.md") + tx("START.md")
+                   + tx("core/coach-rules/tool-rules.md"))
+    check("v174 工具细节在学生读得到的文档里（清单＋名册＋场景用法合起来）",
+          "Durbin-Watson" in _tooldocs13 and "单样本" in _tooldocs13)
+    check("QUICKSTART 那张清单不抄工具细节（抄一次漂一次，2026-10-01 定）",
+          "Durbin-Watson" not in tx("QUICKSTART.md"))
 
 
     # ========== v1.75 路线图挂账与版本区收敛 ==========

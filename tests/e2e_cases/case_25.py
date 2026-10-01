@@ -148,24 +148,38 @@ if True:
           _dens199 == {str(_n_item199)}, "分母 %s／实际 %d 项" % (sorted(_dens199), _n_item199))
     check("v199 第28/29项已接线且落在独立分册",
           "【28/" in _menu199 and "【29/" in _menu199 and "menu_kb.py" in _mn199)
-    # 学生侧清单与入口文档同源：QUICKSTART 第四节把菜单抄了一遍，v1.96-1.99 新加的 6 项没人回来补，
-    # START.md 那句写死的分母也停在旧数字上。比的是**编号集合**，不是点名清单——加一项就自动要两边同步。
-    def _qsnums25(block):
-        got = set()
-        for ln in block.splitlines():
-            head = ln.split(".", 1)[0]
-            if head.isdigit() and int(head) > 0:
-                got.add(int(head))
-        return got
-    _blk25 = next((b for b in tx("QUICKSTART.md").split("```") if "问卷星数据预处理" in b), "")
-    _menu_lines25 = [ln for ln in _mn199.splitlines() if ln.startswith('    ("')]
-    _mn25 = {int(ln.split('"')[1]) for ln in _menu_lines25}
-    _qn25 = _qsnums25(_blk25)
-    check("QUICKSTART 菜单清单与 menu.py 注册表同号（缺项/多项都判红）", _qn25 == _mn25,
-          "缺 %s／多 %s" % (sorted(_mn25 - _qn25), sorted(_qn25 - _mn25)))
-    _drop25 = "%d. " % min(_mn25)
-    _less25 = _qsnums25("\n".join(ln for ln in _blk25.splitlines() if not ln.startswith(_drop25)))
-    check("上面那道尺不空转（阴性：抽掉第 %s 项必须报缺）" % min(_mn25), _less25 != _mn25)
+    # 学生侧清单与入口文档同源：QUICKSTART 第四节过去把菜单抄了一遍还自己加括注，v1.96-1.99 新加的 6 项
+    # 没人回来补，START.md 那句写死的分母也停在旧数字上。2026-10-01（待办 P34）起清单**逐字取自注册表**，
+    # 所以比的不再只是编号集合，而是"编号＋标签整行相同"——少一行、多一行、名字抄错一个字都判红。
+    _pair25 = re.findall(r'^\s*\("(\d+)",\s*"([^"]+)",', _mn199, re.M)
+    _mn25 = {int(n) for n, _ in _pair25}
+    # 上面那道同源尺有个空转面：解析式要是漏了一项，注册表和清单会**同时**少一项、照样绿。
+    # 所以先钉住解析本身：编号数＝MENU 的项数，且从 1 连续。
+    check("菜单注册表的解析不空转（解析条数＝注册表项数、编号从 1 连续）",
+          len(_pair25) == _n_item199 and _mn25 == set(range(1, _n_item199 + 1)),
+          "解析%d条 编号%s／注册表%d项" % (len(_pair25), sorted(_mn25)[:3] + sorted(_mn25)[-1:], _n_item199))
+
+    def _qsrows25(section):
+        return {ln.split(". ", 1)[0]: ln for ln in section.splitlines() if re.match(r"^\d+\. ", ln)}
+
+    def _qsdiff25(section):
+        """返回（与注册表不一致的行, 清单里多出的编号）——两个方向都算，只盯一半就是空转。"""
+        rows = _qsrows25(section)
+        want = ["%s. %s" % (n, lab) for n, lab in _pair25]
+        return [w for w in want if w not in rows.values()], sorted(set(rows) - {n for n, _ in _pair25})
+
+    _parts25 = tx("QUICKSTART.md").split("## 四、工具箱怎么用（不用记命令）", 1)
+    _sec25 = _parts25[1].split("\n## ")[0] if len(_parts25) > 1 else ""
+    _bad25, _ghost25 = _qsdiff25(_sec25)
+    check("QUICKSTART 菜单清单与 menu.py 注册表逐字同源（缺项／改名／多行都判红）",
+          not _bad25 and not _ghost25,
+          "不一致 %s／多出行 %s" % (_bad25[:2], _ghost25))
+    _one25 = _qsdiff25("\n".join(ln for ln in _sec25.splitlines()
+                                if ln != "%s. %s" % _pair25[0]))
+    _drift25 = _qsdiff25(_sec25.replace("%s. %s" % _pair25[0], "%s. %s改过名" % _pair25[0], 1))
+    check("上面那道尺不空转（阴性：抽掉一行报缺项，标签改一个字也报）",
+          _one25[0] == ["%s. %s" % _pair25[0]] and _drift25[0] == ["%s. %s" % _pair25[0]],
+          "抽行 %s／改名 %s" % (_one25[0][:1], _drift25[0][:1]))
     _mrow25 = [ln for ln in tx("START.md").splitlines() if ln.startswith("- `menu.py`")]
     check("入口文档那一行不写死菜单分母（抄一次漂一次）",
           _mrow25 and " 项" not in _mrow25[0], _mrow25 and _mrow25[0][:60])
