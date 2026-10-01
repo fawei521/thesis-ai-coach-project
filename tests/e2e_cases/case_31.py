@@ -157,8 +157,11 @@ check("v104 判据文件没被 export-ignore 挡在包外（也不许把整层 c
       not _h104_shield, "被挡：" + "、".join(_h104_shield))
 _h104_ls = subprocess.run(["git", "-c", "core.quotepath=false", "ls-files", "-z", "core/academic-style.md"],
                           capture_output=True, cwd=str(ROOT)).stdout.decode("utf-8").split("\0")
-check("v104 判据文件已进 git 跟踪（没跟踪＝git archive 打不出它，包里就是空的）",
-      any(x.strip() == "core/academic-style.md" for x in _h104_ls), str(_h104_ls)[:120])
+# 这条原本也拿 `git ls-files` 判"进没进包"，而学生副本里没有 `.git`，命令回空 → 副本必判红
+# （2026-10-01 阶段 G 实测抓到，与 v1.103 那次同一族）。开发树的"已进跟踪"由上面那条带 `.git` 闸的检查管，
+# 这里只问一件在两种形态下都成立的事：**解出来的包里到底有没有这份文件**。
+check("v104 判据文件真的在包里（不在＝第 24 项第 0 步就报错）",
+      (ROOT / "core" / "academic-style.md").is_file(), str(_h104_ls)[:120])
 
 # ---- ⑧ 对照实验的尺子自测跑绿（GOOD 三条全过、BAD 的语体条必须判红） ----
 _h104_x = run(["tests/style_experiment.py", "--demo"])
