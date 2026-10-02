@@ -150,8 +150,9 @@ def ban_hits(rows, text):
                 w, at = locs(hs)
                 out.append((r["tier"], "%s：%s 出现 %d 次（%s）——%s" % (r["cat"], w, len(hs), at, r["why"])))
         elif r["use"] == "正则":
-            hs = [(m.group(0), i) for i, ln in enumerate(lines, 1) for m in [r["pat"].search(ln)] if m]
-            if hs:                                        # 写法错误不存在"用多了才有问题"，一次即报
+            hs = [(m.group(0), i) for i, ln in enumerate(lines, 1) for m in r["pat"].finditer(ln)]
+            need = 2 if r["tier"] == "提示" else 1        # v1.108 起正则按档计：一处设问、一处「对 X 进行分析」不是病，满篇才是
+            if len(hs) >= need:                           # 缺项／风险档仍是一次即报（写法错误不存在"用多了才有问题"）
                 out.append((r["tier"], "%s：%s（第 %s 行）——%s"
                             % (r["cat"], "、".join(sorted({h for h, _ in hs})[:4]),
                                "、".join(str(i) for i in sorted({i for _, i in hs})[:6]), r["why"])))
