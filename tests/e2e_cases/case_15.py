@@ -46,8 +46,12 @@ if True:  # 容器不产生作用域，缩进与拆分前完全一致
           all(n in lab_index for n in lab_here) and any(n in lab_here for n in ("77", "78")),
           "本文件正文%d 条" % len(lab_here))
     if not in_pkg:      # 只有开发树能做的核对：档案正文与索引必须一一对应、不重不漏
-        lab_arch = re.findall(r"^## 测试([^：:]+)[：:]",
-                              (arch / "e2e-test-历史用例-测试1至54.md").read_text(encoding="utf-8"), re.M)
+        # 正文会往 维护档案/ 里搬、档案不止一份：按 e2e-test-*.md 前缀现读，不点名清单
+        # （点名式写法在 v1.106 补记那七行落地时判红过一次——它只认历史那一份）
+        lab_arch = []
+        for _ap15 in sorted(arch.glob("e2e-test-*.md")):
+            lab_arch += re.findall(r"^## 测试([^：:]+)[：:]",
+                                   _ap15.read_text(encoding="utf-8"), re.M)
         dup = sorted({x for x in lab_here + lab_arch if (lab_here + lab_arch).count(x) > 1})
         check("档案正文与索引一一对应（不重不漏）",
               sorted(lab_here + lab_arch) == sorted(lab_index) and not dup,
