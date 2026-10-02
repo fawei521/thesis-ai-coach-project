@@ -6,7 +6,7 @@ AI 腔体检：读一份草稿（正文节选 / 开题大纲 / PPT 大纲 / 讲�
 **只报问题，不替你改一个字**（改了就不是你的文字了）。
 判据有两个来源：**词条与句式来自 `core/academic-style.md` 第二节那张禁则表**——往表里加一行，
 本工具立刻开始抓它；从表里删一个词，立刻不抓（按学校或导师的用词偏好自己改表，不必改代码、不必等新版本）。
-结构统计留在本文件里（句段是否一样长、排比、数字密度、大纲均一）——那是算法不是词表。
+结构统计留在本文件里（句段是否一样长、单段超载、排比、数字密度、大纲均一）——那是算法不是词表。
 本工具不测 AIGC 率、不承诺"过检测""降率"——那条路不在本包的立场上（见结尾说明）。
 """
 import argparse
@@ -23,9 +23,11 @@ if hasattr(sys.stdout, "reconfigure"):
 ROOT = Path(__file__).resolve().parents[1]
 SPEC = ROOT / "core" / "academic-style.md"          # 判据表的家：词表与规范同源，不许有两套
 TIERS, USES = ("缺项", "风险", "提示"), ("包含", "句首", "正则", "配对", "须有")
+OVER_P = 200   # 单段超载线（按汉字数）；线与理由同写在 core/academic-style.md 第三节，case_32 盯这三处不许漂
 VAGUE = ["显著", "重要", "有效", "深入", "全面", "充分", "极大", "明显", "积极", "坚实"]  # 评价词与数字同现的判断固定在代码里，见 academic-style 第二节末
 CJK, NUM, SENT = re.compile(r"[\u4e00-\u9fff]"), re.compile(r"\d+(?:\.\d+)?"), re.compile(r"[。！？；\n]")
 PAGE_HEAD = re.compile(r"^#+\s*第\s*\d+\s*页[:：]?\s*")
+LISTISH = re.compile(r"^\s*([-*·]|\d+[.、]|#{1,4}\s)")   # 条目行与标题行：它们堆成的块不叫"一段"
 
 
 def read_text(path):
@@ -194,6 +196,15 @@ def check_body(text, rows, outline=False):
         if heads.count(top) / len(heads) >= 0.4:
             res.append(("风险", "%d/%d 段都以「%s」开头——换两三段改成用数据、用例子、用上文结论起头"
                         % (heads.count(top), len(heads), top)))
+    heavy = sorted([(n_cjk(p), sum(1 for x in SENT.split(p) if n_cjk(x) >= 6),
+                     next((i for i, ln in enumerate(lines, 1) if ln.strip().startswith(p.strip()[:12])), 0))
+                    for p in paras if n_cjk(p) >= OVER_P
+                    and sum(1 for x in p.splitlines() if LISTISH.match(x)) * 2 < len(p.splitlines())], reverse=True)
+    if heavy:
+        res.append(("提示", "单段超 %d 字的 %d 段，最长 %d 字 %d 句（起于第 %d 行）——一段只装一个主张，"
+                    "逐段找第二段主张从哪句开始；该不该拆你判、要拆你下笔，本工具不动你的字"
+                    "（线为什么画在 %d、为什么不判红见 core/academic-style.md 第三节）"
+                    % (OVER_P, len(heavy), heavy[0][0], heavy[0][1], heavy[0][2], OVER_P)))
     n_num = len(NUM.findall(text))
     if chars >= 600 and density(n_num, chars) < 1.0:
         res.append(("缺项", "整篇 %d 字里几乎没有数字（%d 个）——没有本研究的样本量、α、r、p、人数与时间，"

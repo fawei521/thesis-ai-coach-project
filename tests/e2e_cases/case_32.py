@@ -1,12 +1,14 @@
 # -*- coding: utf-8 -*-
 """case_32 · 语病判据进表：合规稿放行在前、植入病句必须逐条咬住在后，顺序不许倒。
 
-这一片只管三件事，都在回答"这把尺是不是真在量语言"：
+这一片只管四件事，都在回答"这把尺是不是真在量语言"：
   ① **放行**：一份没有语病的稿子必须一条不报——先验这条，是因为"只咬人的尺不算尺"，
      本仓已经为同义词假阴性栽过四次（把合规写法判成病句，比漏判更坏：它会把好稿子改坏）。
   ② **咬住**：16 类病句逐条植入，每类都要由**它自己那一行**报出来，
      不接受"反正有别的行在响"——短夹具必然撞上 `须有` 那行，混在一起就验不出真判据。
   ③ **改表即改判据**：把某一行的词条删掉，那条判据当场失效；加一行，当场生效。
+  ④ **单段超载**（待办 P38）：形状判据写不进词表，所以走代码——那就得单独验它
+     咬得住、边界放行、不判红、且那条线在规范／代码／读数三处同源。
 
 变量前缀 _h105*：片段与壳共用 globals，撞名会静默改掉后面片段的运行环境（case_20 的教训）。
 """
@@ -114,7 +116,71 @@ check("v105 上面四条接线判据在无关文件上全不成立（阴性：�
            or any(l.strip().startswith("- 完成标志") and "第 24 项" in l for l in _h105_ctl.splitlines())))
 _h105_bt = tx("tests/behavior-self-test.md")
 
-_h105_t = [l for l in _h105_bt.splitlines() if l.startswith(("| T74 |", "| T75 |", "| T76 |"))]
-check("v105 行为用例 T74–T76 在位（规则也算功能，得有可判定的行为账）",
-      len(_h105_t) == 3 and all("style_check.py" in l or "academic-style.md" in l for l in _h105_t),
+_h105_t = [l for l in _h105_bt.splitlines() if l.startswith(("| T74 |", "| T75 |", "| T76 |", "| T80 |"))]
+check("v105 行为用例 T74–T76 与 T80 在位（规则也算功能，得有可判定的行为账）",
+      len(_h105_t) == 4 and all("style_check.py" in l or "academic-style.md" in l for l in _h105_t),
       "%d 行" % len(_h105_t))
+
+# ---- ⑪ 单段超载（待办 P38）：形状判据进不了词表，就走代码，那就单独验它 ----
+_h105_oraw = ("本研究的链式中介路径得到支持，孤独感经由反刍思维影响非自杀性自伤，间接效应的置信区间不包含零，"
+              "这说明两个中介变量共同承载了预测作用；同一份数据里直接效应仍然显著，区间下限接近零，据此判断为部分中介；"
+              "性别在第一条路径上起到调节作用，女生组系数更大，而调节效应并没有传导到第二条路径上，"
+              "因此更合理的解释是社会认可压力改变了第一条通道的强度，先后次序仍需追踪设计检验，"
+              "施测在 2026 年 3 月于两所城区中学完成，回收后当场核对份数，剔除规律作答的问卷 17 份，"
+              "横断数据不能写成因果链条，讨论部分仍要把这一条限制写进局限，读者据此起点判断结论能走多远。")
+_h105_oshort = "差异不大。四个量表的内部一致性良好，孤独感量表与反刍思维量表各 4 题，α 如表 1 所示。"
+_h105_ocjk = re.compile(r"[一-鿿]")
+
+
+def _h105_cut(s, want):
+    """按**汉字数**截到 want——判据量的就是汉字数，按字符数截会被标点骗过去（夹具第一次就栽在这儿）。"""
+    n = 0
+    for i, ch in enumerate(s):
+        if _h105_ocjk.match(ch):
+            n += 1
+            if n == want:
+                return s[:i + 1]
+    return s
+
+
+_h105_ovd = new_tmp("v105ovd")
+_h105_op = _h105_ovd / "超载稿.md"
+_h105_op.write_text(_h105_cut(_h105_oraw, 210) + "\n\n" + _h105_oshort, encoding="utf-8")
+_h105_ep = _h105_ovd / "边界稿.md"
+_h105_ep.write_text("\n\n".join([_h105_cut(_h105_oraw, 199)] * 2), encoding="utf-8")
+_h105_po = run(["tools/style_check.py", str(_h105_op), "--strict"])
+_h105_pe = run(["tools/style_check.py", str(_h105_ep), "--strict"])
+_h105_ho = [l for l in _h105_po.stdout.splitlines() if "单段超" in l]
+check("v105 超载段报出来且三样齐（字数／句数／起始行号——缺一学生就找不到是哪一段）",
+      len(_h105_ho) == 1 and "最长 210 字" in _h105_ho[0] and "起于第 1 行" in _h105_ho[0]
+      and re.search(r"\d+ 句", _h105_ho[0]), str(_h105_ho)[:220])
+check("v105 199 个汉字的那段必须放行（边界差一条字就报，是在冤枉合规写法）",
+      not [l for l in _h105_pe.stdout.splitlines() if "单段超" in l], _h105_pe.stdout[:200])
+check("v105 超载只进提示档：--strict 退出码仍 0、缺项与风险都不许出现",
+      _h105_po.returncode == 0 and "【缺项】" not in _h105_po.stdout and "【风险】" not in _h105_po.stdout,
+      "rc=%d" % _h105_po.returncode)
+_h105_nd = re.search(r"单段超载线＝(\d+) 字", _h105_spec)
+_h105_nc = re.search(r"^OVER_P = (\d+)", tx("tools/style_check.py"), re.M)
+_h105_nt = re.search(r"单段超 (\d+) 字", _h105_po.stdout)
+check("v105 那条线三处同源（规范第三节写的＝代码常量＝工具报出来的，漂一处就红）",
+      _h105_nd and _h105_nc and _h105_nt
+      and len({_h105_nd.group(1), _h105_nc.group(1), _h105_nt.group(1)}) == 1,
+      "规范%s 代码%s 读数%s" % (_h105_nd and _h105_nd.group(1), _h105_nc and _h105_nc.group(1),
+                              _h105_nt and _h105_nt.group(1)))
+_h105_bulp = _h105_ovd / "条目堆.md"
+_h105_bulp.write_text("\n".join("- 第 %d 条要点写的是一个独立的小结论，这一类块本来就不是一段。" % i
+                               for i in range(1, 21)), encoding="utf-8")
+_h105_pb = run(["tools/style_check.py", str(_h105_bulp), "--strict"])
+check("v105 条目堆成的块不算超载（本包的模板与指南就是这个形状，报了就是噪声）",
+      not [l for l in _h105_pb.stdout.splitlines() if "单段超" in l], _h105_pb.stdout[:200])
+_h105_osrc = tx("tools/style_check.py").replace("n_cjk(p) >= OVER_P", "n_cjk(p) >= 90")
+check("v105 阴性植入改的是判据本身（锚点只出现一次；改了没生效这格就白测）",
+      tx("tools/style_check.py").count("n_cjk(p) >= OVER_P") == 1 and _h105_osrc != tx("tools/style_check.py"),
+      _h105_osrc[:120])
+_h105_omod = {"__name__": "style_check_105ovd", "__file__": str(ROOT / "tools" / "style_check.py")}
+exec(compile(_h105_osrc, "tools/style_check.py", "exec"), _h105_omod)
+_h105_oneg = _h105_omod["check_body"](_h105_ep.read_text(encoding="utf-8"), _h105_rows)
+check("v105 这条判据不空转：把线从 200 挪到 90，同一份边界稿立刻报出超载",
+      len([1 for _, m in _h105_oneg if "单段超" in m]) == 1, str(_h105_oneg)[:200])
+check("v105 报超载那句仍写着不动学生的字（改字归学生不为新判据让路）",
+      bool(_h105_ho) and "本工具不动你的字" in _h105_ho[0], (_h105_ho or [""])[0][:160])
