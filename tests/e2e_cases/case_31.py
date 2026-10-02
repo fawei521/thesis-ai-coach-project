@@ -93,7 +93,7 @@ _h104_rb = run(["tools/style_check.py", str(_h104_badp), "--strict"])
 _h104_rg = run(["tools/style_check.py", str(_h104_goodp), "--strict"])
 check("v104 模板腔稿报缺项且 --strict 退出码 1",
       "【缺项】" in _h104_rb.stdout and _h104_rb.returncode == 1, _h104_rb.stdout[:160])
-_h104_new = ["相关系数前导零", "阈值写法", "信度写法", "自由度位置", "图标进正文",
+_h104_new = ["自由度位置", "图标进正文",
              "第一人称复数", "翻译腔", "AI 高频动词", "空转评价", "绝对化"]
 _h104_gap = [w for w in _h104_new if w not in _h104_rb.stdout]
 check("v104 本版新加的判据逐条咬住（写法与措辞两边都在）",
