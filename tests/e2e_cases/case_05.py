@@ -188,20 +188,41 @@ if True:  # 容器不产生作用域，缩进与拆分前完全一致
     check("v156协议触发与边界", all(s in cp for s in ("触发边界", "边界情况", "学生长时间失联", "复合请求")))
     check("v156协议学生指令", "关闭鼓励" in cp and "读进度卡继续" in cp and "跳到第 N 步" in cp)
     check("v156协议危机口径", "12356" in cp and "120 或 110" in cp and "不允诺保密" in cp)
-    check("v156鼓励四理论依据", all(s in eg for s in ("正强化", "成长型思维", "反馈干预理论", "自我决定理论")))
+    # P43（2026-10-03 用户拍板）：四条理论是"设计依据"、不是每轮要执行的规则，连同 APA 规范出处块
+    # 一起移出开局必读，搬进 维护档案/评估结论-开局必读集减负-2026-10-03.md（export-ignore，不进学生包）。
+    # 断言跟着事实翻：这里改成盯"依据确实不在包里"＋"原地那一行为什么还在"，不再要求包内复述理论名。
+    check("v156鼓励依据已出开局集", not any(s in eg for s in ("正强化", "成长型思维", "反馈干预理论", "自我决定理论"))
+          and "被具体肯定过的行为才会重复" in eg)
     check("v156鼓励三档与默认", all(s in eg for s in ("标准", "精简", "关闭", "默认")))
     check("v156鼓励切换指令", all(s in eg for s in ("关闭鼓励", "鼓励精简一点", "开启鼓励")))
     check("v156鼓励P0不包装与奖赏", "P0 不包装" in eg and "里程碑" in eg and "挫折时刻协议" in eg)
     check("v156鼓励禁夸天赋且去机械计数", "禁止夸天赋" in eg and "每轮至多一次肯定" not in eg and "密度自然" in eg)
-    check("v158鼓励四语气措辞", all(s in eg for s in ("自然（默认）", "简洁直接（可选）", "温和耐心（可选）", "活泼热情（可选）"))
-          and "专业导师（默认）" not in eg and "小奶狗（可选）" not in eg)
+    # P43 第二批：用户 2026-10-03 拍板撤销人设（"人设什么的都可以完全删了，留下核心的引导和一些鼓励就行"）。
+    # 三条理由与逐字出处记在 维护档案/评估结论-开局必读集减负-2026-10-03.md 与 tones.md 存根本身。
+    # 原来这条要求 tones.md 里必须有"可选语气 1/2/3"三个标签——现在语气分片只剩存根，标签本来就该没了。
+    # 翻成正面钉"语气选项确实不在了"，并把**去人设化的负向红线扩到全部相关文件**（比原来更严，不是更松）。
+    _tn196 = tx("core/coach-rules/tones.md")
+    check("v158语气选项已撤销", "简洁直接" not in eg and "活泼热情" not in eg
+          and not any(s in _tn196 for s in ("可选语气 1：简洁直接", "可选语气 2：温和耐心", "可选语气 3：活泼热情"))
+          and "不要再往这里加语气内容" in _tn196 and "不设人设" in cr)
+    check("v158去人设化红线覆盖语气层",
+          not any(s in _tn196 + eg + cr + st for s in
+                  ("霸道总裁", "知心姐姐", "小奶狗", "专业导师（默认）", "小奶狗（可选）")))
     check("v156行为自测用例与声明", "T1 " in bt and "T32" in bt and "测试计划" in bt and "不是" in bt)
     check("v156coach人格鼓励正交", "人格只管" in cr and "鼓励档" in cr and "core/encouragement-guide.md" in cr)
     check("v156coach旧鼓励表述移除", "不给无意义鼓励" not in cr)
     check("v156coach卡壳临时降档", "临时降一档" in cr)
     check("v156coach阶段0鼓励档", "鼓励档（默认" in cr)
     check("v156coach引用反馈协议", "core/coaching-protocol.md" in cr and "反馈三段式" in cr)
-    check("v156START必读六份", "先读这六份" in st and "core/companionship.md" in st and "core/coaching-protocol.md" in st and "core/encouragement-guide.md" in st)
+    # P43 第二批：开局必读从"先读这六份"改成三层加载（层一四份／命中才读／不主动读）。
+    # 断言跟着事实翻：不再要求"六份"这个数，改为钉住**层一清单本身**——
+    # 少一份就是有人把每轮必需的红线偷偷降成按需读，多一份就是开局集又在膨胀。
+    check("v156START层一清单", "层一" in st and "命中才读" in st and "不要主动读" in st
+          and all(s in st for s in ("CONSTITUTION.md", "core/coaching-protocol.md",
+                                    "core/coach-rules.md", "core/companionship.md"))
+          and "先读这六份" not in st)
+    check("v156鼓励与素养降为命中才读", "先读这六份" not in st
+          and "core/encouragement-guide.md" in st and "core/ai-literacy.md" in st)
     check("v156START开场第五问", "关闭鼓励" in st and "反馈方式" in st)
     card_t = tx("templates/progress-template.md")     # v1.92 起进度卡只有这一份基线（填写版不进包）
     check("v156进度卡基线鼓励档行", "鼓励反馈档" in card_t)

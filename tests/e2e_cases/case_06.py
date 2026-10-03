@@ -10,8 +10,12 @@ if True:  # 容器不产生作用域，缩进与拆分前完全一致
     # ---- v1.56.2 本体口径硬化：人格与挫折协议一致 + 反攀比回归 + 规则单源 ----
     check("v1562霸道总裁情绪口径", "会怼回去" not in cr and "正常化情绪" in cr and "我卡在哪" in cr)
     check("v1562反攀比无凭据比较", "大半同级学生" not in eg and "攀比式表达" in eg)
-    check("v1562专业导师焦虑先接情绪", "先一句话正常化" in eg)
-    check("v1562规则单源不重复", "第三节为唯一来源" in eg and "coach-rules.md` 第四节" in cp
+    # 人设撤销后，"先一句话正常化情绪"这条真动作回到了每轮必读的主手册（coach-rules 第三节），
+    # 不再住在已收成存根的语气分片里；"先接情绪再回任务"在陪伴红线第二节。断言跟着落点翻，判据本身没松。
+    check("v1562专业导师焦虑先接情绪", "先一句话正常化" in tx("core/coach-rules.md")
+          and "先接情绪" in tx("core/companionship.md")
+          and "先一句话正常化" not in tx("core/coach-rules/tones.md"))
+    check("v1562规则单源不重复", "第三节一处" in eg and "coach-rules.md` 第四节" in cp
           and "主动临时降一档把这一步讲透" not in cp)
 
     # ---- v1.56.4 规则接线：core规则真正接入10个workflow（统一指针，不复制正文）+ 鼓励理论规范出处 + 防假空白 ----
@@ -33,11 +37,23 @@ if True:  # 容器不产生作用域，缩进与拆分前完全一致
              for p in wf_all]
     check("v1564带教约定指针逐字一致",
           all(len(x) == 1 for x in _conv) and len({x[0].strip() for x in _conv}) == 1)
-    check("v1564鼓励理论规范出处", all(s in eg for s in (
+    # P43：APA 规范出处块随设计依据一起迁入 维护档案/（export-ignore，学生包里不再携带）。
+    # 包内侧只断言"确实不在包里"；档案侧的正面核对**只在开发树跑**——条件写成代码，不写在注释里
+    # （v1.93 那次 `case_21` 的 `.git` 条件只落在注释、没落成代码，副本里静默不执行，别再犯）。
+    check("v1564鼓励理论规范出处已出包", not any(s in eg for s in (
         "10.1037/0033-2909.119.2.254", "10.1037/0022-3514.75.1.33",
         "Mueller, C. M., & Dweck, C. S. (1998)", "Kluger, A. N., & DeNisi, A. (1996)",
         "Ryan, R. M., & Deci, E. L. (2000)", "Skinner, B. F. (1953)")))
-    check("v1564理论出处带核对日期", "核对" in eg and "勿与上面 Ryan & Deci (2000) 混写" in eg)
+    _arc06 = ROOT / "维护档案" / "评估结论-开局必读集减负-2026-10-03.md"
+    if _arc06.exists():
+        _at06 = _arc06.read_text(encoding="utf-8")
+        check("v1564理论出处带核对日期（档案侧）", all(s in _at06 for s in (
+            "10.1037/0033-2909.119.2.254", "10.1037/0022-3514.75.1.33",
+            "Mueller, C. M., & Dweck, C. S. (1998)", "Kluger, A. N., & DeNisi, A. (1996)",
+            "Ryan, R. M., & Deci, E. L. (2000)", "Skinner, B. F. (1953)"))
+            and "核对" in _at06 and "勿与上面 Ryan & Deci (2000) 混写" in _at06, "档案缺出处块或混写警告")
+        check("v1564档案补进最相关的那篇综述", "10.1037/0033-2909.128.5.774" in _at06,
+              "Henderlong & Lepper (2002) 未落进档案")
     check("v1564文献防假空白反查", all(s in tx("workflows/literature-auto-search.md")
                                   for s in ("假空白", "0 命中", "上位词")))
 
