@@ -223,6 +223,18 @@ if True:  # 容器不产生作用域，缩进与拆分前完全一致
     check("版本号三处一致", bool(cur_ver) and cur_ver in chg and cur_ver in rm,
           "解析到 START=%s, CHANGELOG命中=%s, README命中=%s" % (
               cur_ver or "(未解析到)", cur_ver in chg, cur_ver in rm))
+    # 上面那条拿 START 当锚，所以"三处一起落后于 tag"它根本看不见。实测抓到过：
+    # `git show v1.108:START.md` 第 3 行仍写 v1.107、那份 README 里连 v1.108 都没有——
+    # 那次发版是被 README 顶在 180 行逼的（加一版就得先删一版，索性整步没做，见 P5／滚动机制）。
+    # 这一条只问一件事：**版本行不许落后于最新 tag**（发版途中它领先 tag 一步是正常的，落后就是漏了同步）。
+    if (ROOT / ".git").exists():
+        _lt04 = subprocess.run(["git", "-C", str(ROOT), "describe", "--tags", "--abbrev=0"],
+                               capture_output=True, text=True, encoding="utf-8", errors="replace")
+        _lt04 = (_lt04.stdout or "").strip()
+        _k04 = lambda v: tuple(int(x) for x in re.findall(r"\d+", v or "0"))
+        check("版本号不许落后于最新 tag（发版少做一步同步就判红）",
+              bool(_lt04) and bool(cur_ver) and _k04(cur_ver) >= _k04(_lt04),
+              "最新 tag=%s，START.md 的版本行=%s" % (_lt04 or "(取不到 tag)", cur_ver or "(没解析到)"))
     # v1.93：DEVELOPMENT.md 不再随包分发。开发树里照旧核它引用 CHANGELOG；
     # 包内副本改核"入口文档仍指得到它"——否则接手的人拿到的包里连线索都没有。
     check("DEVELOPMENT引用CHANGELOG",

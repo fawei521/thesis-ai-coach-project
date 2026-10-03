@@ -43,7 +43,7 @@ AI 读取 `START.md` 后作为陪学生做心理学毕业论文的 AI 助手/学
 **改动后的验证：按"改了什么东西"选闸，不要每完成一小步就跑全量。**
 
 ```bash
-python tests/smoke_check.py         # 改中途：约 5 秒，九项结构闸
+python tests/smoke_check.py         # 改中途：约 5 秒，结构闸若干项（项数末行自报）
 python tests/smoke_check.py --full  # 该跑全量时：跑完打印一行 [门禁凭证]，原样贴进 commit 说明
 ```
 
@@ -55,7 +55,7 @@ python tests/smoke_check.py --full  # 该跑全量时：跑完打印一行 [门�
 不是被测程序——这条误判过一次，别再犯。
 
 - 新增能力**必须**同步加断言（不允许只加功能不加回归）：断言写在 `tests/e2e_cases/` 下对应主题的 `case_NN` 片段里（编号连续，顺序以壳里的 `FRAGMENTS` 为准），
-  `tests/full_e2e.py` 是骨架 + 片段顺序清单的壳，只在新增主题片段时才动。
+  `tests/full_e2e.py` 是骨架 + 片段顺序清单的壳，只在新增主题片段时才动。**改已有判据不算新增能力**：补一条阳性对照（植入一处坏的看它红）就够，别再为它新起一片片段；留下来的断言要写成不变量，不许把当时那几个名字抄成清单——名单型断言会在每一次正当修正时制造假红。
 - 文件尺寸：不在 `tests/size_baseline.txt` 里的文件**按档设限——代码 `.py` ≤300 行、文档 `.md` ≤220 行**；超标的存量文件冻结在清单里，
   **只减不增**；降到本档上限以下后跑 `python tests/size_ratchet.py --write` 把它移出清单（棘轮自动收紧）。两档数字只在 `tests/size_ratchet.py` 一处定义。
 - 版本正文一版一个文件（`维护档案/CHANGELOG/版本详情/`，不进包），包内 `CHANGELOG.md` 由 `tools/changelog_build.py` 生成（改了详情没重跑生成器＝`case_27` 判红）；`README.md` / `PROJECT_PLAN.md` / `ROADMAP.md` 只留指针。
