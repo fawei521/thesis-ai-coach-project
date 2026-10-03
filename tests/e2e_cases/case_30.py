@@ -54,7 +54,7 @@ def _uncovered30(touches, decided):
     return [t for t in touches if t[1] > newest]
 
 
-if not _arch30.is_dir() or not _git30.is_dir():
+if not _arch30.is_dir() or not _git30.exists():   # P3（2026-10-03）：.git 在 worktree 里是文件，is_dir() 会把开发树判成副本
     # 包内／学生副本：判据文档与 git 历史都不在，但"未生效"这句话必须让学生读到
     _chg30 = tx("CHANGELOG.md")
     check("包内 CHANGELOG 写明『维护决定（不发版）』条目可能尚未进本包",

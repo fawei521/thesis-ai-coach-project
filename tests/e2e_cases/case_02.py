@@ -137,6 +137,17 @@ if True:  # 容器不产生作用域，缩进与拆分前完全一致
     for nm, s in [("幽灵脚本", "ghost_tool_xyz.py"), ("假开关", "--fake-switch-xyz"), ("假导出", "幽灵分析.csv"),
                   ("假文档", "ghost_page_xyz.md"), ("假路径", "99-ghost")]:
         check("变异抓" + nm, s in o2)
+    # ---- 闸的复审 P6（2026-10-03）：一致性尺"反引号即引用"收窄射程之后，两头都要在退出码里参与 ----
+    #      历史四次误报里占位/通配这一族占两次（版本详情写 `case_NN.py`、材料区规矩写 `目录.md`），
+    #      而"真悬空仍要报"是这条尺存在的理由（v1.100 那次就是它抓到裸名断链）。只做一侧＝历次翻车的根因。
+    gp = ROOT / "_ghost_占位写法.md"
+    gp.write_text("下一版的新闸写作 `case_NN.py`；版本详情里的 `vX.md` 与通配 `tools/*.py` 是占位；"
+                  "`目录.md` 由使用侧现场生成（templates/ 带着它的模板）；"
+                  "而 `真正被删掉的那页_xyz.md` 是断链，必须报。", encoding="utf-8")
+    p3 = run(["tests/consistency_check.py"]); gp.unlink(); o3 = p3.stdout
+    check("P6 占位与现场生成写法不报（case_NN.py／vX.md／tools/*.py／目录.md）",
+          not any(s in o3 for s in ("case_NN.py", "vX.md", "tools/*.py", "目录.md")), o3[-260:])
+    check("P6 真悬空的文档引用仍报（尺子没被收窄成空转）", "真正被删掉的那页_xyz.md" in o3, o3[-260:])
     check("变异非0", p2.returncode != 0)
     qt = tx("templates/questionnaire-template.md")
     check("问卷注意力题", "注意力检查" in qt and "质量控制题" in qt)

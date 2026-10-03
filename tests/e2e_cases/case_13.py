@@ -147,12 +147,16 @@ if True:  # 容器不产生作用域，缩进与拆分前完全一致
                           for d in ("tools", "tools/stats", "tests", "tests/e2e_cases", "doubao-skill"))]
     check("v175 ROADMAP引用的脚本都存在", not ghost75, str(ghost75))
     rdme75 = tx("README.md")
-    check("v175 README版本区收敛", "更早版本（v1.64 及以前）" in rdme75
+    # 指针那句里的版本号现在由滚动机制改写（见 case_27 与 changelog_build.py），所以这里只认"有这么一句"，
+    # 形状交给下一条 v176 那条尺管——同一条判据不许在两片里各写一遍。
+    check("v175 README版本区收敛", "更早版本（v" in rdme75
           and "上一个版本：v1." in rdme75 and len(rdme75.splitlines()) < 200)
 
     # ========== v1.76 文档勘误与行数守卫 ==========
     # 这条盯的是活规矩：README 版本区行数 ≤180，＋ 历史正文在 维护档案/ 且包内留了指针。
     # 与 case_15 同一条思路：盯规矩本身，不去盯历史正文的位置。
+    # 指针那句的版本号现在归滚动机制改写（`--roll-readme` 滚掉最老一版时顺手更新它），所以这条只认形状不认数。
     check("v176 勘误与行数守卫", len(tx("README.md").splitlines()) <= 180
+          and bool(re.search(r"^\*\*更早版本（v[\d.]+ 及以前）的逐版说明全部见", rdme75, re.M))
           and "维护档案/CHANGELOG-历史详情" in tx("CHANGELOG.md"))
 

@@ -17,6 +17,7 @@
     python tools/changelog_build.py --write      # 重拼并写回（同时 upsert 索引）
     python tools/changelog_build.py --keep-all   # 拼回全部详情（搬家验收用）
     python tools/changelog_build.py --budget 300 # 换预算
+    python tools/changelog_build.py --roll-readme [路径]  # 把 README 的「## 版本」区滚回预算（默认动 README.md）
 
 为什么这么改（三条实测病灶）：加一版要动四处、手工搬运最贵；`ROADMAP.md` 里"见 CHANGELOG v1.64"
 这类引用早就指向被搬走的正文而没人发现；两个会话同时发版会抢同一个文件。
@@ -34,6 +35,10 @@ SRC = ROOT / "维护档案" / "CHANGELOG"
 OUT = ROOT / "CHANGELOG.md"
 PARTS = ("00-头部.md", "01-索引.md", "02-维护决定.md", "03-详情前言.md")
 DEFAULT_BUDGET = 300
+README = ROOT / "README.md"
+# README 版本区留几版：6 ＝ v1.108 发版时实测的在位条数（README 那时已顶在 180/180，
+# 多写一版就得先手工删一版，而 2026-10-02 那次因此整条版本同步没做）。超出就滚最老的一版，正文本就在 CHANGELOG 里。
+README_KEEP = 6
 
 
 def ver_key(v):
@@ -122,6 +127,34 @@ def archive_section(details, kept_vers):
     return lines
 
 
+def roll_readme(text, keep=README_KEEP):
+    """把 README 的「## 版本」区滚回预算：一行一版，超过 keep 版就滚掉最老那一版。
+    只**不许堆积**——每版那段学生口吻的话术仍然由人写，这里不生成正文（闸的复审 P5，2026-10-03）。
+    前提＝README 的形制是"一行一版"（现况如此）；哪天改成一条版本占多行，这里要连着改，否则删不干净。
+    顺手把两件以前靠人记的规矩落成代码：①标签只有第一条是"当前版本"；
+    ②"更早版本（vX 及以前）"那句指针改成刚滚出去的那一版（以前它停在 v1.64，早就没人跟）。"""
+    lines = text.split("\n")
+    ent = re.compile(r"^\*\*(?:当前版本|上一个版本)：(v[\d.]+)\*\*")
+    tag = re.compile(r"^\*\*(?:当前版本|上一个版本)：")
+    idx = [i for i, ln in enumerate(lines) if ent.match(ln)]
+    for n, i in enumerate(idx):
+        lines[i] = tag.sub("**当前版本：" if n == 0 else "**上一个版本：", lines[i], count=1)
+    rolled = []
+    while len(idx) > keep:
+        drop = idx.pop()                              # 版本区按倒序排，最后一个就是最老的一版
+        ver = ent.match(lines[drop]).group(1)
+        j = drop + 1
+        while j < len(lines) and not lines[j].strip():
+            j += 1                                    # 连它后面的空行一起删，别留缝
+        del lines[drop:j]
+        for k, ln in enumerate(lines):
+            if "及以前）的逐版说明全部见" in ln:
+                lines[k] = "**更早版本（%s 及以前）的逐版说明全部见" % ver
+                break
+        rolled.append(ver)
+    return "\n".join(lines), rolled
+
+
 def main(argv=None):
     import argparse
     ap = argparse.ArgumentParser(description="生成包内 CHANGELOG.md（正文来源在 维护档案/CHANGELOG/）")
@@ -131,7 +164,18 @@ def main(argv=None):
                     help="把全部详情拼回去，只用于搬家核对，不参与同步判定")
     ap.add_argument("--budget", type=int, default=DEFAULT_BUDGET,
                     help="包内详情区的行数预算（默认 %d）" % DEFAULT_BUDGET)
+    ap.add_argument("--roll-readme", nargs="?", const=str(README), default=None, metavar="路径",
+                    help="把 README 的「## 版本」区滚回 %d 版（给路径就动那份，搬家与自测用）" % README_KEEP)
     a = ap.parse_args(argv)
+    if a.roll_readme:
+        p = Path(a.roll_readme)
+        raw = p.read_bytes().decode("utf-8").replace("\r\n", "\n")
+        out, rolled = roll_readme(raw)
+        p.write_bytes(out.replace("\n", "\r\n").encode("utf-8"))
+        print("README 版本区：滚掉 %s，留 %d 版（预算 %d），文件 %d 行"
+              % ("、".join(rolled) or "没动", len(re.findall(r"^\*\*(?:当前版本|上一个版本)：", out, re.M)),
+                 README_KEEP, len(out.split("\n")) - 1))
+        return 0
     keep_all, budget = a.keep_all, a.budget
     want, kept, added, index_text = build(keep_all, budget)
     have = OUT.read_bytes().decode("utf-8").replace("\r\n", "\n") if OUT.exists() else ""

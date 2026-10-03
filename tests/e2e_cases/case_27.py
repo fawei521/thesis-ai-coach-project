@@ -74,6 +74,32 @@ if _dev27:
     check("补漏 断链这条尺不空转（不存在的版本必须被抓）",
           "AGENTS.md→v9.99" in _dangling({"AGENTS.md": "详见 CHANGELOG v9.99"}))
 
+    # ---------- P5（闸的复审 2026-10-03）：README 版本区有了滚动机制，加一版不必先删别处 ----------
+    # 两侧都要夹具（L-0924b）：植入一条多出来的版本 → 滚掉最老那一版且指针跟着改；现文件本身 → 在预算内。
+    _keep27 = int(_re27.search(r"^README_KEEP = (\d+)", tx("tools/changelog_build.py"), _re27.M).group(1))
+    _cnt27 = lambda t: _re27.findall(r"^\*\*(?:当前版本|上一个版本)：(v[\d.]+)\*\*", t, _re27.M)
+    _rd27 = new_tmp("p5roll")
+    _rp27 = _rd27 / "README.md"
+    _sh27.copy2(ROOT / "README.md", _rp27)
+    _base27 = _rp27.read_text(encoding="utf-8")
+    _i27 = _base27.index("**当前版本：")
+    _rp27.write_text(_base27[:_i27]
+                     + "**当前版本：v1.999**（2099-12-31）**假造的一条，用来把版本区顶过预算**：正文在此。\n\n"
+                     + _base27[_i27:], encoding="utf-8")
+    _oldest27 = _cnt27(_base27)[-1]
+    _rr27 = run(["tools/changelog_build.py", "--roll-readme", str(_rp27)])
+    _after27 = _rp27.read_text(encoding="utf-8")
+    check("补漏 README 版本区超预算时自动滚掉最老一版并改写指针（加一版不必先删别处）",
+          _rr27.returncode == 0 and len(_cnt27(_after27)) == len(_cnt27(_base27))
+          and "v1.999" in _cnt27(_after27) and _oldest27 not in _cnt27(_after27)
+          and _after27.count("**当前版本：") == 1
+          and ("**更早版本（%s 及以前）的逐版说明全部见" % _oldest27) in _after27,
+          "滚后=%s｜%s" % (_cnt27(_after27), (_rr27.stdout or _rr27.stderr or "")[-160:]))
+    check("补漏 现文件 README 版本区在预算内（超了＝发版时没跑 --roll-readme）",
+          len(_cnt27(tx("README.md"))) <= _keep27,
+          "在位 %d 版，预算 %d（数字只写在 changelog_build.py 那一处）" % (len(_cnt27(tx("README.md"))), _keep27))
+    _sh27.rmtree(_rd27, ignore_errors=True)
+
     # ---------- 阴性：改了来源不重跑，--check 必须红 ----------
     # 篡改要打在**真的被拼进包内的那一版**上：打在最老那版（已滚出包外）不改输出＝尺子空转，第一次就这么骗过我。
     _tmp27 = ROOT / "tests" / ".tmp_e2e" / "chg27"

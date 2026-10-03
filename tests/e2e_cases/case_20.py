@@ -73,12 +73,15 @@ _RT = tx("tests/rigor_experiment.py")
 check("v191实验结论如实写着测不出说错数的差异",
       all(k in _RT for k in ("同样没报错数", "形式可稽核", "本方法测不到"))
       and "已解决" not in _RT.split("诚实边界")[-1], _RT.splitlines()[-4:])
-# 报告在仓库外的 _归档（不随包分发）：开发树里必须已落盘，包内自然跳过
+# 报告在仓库外的 _归档（不随包分发）。闸的复审 P1（2026-10-03）：守卫原来只看报告在不在，
+# 于是"开发树里报告没落盘"＝整段静默不跑（与 case_19 同形，r5-head.log 实证）。
+# 现在照 case_23 的形制：守卫只看仓库形态，报告不在就把这条自己判红，detail 给出完整路径。
 _rep = ROOT.parent / "_归档" / "审查报告" / "2026-09-20 严谨性闸 A-B 实验.md"
-if _rep.exists():
-    _rt = _rep.read_text(encoding="utf-8")
+if (ROOT / ".git").exists():      # 干净副本没有 .git、也没有仓库外的 _归档，按 case_30 先例整段跳过
+    _rt = _rep.read_text(encoding="utf-8") if _rep.is_file() else ""
     check("v191实验报告已归档并写了两次方法学事故",
-          all(k in _rt for k in ("夹具太友好", "夹具泄漏", "n=1", "不放行", "局限")), _rep.name)
+          all(k in _rt for k in ("夹具太友好", "夹具泄漏", "n=1", "不放行", "局限")),
+          _rep if not _rt else _rep.name)
 
 # ---- 行为自测登记：把实验里真正会出事的压力点变成用例 ----
 _BTT = tx("tests/behavior-self-test.md")

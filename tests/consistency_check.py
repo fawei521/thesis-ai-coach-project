@@ -80,6 +80,28 @@ def command_segments(md_text: str):
     return segments
 
 
+# 闸的复审 P6（2026-10-03）：**示意写法不当引用**。规则 5 早就写了"跳过示意性/枚举性引用"，
+# 但规则 1／2／4 没有——于是 `case_NN.py`（下一版的编号）、`vX.md`、`tools/*.py` 这类
+# "名字由现场或下一版决定"的写法被当成断链，四次误报里有两次是这个形状。
+# 这里只认**形状**，不建名单：名单型豁免会随每一次正当改名制造新的假红（见 P8b）。
+_PLACEHOLDER = re.compile(r"[*<>{}…]|_{2,}|\.\.\.|(?i:xxx|nnn)|NN|(?i:xx)|X(?=\.[a-z])")
+
+
+def is_illustrative(tok: str) -> bool:
+    """这个 token 是"占位/通配"的写法，还是一个具体文件名？只看形状，不看它在不在名单里。"""
+    return bool(_PLACEHOLDER.search(tok.rsplit("/", 1)[-1]))
+
+
+def has_shipped_template(ref: str) -> bool:
+    """裸文件名且有随包模板（`目录.md` ← `templates/目录模板.md`）＝使用侧现场生成的入口，不在树里不是断链。
+    模板名从 templates/ 现读，一个词都不点名（抄名单就会漂）。"""
+    if "/" in ref:
+        return False
+    stem = Path(ref).stem
+    return any((ROOT / "templates" / (stem + sfx)).is_file()
+               for sfx in ("模板.md", "模版.md", "-template.md", "_template.md"))
+
+
 def main():
     problems = []
 
@@ -132,6 +154,8 @@ def main():
 
         # 1. 显式 tools/xxx.py 引用存在性（允许子包路径，如 tools/stats/efa.py）；REPO_ONLY 同 33 行：包里没带的维护者脚本不算悬空
         for ref in re.findall(r"tools/([A-Za-z0-9_/]+\.py)\b", text):
+            if is_illustrative(ref):        # P6：`tools/*.py` 这类通配写法不是引用
+                continue
             if ref not in py_set and ("tools/" + ref) not in REPO_ONLY:
                 problems.append(f"[{rel}] 引用了不存在的 tools/{ref}")
 
@@ -143,6 +167,8 @@ def main():
             for t in tools_in_block:
                 # 带 tools/ 前缀的已由规则1核对，这里只补裸名/其它目录（如 tests/）脚本
                 if f"tools/{t}" in block or f"tools\\{t}" in block:
+                    continue
+                if is_illustrative(t):      # P6：版本详情里写 `case_NN.py` 是指"下一版那片"，不是幽灵脚本
                     continue
                 if t not in all_py_names:
                     problems.append(f"[{rel}] 命令引用了项目中不存在的脚本 {t}")
@@ -172,7 +198,9 @@ def main():
         md_refs = set(re.findall(r"\]\(([^)\s#]+\.md)(?:#[^)]*)?\)", text))
         md_refs |= set(re.findall(r"`([^`\n\s]+\.md)`", text))
         for ref in md_refs:
-            if ref.startswith(("http", "<")) or "*" in ref:
+            if ref.startswith(("http", "<")) or is_illustrative(ref):   # P6：占位/通配写法不当引用
+                continue
+            if has_shipped_template(ref):   # P6：有随包模板的裸文件名＝使用侧现场生成的入口
                 continue
             if ref.startswith("我的工作区/"):
                 # 工作区里的是**学生自己产出**的文件（如"把大纲存成 我的工作区/05-开题报告/我的开题大纲.md"），

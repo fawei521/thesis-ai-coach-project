@@ -94,7 +94,7 @@ def _missing34(ledger, delta, anchor):
             if _key34(t) >= _key34(anchor) and delta[t] > 0 and t not in cov]
 
 
-if not (ROOT / ".git").is_dir():
+if not (ROOT / ".git").exists():      # P3（2026-10-03）：worktree 的 .git 是文件不是目录，is_dir() 会把开发树当副本
     # 副本里既无 git 也无 维护档案/：判不了账，但"判不了"这件事本身要留一行读数
     check("断更闸只在开发树跑：副本没有 git 历史时跳过而不是崩", True, "无 .git，按 case_30 先例跳过")
 else:

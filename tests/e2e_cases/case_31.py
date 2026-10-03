@@ -147,7 +147,7 @@ _h104_ign = [l.split()[0] for l in _h104_attr.splitlines()
              if "export-ignore" in l and not l.strip().startswith("#")]
 _h104_shield = [g for g in _h104_ign
                 if g.rstrip("/*") == "core/academic-style.md" or g.rstrip("/*") == "core"]
-if (ROOT / ".git").is_dir():
+if (ROOT / ".git").exists():      # P3（2026-10-03）：worktree 里 .git 是文件；is_dir() 会让这条在 worktree 里静默不跑
     _h104_ls = subprocess.run(["git", "-c", "core.quotepath=false", "ls-files", "core/academic-style.md"],
                               cwd=str(ROOT), capture_output=True)
     check("v104 判据文件已进 git 跟踪（archive 只装跟踪文件，没跟踪＝包里根本没有）",

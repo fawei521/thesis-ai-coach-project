@@ -125,11 +125,11 @@
    不决定这一版有没有被全量验过——动了 L1 文件却没贴凭证，`case_21.py` 的审计判红。拆过文件另跑
    `python tests/size_ratchet.py --write` 刷新冻结清单（写盘动作，回归不替你做）。用例清单见 `tests/e2e-test.md`。
 2. **先判要不要发版**：判据只看一件事——**学生或学生的 AI 读得到的东西变了，就必须随下一次发版带走**；只有维护者读得到的（`tests/**`、`维护档案/**`、本文件、不改对外行为的 `tools/` 内部实现）可以只记维护决定。"哪些路径算读得到"的名单唯一出处是 `case_30.py` 的 `_STUDENT30`，这里不抄第二份。
-   **决定不发版时欠两条**：①当日在 `维护档案/CHANGELOG/02-维护决定.md` 追加一条写明"随下次发版带走"（缺登记 `case_30.py` 判红）；②别无限攒——学生侧条目攒够 3 笔／距上一次发版超 14 天／有人要用包做实事，任一命中即发。**更新版本号**（语义化：新增功能 minor，修复 patch）：先在 `维护档案/CHANGELOG/版本详情/` 写一版一个文件的详情，再 `python tools/changelog_build.py --write`（索引行自动补、老版自动滚出包），同步 `START.md` 顶部版本行与 README 的「当前版本」；然后 commit、打 tag。
+   **决定不发版时欠两条**：①当日在 `维护档案/CHANGELOG/02-维护决定.md` 追加一条写明"随下次发版带走"（缺登记 `case_30.py` 判红）；②别无限攒——学生侧条目攒够 3 笔／距上一次发版超 14 天／有人要用包做实事，任一命中即发。**更新版本号**（语义化：新增功能 minor，修复 patch）：先在 `维护档案/CHANGELOG/版本详情/` 写一版一个文件的详情，再 `python tools/changelog_build.py --write`（索引行自动补、老版自动滚出包），同步 `START.md` 顶部版本行与 README 的「当前版本」，再 `python tools/changelog_build.py --roll-readme`（README 版本区超出预算就自动滚掉最老一版、标签与"更早版本"指针跟着改，不必先删别处；预算的数字只写在生成器那一处）；然后 commit、打 tag。
 3. **双产物验证（v1.93 起必做）**：发布包由 `.gitattributes` 的 `export-ignore` 挡掉了 `tests/` 与 `DEVELOPMENT.md`，
    所以"把学生包解压出来直接跑回归"这一步已经不成立了——改成两份产物，**都必须从同一个 tag 打**：
    - **验证副本**＝`git archive --prefix=thesis-ai-coach-project/ -o <项目外>/g.zip <tag>` 解出后，
-     **只从仓库补回 `tests/` 目录**（其余一律不补），在这份里跑 `python tests/full_e2e.py`。
+     **只从仓库补回 `tests/` 目录**（其余一律不补），在这份里跑 `python tests/full_e2e.py`。**老 tag 复现会看到一条已知的红**：v1.99 那份的 `v194包体积上限随内容上调并写明理由` 报件数 166（当时上限 160），15 个 tag 里只有它越限；按"tag 发布过就不动"这条红永久留着——谁在 v1.99 上跑全量都会看到它，那不是自己弄坏的（逐 tag 实算与经过见 `维护档案/维护决定-闸的复审清单施工-2026-10-03.md`）。
      这样跑的就是学生真正拿到的那些文件，`tests/` 只是"借来的尺子"；本地想提前预演包形态可加 `--worktree-attributes`（未提交的 `.gitattributes` 改动才会生效），正式产物一律从 tag 打。
    - **发布包**＝同一命令直接放 `_发布包/thesis-ai-coach-project-vX.Y.zip`，与上面那份**逐字节相同**（同一 tag、同一参数）。
 4. 核对包形态（`tests/e2e_cases/case_21.py` 已经把这件事变成断言，但仍要人看一眼）：目录树、中文文件名正常、

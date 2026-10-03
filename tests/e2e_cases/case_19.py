@@ -141,12 +141,15 @@ check("v194用例登记里两条都指向这把尺",
       "judge_floor" in tx("tests/behavior-self-test.md")
       and "judge_correct" in tx("tests/behavior-self-test.md")
       and "最低形式" in tx("doubao-skill/references/self-test.md"))
-# 报告在仓库外的 _归档（不随包分发）：开发树里必须已落盘，干净副本自然跳过
+# 报告在仓库外的 _归档（不随包分发）。闸的复审 P1（2026-10-03）：守卫原来只看报告在不在，
+# 于是"开发树里报告没落盘"＝整段静默不跑、输出上连读数都没有——同一环境里 case_23 那条报了红、
+# 这两条直接消失（r5-head.log 实证）。现在照 case_23 的形制：守卫只看仓库形态，
+# 报告不在就把这条自己判红，detail 给出完整路径。
 _rep94 = ROOT.parent / "_归档" / "审查报告" / "2026-09-20 被催短与更正的形制下界实验.md"
-if _rep94.exists():
-    _t94 = _rep94.read_text(encoding="utf-8")
+if (ROOT / ".git").exists():      # 干净副本没有 .git、也没有仓库外的 _归档，按 case_30 先例整段跳过
+    _t94 = _rep94.read_text(encoding="utf-8") if _rep94.is_file() else ""
     check("v194实验报告归档且写了测不出增益与三处自纠",
           all(k in _t94 for k in ("n=1", "测不出增益", "摘录删过头", "假阴性", "道歉"))
-          and "全部判红" in _t94, _rep94.name)
+          and "全部判红" in _t94, _rep94 if not _t94 else _rep94.name)
 
 

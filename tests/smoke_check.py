@@ -8,10 +8,10 @@
 把逻辑抄一份到这里，就又造出一个会和原件漂移的副本（教训见
 `维护档案/评估结论-外部账本治理建议-2026-09-20.md`）。
 
-覆盖 9 项、实测约 5 秒：全脚本语法编译、文档↔代码一致性、尺寸棘轮（含阴性自测）、
+覆盖项与用时一律看末行自报（约 5 秒量级）：全脚本语法编译、文档↔代码一致性、尺寸棘轮（含阴性自测）、
 轻量版口径同源（含阴性自测）、Skill 结构自检、两个工具行为脚本。
 
-**盖不住什么**：`tests/e2e_cases/` 里那 700 多条事实与口径断言（量表数、报告措辞、
+**盖不住什么**：`tests/e2e_cases/` 里那批事实与口径断言（条数看全量末行；量表数、报告措辞、
 红线文案、发布包形态…）——那些只在 `python tests/full_e2e.py` 里跑。
 什么时候必须跑全量，照 `DEVELOPMENT.md` 阶段 T 的"改动面 → 闸"表判，**不要凭感觉**。
 """
@@ -124,7 +124,7 @@ def full_and_cert(smoke_ok):
         return 1
     print("\n**把下面这一行原样贴进 commit 说明**——动了 L1 文件却没这行，回归会判红：")
     print("%s head=%s smoke=%s full=%s/%s"
-          % (CERT, head_hash(), "9/9" if smoke_ok else "有失败", m.group(2), m.group(1)))
+          % (CERT, head_hash(), ("%d/%d" % (len(GATES) + 1, len(GATES) + 1)) if smoke_ok else "有失败", m.group(2), m.group(1)))
     return 0 if (int(m.group(3)) == 0 and smoke_ok) else 1
 
 
