@@ -27,7 +27,7 @@ OVER_P = 200   # 单段超载线（按汉字数）；线与理由同写在 core/
 VAGUE = ["显著", "重要", "有效", "深入", "全面", "充分", "极大", "明显", "积极", "坚实"]  # 评价词与数字同现的判断固定在代码里，见 academic-style 第二节末
 CJK, NUM, SENT = re.compile(r"[\u4e00-\u9fff]"), re.compile(r"\d+(?:\.\d+)?"), re.compile(r"[。！？；\n]")
 PAGE_HEAD = re.compile(r"^#+\s*第\s*\d+\s*页[:：]?\s*")
-LISTISH = re.compile(r"^\s*([-*·]|\d+[.、]|#{1,4}\s)")   # 条目行与标题行：它们堆成的块不叫"一段"
+LISTISH = re.compile(r"^\s*([-*·|]|\d+[.、]|#{1,4}\s)")  # 条目行、标题行与表格行——它们堆成的块不叫"一段"
 
 
 def read_text(path):

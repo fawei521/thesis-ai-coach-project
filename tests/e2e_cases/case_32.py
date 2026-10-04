@@ -173,6 +173,23 @@ _h105_bulp.write_text("\n".join("- 第 %d 条要点写的是一个独立的小�
 _h105_pb = run(["tools/style_check.py", str(_h105_bulp), "--strict"])
 check("v105 条目堆成的块不算超载（本包的模板与指南就是这个形状，报了就是噪声）",
       not [l for l in _h105_pb.stdout.splitlines() if "单段超" in l], _h105_pb.stdout[:200])
+# ---- ⑫ 表格块同样不算一段（待办 P44：四格真语料里三格各撞一次，s4 报的"最长 880 字"实为两张表）----
+_h105_tb = "\n".join("| %d | 这一行写的是该小节的风险与处置动作，汉字数够长才像真表。 |" % i for i in range(1, 16))
+_h105_tbcp = _h105_ovd / "表格加超长段.md"
+_h105_tbcp.write_text(_h105_tb + "\n\n" + _h105_cut(_h105_oraw, 210) + "\n\n" + _h105_oshort, encoding="utf-8")
+_h105_ptb = run(["tools/style_check.py", str(_h105_tbcp), "--strict"])
+_h105_htb = [l for l in _h105_ptb.stdout.splitlines() if "单段超" in l]
+check("v105 那张 390 字的表不算一段，同一份夹具里 210 字的自然段照样报（报了表格＝还在冤枉）",
+      len(_h105_htb) == 1 and "单段超 200 字的 1 段" in _h105_htb[0] and "最长 210 字" in _h105_htb[0],
+      str(_h105_htb)[:220])
+_h105_tsrc = tx("tools/style_check.py").replace(r"([-*·|]|\d+[.、]", r"([-*·]|\d+[.、]")
+_h105_tmod = {"__name__": "style_check_105tbl", "__file__": str(ROOT / "tools" / "style_check.py")}
+exec(compile(_h105_tsrc, "tools/style_check.py", "exec"), _h105_tmod)
+_h105_tneg = [m for _, m in _h105_tmod["check_body"](_h105_tbcp.read_text(encoding="utf-8"), _h105_rows) if "单段超" in m]
+check("v105 阳性对照：把表格行从识别表里摘掉就退回旧行为——同一份夹具报 2 段、最长 390 字 15 句（锚点只一处，改了没生效这格白测）",
+      tx("tools/style_check.py").count(r"([-*·|]|\d+[.、]") == 1 and _h105_tsrc != tx("tools/style_check.py")
+      and len(_h105_tneg) == 1 and "单段超 200 字的 2 段" in _h105_tneg[0] and "最长 390 字 15 句" in _h105_tneg[0],
+      str(_h105_tneg)[:220])
 _h105_osrc = tx("tools/style_check.py").replace("n_cjk(p) >= OVER_P", "n_cjk(p) >= 90")
 check("v105 阴性植入改的是判据本身（锚点只出现一次；改了没生效这格就白测）",
       tx("tools/style_check.py").count("n_cjk(p) >= OVER_P") == 1 and _h105_osrc != tx("tools/style_check.py"),
