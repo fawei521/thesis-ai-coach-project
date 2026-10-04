@@ -189,8 +189,10 @@ def report():
     for f in l1_all:
         print("   %-32s %7d B" % (f, nbytes(f)))
     tot1 = overlay_of(l1_all)
-    print("   合计 %d B（闸 54000，余 %d）；另 AGENTS.md %d B 不在这把尺的清单里"
-          % (tot1, 54000 - tot1, nbytes("AGENTS.md")))
+    _lim = int(re.search(r"_open16 < (\d+)", tx("tests/e2e_cases/case_16.py")).group(1))  # 上限只在闸那一处定义，这里现读；抽不到就抛错，不许静默按旧数算
+    _ag = nbytes("AGENTS.md")
+    print("   合计 %d B＋AGENTS.md %d B = %d B（闸 %d，余 %d；AGENTS 2026-10-04 起进闸）"
+          % (tot1, _ag, tot1 + _ag, _lim, _lim - tot1 - _ag))
 
     print("\n② 层二触发表（从 START 的「→ 路径」现抽）")
     for trig, p in extract_layer2(st):
@@ -218,7 +220,7 @@ def report():
     print("   阶段单举：%s" % "、".join("%s %d B" % (t.replace("### 阶段", "阶段").split("：")[0], b)
                                         for t, b in sp if t.startswith("### 阶段"))[:200])
 
-    print("\n⑤ 轮型叠量（轮型表是人列的输入，不是实测分布）")
+    print("\n⑤ 轮型叠量（轮型表是人列的输入，不是实测分布；这里只算 START 声明那几份，走 AGENTS 进门还要再加它那一份，见①）")
     for name, files in TURNS:
         miss = [f for f in files if not (ROOT / f).is_file()]
         ov = overlay_of(files)
