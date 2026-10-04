@@ -167,3 +167,44 @@ check("v104 判据文件真的在包里（不在＝第 24 项第 0 步就报错�
 _h104_x = run(["tests/style_experiment.py", "--demo"])
 check("v104 语体对照实验的判据自测分得开（尺空不空转，不参与 A/B 结论）",
       _h104_x.returncode == 0 and "分得开" in _h104_x.stdout, _h104_x.stdout[-180:])
+
+# ---- ⑨ 按节取的指向不许有漏网（2026-10-04 查出：八处指向改了七处，阶段6 那句还写着"先读整份"）----
+# 为什么要有这把尺：2026-10-04 把落笔轮改成"只读 `core/academic-style.md` 第三节和第四节"（30 KB 里
+# 第二节那张禁则表占 65%，而它已由 `tools/style_check.py` 机器消费），改了八处指向。**阶段卡那一份漏了**——
+# 漏的这一格恰恰最贵：它是学生进到开题阶段时 AI 真会抽进当轮上下文的那句，"先读整份"把减负抵掉一次。
+# 全包没有一把尺比过"各处指向语体规范的说法是否一致"（`consistency_check` 只管文档↔代码），
+# `case_31` 原有那条只问路径字符串在不在，射程外。判据只认形状：**要求读的那句必须点名第三、四两节**，
+# 不认文件名清单，也不判"整份读"三个字——包里合法地写着"不要整份读"，拿词表判会满屏误伤（收窄口径见 §五.3）。
+_hsec31_pt = re.compile(r"(先读|必读|读过|再读|就读)[^`\n]{0,8}`core/academic-style\.md`")
+def _hsec31_bare(_l31):
+    """这一行是否在要求读语体规范、却没点名该读哪两节。"""
+    return bool(_hsec31_pt.search(_l31)) and not ("第三节" in _l31 and "第四节" in _l31)
+def _hsec31_sites():
+    _bad31 = []
+    for _p31 in sorted(ROOT.rglob("*.md")):
+        _rel31 = _p31.relative_to(ROOT).as_posix()
+        if _rel31.startswith(("维护档案/", "CHANGELOG.md", "tests/", "我的工作区/")) or "/.tmp" in _rel31:
+            continue
+        try:
+            _txt31 = _p31.read_text(encoding="utf-8")
+        except UnicodeDecodeError:
+            _bad31.append(_rel31 + ":? 非 UTF-8，读不出就不许算成合格")
+            continue
+        _bad31 += ["%s:%d" % (_rel31, _n31) for _n31, _l31 in enumerate(_txt31.split("\n"), 1)
+                   if _hsec31_bare(_l31)]
+    return _bad31
+check("按节取没有漏网的指向（凡要求读语体规范处都点名第三、四两节）",
+      not _hsec31_sites(), str(_hsec31_sites()[:6]))
+# 阳性对照（植入式，不落盘）：旧写法与"必读整份"两种形状必须被判红，改对了的那句与"只是指向禁则表"
+# 那句不许被判红——没有这四格，上面那条只能证明"此刻恰好没有"，证明不了它咬得住下一次漏改。
+_hsec31_cases = [("- 动笔之前先读 `core/academic-style.md`：第二节禁则表是底线", True),
+                 ("- 落笔前必读 `core/academic-style.md` 整份", True),
+                 ("- 起草前先读 `core/academic-style.md` 第三节和第四节", False),
+                 ("- 清单不在这里重抄，看 `core/academic-style.md` 第二节那张禁则表", False)]
+_hsec31_wrong = [t[:24] for t, _expect in _hsec31_cases if _hsec31_bare(t) != _expect]
+check("按节取那把尺咬得住植入的旧写法（阳性对照：该红的红、该放的放）",
+      not _hsec31_wrong, "判错的：%s" % _hsec31_wrong)
+# 这条改动改的是"要求 AI 怎么读"，按 `CONSTITUTION.md` 第十条它算功能、必须有行为用例——
+# 登记在案（T91）不等于验证过：真对话/走查没跑，对外不许说"已生效"，只许说"声明层已改、行为未验"。
+check("按节取有行为用例兜着（T91 已登记进行为账，没登记＝这条按宪法第十条算未解决）",
+      "| T91 |" in tx("tests/behavior-self-test.md"), "行为账里没有 T91")

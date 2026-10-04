@@ -83,6 +83,30 @@ if True:  # 容器不产生作用域，缩进与其他片段一致
     check("抽清单这步不空转（阴性：改掉层一声明标题后应抽不到四份）",
           _probe != _l1_16 and len(_l1_16) == 4,
           "变异后抽到%d份：%s" % (len(_probe), _probe))
+    # ---- 叠量探针进全量（2026-10-04；此前只能人手跑，见 `_归档/待办计划-开局必读层二按节取.md` §八）----
+    # 为什么要注册进来：`tests/opening_overlay_probe.py` 量的是"命中才读真被抽进来时有多大"，
+    # 它**从本片段现读闸的上限**（就是上面那条 `_open16 < (\d+)`）、从 START 现抽层一清单。
+    # 两边口径一旦漂开（改了求和方式、改了声明的形制、或把上限搬走），⑥ 那张"按节取省多少"的表会**安静地算错**——
+    # 它不报错，只给出一个看着合理的数，这正是本项目反复踩过的"尺子空转"。
+    # 跑法沿用 `case_04` 对尺寸棘轮的写法：只认退出码与末行，项数不在这里抄第二份。
+    _ovs16 = subprocess.run([sys.executable, "tests/opening_overlay_probe.py", "--selftest"],
+                            capture_output=True, text=True, encoding="utf-8",
+                            errors="replace", timeout=180)
+    check("开局叠量探针的阴性自测全过（尺子不空转）",
+          _ovs16.returncode == 0 and "失败 0" in (_ovs16.stdout or ""),
+          (_ovs16.stdout or "")[-250:] + (_ovs16.stderr or "")[-200:])
+    _ovr16 = subprocess.run([sys.executable, "tests/opening_overlay_probe.py"],
+                            capture_output=True, text=True, encoding="utf-8",
+                            errors="replace", timeout=180)
+    _ovm16 = re.search(r"合计 (\d+) B＋AGENTS\.md (\d+) B = (\d+) B（闸 (\d+)，余 (\d+)",
+                       _ovr16.stdout or "")
+    _ovlim = int(re.search(r"_open16 < (\d+)", tx("tests/e2e_cases/case_16.py")).group(1))
+    check("叠量探针与总量闸同源（两条路各算一遍开局集必须相等，上限只许在闸这一处）",
+          bool(_ovm16) and int(_ovm16.group(1)) + int(_ovm16.group(2)) == int(_ovm16.group(3))
+          and int(_ovm16.group(3)) == _open16 and int(_ovm16.group(4)) == _ovlim
+          and int(_ovm16.group(5)) == _ovlim - _open16 and _open16 < _ovlim,
+          "探针解析%s 闸内现量%d／上限%d，探针末行：%s" % (
+              bool(_ovm16), _open16, _ovlim, (_ovr16.stdout or "")[-160:]))
     check("tdoc 无同名子目录时等价于 tx（阴性：尺子不空转）",
           tdoc("core/ai-literacy.md") == tx("core/ai-literacy.md"))
     check("tdoc 把分片拼进来了（阴性：漏读会被抓到）",
