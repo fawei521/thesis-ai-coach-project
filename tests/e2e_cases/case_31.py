@@ -208,3 +208,18 @@ check("按节取那把尺咬得住植入的旧写法（阳性对照：该红的�
 # 登记在案（T91）不等于验证过：真对话/走查没跑，对外不许说"已生效"，只许说"声明层已改、行为未验"。
 check("按节取有行为用例兜着（T91 已登记进行为账，没登记＝这条按宪法第十条算未解决）",
       "| T91 |" in tx("tests/behavior-self-test.md"), "行为账里没有 T91")
+
+# ---- ⑩ 取法要写成指令（2026-10-04 夜，待办 P43 续做）----
+# 上一轮行为实测的结论是"光说只读两节，受试一次都没少读"——它缺的是**怎么只取那一段**。
+# 现在阶段卡那句必须写出"按标题定位"，而且它点名的两个标题锚得在规范里真存在：
+# 指到一个文件里没有的标题＝AI 取不到区间，比不写更坏（它会以为是自己没找到）。
+_hsp31 = tx("core/coach-rules/stage-playbook.md")
+_how31 = [l for l in _hsp31.splitlines() if "按标题定位" in l]
+check("按节取的取法写成了指令（阶段卡那句含「按标题定位」，不是只留一句「只读两节」）",
+      len(_how31) >= 1 and "core/academic-style.md" in _hsp31, "%d 处" % len(_how31))
+_hanch31 = [a for a in ("三、正面要求", "五、边界") if a not in tx("core/academic-style.md")]
+check("取法点名的两个标题锚在这份规范里真存在（指到查无此节的标题＝AI 取不出区间）",
+      not _hanch31, "缺：" + "、".join(_hanch31))
+_how31_off = [l for l in _hsp31.replace("取法＝**按标题定位、只取那一段**", "").splitlines() if "按标题定位" in l]
+check("植入式阴性：把那半句取法抹掉，上面那格立刻从 1 处变 0 处（尺不是写死的真）",
+      len(_how31) >= 1 and len(_how31_off) == 0, "%d→%d" % (len(_how31), len(_how31_off)))
