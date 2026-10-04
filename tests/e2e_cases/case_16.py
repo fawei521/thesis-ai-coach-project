@@ -83,6 +83,18 @@ if True:  # 容器不产生作用域，缩进与其他片段一致
     check("抽清单这步不空转（阴性：改掉层一声明标题后应抽不到四份）",
           _probe != _l1_16 and len(_l1_16) == 4,
           "变异后抽到%d份：%s" % (len(_probe), _probe))
+    # ---- P43 三层加载要有行为用例罩着（2026-10-04 补；宪法第十条：要求 AI 怎么想的规则也算功能）----
+    # 为什么盯"逐份点名"而不是"账里有 T94"：点名编号的断言会在每次正当改层一时制造假红，
+    # 而"有一条用例把 START 声明抽出来的那几份都写到"是真不变量——清单改了、用例没跟上就红。
+    _bt16 = [l for l in tx("tests/behavior-self-test.md").split("\n") if l.startswith("| T")]
+    _l1row16 = [l for l in _bt16 if all(f in l for f in _l1_16)]
+    check("层一那几份有一条行为用例逐份点名（冷启动只读这些）", bool(_l1row16),
+          "T 行%d条里逐份点名%s的有%d条" % (len(_bt16), _l1_16, len(_l1row16)))
+    # 阴性（真变异）：把命中那一行里的某一份改掉，"逐份点名"就该不成立——证明它不是"有一行就绿"。
+    _bm16 = _l1row16[0].replace(_l1_16[2], "core/zzz-bu-cunzai.md", 1) if _l1row16 else ""
+    check("逐份点名这条不空转（阴性：摘掉层一里任意一份就该抓不到）",
+          bool(_l1row16) and not all(f in _bm16 for f in _l1_16),
+          "变异后仍全部命中=%s" % all(f in _bm16 for f in _l1_16))
     # ---- 叠量探针进全量（2026-10-04；此前只能人手跑，见 `_归档/待办计划-开局必读层二按节取.md` §八）----
     # 为什么要注册进来：`tests/opening_overlay_probe.py` 量的是"命中才读真被抽进来时有多大"，
     # 它**从本片段现读闸的上限**（就是上面那条 `_open16 < (\d+)`）、从 START 现抽层一清单。
