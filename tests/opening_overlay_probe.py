@@ -2,27 +2,19 @@
 # -*- coding: utf-8 -*-
 """开局集之外的「当轮叠量」探针：命中才读的那几份，真被抽进来时有多大（只读，不写盘）。
 
-**为什么有这个文件**：2026-10-03 把开局必读改成三层之后，`case_16` 那道总量闸只管**层一**
-（现抽 START 第二步声明的那四份＋START 自己）。于是有个问题没人量过：
-「命中才读」听起来比「每轮在场」省，但它省的是**第一轮**，不是**最重的那一轮**——
-一轮里同时命中几份层二时，抽进来的字节可能比旧的全读开局集还大（复核报告里那个 97,891 B 的推算）。
-要把它变成能判定的事，先得有数，所以这里量五件事：
-  ① 层一现量（与 `case_16.py:47-55` 同一条抽取规则，两边不许各写一套）；
-  ② 层二每份的触发条件与现量（从 START 层二段落的「→ 路径」现抽，不抄清单）；
+**为什么有这个文件**：2026-10-03 把开局必读改成三层之后，`case_16` 那道总量闸只管**层一**（现抽 START 第二步声明的那四份＋START 自己）。
+于是有个问题没人量过：「命中才读」听起来比「每轮在场」省，但它省的是**第一轮**，不是**最重的那一轮**——
+一轮里同时命中几份层二时，抽进来的字节可能比旧的全读开局集还大（复核报告里那个 97,891 B 的推算）。要把它变成能判定的事，先得有数，所以这里量六件事：
+  ① 层一现量（规则同 `case_16.py:47-55`，两边不许各写一套）；② 层二每份的触发条件与现量（从 START 层二段落的「→ 路径」现抽，不抄清单）；
   ③ `core/coaching-protocol.md` 第十节那份**每轮默查清单**里，多少条把判据外包给了非层一文件；
-  ④ 分节字节：设计写的是「读那一节」，机器只能整份抽——所以量出「一节多大／整份多大」这个比值；
-  ⑤ 轮型叠量：按一张**摆在明面上的输入表**算四种轮型各抽进来多少字节。
-
+  ④ 分节字节：设计写的是「读那一节」，机器只能整份抽——所以量出「一节多大／整份多大」这个比值；⑤ 轮型叠量：按一张**摆在明面上的输入表**算四种轮型各抽进来多少字节；
+  ⑥ 按节取的声明层量：指向里点名了「第几节」就只算那一节——「改指向不改文件」这条路值不值得做，由这一档判。
 **能判什么**：一份文件被抽进来的字节、被多少条默查项指向、拆成按节读能省多少。
-**不能判什么**：真实命中率。轮型表是人工列的问法，不是观察到的对话分布——
-换了这张表结论就跟着换，所以读数必须配「这是推演、不是实测」一起看，别当证据用。
-
+**不能判什么**：真实命中率。轮型表是人工列的问法，不是观察到的对话分布——换了这张表结论就跟着换，读数必须配「这是推演、不是实测」一起看；⑥同理，它量的是**声明要读多少**，不是 AI 真读了多少。
 跑法：
-    python tests/opening_overlay_probe.py            # 打 ①②③④⑤
+    python tests/opening_overlay_probe.py            # 打 ①②③④⑤⑥
     python tests/opening_overlay_probe.py --selftest  # 尺子的阴性自测（退出码 0 才算尺子能用）
-
-字节口径同 `tests/full_e2e.py` 的 `tx()`：读进来（通用换行，CRLF→LF）再 encode，
-所以这里是**归一后的字节**，与磁盘原始大小对 CRLF 文件会差一截（差值＝行数）。
+字节口径同 `tests/full_e2e.py` 的 `tx()`：读进来（通用换行，CRLF→LF）再 encode，所以这里是**归一后的字节**，与磁盘原始大小对 CRLF 文件会差一截（差值＝行数）。
 """
 import argparse
 import re
@@ -163,6 +155,30 @@ SECTIONS = [
     ("core/literature-kb.md", r"^## "),
     ("core/outcome-delivery.md", r"^## "),
 ]
+SEC_PAT = dict(SECTIONS)
+SEC_NUMS = re.compile(r"第([一二三四五六七八九十]+)节")
+
+
+def bullet_text(rel):
+    """START 层二段落里指向这份文件的那一行原文（指向写在哪，节号就着落在哪）。"""
+    return next((l.strip() for l in tx("START.md").split("\n")
+                 if l.strip().startswith("-") and ("`%s`" % rel) in l), "")
+
+
+def sec_head(title):
+    m = re.match(r"^#+\s*([一二三四五六七八九十]+)、", title)
+    return m.group(1) if m else ""
+
+
+def section_bytes(rel, nums):
+    """文头＋被点名的那些节。没点名＝整份（不许算成只读文头）。返回 (字节, 查无的节号)。"""
+    if not nums:
+        return nbytes(rel), []
+    secs = section_sizes(rel, SEC_PAT.get(rel, r"^## "))
+    have = {sec_head(t) for t, _b in secs} - {""}
+    keep = set(nums)
+    tot = sum(b for t, b in secs if sec_head(t) in keep or not sec_head(t))
+    return tot, [n for n in nums if n not in have]
 
 
 def report():
@@ -213,6 +229,16 @@ def report():
     print("   对照：三层改造前开局全读 %d B（AGENTS.md:16 的叙述，本仓无可复跑算法）；"
           "叠量超过它的轮型：%s" % (BASELINE_94528, "、".join(over) or "无"))
 
+    print("\n⑥ 若指向改成按节取：节号从 START 那条指向现抽，点了第几节就只算那一节（没点名＝仍按整份）")
+    for name, files in TURNS:
+        got = [(f,) + section_bytes(f, SEC_NUMS.findall(bullet_text(f))) for f in files]
+        whole, cut = overlay_of(files), sum(b for _f, b, _m in got)
+        miss = [(f, x) for f, _b, m in got for x in m]
+        print("   %-34s 整份 %7d B → 按节 %7d B｜层一＋层二 %7d B（省 %6d B）%s"
+              % (name, whole, cut, tot1 + cut, whole - cut,
+                 ("⚠ 指向点了查无的节号：" + "、".join("%s§%s" % x for x in miss)) if miss else ""))
+    print("   注：⑥是**声明层**被要求读的量，磁盘与包字节一点没动；AI 真按不按节取，要靠真对话或走查才量得出。")
+
 
 def selftest():
     """阴性自测：把答案藏起来它还报得出，才证明它真在盯声明而不是把名字写死。"""
@@ -237,6 +263,18 @@ def selftest():
     res.append(("默查清单条数从文件里现数（不少于 10）", len(items) >= 10))
     res.append(("默查清单确实有外包项可抓",
                 any(h for _i, h in outsourced(items, ["START.md"] + real_l1))))
+    sty = "core/academic-style.md"
+    named = SEC_NUMS.findall(bullet_text(sty))
+    res.append(("⑥真在盯 START 的指向：落笔那份点名了节号，没指节号的份不受影响",
+                bool(named) and section_bytes(sty, [])[0] == nbytes(sty)
+                and not SEC_NUMS.findall(bullet_text("core/evidence-rigor.md"))))
+    res.append(("按节求和必须真小于整份（不然「按节读」是句空话）",
+                0 < section_bytes(sty, named)[0] < nbytes(sty)))
+    res.append(("点了不存在的节号要报查无（不许静默少算成「省了」）",
+                section_bytes(sty, ["十九"])[1] == ["十九"]))
+    res.append(("文头不许丢：只点一节时算出的量要大于那一节自己",
+                section_bytes(sty, ["四"])[0]
+                > [b for t, b in section_sizes(sty, r"^## ") if sec_head(t) == "四"][0]))
     bad = [n for n, v in res if not v]
     for n, v in res:
         print(("PASS " if v else "FAIL ") + n)
